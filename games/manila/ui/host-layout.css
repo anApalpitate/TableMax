@@ -71,6 +71,9 @@
   min-height: 44px;
   padding: 0;
   margin: 0;
+  height: auto;
+  max-height: none;
+  overflow: visible;
   border: 0;
   gap: 6px;
 }
@@ -107,7 +110,7 @@
   grid-column: 2;
   grid-row: 1;
   font-size: 20px;
-  line-height: 20px;
+  line-height: 26px;
 }
 
 :is(.mn-screen--host, .mn-screen--public) .mn-status .mn-status-detail {
@@ -116,7 +119,7 @@
   margin: 0;
   gap: 0 4px;
   font-size: 16px;
-  line-height: 18px;
+  line-height: 24px;
 }
 
 :is(.mn-screen--host, .mn-screen--public) .mn-status .mn-auction-standing {
@@ -127,18 +130,22 @@
 
 :is(.mn-screen--host, .mn-screen--public)
   .mn-current-turn-copy:has(> .mn-auction-standing) {
-  padding-right: 120px;
+  padding-right: 0;
 }
 
 :is(.mn-screen--host, .mn-screen--public) .mn-status .mn-auction-standing {
-  position: absolute;
-  right: 0;
-  top: 0;
-  width: 112px;
+  position: static;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 2px 8px;
+  grid-column: 1 / -1;
+  grid-row: 3;
+  width: auto;
 }
 
 :is(.mn-screen--host, .mn-screen--public) .mn-auction-standing > span {
-  display: block;
+  display: inline;
 }
 
 :is(.mn-screen--host, .mn-screen--public)

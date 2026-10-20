@@ -423,12 +423,13 @@
   width: 24px;
   height: 24px;
   border-radius: 50%;
-  border: 1px solid #fff6df;
-  color: #fff;
+  border: 2px solid var(--cargo-color, #315a7f);
+  background: #fff6df;
+  color: #203c3b;
   font-size: 16px;
   font-weight: 700;
   line-height: 1;
-  text-shadow: 0 1px 1px #0006;
+  text-shadow: none;
 }
 .mn-merchant-avatar {
   grid-column: 2;
@@ -445,12 +446,14 @@
   font-weight: 700;
 }
 .mn-merchant-name:not(:where(.mn-screen--player, .mn-screen--player *)) {
+  grid-column: 1 / -1;
+  grid-row: 2;
   min-width: 0;
-  overflow: hidden;
+  overflow: visible;
   font-size: 17px;
-  line-height: 20px;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  line-height: 24px;
+  white-space: normal;
+  overflow-wrap: anywhere;
 }
 .mn-merchant-tags {
   grid-column: 3 / 5;
@@ -459,6 +462,9 @@
   flex-wrap: wrap;
   justify-content: flex-start;
   gap: 2px;
+}
+.mn-merchant-tags:not(:where(.mn-screen--player, .mn-screen--player *)) {
+  grid-row: 1;
 }
 .mn-tag {
   display: inline-flex;
@@ -1107,9 +1113,6 @@
   }
   .mn-screen--player .mn-board-market .mn-market-panel {
     padding: 1px 4px;
-  }
-  .mn-screen--player .mn-board-market .mn-market-panel > h2 {
-    display: none;
   }
   .mn-screen--player .mn-board-market .mn-market {
     display: flex;

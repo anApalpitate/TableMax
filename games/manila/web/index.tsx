@@ -90,6 +90,21 @@ function ManilaScreen({ session }: { session: GameHost }) {
     live.current = session;
   });
   const scrollRef = useRef<HTMLDivElement>(null);
+  const goToAction = () => {
+    const owner = scrollRef.current;
+    const target = owner?.querySelector('#mn-action-area');
+    if (!owner || !target) return;
+    owner.scrollTo({
+      top:
+        owner.scrollTop +
+        target.getBoundingClientRect().top -
+        owner.getBoundingClientRect().top -
+        8,
+      behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches
+        ? 'instant'
+        : 'smooth',
+    });
+  };
   useBoardAnchor(
     scrollRef,
     [boundary, view?.revision, JSON.stringify(draft), locked].join('|'),
@@ -146,7 +161,46 @@ function ManilaScreen({ session }: { session: GameHost }) {
   const playerNextVoyage = actions.find(
     (action) => action.type === 'next-voyage',
   );
-  const actor = view?.seats.find((seat) => seat.id === game?.turnSeat);
+  const actor =
+    game && !['round-result', 'ended'].includes(game.phase)
+      ? view?.seats.find((seat) => seat.id === game.turnSeat)
+      : undefined;
+  const actionJump = game &&
+    role === 'player' &&
+    game.phase !== 'financing' &&
+    game.phase !== 'round-result' &&
+    game.phase !== 'ended' &&
+    actions.length > 0 && (
+      <button
+        className="mn-action-link"
+        onClick={goToAction}
+        aria-label="定位到本人操作区"
+      >
+        <CopperMark
+          kind={
+            game.phase === 'place'
+              ? 'worker'
+              : game.phase === 'share'
+                ? 'shares'
+                : 'list'
+          }
+        />
+        <span>
+          {game.phase === 'setup'
+            ? '装船'
+            : game.phase.startsWith('pilot')
+              ? '领航'
+              : game.phase === 'share'
+                ? '购股'
+                : game.phase === 'place'
+                  ? '派遣'
+                  : game.phase === 'auction'
+                    ? '竞拍'
+                    : '本人操作'}{' '}
+          ↓
+        </span>
+      </button>
+    );
   const status =
     game && view ? (
       <section className="mn-status" aria-label="当前阶段">
@@ -182,6 +236,7 @@ function ManilaScreen({ session }: { session: GameHost }) {
               ) : (
                 '等待保存结果'
               )}
+              {actionJump}
               <span className="mn-status-save">
                 <SessionFeedback session={session} mode="saved" />
               </span>
@@ -190,8 +245,12 @@ function ManilaScreen({ session }: { session: GameHost }) {
               <span className="mn-auction-standing">
                 {game.auction.highBidder ? (
                   <>
-                    <span>最高 {game.auction.bid} ₱</span>{' '}
-                    <span>{names[game.auction.highBidder] ?? '商人'}</span>
+                    <span className="mn-leading-bid">
+                      最高 {game.auction.bid} ₱
+                    </span>{' '}
+                    <span className="mn-leading-player">
+                      领先：{names[game.auction.highBidder] ?? '商人'}
+                    </span>
                   </>
                 ) : (
                   '尚无人出价'
@@ -209,22 +268,7 @@ function ManilaScreen({ session }: { session: GameHost }) {
           {role === 'player' &&
             game.phase === 'financing' &&
             game.payment?.seatId === game.self?.seatId && (
-              <button
-                className="mn-payment-link"
-                onClick={() => {
-                  const owner = scrollRef.current;
-                  const target = owner?.querySelector('#mn-action-area');
-                  if (!owner || !target) return;
-                  owner.scrollTo({
-                    top:
-                      owner.scrollTop +
-                      target.getBoundingClientRect().top -
-                      owner.getBoundingClientRect().top -
-                      8,
-                    behavior: 'smooth',
-                  });
-                }}
-              >
+              <button className="mn-payment-link" onClick={goToAction}>
                 <span>需要付款</span>
                 <strong>去处理 ↓</strong>
               </button>

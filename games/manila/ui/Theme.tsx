@@ -10,6 +10,9 @@ export function CopperMark({
     | 'shares'
     | 'coin'
     | 'credit'
+    | 'worker'
+    | 'income'
+    | 'risk'
     | 'ledger'
     | 'receipt'
     | 'list'
@@ -21,6 +24,10 @@ export function CopperMark({
     shares: 'M5 7V4h12v3M3 7h18v15H3zM7 11h10M7 15h6M16 18l2 2 2-2',
     coin: 'M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18M15 8H10v8M8 11h7M8 14h6',
     credit: 'M5 3h14v18H5zM8 7h8M8 11h5M9 16h6M12 13v6',
+    worker:
+      'M15 6a3 3 0 1 1-6 0 3 3 0 0 1 6 0M7 21v-5H5v-2a7 7 0 0 1 14 0v2h-2v5z',
+    income: 'M12 3v11m-4-4 4 4 4-4M4 15v5h16v-5',
+    risk: 'm12 3 10 18H2zM12 9v5M12 17h.01',
     ledger:
       'M12 5C8 3 5 3 2 4v16c3-1 6-1 10 1 4-2 7-2 10-1V4c-3-1-6-1-10 1v16M5 8h4M15 8h4M5 12h4M15 12h4',
     receipt: 'M5 2h14v20l-3-2-4 2-4-2-3 2zM8 7h8M8 11h8M8 15h5',
@@ -121,6 +128,33 @@ export function VoyageDetail({ game }: { game: ManilaView }) {
       <p className="mn-detail-note">
         船舱从最低空费位入座；分红由船上同伙均分。
       </p>
+      <dl className="mn-symbol-key">
+        <div>
+          <dt>− 费用</dt>
+          <dd>入驻时支付</dd>
+        </div>
+        <div>
+          <dt>
+            <CopperMark kind="income" />
+            ＋收益
+          </dt>
+          <dd>条件满足才收入，未扣入驻费</dd>
+        </div>
+        <div>
+          <dt>
+            <CopperMark kind="risk" />
+            即收
+          </dt>
+          <dd>保险立即领款，同时承担修船赔付</dd>
+        </div>
+        <div>
+          <dt>
+            <CopperMark kind="worker" />
+            伙伴
+          </dt>
+          <dd>棋子数字是商人座号，不是岗位序号</dd>
+        </div>
+      </dl>
     </>
   );
 }

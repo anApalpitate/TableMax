@@ -39,6 +39,7 @@ const available = [
   'text-flow',
   'lane-heading',
   'surface-polish',
+  'visual-semantics',
 ];
 const selected = option('only')?.split(',') ?? available;
 assert(selected.every((value) => available.includes(value)));
@@ -513,6 +514,193 @@ try {
     const run = async (name, body) => {
       if (selected.includes(name)) tasks.push({ name, body });
     };
+    await run('visual-semantics', async () => {
+      for (const role of ['player', 'host', 'public']) {
+        const actualSize =
+          role === 'player'
+            ? { width, height }
+            : { width: Math.max(width, 1280), height: Math.max(height, 720) };
+        await page.setViewportSize(actualSize);
+        for (const phase of [
+          'auction-leading',
+          'setup',
+          'place',
+          'pilot-small',
+          'plunder',
+          'round-result',
+        ]) {
+          await load({ phase, role, longNames: true });
+          assert.equal(
+            await page.locator('.mn-market-panel h2').first().textContent(),
+            '股价 · ₱/股',
+          );
+          assert(
+            (await page
+              .locator('.mn-market-stock[aria-label^="库存"]')
+              .count()) >= 4,
+          );
+          assert.equal(
+            await page
+              .locator('.mn-space-price[aria-label^="入驻费用"]')
+              .count(),
+            await page.locator('.mn-space-price').count(),
+            'Every rendered vacant position labels its cost; occupied slots show their owner instead',
+          );
+          assert(
+            (await page
+              .locator('.mn-space-earn[aria-label*="赔付风险"]')
+              .count()) > 0,
+          );
+          assert(
+            (await page
+              .locator('.mn-merchant-assets > [aria-label^="可用伙伴"]')
+              .count()) >= 3,
+          );
+          const collisions = await page
+            .locator('.mn-merchant-card')
+            .evaluateAll((nodes) =>
+              nodes.flatMap((node) => {
+                const name = node
+                  .querySelector('.mn-merchant-name')
+                  .getBoundingClientRect();
+                const tags = node
+                  .querySelector('.mn-merchant-tags')
+                  .getBoundingClientRect();
+                if (!name.width || !name.height || !tags.width || !tags.height)
+                  return [];
+                const overlap =
+                  Math.min(name.right, tags.right) -
+                    Math.max(name.left, tags.left) >
+                    1 &&
+                  Math.min(name.bottom, tags.bottom) -
+                    Math.max(name.top, tags.top) >
+                    1;
+                return overlap ? [node.textContent] : [];
+              }),
+            );
+          assert.deepEqual(
+            collisions,
+            [],
+            'Merchant names and role badges occupy separate rows',
+          );
+          const lost = await page
+            .locator(
+              '.mn-lane[data-mn-lane-state="plundered"],.mn-lane[data-mn-lane-state="docked"]',
+            )
+            .evaluateAll((nodes) =>
+              nodes.map((node) => ({
+                state: node.dataset.mnLaneState,
+                text: node.textContent,
+              })),
+            );
+          report.metrics.push({
+            width,
+            height,
+            kind: 'visual-semantics',
+            role,
+            phase,
+            actualSize,
+            lost,
+          });
+          if (phase === 'auction-leading') {
+            assert.match(
+              await page.locator('.mn-leading-player').textContent(),
+              /^领先：/,
+            );
+            assert.doesNotMatch(
+              await page
+                .locator('#mn-action-area h2')
+                .textContent()
+                .catch(() => ''),
+              /等待其他商人/,
+            );
+            const leading = await page
+              .locator('.mn-leading-player')
+              .evaluate((node) => {
+                const box = node.getBoundingClientRect();
+                const header = node
+                  .closest('.mn-status')
+                  .getBoundingClientRect();
+                return {
+                  top: box.top,
+                  bottom: box.bottom,
+                  headerTop: header.top,
+                  headerBottom: header.bottom,
+                };
+              });
+            assert(
+              leading.top >= leading.headerTop - 1 &&
+                leading.bottom <= leading.headerBottom + 1,
+              'Long leading-merchant name stays inside the phase panel',
+            );
+          }
+          if (phase === 'round-result') {
+            assert.equal(
+              await page.locator('.mn-tag--active,.mn-seat-active').count(),
+              0,
+              'Settled voyages do not label the last actor as still acting',
+            );
+            const amounts = await page
+              .locator('.mn-result-merchant')
+              .first()
+              .evaluate((node) => {
+                const body = node
+                  .closest('.mn-result-body')
+                  .getBoundingClientRect();
+                return [
+                  ...node.querySelectorAll('summary .mn-result-amount b'),
+                ].map((amount) => {
+                  const box = amount.getBoundingClientRect();
+                  return {
+                    text: amount.textContent,
+                    top: box.top,
+                    bottom: box.bottom,
+                    bodyTop: body.top,
+                    bodyBottom: body.bottom,
+                  };
+                });
+              });
+            assert(amounts.length >= 1);
+            for (const amount of amounts)
+              assert(
+                amount.top >= amount.bodyTop - 1 &&
+                  amount.bottom <= amount.bodyBottom + 1,
+                `${role}: first merchant's complete financial summary is visible before scrolling`,
+              );
+          }
+          if (
+            role === 'player' &&
+            ['setup', 'place', 'pilot-small'].includes(phase)
+          ) {
+            const jump = page.getByRole('button', { name: '定位到本人操作区' });
+            await jump.click();
+            const position = await page.evaluate(() => {
+              const owner = document
+                .querySelector('.mn-player-scroll')
+                .getBoundingClientRect();
+              const action = document
+                .querySelector('#mn-action-area')
+                .getBoundingClientRect();
+              return {
+                windowScroll: scrollY,
+                actionTop: action.top,
+                ownerTop: owner.top,
+                ownerBottom: owner.bottom,
+              };
+            });
+            assert.equal(position.windowScroll, 0);
+            assert(
+              position.actionTop >= position.ownerTop - 1 &&
+                position.actionTop < position.ownerBottom - 44,
+              'Phase shortcut exposes the real action area in the existing scroll owner',
+            );
+          }
+          if (role === 'player' || width === 1280)
+            await shot(`semantics-${role}-${phase}`);
+        }
+      }
+      await page.setViewportSize({ width, height });
+    });
     await run('lane-heading', async () => {
       await load({ phase: 'auction' });
       const labels = await page
@@ -672,7 +860,7 @@ try {
           for (const field of fields) {
             assert(
               field.height >= 44 &&
-                field.padding >= (width <= 360 ? 4 : 10) &&
+                field.padding >= (width <= 389 ? 4 : 10) &&
                 field.radius >= 7,
             );
             assert.equal(field.appearance, 'none');

@@ -240,8 +240,10 @@ export function PlayerControls({
             ? '海盗掠夺'
             : game.phase === 'share'
               ? '购买一张股份'
-              : bids.length
-                ? '竞拍港务长'
+              : game.phase === 'auction' && actions.length
+                ? bids.length
+                  ? '竞拍港务长'
+                  : '本轮无法加价，可退出竞拍'
                 : game.phase === 'financing' && actions.length
                   ? '选择股份抵押付款'
                   : game.phase === 'round-result'

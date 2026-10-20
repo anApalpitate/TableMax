@@ -188,7 +188,7 @@ describe('Manila experience uses authorized public and player views', () => {
     const state = apply(fresh(), { type: 'bid', amount: 7 });
     for (const role of ['host', 'public', 'player'] as const) {
       const { html, text } = render(state, role, 'C');
-      expect(text).toMatch(/最高\s*7\s*₱\s*甲/);
+      expect(text).toMatch(/最高\s*7\s*₱\s*领先：甲/);
       expect(html).toContain('class="mn-actor-avatar"');
       expect(html).toContain('alt="乙正在行动"');
       if (role !== 'player') {
@@ -303,7 +303,7 @@ describe('Manila experience uses authorized public and player views', () => {
 
   it('uses the manifest for an empty player lane instead of the retired text block', () => {
     const { text } = render(fresh(), 'player', 'A');
-    expect(text).toContain('待装货');
+    expect(text).toContain('空舱');
     expect(text).not.toContain('等待装船');
     expect(text).not.toMatch(/船员\s+\d+/);
   });
@@ -317,5 +317,21 @@ describe('Manila experience uses authorized public and player views', () => {
     ).toHaveLength(3);
     expect(html).toContain('class="mn-merchant-name"');
     expect(html).toContain('class="mn-merchant-assets"');
+  });
+  it('distinguishes partner counts, share prices and placement costs on every role', () => {
+    for (const role of ['host', 'public', 'player'] as const) {
+      const { html, text } = render(fresh(), role);
+      expect(text).toContain('小领航');
+      expect(text).toContain('大领航');
+      expect(text).toContain('₱/股');
+      expect(html).toContain('aria-label="入驻费用 4 比索"');
+      expect(html).toContain('aria-label="条件收益 6 比索，未扣除费用"');
+      expect(html).toContain('aria-label="立即收入 10 比索，有修船赔付风险"');
+      expect(html).toContain('aria-current="true"');
+      const available = (
+        rules.project(fresh(), { role: 'public' }) as ManilaView
+      ).players.A!.availableWorkers;
+      expect(html).toContain(`aria-label="可用伙伴 ${available} 人"`);
+    }
   });
 });

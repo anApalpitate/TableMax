@@ -63,8 +63,8 @@ export function Space({
                 : '船员'
               : space.kind === 'pilot'
                 ? space.index === 0
-                  ? '小船'
-                  : '大船'
+                  ? '小领航'
+                  : '大领航'
                 : '承保'}
       </span>
       <span className="mn-space-value">
@@ -77,8 +77,12 @@ export function Space({
             label={names[space.occupant] ?? space.occupant}
           />
         ) : (
-          <span className="mn-space-price mn-money">
-            {space.cost === 0 ? '免费' : `${space.cost} ₱`}
+          <span
+            className="mn-space-price mn-money"
+            title={`入驻费用 ${space.cost} 比索`}
+            aria-label={`入驻费用 ${space.cost} 比索`}
+          >
+            {space.cost === 0 ? '免费' : `−${space.cost} ₱`}
           </span>
         )}
       </span>
@@ -86,9 +90,24 @@ export function Space({
         space.kind === 'shipyard' ||
         space.kind === 'insurance') &&
         space.payout != null && (
-          <span className="mn-space-earn">
-            <span>{space.kind === 'insurance' ? '即收' : '收益'}</span>{' '}
-            <span className="mn-money">{space.payout} ₱</span>
+          <span
+            className="mn-space-earn"
+            title={
+              space.kind === 'insurance'
+                ? `即收 ${space.payout} 比索，同时承担修船赔付`
+                : `${space.kind === 'port' ? '抵港' : '进坞'}条件满足时收入 ${space.payout} 比索，未扣除入驻费用`
+            }
+            aria-label={
+              space.kind === 'insurance'
+                ? `立即收入 ${space.payout} 比索，有修船赔付风险`
+                : `条件收益 ${space.payout} 比索，未扣除费用`
+            }
+          >
+            <CopperMark kind={space.kind === 'insurance' ? 'risk' : 'income'} />
+            <span className="mn-money">
+              {space.kind === 'insurance' ? '即收 ' : '+'}
+              {space.payout} ₱
+            </span>
           </span>
         )}
     </>
@@ -300,8 +319,13 @@ export function HarborBoard({
               boat.destination === 'port'
                 ? `靠港${'ABC'[boat.destinationIndex ?? 0]}`
                 : boat.destination === 'shipyard'
-                  ? '进坞'
+                  ? `进坞${boat.destinationIndex === null ? '' : 'ABC'[boat.destinationIndex]}`
                   : `${boat.position}格`;
+            const crewLostIncome =
+              boat.plundered || boat.destination === 'shipyard';
+            const payoutHint = crewLostIncome
+              ? `本船船员无分红：${boat.plundered ? '已被掠夺' : '进入修船坞'}`
+              : '整船分红池，抵港后由船上同伙均分；不是每人收入';
             const crewMembers = crew.filter((entry) => entry.occupant);
             const laneState =
               setup || pilot
@@ -371,9 +395,17 @@ export function HarborBoard({
                       <CargoArt cargo={cargo} />
                       <strong>{cargoNames[cargo]}</strong>
                       {!compactHeading && (
-                        <span className="mn-cargo-payout">
-                          <span>分红池</span>
-                          <strong>{data?.payout} ₱</strong>
+                        <span
+                          className="mn-cargo-payout"
+                          title={payoutHint}
+                          aria-label={
+                            crewLostIncome
+                              ? payoutHint
+                              : `整船分红池 ${data?.payout} 比索，船员均分`
+                          }
+                        >
+                          <span>{crewLostIncome ? '船员' : '整船'}</span>
+                          <strong>{crewLostIncome ? 0 : data?.payout} ₱</strong>
                         </span>
                       )}
                     </DetailButton>
@@ -658,15 +690,34 @@ export function HarborBoard({
                       <>
                         <span className="mn-lane-meta">
                           <span className="mn-position-readout">
-                            {boat.destination !== 'sea'
-                              ? destination
-                              : cargo
-                                ? `船员 ${crewMembers.length}`
-                                : '等待装船'}
+                            {(boat.plundered || boat.destination !== 'sea') && (
+                              <SiteArt
+                                kind={
+                                  boat.plundered
+                                    ? 'pirate'
+                                    : boat.destination === 'port'
+                                      ? 'port'
+                                      : 'shipyard'
+                                }
+                              />
+                            )}
+                            {boat.plundered
+                              ? '被掠夺'
+                              : boat.destination !== 'sea'
+                                ? destination
+                                : cargo
+                                  ? `船员 ${crewMembers.length}`
+                                  : '空舱'}
                           </span>
                           {cargo ? (
-                            <span className="mn-payout-label">
-                              分红 {data?.payout} ₱
+                            <span
+                              className="mn-payout-label"
+                              title={payoutHint}
+                            >
+                              {crewLostIncome
+                                ? '船员 0'
+                                : `整船 ${data?.payout}`}{' '}
+                              ₱
                             </span>
                           ) : null}
                         </span>
@@ -707,8 +758,13 @@ export function HarborBoard({
                       </span>
                     ) : cargo ? (
                       <>
-                        <span className="mn-manifest-kicker">
-                          船员
+                        <span
+                          className="mn-manifest-kicker"
+                          title={`船员 ${crewMembers.length} 人；棋子数字对应商人座号`}
+                          aria-label={`船员 ${crewMembers.length} 人`}
+                        >
+                          <CopperMark kind="worker" />
+                          <span className="mn-sr-only">船员</span>
                           <b>{crewMembers.length}</b>
                         </span>
                         <span className="mn-manifest-members">
@@ -741,7 +797,7 @@ export function HarborBoard({
                         <span className="mn-manifest-hold" aria-hidden="true">
                           <HoldMark />
                         </span>
-                        <span>待装货</span>
+                        <span>空舱</span>
                       </span>
                     )}
                   </div>
@@ -786,7 +842,7 @@ export function HarborBoard({
 export function Market({ game }: { game: ManilaView }) {
   return (
     <section className="mn-panel mn-market-panel">
-      <h2>货物行情</h2>
+      <h2>股价 · ₱/股</h2>
       <div className="mn-market">
         {game.cargos.map((cargo) => (
           <div
@@ -796,11 +852,22 @@ export function Market({ game }: { game: ManilaView }) {
             style={cargoStyle(cargoColors[cargo.id])}
           >
             <div className="mn-market-title">
-              <span className="mn-cargo">
+              <span
+                className="mn-cargo"
+                aria-label={cargoNames[cargo.id]}
+                title={cargoNames[cargo.id]}
+              >
                 <CargoArt cargo={cargo.id} />
-                {cargoNames[cargo.id]}
+                <span className="mn-cargo-name">{cargoNames[cargo.id]}</span>
               </span>
-              <span>余 {game.stock[cargo.id]} 股</span>
+              <span
+                className="mn-market-stock"
+                title={`库存 ${game.stock[cargo.id]} 股`}
+                aria-label={`库存 ${game.stock[cargo.id]} 股`}
+              >
+                <CopperMark kind="shares" />
+                <span>×{game.stock[cargo.id]}</span>
+              </span>
             </div>
             <div
               className="mn-market-track"
@@ -812,6 +879,14 @@ export function Market({ game }: { game: ManilaView }) {
                     price === game.market[cargo.id] ? 'mn-current-price' : ''
                   }
                   key={price}
+                  aria-current={
+                    price === game.market[cargo.id] ? 'true' : undefined
+                  }
+                  title={
+                    price === game.market[cargo.id]
+                      ? `当前每股 ${price} 比索`
+                      : `每股 ${price} 比索`
+                  }
                 >
                   {price}
                 </span>
@@ -879,7 +954,9 @@ export function MerchantRack({
           const player = game.players[id]!;
           const seat = seats.find((entry) => entry.id === id);
           const name = seat?.name ?? `商人${index + 1}`;
-          const active = game.turnSeat === id && game.phase !== 'ended';
+          const active =
+            game.turnSeat === id &&
+            !['round-result', 'ended'].includes(game.phase);
           const self = game.self?.seatId === id;
           const master = game.harborMaster === id;
           const income = game.result?.income[id];
@@ -954,6 +1031,8 @@ export function MerchantRack({
                 <span
                   className="mn-merchant-seat"
                   style={cargoStyle(seatColors[index]!)}
+                  title={`${index + 1}号商人；对应同号伙伴棋子`}
+                  aria-label={`${index + 1}号商人`}
                 >
                   {index + 1}
                 </span>
@@ -978,16 +1057,25 @@ export function MerchantRack({
                   {self && <span className="mn-tag mn-tag--self">你</span>}
                 </span>
                 <span className="mn-merchant-assets">
-                  <span>
+                  <span
+                    aria-label={`现金 ${player.cash} 比索`}
+                    title={`现金 ${player.cash} 比索`}
+                  >
                     <CopperMark kind="coin" />
                     <b>{player.cash}</b>
                   </span>
-                  <span>
+                  <span
+                    aria-label={`股份 ${player.shareCount} 张`}
+                    title={`股份 ${player.shareCount} 张`}
+                  >
                     <CopperMark kind="shares" />
                     <b>{player.shareCount}</b>
                   </span>
-                  <span>
-                    <CopperMark kind="credit" />
+                  <span
+                    aria-label={`可用伙伴 ${player.availableWorkers} 人`}
+                    title={`可用伙伴 ${player.availableWorkers} 人；棋子数字对应商人座号`}
+                  >
+                    <CopperMark kind="worker" />
                     <b>{player.availableWorkers}</b>
                   </span>
                 </span>
@@ -1030,7 +1118,7 @@ export function Players({
           const seat = seats.find((entry) => entry.id === id);
           return (
             <article
-              className={`mn-seat${game.turnSeat === id ? ' mn-seat--current' : ''}`}
+              className={`mn-seat${game.turnSeat === id && !['round-result', 'ended'].includes(game.phase) ? ' mn-seat--current' : ''}`}
               key={id}
               data-seat-id={id}
               data-mn-player={id}
@@ -1059,9 +1147,10 @@ export function Players({
                   {id === game.harborMaster && (
                     <span className="mn-seat-role">港务长</span>
                   )}
-                  {game.turnSeat === id && game.phase !== 'ended' && (
-                    <span className="mn-seat-active">行动中</span>
-                  )}
+                  {game.turnSeat === id &&
+                    !['round-result', 'ended'].includes(game.phase) && (
+                      <span className="mn-seat-active">行动中</span>
+                    )}
                 </strong>
                 <div className="mn-seat-meta mn-seat-assets">
                   <span className="mn-seat-asset">

@@ -1,4 +1,14 @@
 /* Shared paper signs: full labels, with contrast supplied by one coherent surface. */
+.mn-position-readout .mn-site-art {
+  width: 18px;
+  height: 18px;
+  margin-inline-end: 4px;
+  vertical-align: middle;
+}
+.mn-manifest-kicker > .mn-copper-mark {
+  width: 20px;
+  height: 20px;
+}
 .mn-screen--player .mn-lane-heading > strong {
   grid-column: 1 / -1;
   justify-self: center;

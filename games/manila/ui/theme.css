@@ -677,6 +677,49 @@
   width: 34px;
   height: 34px;
 }
+.mn-market-stock {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  white-space: nowrap;
+}
+.mn-market-stock .mn-copper-mark,
+.mn-space-earn .mn-copper-mark {
+  width: 18px;
+  height: 18px;
+  vertical-align: middle;
+}
+.mn-space-earn .mn-copper-mark {
+  margin-inline-end: 2px;
+}
+.mn-market-track [aria-current='true'] {
+  outline: 2px solid #fff6df;
+  outline-offset: -2px;
+}
+.mn-symbol-key {
+  display: grid;
+  gap: 8px;
+  margin: 12px 0 0;
+}
+.mn-symbol-key > div {
+  display: grid;
+  grid-template-columns: minmax(100px, 0.6fr) minmax(0, 1fr);
+  align-items: center;
+  gap: 8px;
+  padding: 8px;
+  border-radius: 8px;
+  background: #fff3d7;
+}
+.mn-symbol-key dt {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-weight: 700;
+}
+.mn-symbol-key dd {
+  margin: 0;
+  min-width: 0;
+}
 .mn-ledger .mn-market-title {
   margin-bottom: 7px;
 }
