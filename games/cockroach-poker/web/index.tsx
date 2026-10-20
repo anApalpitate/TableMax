@@ -75,7 +75,7 @@ function Screen({ session }: { session: GameHost }) {
       )}
       {panel && (
         <OverlayPanel
-          title={panel === 'rules' ? '德国小强 · 图文规则' : '牌桌管理与设置'}
+          title={panel === 'rules' ? '德国小强图文规则' : '牌桌管理与设置'}
           close={() => setPanel(null)}
           className="cp-dialog"
         >

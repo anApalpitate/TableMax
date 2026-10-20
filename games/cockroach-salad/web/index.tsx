@@ -1,3 +1,4 @@
+/// <reference types="vite/client" />
 /* eslint-disable react-refresh/only-export-components -- Lazy game client exports a platform adapter. */
 import { useMemo, useState } from 'react';
 import type { JsonValue } from '@tablemax/game-sdk';
@@ -9,7 +10,6 @@ import {
   RoomManagement,
   ScreenLink,
   SessionFeedback,
-  resourceUrl as releaseResourceUrl,
   type GameClient,
   type GameHost,
   type GameSetupSettingsProps,
@@ -24,7 +24,17 @@ import {
 } from '../types';
 import { SavedFeedback, SoundControl } from '../ui/SavedFeedback';
 import '../ui/style.css';
-const resourceUrl = (id: string) => releaseResourceUrl(id, import.meta.url);
+const svgResources = import.meta.glob<string>(
+  '../../../assets/games/cockroach-salad/*.svg',
+  { eager: true, query: '?url', import: 'default' },
+);
+function resourceUrl(id: string): string {
+  if (!/^cockroach-salad\/[a-z0-9-]+\.svg$/.test(id))
+    throw new Error('Invalid salad resource ID');
+  const url = svgResources[`../../../assets/games/${id}`];
+  if (typeof url !== 'string') throw new Error('Missing salad resource: ' + id);
+  return url;
+}
 function Face({ value }: { value: Card | null }) {
   return value ? (
     <div className={`salad-card ${value.taboo ? 'salad-taboo' : ''}`}>
@@ -46,10 +56,10 @@ function SetupSettings({ value, disabled, onChange }: GameSetupSettingsProps) {
         disabled={disabled}
         onChange={(e) => onChange({ speed: e.target.value })}
       >
-        <option value="accelerating">渐渐加快 · 6.5至1.8秒</option>
-        <option value="relaxed">固定宽松 · 6.5秒</option>
-        <option value="classic">固定经典 · 3秒</option>
-        <option value="fast">固定快速 · 1.8秒</option>
+        <option value="accelerating">渐渐加快（6.5至1.8秒）</option>
+        <option value="relaxed">固定宽松（6.5秒）</option>
+        <option value="classic">固定经典（3秒）</option>
+        <option value="fast">固定快速（1.8秒）</option>
       </select>
     </label>
   );
@@ -78,14 +88,14 @@ function Clock({
   return (
     <strong className="salad-clock" role="timer">
       {(Math.ceil(left / 100) / 10).toFixed(1)} 秒
-      {timing?.running ? '' : ' · 暂停'}
+      {!timing?.running && <span className="salad-clock-paused">已暂停</span>}
     </strong>
   );
 }
 function Rulebook() {
   return (
     <div className="salad-rulebook">
-      <h2>128张牌，一场嘴快脑更快的沙拉</h2>
+      <h2>128张牌，抢先出完</h2>
       <p>
         2–6人。四种蔬菜各28张普通牌、4张禁忌牌。平均发为面朝下的个人牌堆，余牌移出；不得提前查看自己的牌。按座位顺序开始，先出完者在质疑窗口结束后获胜。
       </p>
@@ -98,11 +108,29 @@ function Rulebook() {
       <p>
         通常回答当前蔬菜。当前蔬菜与上一张牌的蔬菜、上一次实际回答、可见禁忌蔬菜任一相同，改答另一个蔬菜；替代词也不得是上一张蔬菜、上一答案或禁忌。禁忌牌一律回答“蟑螂”。五个按钮固定位置，错误答案也可以点击。
       </p>
-      <img
-        className="salad-rule-picture"
-        src={resourceUrl('cockroach-salad/rules.svg')}
-        alt="番茄接番茄时，避开番茄和禁忌甜椒，改说生菜或花椰菜"
-      />
+      <figure className="salad-rule-flow">
+        <div className="salad-rule-flow-steps">
+          {[
+            { label: '上一张', vegetable: 'tomato' as const },
+            { label: '当前牌', vegetable: 'tomato' as const },
+            { label: '可改答', vegetable: 'lettuce' as const },
+          ].map(({ label, vegetable }) => (
+            <div className="salad-rule-flow-step" key={label}>
+              <span>{label}</span>
+              <div className="salad-rule-flow-vegetable">
+                <img
+                  src={resourceUrl(`cockroach-salad/${vegetable}.svg`)}
+                  alt=""
+                />
+                <strong>{names[vegetable]}</strong>
+              </div>
+            </div>
+          ))}
+        </div>
+        <figcaption>
+          番茄接番茄，必须改名。甜椒禁忌时，可答生菜或花椰菜，不能答番茄或甜椒。
+        </figcaption>
+      </figure>
       <h2>两堆轮流，禁忌只看露出的牌</h2>
       <p>
         打出禁忌牌后，下张牌换至另一堆。换堆的第一张牌仍须避开覆盖前的旧禁忌，因此该回合可能两种禁忌同时有效。之后旧禁忌被盖住即可解除。
@@ -172,7 +200,7 @@ function Screen({ session }: { session: GameHost }) {
               <Clock key={game.step} timing={view?.automaticTiming} />
             )}
             {game.phase === 'overtime' && (
-              <strong>已拖延 · 可质疑，继续无操作将自动收牌</strong>
+              <strong>已拖延，可质疑；继续无操作将自动收牌</strong>
             )}
           </section>
           <div className="salad-layout">
@@ -195,9 +223,10 @@ function Screen({ session }: { session: GameHost }) {
                     key={i}
                     className={i === game.pile ? 'salad-current' : ''}
                   >
-                    <h3>
-                      第{i + 1}堆 · {game.pileCounts[i]}张
-                      {i === game.pile ? ' · 当前' : ''}
+                    <h3 className="salad-pile-heading">
+                      <span>第{i + 1}堆</span>
+                      <span>{game.pileCounts[i]}张</span>
+                      {i === game.pile && <span>当前</span>}
                     </h3>
                     <Face value={p} />
                   </section>
@@ -285,7 +314,7 @@ function Screen({ session }: { session: GameHost }) {
       )}
       {panel && (
         <OverlayPanel
-          title={panel === 'rules' ? '蟑螂沙拉 · 图文规则' : '蟑螂沙拉 · 设置'}
+          title={panel === 'rules' ? '蟑螂沙拉图文规则' : '蟑螂沙拉设置'}
           close={() => setPanel(null)}
           className="salad-overlay"
         >

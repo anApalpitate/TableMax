@@ -254,12 +254,6 @@
   width: 24%;
   font-size: 18px;
 }
-.salad-rule-picture {
-  width: 100%;
-  max-width: 680px;
-  display: block;
-  margin: auto;
-}
 .salad-overlay {
   background: #fffdf1;
 }
@@ -574,5 +568,107 @@
   }
   .salad-seats span {
     font-size: 20px;
+  }
+}
+
+.salad-pile-heading {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 4px 8px;
+}
+.salad-pile-heading > span {
+  white-space: nowrap;
+}
+.salad-clock-paused {
+  display: block;
+  font-size: 18px;
+  white-space: nowrap;
+}
+
+.salad-rule-flow {
+  margin: 16px 0;
+  padding: 12px;
+  border: 2px solid #bbd68b;
+  border-radius: 20px;
+  background: #f2f7d9;
+  font-size: 18px;
+  line-height: 1.5;
+}
+.salad-rule-flow-steps {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+.salad-rule-flow-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+.salad-rule-flow-step > span {
+  font-size: 18px;
+  white-space: nowrap;
+}
+.salad-rule-flow-vegetable {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-width: 0;
+}
+.salad-rule-flow-vegetable img {
+  width: 56px;
+  height: 56px;
+  flex-shrink: 0;
+}
+.salad-rule-flow-vegetable strong {
+  font-size: 18px;
+  white-space: nowrap;
+}
+.salad-rule-flow figcaption {
+  margin-top: 12px;
+  font-size: 18px;
+  line-height: 1.6;
+}
+@media (max-width: 600px) {
+  .salad-rule-flow-steps {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+  .salad-rule-flow-step {
+    display: grid;
+    grid-template-columns: 80px minmax(0, 1fr);
+    gap: 8px;
+  }
+  .salad-rule-flow-vegetable {
+    justify-content: flex-start;
+  }
+}
+
+@media (max-width: 600px) {
+  .salad-examples {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+  }
+  .salad-examples .salad-card {
+    width: 100%;
+    max-width: none;
+    height: auto;
+    min-height: 120px;
+    aspect-ratio: auto;
+    gap: 6px;
+    padding: 8px;
+  }
+  .salad-examples .salad-card img {
+    width: 64px;
+    height: 64px;
+    flex: none;
+  }
+  .salad-examples .salad-card strong {
+    font-size: 18px;
+    white-space: nowrap;
   }
 }

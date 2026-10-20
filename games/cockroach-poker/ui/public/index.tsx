@@ -25,16 +25,20 @@ export function Table({
               {players[o.sender]} 声称：{names[o.claim]}
             </h2>
             <p className="cp-main-status">
-              交给 {players[o.target]} ·{' '}
-              {o.passing
-                ? '已查看，须转传'
-                : game.seats.length === 2 ||
-                    o.seen.length === game.seats.length - 1
-                  ? '必须判断真假'
-                  : '判断或查看转传'}
+              <span>交给 {players[o.target]}</span>
+              <span>
+                {o.passing
+                  ? '已查看，须转传'
+                  : game.seats.length === 2 ||
+                      o.seen.length === game.seats.length - 1
+                    ? '必须判断真假'
+                    : '判断或查看转传'}
+              </span>
             </p>
             <details className="cp-route">
-              <summary>流转记录 · {o.route.length} 次传牌</summary>
+              <summary>
+                流转记录 <span>{o.route.length} 次传牌</span>
+              </summary>
               <p>
                 {o.route
                   .map(
@@ -68,12 +72,11 @@ export function Table({
             key={s}
             className={`cp-seat ${(o?.target ?? game.turn) === s && !game.loser ? 'cp-active' : ''}`}
           >
-            <h3>
-              {players[s]}{' '}
-              <span>
-                手牌 {game.handCounts[s]} · 收牌 {game.piles[s]!.length}
-              </span>
-            </h3>
+            <h3>{players[s]}</h3>
+            <div className="cp-seat-stats">
+              <span>手牌 {game.handCounts[s]}</span>
+              <span>收牌 {game.piles[s]!.length}</span>
+            </div>
             <div className="cp-collection">
               {kinds.map((k) => {
                 const n = game.piles[s]!.filter((c) => kindOf(c) === k).length;

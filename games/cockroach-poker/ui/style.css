@@ -72,6 +72,9 @@
   font-size: 20px;
   font-weight: bold;
 }
+.cp-main-status > span {
+  display: block;
+}
 .cp-orbit {
   position: absolute;
   left: 8%;
@@ -109,9 +112,17 @@
   margin: 0 0 8px;
   overflow-wrap: anywhere;
 }
-.cp-seat h3 span {
+.cp-seat-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
   font-size: 16px;
   font-weight: normal;
+  margin-bottom: 8px;
+}
+.cp-seat-stats > span,
+.cp-route summary > span {
+  white-space: nowrap;
 }
 .cp-active {
   border-color: #7956b8;
@@ -176,6 +187,10 @@
   cursor: pointer;
   padding: 6px;
 }
+.cp-route summary > span {
+  display: inline-block;
+  margin-left: 8px;
+}
 .cp-hand {
   display: flex;
   overflow-x: auto;
@@ -226,6 +241,11 @@
 .cp-judgments button {
   font-size: 18px;
   flex: 1 1 180px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
 }
 .cp-known {
   display: flex;
@@ -314,9 +334,6 @@
   }
   .cp-seat h3 {
     font-size: 18px;
-  }
-  .cp-seat h3 span {
-    display: block;
   }
   .cp-collection .cp-critter {
     width: 38px;

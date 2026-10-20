@@ -118,13 +118,15 @@ export function PlayerControls({
             disabled={disabled}
             onClick={() => choose({ type: 'judge', belief: true })}
           >
-            相信 · 声明是真的
+            <strong>相信</strong>
+            <span>声明是真的</span>
           </button>
           <button
             disabled={disabled}
             onClick={() => choose({ type: 'judge', belief: false })}
           >
-            质疑 · 声明是假的
+            <strong>质疑</strong>
+            <span>声明是假的</span>
           </button>
           {actions.some((a) => a.type === 'peek') ? (
             <button

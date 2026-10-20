@@ -84,3 +84,7 @@
 完整候选1.0.8.8已冻结，snapshot `8c371a7a7f65abe90163b0e3794d774b2a1c79a9c47815f1a4b20098a1378db4`；EXE 38,195,893、内部ZIP 46,441,560、实际提取99,390,440字节。签名闭包10个发行、18个blob通过；正式安装尚未通过，不能标为最终交付。剩余：实际标准账户安装／更新／恢复／卸载链、冻结载荷两款实际运行、current推广与任务归档。公开版本仍1.0.8，不发布。
 
 新增125%／150%像素密度和减少动态定向12项通过，见[密度报告](../../artifacts/maintenance/cockroach-source/density-20261021/report.json)，未重复执行已通过的41项布局／按钮；这些是桌面浏览器模拟，不冒称物理DPI或真实手机。
+
+第一候选的标准账户安装、更新、框架恢复、卸载及原路径Medium启动均通过，[封存证明](../../artifacts/maintenance/cockroach-delivery-20261021/finalized-installation-r1.json)与[隔离清理](../../artifacts/maintenance/cockroach-delivery-20261021/production-r1/isolated-account.json)保留。但实际安装后游戏检查发现德国小强未冻结SVG／WAV，沙拉只收录三张介绍SVG；不能推广该候选。已将两款动态资源引用改为可扫描的字面量glob，补齐德国小强从清单投影的游戏库介绍，并记录[首候选退役原因与SHA](../../artifacts/maintenance/cockroach-delivery-20261021/candidate-r1-retirement.json)，沿用尚未交付的修订8重新冻结。
+
+独立视觉审查发现的圆点串联、公共屏统计数字孤行与规则标题落字已修复；沙拉规则小字号SVG示例改为18px响应式图文，320px四蔬菜示例改两列。[最终源码53项](../../artifacts/maintenance/cockroach-source/final-freeze-20261021/report.json)通过，另有320px示例字号与溢出断言。安装后验证器的无效连接徽标等待、资源枚举和目录层级错误先后保留失败记录；产品资源缺陷与脚本修复分别处理，未放宽资源完整性、按钮保存或重启断言。全工程类型与本任务ESLint通过。剩余仍为修正后最终字节的安装及冻结实玩、推广与归档。

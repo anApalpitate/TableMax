@@ -57,8 +57,8 @@ describe('cockroach poker authorized UI', () => {
     expect(html).toContain('你已看过此牌');
     expect(html).toContain('交给谁');
     expect(html).toContain('玩家丙');
-    expect(html).not.toContain('相信 ·');
-    expect(html).not.toContain('质疑 ·');
+    expect(html).not.toContain('声明是真的');
+    expect(html).not.toContain('声明是假的');
   });
   it('public board uses public projection only and rules explain all end conditions', () => {
     const s = rules.initialize(context) as State;
@@ -70,6 +70,9 @@ describe('cockroach poker authorized UI', () => {
     );
     expect(html).toContain('公开收牌区');
     expect(html).not.toContain('你的手牌');
+    expect(html).not.toContain('·');
+    expect(html).toContain('<h3>玩家甲</h3>');
+    expect(html).toContain('class="cp-seat-stats"');
     const guide = renderToStaticMarkup(createElement(PokerRules));
     expect(guide).toContain('双人是五张');
     expect(guide).toContain('不能看后改为判断');

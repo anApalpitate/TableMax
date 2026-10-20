@@ -280,6 +280,28 @@ try {
           path: join(output, game + '-rules.png'),
           fullPage: true,
         });
+        if (game === 'salad') {
+          await page.setViewportSize({ width: 320, height: 568 });
+          const example = await page
+            .locator('.salad-rule-flow')
+            .evaluate((node) => ({
+              width: node.getBoundingClientRect().width,
+              scrollWidth: node.scrollWidth,
+              fonts: [...node.querySelectorAll('span, strong, figcaption')].map(
+                (text) => Number.parseFloat(getComputedStyle(text).fontSize),
+              ),
+            }));
+          assert(
+            example.fonts.length >= 7 &&
+              example.fonts.every((size) => size >= 16),
+          );
+          assert(example.scrollWidth <= example.width + 1);
+          await page.locator('.salad-rule-flow').scrollIntoViewIfNeeded();
+          await captureBrowserScreenshot(page, {
+            path: join(output, 'salad-rules-320.png'),
+            fullPage: true,
+          });
+        }
         await page.keyboard.press('Escape');
         assert.equal(await page.getByRole('dialog').count(), 0);
       });
