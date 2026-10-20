@@ -214,7 +214,7 @@ export const NetworkSchema = z.object({
     z.object({
       address: z.string(),
       name: z.string(),
-      kind: z.enum(['lan', 'virtual', 'link-local']),
+      kind: z.enum(['lan', 'virtual', 'link-local', 'loopback']),
     }),
   ),
   port: z.number().int().positive(),

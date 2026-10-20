@@ -238,7 +238,7 @@ export async function readWindowsExecutableSecurity(path) {
   return validateRecord(await inspect(path, 'Read'));
 }
 
-/** Only trusted local artifacts/tmp EXEs; changes Low to Medium and preserves everything else. */
+/** Only trusted artifacts/tmp EXEs or the marked dev entry; preserves all other metadata. */
 export async function normalizeBuiltExecutableSecurity(path) {
   return assertWindowsExecutableSecurityNormalization(
     await inspect(path, 'NormalizeBuilt'),

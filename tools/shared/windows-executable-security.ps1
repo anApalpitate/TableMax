@@ -111,7 +111,8 @@ $taskBefore = Read-TaskSecurity $taskPath
 if ($Mode -eq 'Read') { $taskResult = $taskBefore }
 else {
   $taskRepository = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..')).TrimEnd('\')
-  if (-not $taskPath.StartsWith($taskRepository + '\artifacts\', [StringComparison]::OrdinalIgnoreCase) -and -not $taskPath.StartsWith($taskRepository + '\tmp\', [StringComparison]::OrdinalIgnoreCase)) { throw 'Normalization is restricted to trusted local artifacts or temporary build EXEs.' }
+  $taskDevelopmentExecutable = [String]::Equals($taskPath, $taskRepository + '\build\desktop\TableMax.exe', [StringComparison]::OrdinalIgnoreCase) -and [IO.File]::Exists($taskRepository + '\build\desktop\.tablemax-development.json')
+  if (-not $taskPath.StartsWith($taskRepository + '\artifacts\', [StringComparison]::OrdinalIgnoreCase) -and -not $taskPath.StartsWith($taskRepository + '\tmp\', [StringComparison]::OrdinalIgnoreCase) -and -not $taskDevelopmentExecutable) { throw 'Normalization is restricted to trusted local artifacts, temporary EXEs or the marked development entry.' }
   if (@($taskBefore.streams | Where-Object { $_.name -ieq 'Zone.Identifier' }).Count -ne 0 -or $taskBefore.authenticode.status -notin @('NotSigned', 'Valid')) { throw 'Refusing to normalize MOTW or abnormal Authenticode status.' }
   if ($taskBefore.integrity.rid -notin @(4096, 8192) -or @($taskBefore.integrity.labels).Count -gt 1) { throw 'Only Low to Medium normalization is allowed.' }
   foreach ($taskLabel in @($taskBefore.integrity.labels)) {

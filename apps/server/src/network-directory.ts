@@ -1,8 +1,29 @@
 import { networkInterfaces } from 'node:os';
+import { isIPv4 } from 'node:net';
+import type { NetworkSchema } from '@tablemax/protocol';
+
+type NetworkSnapshot = Pick<
+  ReturnType<typeof NetworkSchema.parse>,
+  'adapters' | 'addresses'
+>;
 
 export class NetworkDirectory {
-  constructor(private interfaces = networkInterfaces) {}
-  read() {
+  constructor(
+    private interfaces = networkInterfaces,
+    private listenHost?: string,
+  ) {}
+  read(): NetworkSnapshot {
+    if (
+      this.listenHost &&
+      isIPv4(this.listenHost) &&
+      this.listenHost.startsWith('127.')
+    )
+      return {
+        adapters: [
+          { address: this.listenHost, name: '本机', kind: 'loopback' as const },
+        ],
+        addresses: [this.listenHost],
+      };
     const adapters = Object.entries(this.interfaces()).flatMap(
       ([name, entries]) =>
         (entries ?? [])

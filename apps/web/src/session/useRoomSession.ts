@@ -60,7 +60,7 @@ export function useRoomSession(role: ScreenRole) {
     Array<{
       address: string;
       name: string;
-      kind: 'lan' | 'virtual' | 'link-local';
+      kind: 'lan' | 'virtual' | 'link-local' | 'loopback';
     }>
   >([]);
   const [address, setAddress] = useState('');

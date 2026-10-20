@@ -1,5 +1,9 @@
 # 验证工具
 
+## 开发盒子打开网址回归
+
+`box/verify-box-repository.mjs --require-medium --run=<独立名称>`使用当前原路径开发EXE，读取实际进程令牌并断言非提权Medium，验证主机／公共屏的可信“打开网址”和GitHub目标；实际默认浏览器启动仅捕获已批准目标，另用隐藏静音Edge访问回环加入地址并确认网页玩家盒子。`--native-fixture`补同一文档切换`/host`与`/host/game`，并保留合成点击、过期请求、错误焦点、恶意网址、同URL子frame和玩家路由的拒绝检查。通过`box`批次计划执行；默认仅127.0.0.1、独立临时数据，不等同系统默认浏览器关联、实体手机或安装器验收。
+
 ## 设置与保存标记源码验证
 
 `tools/test/platform/verify-settings-and-save-layout.mjs --evidence=<独立安全名称>`构建当前源码夹具，覆盖盒子与八玩法三端设置入口、同源页面／iframe声音同步、手机全屏成功／拒绝／不支持、保存前后几何不变、文字碰撞及18／20／22px矢量角标；`effects`使用真实规则保存事件验证原版／扩展蓝绿色轨迹、减少动态静态落点及恢复不重播。`--only=box,settings,save-layout,sound,mobile,icons,effects`可按实际受影响组筛选，`--games=manila`等可限制游戏专属用例；不传时运行全部。通过现有批次计划执行，范围为`box,shared`及七个正式游戏，默认隐藏、静音、127.0.0.1。证据位于`artifacts/maintenance/settings-and-save-20261020/<名称>`，绑定实际源码与脚本哈希；属于合法规则投影的源码组件夹具，不证明服务端事务、原生系统窗口或实体手机。
@@ -334,7 +338,7 @@ node tools/test/desktop/verify-shutdown.mjs --native=<已编译原生目录> --s
 
 完整installer交付另需独立证明原文件本身可运行。封包记录原EXE的SHA／字节、owner／DACL、mandatory label、备用数据流及Authenticode状态；验收前后再次读取。原EXE须为正常Medium，无Zone.Identifier／MOTW，Authenticode仅允许Valid或本项目的NotSigned。此检查不等于杀毒扫描、浏览器下载或SmartScreen信誉证明。
 
-`tools/shared/windows-executable-security.mjs`提供只读`readWindowsExecutableSecurity`、门禁`assertWindowsExecutableSecurity`和可信本地产物的`normalizeBuiltExecutableSecurity`。底层系统PowerShell脚本只通过显式参数接收路径；归一化仅允许工程artifacts／tmp下单个已核SHA的本地EXE由Low改为Medium，必须保全原字节、owner、DACL及全部数据流。不得递归改工程标签、清除下载标记、调整源Node标签、token或系统安全策略。Low执行环境无权限修正时保持失败，改由真实Medium／管理员进程调用同一窄范围工具，不绕过门禁。
+`tools/shared/windows-executable-security.mjs`提供只读`readWindowsExecutableSecurity`、门禁`assertWindowsExecutableSecurity`和可信本地产物的`normalizeBuiltExecutableSecurity`。底层系统PowerShell脚本只通过显式参数接收路径；归一化仅允许工程artifacts／tmp下单个已核SHA的本地EXE，或精确的带开发标记build/desktop/TableMax.exe，由Low改为Medium，必须保全原字节、owner、DACL及全部数据流。不得递归改工程标签、清除下载标记、调整源Node标签、token或系统安全策略。Low执行环境无权限修正时保持失败，改由真实Medium／管理员进程调用同一窄范围工具，不绕过门禁。
 
 只补原文件验收时使用：
 

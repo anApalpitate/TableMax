@@ -11,6 +11,8 @@ import { createServer } from 'node:http';
 import { mkdir, mkdtemp, readFile, writeFile } from 'node:fs/promises';
 import { extname, join, relative, resolve, sep } from 'node:path';
 import { launchDesktop, desktopExecutable } from '../support/desktop-test.mjs';
+import { readWindowsProcessToken } from '../../shared/windows-acceptance-profile.mjs';
+import { launchTestBrowser } from '../support/browser-test.mjs';
 
 // Exercise actual WinForms/WebView2 NewWindowRequested. The native capture
 // seam records only approved OS launch targets, without opening visible tabs.
@@ -19,6 +21,7 @@ const argument = (name) =>
     .find((value) => value.startsWith(`--${name}=`))
     ?.slice(name.length + 3);
 const fixture = process.argv.includes('--native-fixture');
+const requireMedium = process.argv.includes('--require-medium');
 const sourcePageUrl = argument('page-url');
 const sourceBundle = argument('source-bundle')
   ? resolve(argument('source-bundle'))
@@ -60,6 +63,7 @@ const report = {
   scope:
     'Hidden muted actual WinForms/WebView2 launch authorization and join compatibility. Explicit native capture avoids OS browser tabs. A native fixture proves native security checks only; it does not certify the production box. Does not certify default OS browser association or physical devices.',
   sourceBundle,
+  requireMedium,
   work,
   output,
   executablePath,
@@ -67,6 +71,23 @@ const report = {
     .update(await readFile(executablePath))
     .digest('hex'),
   startedAt: new Date().toISOString(),
+  parameters: process.argv.slice(2),
+  sourceInputs: await Promise.all(
+    [
+      'tools/test/box/verify-box-repository.mjs',
+      'tools/shared/windows-acceptance-profile.mjs',
+      'apps/desktop/native/NativeWindow.cs',
+      'apps/desktop/native/Bridge.js',
+      'tools/dev/dev.mjs',
+      'tools/shared/windows-executable-security.mjs',
+      'tools/shared/windows-executable-security.ps1',
+    ].map(async (path) => ({
+      path,
+      sha256: createHash('sha256')
+        .update(await readFile(path))
+        .digest('hex'),
+    })),
+  ),
   checks: [],
 };
 await mkdir(join(output, 'box'), { recursive: true });
@@ -89,7 +110,7 @@ async function checked(message) {
   console.log(message);
   await save();
 }
-let desktop, server, origin;
+let desktop, server, origin, joinBrowser;
 async function snapshot(page) {
   const id = await page.evaluate(() => window.__tablemaxWindowId);
   return (await desktop.request('windows')).find((entry) => entry.id === id);
@@ -209,6 +230,21 @@ try {
     },
   });
   const host = await desktop.firstWindow();
+  if (requireMedium) {
+    report.desktopToken = await readWindowsProcessToken(
+      desktop.startup.desktopPid,
+      output,
+    );
+    assert.equal(
+      report.desktopToken.integritySid,
+      'S-1-16-8192',
+      'Original source entry must actually start at Medium',
+    );
+    assert.equal(report.desktopToken.elevated, false);
+    await checked(
+      'Original development EXE runs at standard Medium integrity without elevation',
+    );
+  }
   origin ??= new URL(host.url()).origin;
   await host.locator(repositorySelector).waitFor();
   const hostState = await snapshot(host);
@@ -222,6 +258,41 @@ try {
   await approved(host, repositorySelector, 'externalRepository');
   if (!sourceBundle) {
     await approved(host, 'a[data-tablemax-join-link]', 'externalJoin');
+    if (requireMedium) {
+      const joinUrl = await host
+        .locator('a[data-tablemax-join-link]')
+        .getAttribute('href');
+      assert.equal(new URL(joinUrl).hostname, '127.0.0.1');
+      const network = await (await fetch(origin + '/api/room/network')).json();
+      assert.deepEqual(network.addresses, ['127.0.0.1']);
+      joinBrowser = await launchTestBrowser({
+        headless: true,
+        channel: 'msedge',
+      });
+      const player = await joinBrowser.newPage();
+      await player.goto(joinUrl);
+      await player
+        .frameLocator('iframe')
+        .locator('.box-screen.player')
+        .waitFor();
+      await captureBrowserScreenshot(player, {
+        path: join(output, 'browser-player.png'),
+      });
+      await checked(
+        'The actual loopback join target opens a reachable browser player box',
+      );
+      await joinBrowser.close();
+      joinBrowser = undefined;
+    }
+    if (fixture) {
+      await host.evaluate(() => history.pushState(null, '', '/host/game'));
+      await approved(host, 'a[data-tablemax-join-link]', 'externalJoin');
+      await approved(host, repositorySelector, 'externalRepository', true);
+      await checked(
+        'Trusted top-document links survive same-document host/game navigation',
+      );
+      await host.evaluate(() => history.replaceState(null, '', '/host'));
+    }
     await checked(
       'Managed host trusted mouse repository click and existing join link approved exact current URLs',
     );
@@ -430,8 +501,20 @@ try {
   report.error = error.message;
   throw error;
 } finally {
+  await joinBrowser?.close();
   await desktop?.close();
   await new Promise((done) => (server ? server.close(done) : done()));
+  for (const input of report.sourceInputs) {
+    if (
+      createHash('sha256')
+        .update(await readFile(input.path))
+        .digest('hex') !== input.sha256
+    ) {
+      report.status = 'failed';
+      report.error = 'Verification input changed: ' + input.path;
+      process.exitCode = 1;
+    }
+  }
   await save();
   console.log('Evidence: ' + relative(resolve(), output).split(sep).join('/'));
 }

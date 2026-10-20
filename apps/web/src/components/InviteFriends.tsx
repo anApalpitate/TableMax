@@ -35,6 +35,11 @@ export function InviteFriends({ session }: { session: RoomSession }) {
   } = session;
   const joinUrl =
     externalJoinUrl || (address ? `http://${address}:${port}` : '');
+  const loopbackOnly =
+    !externalJoinUrl &&
+    adapters.some(
+      (adapter) => adapter.address === address && adapter.kind === 'loopback',
+    );
   const saveExternal = async (value: string | null) => {
     if (saving || !isHost) return;
     setSaving(true);
@@ -106,6 +111,11 @@ export function InviteFriends({ session }: { session: RoomSession }) {
             </svg>
             <span>打开网址</span>
           </a>
+          {loopbackOnly && (
+            <p className="invite-friends__empty" role="status">
+              当前网址仅限这台电脑使用，手机无法通过此地址加入。
+            </p>
+          )}
           {openMessage && (
             <p className="invite-friends__empty" role="status">
               {openMessage}
@@ -133,12 +143,16 @@ export function InviteFriends({ session }: { session: RoomSession }) {
           <div className="connection-help">
             <div className="connection-help__methods">
               <p>
-                <strong>手机扫码</strong>
-                用手机相机或扫码工具打开二维码中的网站。
+                <strong>{loopbackOnly ? '仅本机连接' : '手机扫码'}</strong>
+                {loopbackOnly
+                  ? '当前服务只接受这台电脑的连接。'
+                  : '用手机相机或扫码工具打开二维码中的网站。'}
               </p>
               <p>
                 <strong>直接打开</strong>
-                点击二维码下方“打开网址”，或在手机、电脑浏览器输入当前加入地址。
+                {loopbackOnly
+                  ? '点击二维码下方“打开网址”，或在这台电脑的浏览器输入当前加入地址。'
+                  : '点击二维码下方“打开网址”，或在手机、电脑浏览器输入当前加入地址。'}
               </p>
             </div>
             <div className="connection-help__field">
@@ -153,18 +167,21 @@ export function InviteFriends({ session }: { session: RoomSession }) {
                   {!addresses.length && (
                     <option value="">未发现局域网地址</option>
                   )}
-                  {addresses.map((a) => (
-                    <option key={a} value={a}>
-                      {adapters.find((adapter) => adapter.address === a)?.name}
-                      （{a}）
-                      {adapters.find((adapter) => adapter.address === a)
-                        ?.kind === 'virtual'
-                        ? '（虚拟／VPN）'
-                        : a.startsWith('169.254.')
-                          ? '（未取得局域网地址）'
-                          : ''}
-                    </option>
-                  ))}
+                  {addresses.map((a) => {
+                    const adapter = adapters.find((item) => item.address === a);
+                    return (
+                      <option key={a} value={a}>
+                        {adapter?.name}（{a}）
+                        {adapter?.kind === 'loopback'
+                          ? '（仅本机）'
+                          : adapter?.kind === 'virtual'
+                            ? '（虚拟／VPN）'
+                            : a.startsWith('169.254.')
+                              ? '（未取得局域网地址）'
+                              : ''}
+                      </option>
+                    );
+                  })}
                 </select>
                 <button
                   type="button"
@@ -241,6 +258,8 @@ export function InviteFriends({ session }: { session: RoomSession }) {
                     在系统浏览器打开当前网址。外部映射需保持运行并转发网页、API
                     和实时连接；原设备使用相同网址可恢复座位。
                   </p>
+                ) : loopbackOnly ? (
+                  <p>在这台电脑的系统浏览器打开当前网址。</p>
                 ) : (
                   <p>
                     玩家设备和主机连接同一局域网，在浏览器打开。优先选择 Wi-Fi
@@ -255,6 +274,15 @@ export function InviteFriends({ session }: { session: RoomSession }) {
                     <li>
                       页面已打开但状态不更新：检查映射是否转发 WebSocket 及
                       Socket.IO 请求。
+                    </li>
+                    <li>
+                      无法入座：检查游戏人数与是否已开局；已有座位请使用原浏览器恢复。
+                    </li>
+                  </ol>
+                ) : loopbackOnly ? (
+                  <ol>
+                    <li>
+                      打不开网页：核对当前网址和端口，确认 TableMax 正在运行。
                     </li>
                     <li>
                       无法入座：检查游戏人数与是否已开局；已有座位请使用原浏览器恢复。

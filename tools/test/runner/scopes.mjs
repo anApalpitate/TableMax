@@ -140,6 +140,7 @@ const unitScopes = {
 // Unregistered scripts may only run with an explicitly chosen full scope.
 // Mixed matrices cannot be narrowed by adding an option they do not implement.
 const verificationScopes = {
+  'tools/shared/windows-executable-security.test.mjs': ['tooling'],
   'tools/test/platform/verify-save-overlay.mjs': [
     'box',
     'shared',

@@ -15,6 +15,8 @@ const mediumIntegritySid = 'S-1-16-8192'; // SECURITY_MANDATORY_MEDIUM_RID = 0x2
 const resolvedProfiles = new WeakSet();
 const digest = (bytes) => createHash('sha256').update(bytes).digest('hex');
 const equalPath = (left, right) => left.toLowerCase() === right.toLowerCase();
+const hasControlCharacter = (value) =>
+  [...value].some((character) => character.codePointAt(0) < 32);
 
 function localPath(value) {
   assert.equal(typeof value, 'string', 'A Windows path is required');
@@ -23,7 +25,9 @@ function localPath(value) {
     'Only ordinary local drive paths are allowed',
   );
   assert.ok(
-    !/[\x00-\x1f<>"|?*]/.test(value) && !value.slice(2).includes(':'),
+    !hasControlCharacter(value) &&
+      !/[<>"|?*]/.test(value) &&
+      !value.slice(2).includes(':'),
     'Unsafe Windows path',
   );
   const normalized = value.replaceAll('/', '\\').replace(/\\+$/, '');
@@ -175,7 +179,8 @@ export function acceptanceExecutablePath(profile, directory, name) {
   );
   assert.ok(
     /\.exe$/i.test(name) &&
-      !/[\\/:\x00-\x1f<>"|?*]/.test(name) &&
+      !hasControlCharacter(name) &&
+      !/[\\/:<>"|?*]/.test(name) &&
       !/^[ .]|[. ]$/.test(name),
     'Unsafe executable basename',
   );
@@ -312,6 +317,20 @@ public static class TableMaxAcceptanceTokenProbe {
 }
 '@
 `;
+
+/** Read-only probe for a running local process; never changes its token. */
+export async function readWindowsProcessToken(pid, workParent) {
+  assert.ok(
+    Number.isSafeInteger(pid) && pid > 0,
+    'A positive process ID is required',
+  );
+  const observed = await inspect(
+    tokenScript +
+      `\n[TableMaxAcceptanceTokenProbe]::Read(${pid}) | ConvertTo-Json -Compress`,
+    { workParent },
+  );
+  return observed.identity;
+}
 
 export async function resolveWindowsAcceptanceProfile(configuredParent) {
   const root = process.env.TABLEMAX_WINDOWS_ACCEPTANCE_PROFILE_ROOT;

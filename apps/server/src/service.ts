@@ -273,7 +273,7 @@ export async function createService(
     );
   }
 
-  const network = new NetworkDirectory();
+  const network = new NetworkDirectory(undefined, config.host);
   const networkSettings = new NetworkSettings(config.dataDir);
   const sessionFailure = (error: unknown) =>
     error instanceof Rejection ? error.message : 'save-or-action-failed';
