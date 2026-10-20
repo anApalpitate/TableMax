@@ -15,6 +15,24 @@ class Repository implements SaveRepository {
     this.value = structuredClone(value);
   }
 }
+it('rejects new oversized names without changing seats and restores legacy long names unchanged', async () => {
+  const repository = new Repository();
+  let room = new RoomCoordinator(rules, bot, repository);
+  await expect(room.join('中文名字一共九个字')).rejects.toThrow('invalid-name');
+  expect(room.view().seats).toHaveLength(0);
+  const key = token();
+  const original = await room.join('中文名字一共八字', key);
+  const legacyName = '这是已有存档中保留的较长姓名';
+  repository.value!.seats[0]!.name = legacyName;
+  repository.value!.sessionReceipts![hash(key)]!.fingerprint = hash(
+    `join:${legacyName}`,
+  );
+  room = new RoomCoordinator(rules, bot, repository);
+  expect(room.view().seats[0]!.name).toBe(legacyName);
+  expect(await room.join(legacyName, key)).toEqual(original);
+  await expect(room.join(legacyName, token())).rejects.toThrow('invalid-name');
+  expect(room.view().seats).toHaveLength(1);
+});
 function run(
   room: RoomCoordinator,
   command: Command['command'],

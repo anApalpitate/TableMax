@@ -17,7 +17,7 @@
     "session-request-conflict": "入座请求不一致，请联系电脑管理员检查原座位。",
     "session-request-expired": "入座确认已超过一天，请联系管理员检查原座位。",
     "session-request-limit": "入座请求过多，请联系电脑管理员检查座位。",
-    "invalid-name": "请输入 1–24 字的昵称。",
+    "invalid-name": "昵称最多8个中文字或16个半角字符，混合计长。",
     "invalid-message": "请求内容无效，请重新选择。",
     "invalid-avatar": "请选择一个可用头像。",
     "avatar-unavailable": "这个头像已被朋友选走，请选择另一个。",

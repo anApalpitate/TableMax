@@ -13,6 +13,28 @@ import { rules, bot } from '@tablemax/game-template';
 const createService = (input: Parameters<typeof createServiceBase>[0]) =>
   createServiceBase(input, { rules, bot });
 
+it('enforces nickname limits over HTTP even with a new recovery key', async () => {
+  const service = await createService(dirs());
+  try {
+    for (const requestKey of [undefined, randomBytes(32).toString('hex')]) {
+      const reply = await service.app.inject({
+        method: 'POST',
+        url: '/api/session/join',
+        payload: {
+          name: '中文名字一共九个字',
+          ...(requestKey ? { requestKey } : {}),
+        },
+      });
+      expect(reply.json()).toEqual({ ok: false, reason: 'invalid-name' });
+      expect(service.room.view().seats).toHaveLength(0);
+    }
+    await joinPlayer(service, '中文名字一共八字');
+    expect(service.room.view().seats[0]!.name).toBe('中文名字一共八字');
+  } finally {
+    await service.close();
+  }
+});
+
 it('persists host-only play mode through real sockets and SQLite restart, with explicit normal-start override', async () => {
   const config = dirs();
   let service = await createService(config);

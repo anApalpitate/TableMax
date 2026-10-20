@@ -28,6 +28,7 @@ assert(
       'settings',
       'settings-layout',
       'seat-names',
+      'name-limits',
       'management-layout',
       'connection-layout',
       'save-layout',
@@ -115,6 +116,8 @@ function sessionFor(key,role){
 function paint(){const key=current.session.fixtureKey??current.key+'-'+current.session.role;flushSync(()=>root.render(<><Probe/>{current.key==='box'?<BoxScreen key={key} session={current.session}/>:<PlatformGame key={key} session={current.session} client={current.session.client}/>}</>));}
 let renderSequence=0;
 window.renderGame=(key,role)=>{history.replaceState(null,'','/'+role+(key==='box'?'':'/game'));const session=sessionFor(key,role);session.fixtureKey='case-'+key+'-'+(++renderSequence);current={key,session};paint();};
+function GuestNameBox(){const [name,setName]=React.useState('');const session={...sessionFor('box','player'),credential:'',self:undefined,name,setName,join:()=>{window.guestJoinCount=(window.guestJoinCount??0)+1;}};return <BoxScreen session={session}/>;}
+window.renderNameLimits=()=>{history.replaceState(null,'','/player');flushSync(()=>root.render(<GuestNameBox key={'guest-'+(++renderSequence)}/>));};
 window.configureNativeSettings=(enabled)=>{
  window.nativeSettingsCalls={display:[],window:[]};
  if(!enabled){delete window.tablemaxDisplay;delete window.tablemaxWindow;return;}
@@ -419,6 +422,50 @@ try {
       }).catch(() => undefined);
     }
   };
+  for (const [width, height] of [
+    [320, 568],
+    [390, 844],
+    [1280, 900],
+  ]) {
+    await check(`box:player:${width}:name-limits`, async () => {
+      await page.setViewportSize({ width, height });
+      await page.evaluate(() => window.renderNameLimits());
+      const input = page.getByLabel('你的昵称', { exact: true });
+      const joinButton = page.getByRole('button', {
+        name: '加入',
+        exact: true,
+      });
+      for (const value of [
+        '中文名字一共九个字',
+        'abcdefghijklmnopq',
+        '阿明abcdefghijklm',
+        'dad dad dad dad',
+      ]) {
+        await input.fill(value);
+        assert.equal(
+          await input.inputValue(),
+          value,
+          'Overlength input is explained, not silently truncated',
+        );
+        assert(await joinButton.isDisabled());
+        assert.equal(await input.getAttribute('aria-invalid'), 'true');
+      }
+      for (const value of [
+        '中文名字一共八字',
+        'abcdefghijklmnop',
+        '阿明abcdefghijkl',
+        '👨‍👩‍👧‍👦'.repeat(8),
+      ]) {
+        await input.fill(value);
+        assert(await joinButton.isEnabled(), 'Boundary nickname is accepted');
+      }
+      const hint = await page.locator('#nickname-length-hint').boundingBox();
+      assert(hint && hint.x >= 0 && hint.x + hint.width <= width + 1);
+      const path = join(output, `name-limits-player-${width}.png`);
+      await captureBrowserScreenshot(page, { path, fullPage: true });
+      report.screenshots.push({ path, width, height, panel: 'name-limits' });
+    });
+  }
   for (const [width, height] of [
     [320, 568],
     [390, 844],
@@ -1210,6 +1257,38 @@ try {
                 seatId,
               );
               const input = await openRename(seatId);
+              if (seatId === 's0') {
+                const save = page.getByRole('button', {
+                  name: '保存名称',
+                  exact: true,
+                });
+                for (const value of [
+                  '中文名字一共九个字',
+                  'abcdefghijklmnopq',
+                  'dad dad dad dad',
+                ]) {
+                  await input.fill(value);
+                  assert(
+                    await save.isDisabled(),
+                    'Rename shares the submitted nickname limit',
+                  );
+                  assert.equal(
+                    await input.getAttribute('aria-invalid'),
+                    'true',
+                  );
+                }
+                for (const value of [
+                  '中文名字一共八字',
+                  'abcdefghijklmnop',
+                  '阿明abcdefghijkl',
+                ]) {
+                  await input.fill(value);
+                  assert(
+                    await save.isEnabled(),
+                    'Boundary rename stays available',
+                  );
+                }
+              }
               await input.fill('爸爸');
               assert.deepEqual(
                 await page.evaluate(

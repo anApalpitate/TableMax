@@ -1,4 +1,12 @@
-import { normalizePlayerName, type BotDifficulty } from '@tablemax/protocol';
+import {
+  normalizePlayerName,
+  playerNameError,
+  playerNameLength,
+  PLAYER_NAME_LIMIT_HINT,
+  PLAYER_NAME_INPUT_LIMIT,
+  PLAYER_NAME_MAX_UNITS,
+  type BotDifficulty,
+} from '@tablemax/protocol';
 import { useRef, useState } from 'react';
 import type { RoomSession } from '../session/useRoomSession';
 import { OverlayPanel } from './OverlayPanel';
@@ -25,6 +33,7 @@ export function SeatSettings({
   const [draftName, setDraftName] = useState('');
   const [hint, setHint] = useState('');
   const nameInput = useRef<HTMLInputElement>(null);
+  const nameError = playerNameError(draftName);
   if (!canManageSeats || !view) return null;
   const selected = view.seats.find((seat) => seat.id === selectedId);
   const playing = view.status === 'playing';
@@ -180,7 +189,7 @@ export function SeatSettings({
             onSubmit={(event) => {
               event.preventDefault();
               const name = normalizePlayerName(draftName);
-              if (!locked && name) {
+              if (!locked && name && !nameError) {
                 if (name !== selected.name)
                   command({
                     type: 'set-seat-name',
@@ -198,10 +207,17 @@ export function SeatSettings({
               title={feedbackText('seats.nameNormalization')}
               aria-description={feedbackText('seats.nameNormalization')}
               value={draftName}
-              maxLength={24}
+              maxLength={PLAYER_NAME_INPUT_LIMIT}
+              aria-invalid={Boolean(draftName.trim() && nameError)}
+              aria-describedby="player-seat-name-length"
               disabled={locked}
               onChange={(event) => setDraftName(event.target.value)}
             />
+            <p id="player-seat-name-length" className="seat-settings-hint">
+              {draftName.trim() && nameError
+                ? nameError
+                : `${PLAYER_NAME_LIMIT_HINT} · ${playerNameLength(draftName)}/${PLAYER_NAME_MAX_UNITS}`}
+            </p>
             <div className="dialog-actions">
               <button type="button" className="secondary" onClick={close}>
                 取消
@@ -210,6 +226,7 @@ export function SeatSettings({
                 disabled={
                   locked ||
                   !draftName.trim() ||
+                  Boolean(nameError) ||
                   draftName.trim() === selected.name
                 }
               >

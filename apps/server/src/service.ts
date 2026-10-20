@@ -18,6 +18,7 @@ import {
   ServiceConfigSchema,
   type ServiceConfig,
   JoinSchema,
+  JoinRecoverySchema,
   SessionSchema,
   AvatarUploadSchema,
   type RoomFeedback,
@@ -423,7 +424,10 @@ export async function createService(
     '/api/session/join',
     { bodyLimit: AVATAR_HTTP_LIMIT },
     async (request, reply) => {
-      const parsed = JoinSchema.safeParse(request.body);
+      const fresh = JoinSchema.safeParse(request.body);
+      const parsed = fresh.success
+        ? fresh
+        : JoinRecoverySchema.safeParse(request.body);
       if (!parsed.success)
         return reply.code(400).send({
           ok: false,

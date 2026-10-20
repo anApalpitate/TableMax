@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import {
-  JoinSchema,
+  JoinRecoverySchema,
   normalizePlayerName,
+  playerNameError,
   SessionReplySchema,
   type AvatarId,
 } from '@tablemax/protocol';
@@ -36,7 +37,8 @@ function loadAdmission(): Admission | null {
       avatarId: value.avatarId,
       avatarImage: value.avatarImage,
     };
-    if (!JoinSchema.safeParse(body).success || !value.requestKey) return null;
+    if (!JoinRecoverySchema.safeParse(body).success || !value.requestKey)
+      return null;
     return value;
   } catch {
     return null;
@@ -206,6 +208,11 @@ export function useAdmission(
       if (current.current) void run(current.current);
     },
     join: (value: string, avatarId?: AvatarId, avatarImage?: string) => {
+      const error = playerNameError(value);
+      if (error) {
+        setMessage(error);
+        return Promise.resolve();
+      }
       const request = current.current ??
         loadAdmission() ?? {
           kind: 'join' as const,

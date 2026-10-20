@@ -112,6 +112,7 @@ const unitScopes = {
   'packages/platform-core/src/admission.test.ts': ['box'],
   'apps/web/src/components/external-entry.test.ts': ['box'],
   'packages/protocol/src/names.test.ts': ['box', 'shared'],
+  'packages/protocol/src/name-length.test.ts': ['box', 'shared'],
   'packages/platform-core/src/avatar.test.ts': ['box'],
   'packages/platform-core/src/bot-difficulty.test.ts': ['shared'],
   'packages/platform-core/src/countdown.test.ts': [

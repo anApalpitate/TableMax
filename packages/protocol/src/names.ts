@@ -1,3 +1,30 @@
+export const PLAYER_NAME_MAX_UNITS = 16;
+export const PLAYER_NAME_INPUT_LIMIT = 128;
+export const PLAYER_NAME_LIMIT_HINT = '最多8个中文字或16个半角字符，混合计长';
+const nameSegments = new Intl.Segmenter('zh-CN', { granularity: 'grapheme' });
+
+/** Half-width ASCII costs one unit; other visible graphemes cost two. */
+export function playerNameLength(input: string): number {
+  let units = 0;
+  for (const { segment } of nameSegments.segment(input.trim())) {
+    units += /^[\x20-\x7e]+$/.test(segment) ? 1 : 2;
+  }
+  return units;
+}
+
+/** Validate both the submitted spelling and its generation-reversal result. */
+export function playerNameError(input: string): string | null {
+  if (!input.trim()) return '请输入昵称。';
+  if (
+    input.length > PLAYER_NAME_INPUT_LIMIT ||
+    playerNameLength(input) > PLAYER_NAME_MAX_UNITS
+  )
+    return `${PLAYER_NAME_LIMIT_HINT}（中文、全角符号和表情计2，半角计1）。`;
+  if (playerNameLength(normalizePlayerName(input)) > PLAYER_NAME_MAX_UNITS)
+    return '称呼转换后的昵称过长，请缩短后再确认。';
+  return null;
+}
+
 /** Only father/son and grandfather/grandson nickname relations. */
 const kinshipNames: Readonly<Record<string, string>> = {
   爸爸: '儿子',

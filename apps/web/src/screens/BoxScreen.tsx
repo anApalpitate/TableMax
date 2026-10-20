@@ -2,6 +2,11 @@ import { useGameDetails } from '../game-clients/details';
 import { useState } from 'react';
 import {
   AVATAR_PRESETS,
+  playerNameError,
+  playerNameLength,
+  PLAYER_NAME_LIMIT_HINT,
+  PLAYER_NAME_INPUT_LIMIT,
+  PLAYER_NAME_MAX_UNITS,
   type AvatarId,
   type BotDifficulty,
 } from '@tablemax/protocol';
@@ -88,6 +93,7 @@ function BoxScreenContent({ session }: { session: RoomSession }) {
     join,
     connected,
   } = session;
+  const nameError = playerNameError(name);
   const game = view?.game;
   const { details } = useGameDetails(game?.id, game?.releaseRef);
   const transfer = useDeviceTransfer(
@@ -345,6 +351,7 @@ function BoxScreenContent({ session }: { session: RoomSession }) {
                     !locked &&
                     !transfer.pending &&
                     name.trim() &&
+                    !nameError &&
                     avatarAvailable
                   )
                     void join(
@@ -388,7 +395,9 @@ function BoxScreenContent({ session }: { session: RoomSession }) {
                           'seats.nameNormalization',
                         )}
                         value={name}
-                        maxLength={24}
+                        maxLength={PLAYER_NAME_INPUT_LIMIT}
+                        aria-invalid={Boolean(name.trim() && nameError)}
+                        aria-describedby="nickname-length-hint"
                         disabled={busy || session.admissionPending}
                         onChange={(event) => setName(event.target.value)}
                       />
@@ -398,12 +407,18 @@ function BoxScreenContent({ session }: { session: RoomSession }) {
                           session.admissionPending ||
                           transfer.pending ||
                           !name.trim() ||
+                          Boolean(nameError) ||
                           !avatarAvailable
                         }
                       >
                         加入
                       </button>
                     </div>
+                    <p id="nickname-length-hint">
+                      {name.trim() && nameError
+                        ? nameError
+                        : `${PLAYER_NAME_LIMIT_HINT} · ${playerNameLength(name)}/${PLAYER_NAME_MAX_UNITS}`}
+                    </p>
                   </div>
                 </div>
                 {!avatarAvailable && (

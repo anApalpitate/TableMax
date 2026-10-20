@@ -1,6 +1,20 @@
 import { z } from 'zod';
+import { playerNameError, PLAYER_NAME_INPUT_LIMIT } from './names';
 export * from './interactions';
-export { normalizePlayerName } from './names';
+export {
+  normalizePlayerName,
+  playerNameError,
+  playerNameLength,
+  PLAYER_NAME_LIMIT_HINT,
+  PLAYER_NAME_MAX_UNITS,
+  PLAYER_NAME_INPUT_LIMIT,
+} from './names';
+const SubmittedPlayerNameSchema = z
+  .string()
+  .trim()
+  .min(1)
+  .max(PLAYER_NAME_INPUT_LIMIT)
+  .refine((name) => playerNameError(name) === null, 'invalid-name');
 export type {
   GameReleaseSummary,
   PublicPackageTaskPhase,
@@ -104,7 +118,7 @@ export const CommandSchema = z
       z
         .object({
           type: z.literal('add-bot'),
-          name: z.string().trim().min(1).max(24),
+          name: SubmittedPlayerNameSchema,
           difficulty: BotDifficultySchema.optional(),
         })
         .strict(),
@@ -132,14 +146,14 @@ export const CommandSchema = z
         .object({
           type: z.literal('set-seat-name'),
           seatId: z.string(),
-          name: z.string().trim().min(1).max(24),
+          name: SubmittedPlayerNameSchema,
         })
         .strict(),
       z
         .object({
           type: z.literal('set-bot-name'),
           seatId: z.string(),
-          name: z.string().trim().min(1).max(24),
+          name: SubmittedPlayerNameSchema,
         })
         .strict(),
       z
@@ -188,7 +202,7 @@ export const CommandSchema = z
 export type Command = z.infer<typeof CommandSchema>;
 export const JoinSchema = z
   .object({
-    name: z.string().trim().min(1).max(24),
+    name: SubmittedPlayerNameSchema,
     avatarId: PresetAvatarIdSchema.optional(),
     avatarImage: AvatarImageSchema.optional(),
     requestKey: z
@@ -197,6 +211,12 @@ export const JoinSchema = z
       .optional(),
   })
   .strict();
+// Only an existing receipt may recover an older, now-overlength nickname.
+// The room validates fresh names after its receipt lookup, including fake keys.
+export const JoinRecoverySchema = JoinSchema.extend({
+  name: z.string().trim().min(1).max(PLAYER_NAME_INPUT_LIMIT),
+  requestKey: z.string().regex(/^[0-9a-f]{64}$/),
+});
 export const SessionReplySchema = z.discriminatedUnion('ok', [
   z
     .object({

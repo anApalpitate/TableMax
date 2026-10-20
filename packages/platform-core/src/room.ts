@@ -12,6 +12,7 @@ import {
   AvatarIdSchema,
   DEFAULT_COUNTDOWN_SECONDS,
   normalizePlayerName,
+  playerNameError,
   type AvatarId,
   type Command,
   type CommandReply,
@@ -624,6 +625,7 @@ export class RoomCoordinator {
       );
       const previous = this.sessionResult(requestKey, fingerprint);
       if (previous) return previous;
+      requireThat(playerNameError(name) === null, 'invalid-name');
       requireThat(this.game, 'game-not-selected');
       requireThat(
         this.data.status === 'lobby' && this.data.joinOpen,
