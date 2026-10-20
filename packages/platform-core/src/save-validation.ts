@@ -11,6 +11,7 @@ import { decisionClockKey } from './countdown';
 import { isSealedCredential } from './session-receipts';
 import { isDeepStrictEqual } from 'node:util';
 import { pendingActionTimings } from './action-timing';
+import { validateAutomaticClock } from './automatic-timing';
 export function validateSave(
   input: unknown,
   rules: GameRules | null,
@@ -253,6 +254,7 @@ export function validateSave(
       'damaged-save',
     );
   const actionTimings = pendingActionTimings(d, rules);
+  validateAutomaticClock(d, rules);
   requireThat(
     (d.actionClocks === undefined && actionTimings.size === 0) ||
       (Array.isArray(d.actionClocks) &&

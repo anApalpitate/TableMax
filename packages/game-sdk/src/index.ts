@@ -67,6 +67,16 @@ export interface GameRules<
     action: Action,
     seatId: string,
   ): { key: string; delayMs: number } | null;
+  /** Saved server-owned deadline; clients cannot submit its action. Rules stay
+   * deterministic and never read wall time. A new phase must use a new key. */
+  automaticAction?(
+    state: State,
+  ): { key: string; delayMs: number; action: Action } | null;
+  applyAutomatic?(
+    state: State,
+    action: Action,
+    context: RuleContext,
+  ): { state: State; decision: DecisionBoundary; events?: PublicEvent[] };
   initialize(context: RuleContext): State;
   validateState(input: unknown, seats: readonly string[]): State;
   decisions(state: State): readonly PendingDecision[];

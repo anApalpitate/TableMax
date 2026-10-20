@@ -15,12 +15,15 @@ export const gameIds = [
   'uno',
   'avalon',
   'manila',
+  'cockroach-poker',
+  'cockroach-salad',
 ];
 const gameScopes = gameIds.map((id) => `game:${id}`);
 const validScopes = ['box', 'shared', 'tooling', ...gameScopes];
 
 // Classify what a test actually exercises, rather than its containing app.
 const unitScopes = {
+  'packages/platform-core/src/automatic-timing.test.ts': ['shared'],
   'apps/server/src/game-packages/development.test.ts': [
     'shared',
     'game:manila',

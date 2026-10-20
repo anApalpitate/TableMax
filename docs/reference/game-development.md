@@ -45,6 +45,8 @@ SDK 正文见 [源码](../../packages/game-sdk/src/index.ts)。`decisions(state)
 
 ## 注册与策略替换
 
+游戏可选实现`automaticAction(state)`及`applyAutomatic(state, action, context)`声明服务端截止：返回阶段唯一key、1–120000ms延迟与仅服务端消费的动作。规则不读时钟，客户端动作校验不得接受该截止动作。平台保存剩余计时；暂停冻结，重启以最后保存剩余时间暂停，恢复后继续；回退重新建立所回到阶段的完整时限。截止与玩家动作共用串行事务，截止时刻优先结算过期阶段，重复／旧实例／旧分支回调不生效；保存失败停止自动结算并提示显式恢复。公开`automaticTiming`只提供不透明阶段标识、剩余时长、服务端时间与运行状态，不暴露内部动作或秘密。未声明此契约的旧模块保持原行为。
+
 1. 给游戏建立 pnpm 工作区包和 `workspace:*` SDK 依赖，保持版本与锁文件在项目内。
 2. 由 `game-module.json`声明规则、策略和网页入口；[构建发现器](../../tools/build/module-build.mjs)扫描 `games/*/game-module.json`，从同一作者来源生成[服务目录](../../apps/server/src/game-registry.ts)、Worker运行描述、盒子浏览摘要及包内详情。稳定ID、导出契约和兼容版本必须一致，不逐项修改服务、Worker或构建名单；正式目录不列内部模板，测试可用 `createGameRegistry(true)`。
 3. 网页入口导出 `client`，有变体时另导出 `clientsByVariant`；[游戏客户端加载器](../../apps/web/src/game-clients/registry.ts)按模块清单懒加载对应入口。游戏CSS／资源由所属网页模块引入，规则／策略不进入网页；通用GameScreen与会话保持游戏无关。[便携打包脚本](../../tools/release/package.mjs)收集冻结后的规则、策略、网页与完整本地资源。

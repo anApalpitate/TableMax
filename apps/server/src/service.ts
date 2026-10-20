@@ -30,6 +30,7 @@ import {
 import {
   RoomCoordinator,
   BotScheduler,
+  AutomaticScheduler,
   Rejection,
   GameRegistry,
   type LoadedGame,
@@ -188,6 +189,7 @@ export async function createService(
         })
       : undefined,
   );
+  const automaticScheduler = new AutomaticScheduler(room);
   const app = Fastify({
     logger: false,
     bodyLimit: 16 * 1024,
@@ -375,6 +377,7 @@ export async function createService(
       closing = true;
       shutdown = room.beginShutdown();
       scheduler.stop();
+      automaticScheduler.stop();
       projections.dispose();
       interactions.dispose();
       unsubscribe();

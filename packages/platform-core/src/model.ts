@@ -70,6 +70,7 @@ export interface Save {
   decisionClocks?: DecisionClockState[];
   gameSetup?: JsonValue;
   actionClocks?: ActionClockState[];
+  automaticClock?: ActionClockState | null;
   seats: Seat[];
   hostSeat?: string | null;
   ownerSeatId?: string | null;

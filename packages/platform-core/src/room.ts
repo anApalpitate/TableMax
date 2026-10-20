@@ -31,6 +31,12 @@ import { GameRegistry, type LoadedGame } from './game-registry';
 import { allowsGameAction } from './game-actions';
 import { synchronizeDecisionClocks, projectDecisionClock } from './countdown';
 import {
+  automaticDescriptor,
+  synchronizeAutomaticClock,
+  projectAutomaticTiming,
+} from './automatic-timing';
+import { remainingActionClock } from './action-timing';
+import {
   actionDelayRemaining,
   projectActionTimings,
   synchronizeActionClocks,
@@ -233,6 +239,13 @@ export class RoomCoordinator {
       persist = true;
     }
     if (persist) {
+      synchronizeAutomaticClock(
+        this.data,
+        this.data,
+        this.game?.rules ?? null,
+        Date.now(),
+        true,
+      );
       synchronizeActionClocks(
         this.data,
         this.data,
@@ -327,6 +340,7 @@ export class RoomCoordinator {
       next.paused = true;
       next.revision++;
       next.branch++;
+      synchronizeAutomaticClock(next, next, game.rules, Date.now(), true);
       synchronizeActionClocks(next, next, game.rules, Date.now(), true);
       synchronizeDecisionClocks(next, next, game.rules, Date.now(), true);
       this.persist(next);
@@ -512,6 +526,7 @@ export class RoomCoordinator {
     extras?: SaveExtras,
   ) {
     requireThat(!this.missingRelease, 'missing-game-release');
+    synchronizeAutomaticClock(next, this.data, game?.rules ?? null, Date.now());
     synchronizeActionClocks(next, this.data, game?.rules ?? null, Date.now());
     synchronizeDecisionClocks(next, this.data, game?.rules ?? null, Date.now());
     this.persist(next, extras);
@@ -780,6 +795,9 @@ export class RoomCoordinator {
           : null,
       decisionId: pending?.id ?? null,
       selectionToken: pending?.id ?? null,
+      ...(this.game?.rules.automaticAction
+        ? { automaticTiming: projectAutomaticTiming(d, Date.now()) }
+        : {}),
       actions:
         pending && !d.paused && d.status === 'playing'
           ? [...this.rules.legalActions(structuredClone(snap!.state), seatId!)]
@@ -1093,6 +1111,9 @@ export class RoomCoordinator {
       requireThat(receipt.fingerprint === fingerprint, 'action-id-conflict');
       return receipt.reply;
     }
+    // Deadlines win at their boundary even when the event loop delivers a
+    // player's intent before the timer callback. Lost ACKs above remain valid.
+    this.settleAutomaticDue();
     // Report a lost race even if another claimant advanced the revision.
     // Other stale avatar changes still obey the normal revision boundary.
     if (envelope.command.type === 'set-avatar') {
@@ -1635,6 +1656,96 @@ export class RoomCoordinator {
   }
   get botPaused() {
     return this.closing || this.data.paused;
+  }
+  automaticTask() {
+    const d = this.data;
+    if (
+      this.closing ||
+      this.missingRelease ||
+      d.paused ||
+      d.botError ||
+      this.transientBotError
+    )
+      return null;
+    const descriptor = automaticDescriptor(d, this.game?.rules ?? null);
+    if (!descriptor || !d.automaticClock) return null;
+    return {
+      instanceId: d.instanceId,
+      branch: d.branch,
+      key: descriptor.key,
+      remainingMs: remainingActionClock(d.automaticClock, Date.now()),
+    };
+  }
+  private settleAutomaticDue() {
+    const task = this.automaticTask();
+    if (!task || task.remainingMs > 0) return false;
+    const descriptor = automaticDescriptor(this.data, this.rules)!;
+    const next = copySave(this.data);
+    const before = this.data.snapshot!;
+    const random = new RandomSource(before.random);
+    const result = this.rules.applyAutomatic!(
+      structuredClone(before.state),
+      descriptor.action,
+      {
+        seats: next.seats.map((seat) => seat.id),
+        random,
+      },
+    );
+    next.snapshot!.state = this.rules.validateState(
+      result.state,
+      next.seats.map((seat) => seat.id),
+    );
+    next.snapshot!.random = random.state;
+    // A deadline cannot keep its expired key and spin forever.
+    const following = automaticDescriptor(next, this.rules);
+    requireThat(
+      !following || following.key !== descriptor.key,
+      'invalid-automatic-transition',
+    );
+    next.history.push({
+      id: randomUUID(),
+      ...result.decision,
+      before,
+      seatId: null,
+    });
+    if (this.rules.ended(next.snapshot!.state)) {
+      next.status = 'ended';
+      next.endReason = '游戏完成';
+    }
+    next.revision++;
+    this.updateWindows(next);
+    this.commit(next, false, result.events ?? []);
+    return true;
+  }
+  runAutomatic(
+    task: NonNullable<ReturnType<RoomCoordinator['automaticTask']>>,
+  ) {
+    return this.enqueue(() => {
+      const current = this.automaticTask();
+      if (
+        !current ||
+        current.instanceId !== task.instanceId ||
+        current.branch !== task.branch ||
+        current.key !== task.key
+      )
+        return false;
+      try {
+        return this.settleAutomaticDue();
+      } catch {
+        const next = copySave(this.data);
+        next.paused = true;
+        next.botError = '自动结算失败，请检查后恢复';
+        next.revision++;
+        this.updateWindows(next);
+        try {
+          this.commit(next);
+        } catch {
+          this.transientBotError = '自动结算未能保存，请检查存储后恢复';
+          this.notify();
+        }
+        return false;
+      }
+    });
   }
   botTasks() {
     const first = this.botTask();

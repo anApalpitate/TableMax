@@ -386,6 +386,12 @@ export interface RoomView {
   decisionId: string | null;
   selectionToken: string | null;
   actions: unknown[];
+  automaticTiming?: {
+    key: string;
+    remainingMs: number;
+    serverTime: number;
+    running: boolean;
+  } | null;
   actionTiming?:
     | {
         actionType: string;
@@ -505,6 +511,16 @@ export const RoomViewSchema = z
     decisionId: z.string().nullable(),
     selectionToken: z.string().nullable(),
     actions: z.array(z.json()),
+    automaticTiming: z
+      .object({
+        key: z.string().regex(/^[0-9a-f]{64}$/),
+        remainingMs: z.number().int().min(0).max(120000),
+        serverTime: z.number().int().nonnegative(),
+        running: z.boolean(),
+      })
+      .strict()
+      .nullable()
+      .optional(),
     actionTiming: z
       .array(
         z
