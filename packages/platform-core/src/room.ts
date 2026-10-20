@@ -11,6 +11,7 @@ import {
   AVATAR_PRESETS,
   AvatarIdSchema,
   DEFAULT_COUNTDOWN_SECONDS,
+  normalizePlayerName,
   type AvatarId,
   type Command,
   type CommandReply,
@@ -634,12 +635,13 @@ export class RoomCoordinator {
       );
       const credential = token();
       const next = copySave(this.data);
-      const duplicateName = next.seats.some((s) => s.name === name);
+      const normalizedName = normalizePlayerName(name);
+      const duplicateName = next.seats.some((s) => s.name === normalizedName);
       const seatId = randomUUID();
       const selectedAvatar = this.availableAvatar(avatarId, undefined, image);
       next.seats.push({
         id: seatId,
-        name,
+        name: normalizedName,
         avatarId: selectedAvatar,
         controller: 'human',
         ready: false,
@@ -1259,7 +1261,7 @@ export class RoomCoordinator {
         );
         next.seats.push({
           id: randomUUID(),
-          name: c.name,
+          name: normalizePlayerName(c.name),
           avatarId: this.availableAvatar(),
           controller: 'bot',
           ready: true,
@@ -1281,6 +1283,13 @@ export class RoomCoordinator {
         seat.botDifficulty = c.difficulty;
         break;
       }
+      case 'set-seat-name': {
+        manageSeats();
+        const seat = next.seats.find((s) => s.id === c.seatId);
+        requireThat(seat, 'invalid-seat');
+        seat.name = normalizePlayerName(c.name);
+        break;
+      }
       case 'set-bot-name': {
         manageSeats();
         requireThat(next.status !== 'playing', 'end-first');
@@ -1288,7 +1297,7 @@ export class RoomCoordinator {
           (s) => s.id === c.seatId && s.controller === 'bot',
         );
         requireThat(seat, 'invalid-seat');
-        seat.name = c.name;
+        seat.name = normalizePlayerName(c.name);
         break;
       }
       case 'remove-seat':
@@ -1603,7 +1612,8 @@ export class RoomCoordinator {
       }
     }
     next.revision++;
-    this.updateWindows(next, c, identity, committedGame?.rules ?? null);
+    if (c.type !== 'set-seat-name')
+      this.updateWindows(next, c, identity, committedGame?.rules ?? null);
     const reply: CommandReply = {
       ok: true,
       revision: next.revision,

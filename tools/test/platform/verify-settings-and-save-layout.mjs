@@ -27,6 +27,7 @@ assert(
       'box',
       'settings',
       'settings-layout',
+      'seat-names',
       'save-layout',
       'sound',
       'mobile',
@@ -77,6 +78,8 @@ import {flushSync} from 'react-dom';
 import {PlatformGame} from ${file('apps/web/src/session/gameHostAdapter.tsx')};
 import {BoxScreen} from ${file('apps/web/src/screens/BoxScreen.tsx')};
 import {useSoundPreference} from ${file('packages/web-host/src/index.tsx')};
+import {useRoomSession} from ${file('apps/web/src/session/useRoomSession.ts')};
+import {RoomViewSchema} from ${file('packages/protocol/src/index.ts')};
 import type {DisplaySnapshot, WindowMode} from ${file('apps/desktop/src/display-types.ts')};
 import {AbilityIcon} from ${file('games/pokemon-encounters/ui/AbilityIcon.tsx')};
 import {AbilityLegend} from ${file('games/pokemon-encounters/ui/RuleDiagrams.tsx')};
@@ -116,6 +119,16 @@ window.configureNativeSettings=(enabled)=>{
  window.tablemaxDisplay={read:async()=>snapshot,subscribe:()=>noop,update:async preferences=>{window.nativeSettingsCalls.display.push({...preferences});snapshot={...snapshot,preferences:{...preferences}};return snapshot;}};
  window.tablemaxWindow={read:async()=>({mode,fullscreen:mode==='fullscreen'}),subscribe:()=>noop,setMode:async next=>{window.nativeSettingsCalls.window.push(next);mode=next;return {mode,fullscreen:mode==='fullscreen'};},setFullscreen:async enabled=>{mode=enabled?'fullscreen':'windowed';return {mode,fullscreen:enabled};}};
 };
+function SeatNamesBox({role}){const session=useRoomSession(role);window.seatLiveSession=session;return <BoxScreen session={session}/>;}
+window.renderSeatNames=({role,owner,status})=>{
+ history.replaceState(null,'','/'+role);
+ sessionStorage.setItem('tablemax-host','seat-host-fixture');localStorage.setItem('tablemax-player','seat-player-fixture');
+ const self=role==='player'?(owner?'s0':'s1'):null;
+ const view=RoomViewSchema.parse({instanceId:'00000000-0000-4000-8000-000000000001',revision:1,branch:0,status,paused:false,restored:false,joinOpen:true,playMode:'play',countdownSeconds:30,decisionClock:null,game:{id:'uno',name:'UNO',min:2,max:6,decisionTimer:true},catalog:[],ownerSeatId:'s0',capabilities:{manage:role==='host',control:role==='host'||owner,manageSeats:role==='host'||role==='player'&&owner},seats:[{id:'s0',name:'长'.repeat(24),avatarId:'avatar-1',controller:'human',ready:true,online:true,botDifficulty:null},{id:'s1',name:'VeryLongNicknameNoSpacesX',avatarId:'avatar-2',controller:'human',ready:true,online:true,botDifficulty:null},{id:'s2',name:'人机朋友',avatarId:'avatar-3',controller:'bot',ready:true,online:true,botDifficulty:'default'}],self:{role,seatId:self},gameView:null,decisionId:null,selectionToken:null,actions:[],lifecycleActions:[],history:[],botError:null,endReason:null});
+ window.seatFixtureProjection={stamp:{serverSessionId:'00000000-0000-4000-8000-000000000002',instanceId:view.instanceId,branch:0,viewSeq:1},syncHint:'idle',interactionWatermark:0,view};
+ window.seatFixtureCommands=[];
+ flushSync(()=>root.render(<SeatNamesBox key={'seat-names-'+(++renderSequence)} role={role}/>));
+};
 window.setSaved=enabled=>{current.session={...current.session,message:enabled?'已保存':'',messageKind:enabled?'saved':'none',saved:enabled};paint();};
 let discardSequence=0;
 window.renderDiscard=key=>{
@@ -154,7 +167,37 @@ const report = {
   excluded: [],
   inputs: {},
   screenshots: [],
+  fixtureBoundaries: [
+    'Seat-name cases use the real useRoomSession pending/locked guards with a controlled Socket.IO transport and schema-validated projections/ACKs. They do not prove server authorization, durable persistence, joining or physical devices.',
+  ],
 };
+await writeFile(
+  join(work, 'seat-socket.ts'),
+  `
+export function io(){
+ const handlers=new Map();
+ const socket={connected:true,io:{engine:{transport:{name:'fixture'},on(){}}},on(event,listener){handlers.set(event,listener);return socket;},timeout(){return socket;},removeAllListeners(){handlers.clear();},disconnect(){socket.connected=false;handlers.get('disconnect')?.();return socket;},connect(){socket.connected=true;queueMicrotask(()=>handlers.get('connect')?.());return socket;},emit(event,...args){
+  const callback=args.at(-1),projection=window.seatFixtureProjection;
+  if(event==='room:sync')queueMicrotask(()=>callback(null,{ok:true,...projection}));
+  else if(event==='room:probe')queueMicrotask(()=>callback(null,{ok:true,unchanged:true,stamp:projection.stamp,syncHint:projection.syncHint,interactionWatermark:0}));
+  else if(event==='room:command:status')queueMicrotask(()=>callback(null,{ok:true,...projection,outcome:{status:'unknown'}}));
+  else if(event==='room:command'){
+   const envelope=args[0];window.seatFixtureCommands.push(structuredClone(envelope));
+   window.finishSeatName=(outcome)=>{
+    if(outcome==='pending'){callback(new Error('Controlled unconfirmed acknowledgement'),null);return;}
+    if(outcome==='error'){callback(null,{ok:false,reason:'save-failed'});return;}
+    const next=window.seatFixtureProjection;
+    next.view={...next.view,revision:next.view.revision+1,seats:next.view.seats.map(seat=>seat.id===envelope.command.seatId?{...seat,name:envelope.command.name}:seat)};
+    next.stamp={...next.stamp,viewSeq:next.stamp.viewSeq+1};handlers.get('room:view')?.(next);
+    callback(null,{ok:true,revision:next.view.revision,branch:next.view.branch});
+   };
+  }
+  return socket;
+ }};
+ queueMicrotask(()=>handlers.get('connect')?.());return socket;
+}
+`,
+);
 async function assertSettingRowsAndHelp(page, { touch = false } = {}) {
   const labels = page.locator('.dialog-surface .setting-help__label');
   assert((await labels.count()) > 0, 'Settings expose concise help labels');
@@ -291,6 +334,7 @@ try {
       alias: {
         react: resolve('apps/web/node_modules/react'),
         'react-dom': resolve('apps/web/node_modules/react-dom'),
+        'socket.io-client': join(work, 'seat-socket.ts'),
       },
     },
     build: {
@@ -350,6 +394,282 @@ try {
       }).catch(() => undefined);
     }
   };
+  for (const [width, height] of [
+    [320, 568],
+    [390, 844],
+    [1280, 900],
+  ])
+    for (const [role, owner] of [
+      ['host', false],
+      ['player', true],
+      ['player', false],
+      ['public', false],
+    ])
+      for (const status of ['lobby', 'playing']) {
+        await check(
+          `box:${role}:${owner ? 'owner' : 'member'}:${status}:${width}:seat-names`,
+          async () => {
+            await page.setViewportSize({ width, height });
+            await page.route('**/api/room/network', (route) =>
+              route.fulfill({
+                json: {
+                  addresses: [],
+                  adapters: [],
+                  port: 38473,
+                  externalJoinUrl: null,
+                },
+              }),
+            );
+            await page.evaluate((options) => window.renderSeatNames(options), {
+              role,
+              owner,
+              status,
+            });
+            await page.waitForFunction(
+              () =>
+                window.seatLiveSession?.connected &&
+                window.seatLiveSession?.view,
+            );
+            const manager = page.getByRole('button', {
+              name: '座位设置',
+              exact: true,
+            });
+            const allowed = role === 'host' || owner;
+            if (!allowed) {
+              assert.equal(
+                await manager.count(),
+                0,
+                'Ordinary players and public displays have no seat management entry',
+              );
+              assert.equal(
+                await page.locator('.seat-settings-menu').count(),
+                0,
+              );
+              assert.equal(
+                await page.evaluate(() => window.seatFixtureCommands.length),
+                0,
+              );
+              return;
+            }
+            const geometry = async (selector) => {
+              const result = await page.locator(selector).evaluateAll((nodes) =>
+                nodes.map((node) => {
+                  const rect = node.getBoundingClientRect();
+                  const within = rect.left >= 0 && rect.right <= innerWidth + 1;
+                  const unclipped = node.scrollWidth <= node.clientWidth + 1;
+                  const text = node.querySelector(
+                    '.seat-settings-identity strong',
+                  );
+                  let textInside = true;
+                  if (text) {
+                    const range = document.createRange();
+                    range.selectNodeContents(text);
+                    const identity = text.parentElement.getBoundingClientRect();
+                    textInside = [...range.getClientRects()].every(
+                      (glyph) =>
+                        glyph.left >= identity.left - 1 &&
+                        glyph.right <= identity.right + 1,
+                    );
+                  }
+                  return { within, unclipped, textInside };
+                }),
+              );
+              assert(
+                result.length > 0,
+                `${selector}: real rendered geometry exists`,
+              );
+              for (const measured of result)
+                assert(
+                  measured.within && measured.unclipped && measured.textInside,
+                  `${selector}: narrow layout and long names are not clipped`,
+                );
+            };
+            await manager.click();
+            await geometry('.seat-settings-row');
+            const openRename = async (seatId) => {
+              await page
+                .locator(
+                  `.seat-settings-row[data-seat-id="${seatId}"] .seat-settings-menu`,
+                )
+                .click();
+              await page
+                .getByRole('button', { name: '修改名称', exact: true })
+                .click();
+              const input = page.getByLabel('玩家名称', { exact: true });
+              await input.waitFor({ state: 'visible' });
+              await geometry('.seat-settings-rename-form');
+              return input;
+            };
+            // Host manages every seat; the authorized owner includes their own s0 seat.
+            for (const seatId of ['s0', 's1', 's2']) {
+              const before = await page.evaluate(
+                (seatId) => ({
+                  count: window.seatFixtureCommands.length,
+                  name: window.seatLiveSession.view.seats.find(
+                    (seat) => seat.id === seatId,
+                  ).name,
+                }),
+                seatId,
+              );
+              const input = await openRename(seatId);
+              await input.fill('爸爸');
+              assert.deepEqual(
+                await page.evaluate(
+                  (seatId) => ({
+                    count: window.seatFixtureCommands.length,
+                    name: window.seatLiveSession.view.seats.find(
+                      (seat) => seat.id === seatId,
+                    ).name,
+                  }),
+                  seatId,
+                ),
+                before,
+                'Typing does not rename or send a command',
+              );
+              const save = page.getByRole('button', {
+                name: '保存名称',
+                exact: true,
+              });
+              await page.evaluate(() => {
+                window.seatStaleCommand = window.seatLiveSession.command;
+              });
+              await save.dblclick();
+              await page.waitForFunction(
+                (count) => window.seatFixtureCommands.length === count + 1,
+                before.count,
+              );
+              // Call the stale render's public command while ACK is held: the real hook's pending ref must reject it.
+              await page.evaluate(
+                (seatId) =>
+                  window.seatStaleCommand({
+                    type: 'set-seat-name',
+                    seatId,
+                    name: '重复提交',
+                  }),
+                seatId,
+              );
+              assert.equal(
+                await page.evaluate(() => window.seatFixtureCommands.length),
+                before.count + 1,
+                'Double click and pending command cannot duplicate the rename',
+              );
+              assert.deepEqual(
+                await page.evaluate(
+                  () => window.seatFixtureCommands.at(-1).command,
+                ),
+                { type: 'set-seat-name', seatId, name: '儿子' },
+              );
+              assert.equal(
+                await page.evaluate(() => window.seatLiveSession.locked),
+                true,
+                'Real session is locked before acknowledgement',
+              );
+              await page.evaluate(() => window.finishSeatName('saved'));
+              await page.waitForFunction(
+                (seatId) =>
+                  !window.seatLiveSession.locked &&
+                  window.seatLiveSession.view.seats.find(
+                    (seat) => seat.id === seatId,
+                  ).name === '儿子',
+                seatId,
+              );
+              await geometry('.seat-settings-row');
+            }
+            const screenshot = async (suffix) => {
+              const path = join(
+                output,
+                `seat-names-${role}-${owner ? 'owner' : 'member'}-${status}-${width}-${suffix}.png`,
+              );
+              await captureBrowserScreenshot(page, { path, fullPage: true });
+              report.screenshots.push({
+                role,
+                owner,
+                status,
+                width,
+                height,
+                panel: 'seat-names-' + suffix,
+                path,
+              });
+            };
+            await screenshot('saved');
+            const failed = await openRename('s1');
+            await failed.fill('保存失败夹具');
+            await page
+              .getByRole('button', { name: '保存名称', exact: true })
+              .click();
+            await page.evaluate(() => window.finishSeatName('error'));
+            await page.waitForFunction(
+              () =>
+                !window.seatLiveSession.locked &&
+                window.seatLiveSession.messageKind === 'error',
+            );
+            const message = await page.evaluate(
+              () => window.seatLiveSession.message,
+            );
+            const notice = page
+              .locator('.tablemax-notice')
+              .filter({ hasText: message });
+            await notice.waitFor({ state: 'visible' });
+            assert.equal(
+              await page.evaluate(
+                () =>
+                  window.seatLiveSession.view.seats.find(
+                    (seat) => seat.id === 's1',
+                  ).name,
+              ),
+              '儿子',
+              'Save rejection preserves the previous saved name',
+            );
+            await geometry('.tablemax-notice');
+            await screenshot('error');
+            await notice
+              .getByRole('button', { name: '关闭提示', exact: true })
+              .click();
+            await notice.waitFor({ state: 'detached' });
+            const pending = await openRename('s1');
+            await pending.fill('待确认夹具');
+            await page
+              .getByRole('button', { name: '保存名称', exact: true })
+              .click();
+            await page.evaluate(() => window.finishSeatName('pending'));
+            await page.waitForFunction(
+              () => window.seatLiveSession.awaitingConfirmation,
+            );
+            const awaiting = page
+              .locator('.tablemax-notice')
+              .filter({ hasText: '尚未收到保存确认' });
+            await awaiting.waitFor({ state: 'visible' });
+            await geometry('.tablemax-notice');
+            await awaiting
+              .getByRole('button', { name: '关闭提示', exact: true })
+              .click();
+            await awaiting.waitFor({ state: 'detached' });
+            await page.keyboard.press('Escape');
+            const retry = page.getByRole('button', {
+              name: '重试确认',
+              exact: true,
+            });
+            await retry.scrollIntoViewIfNeeded();
+            assert(
+              (await retry.isVisible()) && (await retry.isEnabled()),
+              'Pending confirmation exposes the existing retry control',
+            );
+            assert(
+              await retry.evaluate((node) => {
+                const rect = node.getBoundingClientRect();
+                return node.contains(
+                  document.elementFromPoint(
+                    rect.x + rect.width / 2,
+                    rect.y + rect.height / 2,
+                  ),
+                );
+              }),
+              'Pending confirmation retry is not covered',
+            );
+            await screenshot('pending');
+          },
+        );
+      }
   for (const key of ['box', ...games])
     for (const role of ['host', 'public', 'player']) {
       await check(`${key}:${role}:settings`, async () => {

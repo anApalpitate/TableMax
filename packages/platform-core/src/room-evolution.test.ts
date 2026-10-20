@@ -69,6 +69,184 @@ function flip(view: RoomView, slot = 0) {
   });
 }
 
+it('allows only administrators and the current owner to rename any seat across match phases', async () => {
+  const { room, players } = await pokemon();
+  const owner = players[0]!,
+    other = players[1]!;
+  const ownerSeat = room.view(owner.token).self.seatId!;
+  const otherSeat = room.view(other.token).self.seatId!;
+  await send(room, { type: 'set-owner', seatId: ownerSeat });
+  await send(room, { type: 'add-bot', name: '爸爸' });
+  const botSeat = room.view().seats.find((seat) => seat.controller === 'bot')!;
+  expect(botSeat.name).toBe('儿子');
+  const rename = {
+    type: 'set-seat-name',
+    seatId: otherSeat,
+    name: ' 新名字 ',
+  } as const;
+  const pendingReady = envelope(room.view(other.token), {
+    type: 'ready',
+    ready: true,
+  });
+  for (const name of ['', '   ', '长'.repeat(25)])
+    expect(await send(room, { ...rename, name })).toEqual({
+      ok: false,
+      reason: 'invalid-message',
+    });
+  for (const credential of [other.token, undefined])
+    expect(
+      await room.command(credential, envelope(room.view(credential), rename)),
+    ).toEqual({
+      ok: false,
+      reason: 'unauthorized',
+    });
+  expect((await send(room, rename, owner.token)).ok).toBe(true);
+  expect((await room.command(other.token, pendingReady)).ok).toBe(true);
+  expect(room.view().seats.find((seat) => seat.id === otherSeat)!.ready).toBe(
+    true,
+  );
+  expect(room.view().seats.find((seat) => seat.id === otherSeat)!.name).toBe(
+    '新名字',
+  );
+  expect(
+    (
+      await send(
+        room,
+        { type: 'set-seat-name', seatId: ownerSeat, name: '房主本人' },
+        owner.token,
+      )
+    ).ok,
+  ).toBe(true);
+  expect(
+    (
+      await send(
+        room,
+        { type: 'set-bot-name', seatId: botSeat.id, name: '爸爸' },
+        owner.token,
+      )
+    ).ok,
+  ).toBe(true);
+  expect(room.view().seats.find((seat) => seat.id === botSeat.id)!.name).toBe(
+    '儿子',
+  );
+  expect(
+    await send(room, {
+      type: 'set-bot-name',
+      seatId: otherSeat,
+      name: '旧命令',
+    }),
+  ).toEqual({ ok: false, reason: 'invalid-seat' });
+  expect(await send(room, { ...rename, seatId: 'missing' })).toEqual({
+    ok: false,
+    reason: 'invalid-seat',
+  });
+  await start(room, players);
+  expect(
+    (
+      await send(
+        room,
+        { type: 'set-seat-name', seatId: botSeat.id, name: '对局电脑' },
+        owner.token,
+      )
+    ).ok,
+  ).toBe(true);
+  expect(
+    await send(room, {
+      type: 'set-bot-name',
+      seatId: botSeat.id,
+      name: '旧命令',
+    }),
+  ).toEqual({ ok: false, reason: 'end-first' });
+  await send(room, { type: 'pause' });
+  expect((await send(room, { ...rename, name: '暂停改名' })).ok).toBe(true);
+  await send(room, { type: 'end' });
+  expect(
+    (await send(room, { ...rename, name: '结束改名' }, owner.token)).ok,
+  ).toBe(true);
+  await send(room, { type: 'set-owner', seatId: otherSeat });
+  expect(await send(room, rename, owner.token)).toEqual({
+    ok: false,
+    reason: 'unauthorized',
+  });
+});
+
+it('saves names transactionally without changing gameplay, identity or old checkpoints', async () => {
+  const clock = vi.spyOn(Date, 'now').mockReturnValue(1_800_000_000_000);
+  try {
+    const { room, repository, players } = await pokemon();
+    const owner = players[0]!,
+      other = players[1]!;
+    const seatId = room.view(other.token).self.seatId!;
+    await send(room, {
+      type: 'set-owner',
+      seatId: room.view(owner.token).self.seatId!,
+    });
+    await start(room, players);
+    await room.command(owner.token, flip(room.view(owner.token)));
+    const before = structuredClone(repository.value!);
+    const pending = flip(room.view(other.token));
+    const input = envelope(room.view(owner.token), {
+      type: 'set-seat-name',
+      seatId,
+      name: ' 爸爸 ',
+    });
+    repository.fail = true;
+    expect(await room.command(owner.token, input)).toEqual({
+      ok: false,
+      reason: 'save-or-action-failed',
+    });
+    expect(repository.value).toEqual(before);
+    expect(
+      room.view(other.token).seats.find((seat) => seat.id === seatId)!.name,
+    ).toBe('朋友1');
+    repository.fail = false;
+    const reply = await room.command(owner.token, input);
+    expect(reply.ok).toBe(true);
+    const saved = structuredClone(repository.value!);
+    expect(saved.seats).toEqual(
+      before.seats.map((seat) =>
+        seat.id === seatId ? { ...seat, name: '儿子' } : seat,
+      ),
+    );
+    for (const field of [
+      'snapshot',
+      'history',
+      'ownerSeatId',
+      'hostSeat',
+      'branch',
+      'instanceId',
+      'readyWindow',
+      'gameWindow',
+      'decisionClocks',
+      'actionClocks',
+    ] as const)
+      expect(saved[field]).toEqual(before[field]);
+    expect(await room.command(owner.token, input)).toEqual(reply);
+    expect(repository.value).toEqual(saved);
+    expect((await room.command(other.token, pending)).ok).toBe(true);
+    await send(room, { type: 'set-seat-name', seatId, name: '最新名字' });
+    expect(await room.command(owner.token, input)).toEqual(reply);
+    expect(
+      room.view(other.token).seats.find((seat) => seat.id === seatId)!.name,
+    ).toBe('最新名字');
+    await send(room, {
+      type: 'rollback',
+      checkpointId: room.view(room.hostToken).history[0]!.id,
+    });
+    expect(
+      room.view(other.token).seats.find((seat) => seat.id === seatId)!.name,
+    ).toBe('最新名字');
+    const restored = new RoomCoordinator(rules, bot, repository);
+    expect(restored.view(other.token).self.seatId).toBe(seatId);
+    expect(
+      restored.view(other.token).seats.find((seat) => seat.id === seatId)!.name,
+    ).toBe('最新名字');
+    expect(restored.view(owner.token).capabilities.control).toBe(true);
+  } finally {
+    clock.mockRestore();
+  }
+});
+
 it.each([2, 6])(
   'accepts %i simultaneous independent flips from one revision without changing other selections',
   async (count) => {

@@ -110,6 +110,7 @@ const unitScopes = {
   'apps/server/src/room-sync.test.ts': ['shared'],
   'apps/server/src/sync-diagnostics.test.ts': ['shared'],
   'packages/platform-core/src/admission.test.ts': ['box'],
+  'packages/protocol/src/names.test.ts': ['box', 'shared'],
   'packages/platform-core/src/avatar.test.ts': ['box'],
   'packages/platform-core/src/bot-difficulty.test.ts': ['shared'],
   'packages/platform-core/src/countdown.test.ts': [

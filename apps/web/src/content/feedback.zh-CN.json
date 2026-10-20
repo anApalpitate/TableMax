@@ -151,7 +151,7 @@
     "rollbackEffect": "已经看见的信息无法从记忆消除；所有端将同步并暂停。"
   },
   "seats": {
-    "renameWhilePlaying": "请先结束游戏，再修改人机名称。",
+    "nameNormalization": "确认后，父、爹、爸爸等称呼会自动替换为对应的子辈称呼。",
     "removeWhilePlaying": "请先结束游戏，再移除座位。",
     "ownerManagedByHost": "房主座位由电脑管理员管理。",
     "confirmRemoveHuman": "移除 {player}？原手机身份将失效，需要重新入座。",

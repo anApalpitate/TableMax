@@ -65,6 +65,22 @@ it('does not occupy a seat when persisting admission fails and can retry the sam
   expect(await room.join('朋友', key)).toEqual(result);
   expect(room.view().seats).toHaveLength(1);
 });
+it('normalizes new names before duplicate checks while preserving receipts and legacy names', async () => {
+  const repository = new Repository();
+  let room = new RoomCoordinator(rules, bot, repository);
+  const key = token();
+  const original = await room.join('  爸爸  ', key);
+  expect(room.view(original.token).seats[0]!.name).toBe('儿子');
+  const duplicate = await room.join('儿子');
+  expect(duplicate.duplicateName).toBe(true);
+  expect(room.view().seats.map((seat) => seat.name)).toEqual(['儿子', '儿子']);
+  repository.value!.seats[0]!.name = '爸爸';
+  room = new RoomCoordinator(rules, bot, repository);
+  expect(room.view(original.token).seats[0]!.name).toBe('爸爸');
+  expect(await room.join('  爸爸  ', key)).toEqual(original);
+  expect(room.view().seats).toHaveLength(2);
+  expect(room.view().seats[0]!.name).toBe('爸爸');
+});
 it('ignores legacy bindings while preserving current phone identity and admission recovery', async () => {
   const repository = new Repository();
   let room = new RoomCoordinator(rules, bot, repository);

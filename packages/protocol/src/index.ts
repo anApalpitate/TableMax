@@ -1,5 +1,6 @@
 import { z } from 'zod';
 export * from './interactions';
+export { normalizePlayerName } from './names';
 export type {
   GameReleaseSummary,
   PublicPackageTaskPhase,
@@ -125,6 +126,13 @@ export const CommandSchema = z
         .object({
           type: z.literal('reject-transfer'),
           requestId: z.string().uuid(),
+        })
+        .strict(),
+      z
+        .object({
+          type: z.literal('set-seat-name'),
+          seatId: z.string(),
+          name: z.string().trim().min(1).max(24),
         })
         .strict(),
       z

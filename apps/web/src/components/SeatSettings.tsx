@@ -1,4 +1,4 @@
-import type { BotDifficulty } from '@tablemax/protocol';
+import { normalizePlayerName, type BotDifficulty } from '@tablemax/protocol';
 import { useRef, useState } from 'react';
 import type { RoomSession } from '../session/useRoomSession';
 import { OverlayPanel } from './OverlayPanel';
@@ -137,20 +137,14 @@ export function SeatSettings({
                 前移一位
               </button>
             )}
-            {selected.controller === 'bot' && (
-              <button
-                type="button"
-                className="secondary seat-settings-rename"
-                disabled={locked}
-                onClick={() => {
-                  if (playing)
-                    setHint(feedbackText('seats.renameWhilePlaying'));
-                  else setOperation('rename');
-                }}
-              >
-                修改人机名称
-              </button>
-            )}
+            <button
+              type="button"
+              className="secondary seat-settings-rename"
+              disabled={locked}
+              onClick={() => setOperation('rename')}
+            >
+              修改名称
+            </button>
             <button
               type="button"
               className="secondary seat-settings-remove"
@@ -180,37 +174,32 @@ export function SeatSettings({
         </OverlayPanel>
       )}
       {selected && operation === 'rename' && (
-        <OverlayPanel
-          title="修改人机名称"
-          close={close}
-          initialFocus={nameInput}
-        >
+        <OverlayPanel title="修改名称" close={close} initialFocus={nameInput}>
           <form
             className="seat-settings-rename-form"
             onSubmit={(event) => {
               event.preventDefault();
-              if (
-                !locked &&
-                !playing &&
-                draftName.trim() &&
-                draftName.trim() !== selected.name
-              ) {
-                command({
-                  type: 'set-bot-name',
-                  seatId: selected.id,
-                  name: draftName.trim(),
-                });
+              const name = normalizePlayerName(draftName);
+              if (!locked && name) {
+                if (name !== selected.name)
+                  command({
+                    type: 'set-seat-name',
+                    seatId: selected.id,
+                    name,
+                  });
                 close();
               }
             }}
           >
-            <label htmlFor="bot-seat-name">人机名称</label>
+            <label htmlFor="player-seat-name">玩家名称</label>
             <input
-              id="bot-seat-name"
+              id="player-seat-name"
               ref={nameInput}
+              title={feedbackText('seats.nameNormalization')}
+              aria-description={feedbackText('seats.nameNormalization')}
               value={draftName}
               maxLength={24}
-              disabled={locked || playing}
+              disabled={locked}
               onChange={(event) => setDraftName(event.target.value)}
             />
             <div className="dialog-actions">
@@ -220,7 +209,6 @@ export function SeatSettings({
               <button
                 disabled={
                   locked ||
-                  playing ||
                   !draftName.trim() ||
                   draftName.trim() === selected.name
                 }

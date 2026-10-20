@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   JoinSchema,
+  normalizePlayerName,
   SessionReplySchema,
   type AvatarId,
 } from '@tablemax/protocol';
@@ -208,7 +209,7 @@ export function useAdmission(
       const request = current.current ??
         loadAdmission() ?? {
           kind: 'join' as const,
-          value: value.trim(),
+          value: normalizePlayerName(value),
           createdAt: Date.now(),
           ...(avatarImage ? { avatarImage } : avatarId ? { avatarId } : {}),
           requestKey: randomId(32),

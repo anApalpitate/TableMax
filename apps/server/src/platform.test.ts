@@ -67,7 +67,11 @@ it('admits and prepares six phone seats for the authorized variant and rejects a
   const tokens: string[] = [];
   try {
     const initial = service.room.view(service.hostToken);
-    expect(initial.game).toBeNull();
+    expect(initial.game).toMatchObject({
+      id: 'pokemon-encounters',
+      variantId: 'original',
+      max: 6,
+    });
     expect(
       (
         await service.room.command(service.hostToken, {
@@ -114,11 +118,40 @@ it('admits and prepares six phone seats for the authorized variant and rejects a
     expect((await run(service.hostToken, { type: 'start' })).ok).toBe(true);
     const publicGame = service.room.view().gameView as {
       deckCount: number;
-      boards: Record<string, unknown[]>;
+      discardCount: number;
+      discardTop: unknown;
+      discard: unknown[];
+      held: unknown;
+      coin: unknown;
+      peek: unknown;
+      passProgress: unknown;
+      events: unknown[];
+      boards: Record<string, { faceUp: boolean; card: unknown }[]>;
       phase: string;
     };
-    expect(publicGame.deckCount).toBe(20);
-    expect(Object.values(publicGame.boards)).toHaveLength(6);
+    const boards = Object.values(publicGame.boards);
+    expect(boards).toHaveLength(6);
+    for (const board of boards) {
+      expect(board).toHaveLength(6);
+      expect(board.every((slot) => !slot.faceUp && slot.card === null)).toBe(
+        true,
+      );
+    }
+    expect(publicGame.discardCount).toBe(1);
+    expect(publicGame.discardTop).not.toBeNull();
+    expect(publicGame.discard).toEqual([publicGame.discardTop]);
+    expect(publicGame.deckCount).toBe(56 - 6 * 6 - 1);
+    expect(
+      publicGame.deckCount +
+        publicGame.discardCount +
+        boards.reduce((count, board) => count + board.length, 0),
+    ).toBe(56);
+    expect(publicGame.phase).toBe('initial-flip');
+    expect(publicGame.held).toBeNull();
+    expect(publicGame.coin).toBeNull();
+    expect(publicGame.peek).toBeNull();
+    expect(publicGame.passProgress).toBeNull();
+    expect(publicGame.events).toEqual([]);
     for (const credential of tokens) {
       const view = service.room.view(credential);
       expect(
@@ -131,9 +164,17 @@ it('admits and prepares six phone seats for the authorized variant and rejects a
         ).ok,
       ).toBe(true);
     }
-    expect((service.room.view().gameView as { phase: string }).phase).toBe(
-      'draw',
-    );
+    const afterFlips = service.room.view().gameView as typeof publicGame;
+    expect(afterFlips.phase).toBe('draw');
+    expect(afterFlips.deckCount).toBe(publicGame.deckCount);
+    expect(afterFlips.discard).toEqual(publicGame.discard);
+    for (const board of Object.values(afterFlips.boards)) {
+      expect(board.filter((slot) => slot.faceUp)).toHaveLength(1);
+      expect(board.filter((slot) => !slot.faceUp)).toHaveLength(5);
+      expect(board.every((slot) => slot.faceUp || slot.card === null)).toBe(
+        true,
+      );
+    }
     expect(service.room.view(service.hostToken).self).toEqual({
       role: 'host',
       seatId: null,
@@ -206,6 +247,94 @@ async function joinPlayer(
   expect(result.statusCode).toBe(200);
   return result.json() as { token: string; duplicateName: boolean };
 }
+
+it('normalizes HTTP admission names and broadcasts owner-authorized human renames over real sockets', async () => {
+  const config = dirs();
+  const service = await createService(config);
+  const clients: Socket[] = [];
+  try {
+    const port = await service.listen();
+    const origin = `http://127.0.0.1:${port}`;
+    const admit = async (name: string) => {
+      const response = await fetch(`${origin}/api/session/join`, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ name }),
+      });
+      expect(response.status).toBe(200);
+      return (await response.json()) as { token: string };
+    };
+    const ownerAdmission = await admit('爸爸');
+    const otherAdmission = await admit('朋友');
+    const host = await connect(origin, service.hostToken);
+    clients.push(host);
+    const publicClient = await connect(origin);
+    clients.push(publicClient);
+    const owner = await connect(origin, ownerAdmission.token);
+    clients.push(owner);
+    const other = await connect(origin, otherAdmission.token);
+    clients.push(other);
+    const ownerSeat = (await sync(owner)).self.seatId!;
+    const otherSeat = (await sync(other)).self.seatId!;
+    expect((await sync(publicClient)).seats.map((seat) => seat.name)).toEqual([
+      '儿子',
+      '朋友',
+    ]);
+    expect(
+      (await command(host, { type: 'set-owner', seatId: ownerSeat })).ok,
+    ).toBe(true);
+    expect(
+      await command(other, {
+        type: 'set-seat-name',
+        seatId: ownerSeat,
+        name: '越权名字',
+      }),
+    ).toEqual({ ok: false, reason: 'unauthorized' });
+    const broadcast = new Promise<RoomView>((resolve, reject) => {
+      const receive = (projection: unknown) => {
+        const view = RoomProjectionSchema.parse(projection).view;
+        if (view.seats.find((seat) => seat.id === otherSeat)?.name !== '新名字')
+          return;
+        clearTimeout(timer);
+        publicClient.off('room:view', receive);
+        resolve(view);
+      };
+      const timer = setTimeout(() => {
+        publicClient.off('room:view', receive);
+        reject(new Error('Public room:view did not broadcast the saved name'));
+      }, 2000);
+      publicClient.on('room:view', receive);
+    });
+    const [reply, publicView] = await Promise.all([
+      command(owner, {
+        type: 'set-seat-name',
+        seatId: otherSeat,
+        name: ' 新名字 ',
+      }),
+      broadcast,
+    ]);
+    expect(reply.ok).toBe(true);
+    expect(publicView.seats.map((seat) => seat.name)).toEqual([
+      '儿子',
+      '新名字',
+    ]);
+    for (const client of clients) client.disconnect();
+    await service.close();
+    const database = new DatabaseSync(join(config.dataDir, 'room.sqlite'));
+    try {
+      expect(
+        (readCurrentSave(database) as { seats: { name: string }[] }).seats.map(
+          (seat) => seat.name,
+        ),
+      ).toEqual(['儿子', '新名字']);
+    } finally {
+      database.close();
+    }
+  } finally {
+    for (const client of clients) client.disconnect();
+    await service.close();
+  }
+});
 
 it('validates actual socket identities, personalized wire messages, duplicate ACKs and immediate revocation', async () => {
   const service = await createService(dirs());

@@ -383,6 +383,10 @@ function BoxScreenContent({ session }: { session: RoomSession }) {
                         autoComplete="nickname"
                         spellCheck={false}
                         placeholder="朋友们怎么称呼你？"
+                        title={feedbackText('seats.nameNormalization')}
+                        aria-description={feedbackText(
+                          'seats.nameNormalization',
+                        )}
                         value={name}
                         maxLength={24}
                         disabled={busy || session.admissionPending}
