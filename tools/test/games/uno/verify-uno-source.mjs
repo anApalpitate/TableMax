@@ -206,10 +206,11 @@ function sessionFor(options){
  const seats=displayNames(options.names??'short',made.state.seats),owner=options.owner!==false;
  const canControl=options.control??(role==='host'||role==='player'&&owner);
  const entry=moduleCatalog.find(game=>game.id==='uno');
+ if(!entry)throw new Error('UNO fixture catalog entry missing');
  const session={role,credential:'fixture',isHost:role==='host',canManageSeats:role==='host',canControl,self:role==='player'?seats.find(s=>s.id===actor):undefined,
  connected:true,locked:false,busy:false,admissionPending:false,awaitingConfirmation:false,message:'',messageKind:'none',feedback:null,errorId:'',motion:[],name:'',setName:noop,retry:noop,retryAdmission:noop,
  addresses:[],adapters:[],port:38473,address:'',joinUrl:'',catalog:moduleCatalog,games:moduleCatalog,subscribeInteractions:()=>noop,subscribeInteractionResets:()=>noop,
- view:{instanceId:'uno-source-'+(++serial),branch:0,revision:1,status:options.status??(options.box?'lobby':'playing'),paused:false,restored:false,playMode:'play',game:{...entry,setup:unoSetupFor(made.state)},gameView:null,
+ view:{instanceId:'uno-source-'+(++serial),branch:0,revision:1,status:options.status??(options.box?'lobby':'playing'),paused:false,restored:false,playMode:'play',game:{...entry.catalog,decisionTimer:rules.manifest.decisionTimer!==false,setup:unoSetupFor(made.state)},gameView:null,
  decisionId:null,countdownSeconds:30,decisionClock:null,actions:[],lifecycleActions:[],seats,history:[],joinOpen:true,ownerSeatId:owner?actor:made.state.seats.find(id=>id!==actor),catalog:moduleCatalog,capabilities:{control:canControl,manage:role==='host',manageSeats:role==='host'},self:{role,seatId:role==='player'?actor:null},selectionToken:null},command:send};
  current={options,made,actor,session,key:session.view.instanceId,openedAt:performance.now()};project();return session;
 }
@@ -409,6 +410,74 @@ async function openSettings(page, box = false) {
     await page.getByRole('button', { name: '菜单', exact: true }).click();
   await page.getByRole('button', { name: '游戏设置', exact: true }).click();
   await page.locator('.uno-setup-settings').waitFor();
+}
+async function assertSetupRows(page) {
+  assert(
+    await page
+      .locator('.game-setup-settings')
+      .getByRole('button', { name: 'UNO 开局设置', exact: true })
+      .isVisible(),
+    'UNO setup title uses the selected game name',
+  );
+  const rows = await page
+    .locator('.uno-setup-settings .setting-help__label')
+    .evaluateAll((labels) =>
+      labels.map((label) => {
+        const row = label.closest('.setting-help').parentElement;
+        const control = row.querySelector('input, [role="switch"]');
+        const a = label.getBoundingClientRect(),
+          b = control?.getBoundingClientRect();
+        return {
+          label: label.textContent,
+          sameLine: Boolean(
+            b && Math.min(a.bottom, b.bottom) > Math.max(a.top, b.top),
+          ),
+          separate: Boolean(b && a.right <= b.left + 1),
+          residentDescription: [...row.querySelectorAll('p, small')].some(
+            (node) => !node.closest('.setting-help__tip'),
+          ),
+        };
+      }),
+    );
+  assert.equal(rows.length, 2, 'Both UNO settings have help labels');
+  for (const row of rows) {
+    assert(
+      row.sameLine && row.separate,
+      `${row.label}: label and control share one row`,
+    );
+    assert(
+      !row.residentDescription,
+      `${row.label}: explanation belongs in help`,
+    );
+  }
+  const expectsTimer = await page.evaluate(() => {
+    const { view } = window.snapshot();
+    return view.self.role === 'host' && view.game.decisionTimer;
+  });
+  if (expectsTimer) {
+    const timer = page.locator('.countdown-settings__row');
+    assert(await timer.isVisible(), 'Host sees the thinking time setting');
+    const geometry = await timer.evaluate((row) => {
+      const label = row.querySelector('.setting-help__label');
+      const slider = row.querySelector('input[type="range"]');
+      const output = row.querySelector('output');
+      if (!label || !slider || !output) return null;
+      const a = label.getBoundingClientRect();
+      const b = slider.getBoundingClientRect();
+      const c = output.getBoundingClientRect();
+      return {
+        sameLine:
+          Math.min(a.bottom, b.bottom, c.bottom) >
+          Math.max(a.top, b.top, c.top),
+        separate: a.right <= b.left + 1 && b.right <= c.left + 1,
+        usableSlider: b.width > 0 && b.height >= 44,
+      };
+    });
+    assert(
+      geometry?.sameLine && geometry.separate && geometry.usableSlider,
+      'Thinking time label, slider and value share one usable row',
+    );
+  }
 }
 async function measurements(page, { dialogs = false } = {}) {
   return page.evaluate((dialogs) => {
@@ -890,6 +959,7 @@ try {
             .getByRole('button', { name: '游戏设置', exact: true })
             .click();
           await page.locator('.uno-setup-settings').waitFor();
+          await assertSetupRows(page);
           assertGeometry(await measurements(page, { dialogs: true }), {
             dialogs: true,
           });
@@ -923,15 +993,37 @@ try {
           const editable = status === 'lobby' && control;
           assert.equal(await slider.isDisabled(), !editable);
           assert.equal(await toggle.isDisabled(), !editable);
-          for (const delayof of [0, 1000, 2000, 5000]) {
-            const preset = page.getByRole('button', {
-              name: delayof / 1000 + ' 秒',
-              exact: true,
-            });
-            assert.equal(await preset.isDisabled(), !editable);
+          await assertSetupRows(page);
+          assert.equal(await slider.getAttribute('min'), '0');
+          assert.equal(await slider.getAttribute('max'), '5000');
+          assert.equal(await slider.getAttribute('step'), '100');
+          assert.deepEqual(
+            await slider.evaluate((node) =>
+              [...node.list.options].map((option) => Number(option.value)),
+            ),
+            [0, 500, 1000, 2000, 5000],
+          );
+          for (const delayof of [0, 500, 1000, 2000, 5000]) {
+            assert.equal(
+              await page
+                .getByRole('button', {
+                  name: delayof / 1000 + ' 秒',
+                  exact: true,
+                })
+                .count(),
+              0,
+              'Delay presets are replaced by slider marks',
+            );
             if (editable) {
-              await preset.click();
+              await slider.focus();
+              await slider.press('Home');
+              for (let step = 0; step < delayof / 100; step++)
+                await slider.press('ArrowRight');
               assert.equal(await slider.inputValue(), String(delayof));
+              assert.equal(
+                await slider.getAttribute('aria-valuetext'),
+                delayof / 1000 + ' 秒',
+              );
             }
           }
           if (editable) {

@@ -1,0 +1,42 @@
+.setting-help {
+  display: inline-flex;
+  min-width: 0;
+  align-items: center;
+}
+.setting-help .setting-help__label {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  min-width: 44px;
+  padding: 4px 0;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-weight: 700;
+  text-align: start;
+  cursor: help;
+}
+.setting-help__tip {
+  position: fixed;
+  inset: auto;
+  box-sizing: border-box;
+  width: max-content;
+  max-width: min(360px, calc(100vw - 24px));
+  max-height: calc(100vh - 24px);
+  overflow: auto;
+  margin: 0;
+  padding: 12px 14px;
+  border: 1px solid #b7cbbba8;
+  border-radius: 12px;
+  background: #fffef4f2;
+  box-shadow: 0 8px 28px #254e4229;
+  backdrop-filter: blur(12px);
+  color: #254e42;
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+  z-index: 1000;
+}

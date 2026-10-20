@@ -1,5 +1,5 @@
 import { useId } from 'react';
-import type { GameSetupSettingsProps } from '@tablemax/web-host';
+import { SettingHelp, type GameSetupSettingsProps } from '@tablemax/web-host';
 
 export function UnoSetupSettings({
   value,
@@ -22,15 +22,12 @@ export function UnoSetupSettings({
     onChange({ drawPenaltyStacking, catchUnoDelayMs: delay });
   return (
     <section className="uno-setup-settings" aria-label="UNO 开局设置">
-      <div className="uno-setup-heading">
-        <h3>UNO 开局设置</h3>
-        <span>开局后保持本局设置</span>
-      </div>
       <div className="uno-setup-choice">
-        <div>
-          <label id={`${id}-stacking`}>补牌传递</label>
-          <p>面对 +2 可接 +2 或 +4，面对 +4 可接 +4，把累计张数传给下一位。</p>
-        </div>
+        <SettingHelp
+          id={`${id}-stacking`}
+          label="补牌传递"
+          hint="面对 +2 可接 +2 或 +4，面对 +4 可接 +4，把累计张数传给下一位。开局后保持本局设置。"
+        />
         <button
           type="button"
           className="secondary"
@@ -49,40 +46,30 @@ export function UnoSetupSettings({
         </button>
       </div>
       <div className="uno-setup-delay">
-        <div className="uno-setup-heading">
-          <label htmlFor={`${id}-delay`}>抓漏延迟</label>
-          <output htmlFor={`${id}-delay`}>{catchUnoDelayMs / 1000} 秒</output>
-        </div>
+        <SettingHelp
+          id={`${id}-delay-label`}
+          label="抓漏延迟"
+          hint="只延后其他人的抓漏按钮，本人喊 UNO 和下一位行动不受影响。范围 0–5 秒，每次调整 0.1 秒，支持 0.5 秒。"
+        />
         <input
           id={`${id}-delay`}
           type="range"
           min="0"
           max="5000"
           step="100"
+          list={`${id}-delay-values`}
           value={catchUnoDelayMs}
+          aria-labelledby={`${id}-delay-label`}
           aria-valuetext={`${catchUnoDelayMs / 1000} 秒`}
           disabled={disabled}
           onChange={(event) => changeDelay(Number(event.target.value))}
         />
-        <div
-          className="uno-setup-presets"
-          role="group"
-          aria-label="抓漏延迟快捷选择"
-        >
-          {[0, 1000, 2000, 5000].map((delay) => (
-            <button
-              key={delay}
-              type="button"
-              className="secondary"
-              aria-pressed={catchUnoDelayMs === delay}
-              disabled={disabled}
-              onClick={() => changeDelay(delay)}
-            >
-              {delay / 1000} 秒
-            </button>
+        <output htmlFor={`${id}-delay`}>{catchUnoDelayMs / 1000} 秒</output>
+        <datalist id={`${id}-delay-values`}>
+          {[0, 500, 1000, 2000, 5000].map((delay) => (
+            <option key={delay} value={delay} label={`${delay / 1000} 秒`} />
           ))}
-        </div>
-        <p>只延后其他人的抓漏按钮，本人喊 UNO 和下一位行动不受影响。</p>
+        </datalist>
       </div>
     </section>
   );

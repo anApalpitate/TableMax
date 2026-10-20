@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
+import { SettingHelp } from '@tablemax/web-host';
 import type {
   WindowMode,
   WindowSnapshot,
@@ -81,9 +82,14 @@ export function WindowModeSettings() {
   };
   return (
     <div className="display-settings-choice window-mode-setting">
-      <label htmlFor="window-mode">显示模式</label>
+      <SettingHelp
+        id="window-mode-label"
+        label="显示模式"
+        hint="选择全屏或窗口显示；电脑主机还支持无边框窗口。"
+      />
       <select
         id="window-mode"
+        aria-labelledby="window-mode-label"
         value={mode}
         disabled={
           pending ||
@@ -98,7 +104,7 @@ export function WindowModeSettings() {
         <option value="windowed">窗口</option>
       </select>
       {!bridge && !browserSupported && (
-        <p className="display-settings-hint">
+        <p className="display-settings-hint" role="status">
           当前浏览器不支持全屏，已铺满可用画面。
         </p>
       )}

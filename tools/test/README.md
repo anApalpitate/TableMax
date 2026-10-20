@@ -8,6 +8,8 @@
 
 `tools/test/platform/verify-settings-and-save-layout.mjs --evidence=<独立安全名称>`构建当前源码夹具，覆盖盒子与八玩法三端设置入口、同源页面／iframe声音同步、手机全屏成功／拒绝／不支持、保存前后几何不变、文字碰撞及18／20／22px矢量角标；`effects`使用真实规则保存事件验证原版／扩展蓝绿色轨迹、减少动态静态落点及恢复不重播。`--only=box,settings,save-layout,sound,mobile,icons,effects`可按实际受影响组筛选，`--games=manila`等可限制游戏专属用例；不传时运行全部。通过现有批次计划执行，范围为`box,shared`及七个正式游戏，默认隐藏、静音、127.0.0.1。证据位于`artifacts/maintenance/settings-and-save-20261020/<名称>`，绑定实际源码与脚本哈希；属于合法规则投影的源码组件夹具，不证明服务端事务、原生系统窗口或实体手机。
 
+`--only=settings-layout --games=box,uno`定向检查320／390／1280px的紧凑游戏／视频设置、标签hover／聚焦／点按说明和成功截图。盒子主机／公共屏注入显式原生桥接快照，核对适配方式、界面大小、三种窗口模式提交参数；UNO玩家检查浏览器不出现原生专属选项。桥接快照不证明原生窗口或持久化通过。
+
 ## UNO 开局设置与手机源码验证
 
 `tools/test/games/uno/verify-uno-source.mjs --evidence=<独立安全名称>`通过合法规则投影与真实React组件检查紧凑布局、密集手牌、排序、保存提示、规则／设置浮窗、补牌传递、抓漏延迟及本人自动质疑证据。`--only=layout,dialogs,config,delay,penalty,evidence,baseline`选择组，`--sizes=320x568,1280x720`限制视口。基线仅隔离读取指定Git版本的UNO入口／手牌／样式，其余依赖使用当前源码；不代表历史完整产品。经现有批次计划以`box,shared,game:uno`范围运行，默认隐藏、静音、仅127.0.0.1；证据进入`artifacts/maintenance/uno-source-20261020/<名称>`，保留源码／脚本哈希和参数。模拟手机不替代实体设备、Safari、原生窗口或安装器验收。

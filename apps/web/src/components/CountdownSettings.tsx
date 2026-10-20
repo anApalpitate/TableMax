@@ -5,6 +5,7 @@ import { BoxOverlayPanel } from './BoxOverlayPanel';
 import { feedbackText } from '../content/feedback';
 import { SoundSetting } from './SoundSetting';
 import { GameSetupSettings } from './GameSetupSettings';
+import { SettingHelp } from '@tablemax/web-host';
 import './countdown.css';
 import './settings-panel.css';
 
@@ -72,48 +73,29 @@ export function CountdownSettings({
           {children}
           {canSetTimer && (
             <div className="countdown-settings">
-              <div className="countdown-settings__heading">
-                <label htmlFor={sliderId}>思考时间提醒</label>
-                <span className="countdown-settings__saved">
-                  {feedbackText('countdown.current', {
-                    seconds:
-                      session.view?.countdownSeconds ??
-                      DEFAULT_COUNTDOWN_SECONDS,
-                  })}
-                </span>
-              </div>
-              <output htmlFor={sliderId}>
-                <strong>{seconds}</strong>
-                <span>秒</span>
-              </output>
-              <input
-                id={sliderId}
-                type="range"
-                min="0"
-                max={COUNTDOWN_STEPS.length - 1}
-                step="1"
-                value={step}
-                aria-valuetext={`${seconds} 秒`}
-                disabled={session.locked}
-                onChange={(event) => {
-                  setStep(Number(event.target.value));
-                  setAttempted(false);
-                }}
-              />
-              <div className="countdown-settings__scale" aria-hidden="true">
-                <span>5 秒</span>
-                <span
-                  style={{
-                    left: `${(COUNTDOWN_STEPS.indexOf(DEFAULT_COUNTDOWN_SECONDS) / (COUNTDOWN_STEPS.length - 1)) * 100}%`,
+              <div className="countdown-settings__row">
+                <SettingHelp
+                  id={`${sliderId}-label`}
+                  label="思考时间提醒"
+                  hint={`${feedbackText('countdown.hint')} ${feedbackText('countdown.current', { seconds: session.view?.countdownSeconds ?? DEFAULT_COUNTDOWN_SECONDS })}`}
+                />
+                <input
+                  id={sliderId}
+                  aria-labelledby={`${sliderId}-label`}
+                  type="range"
+                  min="0"
+                  max={COUNTDOWN_STEPS.length - 1}
+                  step="1"
+                  value={step}
+                  aria-valuetext={`${seconds} 秒`}
+                  disabled={session.locked}
+                  onChange={(event) => {
+                    setStep(Number(event.target.value));
+                    setAttempted(false);
                   }}
-                >
-                  20 秒
-                </span>
-                <span>120 秒</span>
+                />
+                <output htmlFor={sliderId}>{seconds} 秒</output>
               </div>
-              <p className="countdown-settings__note">
-                {feedbackText('countdown.hint')}
-              </p>
               {attempted && (
                 <p role="status">
                   {session.awaitingConfirmation

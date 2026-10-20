@@ -11,6 +11,7 @@ import {
 } from '../interactions/useInteractionPreference';
 import { WindowModeSettings } from './WindowModeSettings';
 import { feedbackText } from '../content/feedback';
+import { SettingHelp } from '@tablemax/web-host';
 import './display-settings.css';
 import './settings-panel.css';
 
@@ -116,7 +117,15 @@ export function DisplaySettings({
         >
           <WindowModeSettings />
           <div className="display-settings-choice interaction-video-setting">
-            <h3 id="interaction-effects-label">互动特效</h3>
+            <SettingHelp
+              id="interaction-effects-label"
+              label="互动特效"
+              hint={
+                blocked
+                  ? feedbackText('display.interactionDisabled')
+                  : feedbackText('display.interactionEnabled')
+              }
+            />
             <button
               type="button"
               className="secondary"
@@ -131,15 +140,14 @@ export function DisplaySettings({
               />
               {blocked ? '已关闭' : '已开启'}
             </button>
-            <p className="display-settings-hint">
-              {blocked
-                ? feedbackText('display.interactionDisabled')
-                : feedbackText('display.interactionEnabled')}
-            </p>
           </div>
           {role === 'player' && (
             <div className="display-settings-choice interaction-button-setting">
-              <h3 id="interaction-button-label">射击按钮</h3>
+              <SettingHelp
+                id="interaction-button-label"
+                label="射击按钮"
+                hint="显示或隐藏本设备的互动射击入口。"
+              />
               <button
                 type="button"
                 className="secondary"
@@ -164,33 +172,29 @@ export function DisplaySettings({
           {snapshot ? (
             <div className="display-settings-fields">
               <div className="display-settings-current">
-                <div className="display-settings-screen">
-                  <span>当前显示器</span>
-                  <strong>
-                    {Math.round(
-                      snapshot.screen.width * snapshot.screen.scaleFactor,
-                    )}
-                    {' × '}
-                    {Math.round(
-                      snapshot.screen.height * snapshot.screen.scaleFactor,
-                    )}
-                  </strong>
-                </div>
-                <dl className="display-settings-metrics">
-                  <div>
-                    <dt>Windows 缩放</dt>
-                    <dd>{Math.round(snapshot.screen.scaleFactor * 100)}%</dd>
-                  </div>
-                  <div>
-                    <dt>界面缩放</dt>
-                    <dd>{Math.round(snapshot.zoomFactor * 100)}%</dd>
-                  </div>
-                </dl>
+                <SettingHelp
+                  label="当前显示器"
+                  hint={`Windows 缩放 ${Math.round(snapshot.screen.scaleFactor * 100)}%，界面缩放 ${Math.round(snapshot.zoomFactor * 100)}%。当前窗口独立保存显示设置，即时生效。`}
+                />
+                <strong>
+                  {Math.round(
+                    snapshot.screen.width * snapshot.screen.scaleFactor,
+                  )}
+                  {' × '}
+                  {Math.round(
+                    snapshot.screen.height * snapshot.screen.scaleFactor,
+                  )}
+                </strong>
               </div>
               <div className="display-settings-choice">
-                <label htmlFor="display-resolution">适配方式</label>
+                <SettingHelp
+                  id="display-resolution-label"
+                  label="适配方式"
+                  hint={feedbackText('display.autoHint')}
+                />
                 <select
                   id="display-resolution"
+                  aria-labelledby="display-resolution-label"
                   value={snapshot.preferences.resolution}
                   disabled={busy}
                   onChange={(event) =>
@@ -207,14 +211,16 @@ export function DisplaySettings({
                     </option>
                   ))}
                 </select>
-                <p className="display-settings-hint">
-                  {feedbackText('display.autoHint')}
-                </p>
               </div>
               <div className="display-settings-choice">
-                <label htmlFor="display-interface-scale">界面大小</label>
+                <SettingHelp
+                  id="display-interface-scale-label"
+                  label="界面大小"
+                  hint="调整当前窗口的界面大小，主机与公共屏分别保存。"
+                />
                 <select
                   id="display-interface-scale"
+                  aria-labelledby="display-interface-scale-label"
                   value={snapshot.preferences.interfaceScale}
                   disabled={busy}
                   onChange={(event) =>
@@ -248,11 +254,11 @@ export function DisplaySettings({
                   恢复自动适配
                 </button>
               </div>
-              <p className="display-settings-hint" role="status">
-                {busy
-                  ? feedbackText('common.saving')
-                  : feedbackText('display.saved')}
-              </p>
+              {busy && (
+                <p className="display-settings-hint" role="status">
+                  {feedbackText('common.saving')}
+                </p>
+              )}
             </div>
           ) : (
             bridge &&

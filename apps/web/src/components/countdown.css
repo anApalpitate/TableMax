@@ -61,82 +61,33 @@
   font-size: 18px;
   line-height: 1.5;
 }
-.dialog-surface .countdown-settings label,
-.dialog-surface .countdown-settings button {
-  font-size: 18px;
+.countdown-settings__row {
+  display: grid;
+  grid-template-columns: max-content minmax(28px, 1fr) max-content;
+  align-items: center;
+  gap: 8px;
 }
 .countdown-settings output {
-  display: flex;
-  gap: 10px;
-  align-items: baseline;
-  justify-content: center;
-  margin: 24px 0 12px;
-  padding: 14px;
-  border-radius: 18px;
-  background: #edf4e9;
+  min-width: 3.5em;
   color: #1d6253;
-}
-.countdown-settings output strong {
-  font-size: 52px;
-  line-height: 1.1;
+  font-size: 18px;
+  font-weight: 700;
   font-variant-numeric: tabular-nums;
+  text-align: right;
+  white-space: nowrap;
 }
 .countdown-settings input[type='range'] {
-  display: block;
   width: 100%;
-  min-height: 48px;
+  min-width: 0;
+  min-height: 44px;
   margin: 0;
   padding: 0;
   accent-color: #196653;
   cursor: pointer;
 }
-.countdown-settings__scale {
-  position: relative;
-  height: 26px;
-  font-size: 16px;
-}
-.countdown-settings__scale > span {
-  position: absolute;
-}
-.countdown-settings__scale > span:first-child {
-  left: 0;
-}
-.countdown-settings__scale > span:nth-child(2) {
-  transform: translateX(-50%);
-}
-.countdown-settings__scale > span:last-child {
-  right: 0;
-}
 .countdown-settings p {
-  margin: 18px 0 0;
+  margin: 8px 0 0;
 }
-.countdown-settings__saved {
-  min-width: 0;
-  max-width: 100%;
-  padding: 6px 12px;
-  border-radius: 10px;
-  background: #edf1e7;
-  font-size: 16px;
-  overflow-wrap: anywhere;
-}
-.countdown-settings__heading {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  flex-wrap: wrap;
-}
-.countdown-settings__heading label {
-  margin: 0;
-  font-weight: 700;
-}
-.countdown-settings__note {
-  color: #496253;
-  font-size: 16px;
-}
-@media (max-width: 440px) {
-  .countdown-settings__heading {
-    align-items: flex-start;
-    flex-direction: column;
-  }
+.countdown-settings .dialog-actions {
+  margin-top: 4px;
 }

@@ -37,17 +37,17 @@
   line-height: 1.4;
 }
 .settings-panel--preferences .dialog-actions > button {
-  flex: 1 1 180px;
+  flex: 0 1 auto;
   min-width: 0;
 }
 .settings-panel .beginner-guidance-setting,
 .settings-panel .countdown-settings,
 .settings-panel .display-settings-choice,
 .settings-panel .display-settings-current {
-  padding: 18px;
-  margin: 0 0 14px;
+  padding: 8px 12px;
+  margin: 0;
   border: 1px solid #ffffffd9;
-  border-radius: 20px;
+  border-radius: 12px;
   background: #ffffff92;
   box-shadow: 0 4px 16px #4469540c;
 }
@@ -69,20 +69,23 @@
   border: 1px solid #b7d2c6;
 }
 .settings-panel .interaction-video-setting,
-.settings-panel--preferences .interaction-button-setting {
+.settings-panel--preferences .interaction-button-setting,
+.settings-panel--preferences .sound-setting,
+.settings-panel--preferences .window-mode-setting,
+.settings-panel--preferences
+  .display-settings-fields
+  > .display-settings-choice {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  gap: 12px;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr);
+  gap: 10px;
   align-items: center;
 }
-.settings-panel .interaction-video-setting p {
-  grid-column: 1 / -1;
-  margin: 0;
-}
 .settings-panel .interaction-video-setting button,
-.settings-panel--preferences .interaction-button-setting button {
+.settings-panel--preferences .interaction-button-setting button,
+.settings-panel--preferences .sound-setting > button {
   display: flex;
   width: auto;
+  justify-self: end;
   align-items: center;
   gap: 10px;
   padding: 8px;
@@ -111,37 +114,31 @@
   justify-content: flex-end;
   background: #28735d;
 }
-@media (max-width: 600px) {
-  .settings-panel--preferences .beginner-guidance-setting,
-  .settings-panel--preferences .countdown-settings,
-  .settings-panel--preferences .display-settings-choice,
-  .settings-panel--preferences .display-settings-current {
-    padding: 14px;
-  }
-}
-@media (max-width: 440px) {
-  .settings-panel--preferences .beginner-guidance-setting,
-  .settings-panel--preferences .interaction-video-setting,
-  .settings-panel--preferences .interaction-button-setting {
-    grid-template-columns: minmax(0, 1fr);
-    justify-items: stretch;
-  }
-  .settings-panel--preferences .interaction-video-setting button,
-  .settings-panel--preferences .interaction-button-setting button {
-    justify-content: center;
-    width: 100%;
-  }
-}
 .settings-panel--preferences {
   overscroll-behavior: contain;
 }
+.settings-panel--preferences .box-overlay-panel__content {
+  display: grid;
+  gap: 8px;
+  align-content: start;
+}
+.settings-panel--preferences .setting-help__label {
+  width: auto;
+  min-width: 44px;
+  padding: 4px 0;
+  background: transparent;
+  border: 0;
+  color: inherit;
+  font-size: 18px;
+  text-align: start;
+}
 .game-setup-settings {
   display: grid;
-  gap: 12px;
+  gap: 4px;
   min-width: 0;
-  padding: 16px;
+  padding: 8px 12px;
   border: 1px solid #c5d8c5;
-  border-radius: 16px;
+  border-radius: 12px;
   background: #f3f8ed;
 }
 .game-setup-settings > :is(h3, p) {

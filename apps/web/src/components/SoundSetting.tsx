@@ -1,5 +1,5 @@
 import { useId } from 'react';
-import { useSoundPreference } from '@tablemax/web-host';
+import { SettingHelp, useSoundPreference } from '@tablemax/web-host';
 import './display-settings.css';
 
 export function SoundSetting() {
@@ -7,7 +7,11 @@ export function SoundSetting() {
   const labelId = useId();
   return (
     <div className="display-settings-choice sound-setting">
-      <h3 id={labelId}>声音</h3>
+      <SettingHelp
+        id={labelId}
+        label="声音"
+        hint="控制当前设备的游戏、语音和互动声音。"
+      />
       <button
         type="button"
         className="secondary"
@@ -22,7 +26,6 @@ export function SoundSetting() {
         />
         {enabled ? '已开启' : '已关闭'}
       </button>
-      <p className="display-settings-hint">控制当前设备的游戏和互动声音。</p>
     </div>
   );
 }

@@ -745,6 +745,16 @@
   font-size: 16px;
   color: #615e4b;
 }
+.uno-screen
+  :is(.uno-round-counter, .uno-pile-label, .uno-hand-hint, .uno-turn-note),
+.uno-screen .uno-hand-heading h2 > span {
+  color: #474435;
+  background: #fff9e7;
+  border-radius: 4px;
+  box-shadow: 0 0 0 2px #fff9e7;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+}
 .uno-hand-scroll {
   overflow: auto hidden;
   scrollbar-width: thin;
@@ -2513,59 +2523,41 @@
 
 .uno-setup-settings {
   display: grid;
-  gap: 14px;
-  padding: 16px;
-  border: 1px solid #bac6a6;
-  border-radius: 16px;
-  background: #fffdf2d9;
+  gap: 8px;
+  min-width: 0;
   font-size: 16px;
 }
-.uno-setup-heading,
-.uno-setup-choice {
-  display: flex;
+.uno-setup-choice,
+.uno-setup-delay {
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr);
   align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 8px 12px;
+  gap: 8px;
+  min-width: 0;
 }
-.uno-setup-heading h3 {
-  margin: 0;
-  font-size: 20px;
+.uno-setup-choice > button {
+  justify-self: end;
 }
-.uno-setup-heading > span {
-  color: #657253;
+.uno-setup-delay {
+  grid-template-columns: max-content minmax(0, 1fr) max-content;
 }
-.uno-setup-choice > div {
-  flex: 1 1 180px;
-}
-.uno-setup-settings :is(label, output) {
+.uno-setup-settings output {
+  min-width: 3.5em;
   font-size: 18px;
   font-weight: 650;
-}
-.uno-setup-settings p {
-  margin: 6px 0 0;
-  line-height: 1.5;
+  text-align: right;
+  white-space: nowrap;
 }
 .uno-setup-settings input[type='range'] {
   display: block;
   width: 100%;
+  min-width: 0;
   min-height: 44px;
-  margin: 4px 0;
+  margin: 0;
   accent-color: #40805d;
 }
-.uno-setup-presets {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 6px;
-}
-.uno-setup-presets button,
-.uno-setup-choice button {
+.uno-setup-choice > button {
   min-width: 44px;
   min-height: 44px;
   font-size: 18px;
-}
-.uno-setup-presets button[aria-pressed='true'] {
-  border-color: #40805d;
-  background: #e4efdc;
-  box-shadow: inset 0 0 0 1px #40805d;
 }

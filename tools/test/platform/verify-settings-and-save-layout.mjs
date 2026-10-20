@@ -26,6 +26,7 @@ assert(
     [
       'box',
       'settings',
+      'settings-layout',
       'save-layout',
       'sound',
       'mobile',
@@ -76,6 +77,7 @@ import {flushSync} from 'react-dom';
 import {PlatformGame} from ${file('apps/web/src/session/gameHostAdapter.tsx')};
 import {BoxScreen} from ${file('apps/web/src/screens/BoxScreen.tsx')};
 import {useSoundPreference} from ${file('packages/web-host/src/index.tsx')};
+import type {DisplaySnapshot, WindowMode} from ${file('apps/desktop/src/display-types.ts')};
 import {AbilityIcon} from ${file('games/pokemon-encounters/ui/AbilityIcon.tsx')};
 import {AbilityLegend} from ${file('games/pokemon-encounters/ui/RuleDiagrams.tsx')};
 import ${file('apps/web/src/styles.css')};
@@ -106,6 +108,14 @@ function sessionFor(key,role){
 function paint(){const key=current.session.fixtureKey??current.key+'-'+current.session.role;flushSync(()=>root.render(<><Probe/>{current.key==='box'?<BoxScreen key={key} session={current.session}/>:<PlatformGame key={key} session={current.session} client={current.session.client}/>}</>));}
 let renderSequence=0;
 window.renderGame=(key,role)=>{history.replaceState(null,'','/'+role+(key==='box'?'':'/game'));const session=sessionFor(key,role);session.fixtureKey='case-'+key+'-'+(++renderSequence);current={key,session};paint();};
+window.configureNativeSettings=(enabled)=>{
+ window.nativeSettingsCalls={display:[],window:[]};
+ if(!enabled){delete window.tablemaxDisplay;delete window.tablemaxWindow;return;}
+ let snapshot:DisplaySnapshot={preferences:{resolution:'auto',interfaceScale:100},viewport:{width:innerWidth,height:innerHeight},screen:{width:1920,height:1080,scaleFactor:1.25},zoomFactor:1,limited:false};
+ let mode:WindowMode='windowed';
+ window.tablemaxDisplay={read:async()=>snapshot,subscribe:()=>noop,update:async preferences=>{window.nativeSettingsCalls.display.push({...preferences});snapshot={...snapshot,preferences:{...preferences}};return snapshot;}};
+ window.tablemaxWindow={read:async()=>({mode,fullscreen:mode==='fullscreen'}),subscribe:()=>noop,setMode:async next=>{window.nativeSettingsCalls.window.push(next);mode=next;return {mode,fullscreen:mode==='fullscreen'};},setFullscreen:async enabled=>{mode=enabled?'fullscreen':'windowed';return {mode,fullscreen:enabled};}};
+};
 window.setSaved=enabled=>{current.session={...current.session,message:enabled?'已保存':'',messageKind:enabled?'saved':'none',saved:enabled};paint();};
 let discardSequence=0;
 window.renderDiscard=key=>{
@@ -143,7 +153,101 @@ const report = {
   pending: [],
   excluded: [],
   inputs: {},
+  screenshots: [],
 };
+async function assertSettingRowsAndHelp(page, { touch = false } = {}) {
+  const labels = page.locator('.dialog-surface .setting-help__label');
+  assert((await labels.count()) > 0, 'Settings expose concise help labels');
+  for (let index = 0; index < (await labels.count()); index++) {
+    const label = labels.nth(index);
+    const name = await label.textContent();
+    const geometry = await label.evaluate((node) => {
+      const row = node.closest('.setting-help').parentElement;
+      const control = row.querySelector('input, select, [role="switch"]');
+      if (!control || row.classList.contains('game-setup-settings'))
+        return null;
+      const a = node.getBoundingClientRect(),
+        b = control.getBoundingClientRect();
+      return {
+        sameLine: Math.min(a.bottom, b.bottom) > Math.max(a.top, b.top),
+        separate: a.right <= b.left + 1,
+        residentDescription: [...row.querySelectorAll('p, small')].some(
+          (item) =>
+            !item.closest(
+              '.setting-help__tip, [role="status"], [role="alert"]',
+            ),
+        ),
+      };
+    });
+    if (geometry) {
+      assert(
+        geometry.sameLine && geometry.separate,
+        `${name}: label and control share one row`,
+      );
+      assert(
+        !geometry.residentDescription,
+        `${name}: long explanation is not resident`,
+      );
+    }
+    const reset = async () => {
+      await label.evaluate((node) => node.blur());
+      await page.mouse.move(0, 0);
+    };
+    const readable = async (interaction) => {
+      const tip = label.locator('..').locator('.setting-help__tip');
+      await tip.waitFor({ state: 'visible', timeout: 3000 });
+      assert(
+        (await tip.textContent()).trim().length > 0,
+        `${name}: ${interaction} help contains text`,
+      );
+      assert.equal(
+        await label.getAttribute('aria-describedby'),
+        await tip.getAttribute('id'),
+      );
+      const metrics = await tip.evaluate((node) => {
+        const rect = node.getBoundingClientRect();
+        return {
+          font: Number.parseFloat(getComputedStyle(node).fontSize),
+          inside:
+            rect.x >= 0 &&
+            rect.y >= 0 &&
+            rect.right <= innerWidth + 1 &&
+            rect.bottom <= innerHeight + 1,
+          unclipped:
+            node.scrollHeight <= node.clientHeight + 1 &&
+            node.scrollWidth <= node.clientWidth + 1,
+        };
+      });
+      assert(
+        metrics.font >= 16 && metrics.inside && metrics.unclipped,
+        `${name}: ${interaction} help is readable within viewport`,
+      );
+    };
+    await reset();
+    assert.equal(
+      await label.locator('..').locator('.setting-help__tip').count(),
+      0,
+      `${name}: help starts closed`,
+    );
+    await label.hover();
+    await readable('hover');
+    await reset();
+    await label.focus();
+    await readable('focus');
+    await label.press('Escape');
+    assert.equal(
+      await label.locator('..').locator('.setting-help__tip').count(),
+      0,
+      `${name}: Escape closes help`,
+    );
+    assert(await label.isVisible(), 'Escape leaves the settings dialog open');
+    await reset();
+    if (touch) await label.tap();
+    else await label.click();
+    await readable(touch ? 'tap' : 'click');
+    await reset();
+  }
+}
 const bindInput = async (path) => {
   report.inputs[relative(process.cwd(), path).replaceAll('\\', '/')] =
     createHash('sha256')
@@ -177,6 +281,7 @@ try {
             'tools/test/support/fixture-server.mjs',
             'pnpm-lock.yaml',
             'package.json',
+            'apps/desktop/src/display-types.ts',
           ])
             await bindInput(resolve(path));
         },
@@ -271,6 +376,7 @@ try {
         const was = await sound.getAttribute('aria-checked');
         await sound.click();
         assert.notEqual(await sound.getAttribute('aria-checked'), was);
+        await assertSettingRowsAndHelp(page);
         await page.keyboard.press('Escape');
         await page
           .getByRole('button', { name: '视频设置', exact: true })
@@ -284,6 +390,132 @@ try {
             .filter({ has: page.locator('option[value="fullscreen"]') })
             .count()) > 0,
         );
+        await assertSettingRowsAndHelp(page);
+      });
+    }
+  for (const [key, role, native] of [
+    ['box', 'host', true],
+    ['box', 'public', true],
+    ['uno', 'player', false],
+  ])
+    for (const [width, height] of [
+      [320, 568],
+      [390, 844],
+      [1280, 900],
+    ]) {
+      await check(`${key}:${role}:${width}:settings-layout`, async () => {
+        await page.setViewportSize({ width, height });
+        await page.evaluate(
+          ({ key, role, native }) => {
+            window.configureNativeSettings(native);
+            window.renderGame(key, role);
+          },
+          { key, role, native },
+        );
+        const screenshot = async (panel) => {
+          await page
+            .locator('.settings-panel--preferences')
+            .evaluate((node) => {
+              node.scrollTop = 0;
+              for (const child of node.querySelectorAll('*'))
+                if (child.scrollHeight > child.clientHeight)
+                  child.scrollTop = 0;
+            });
+          const path = join(
+            output,
+            `settings-layout-${key}-${role}-${width}-${panel}.png`,
+          );
+          await captureBrowserScreenshot(page, { path, fullPage: true });
+          report.screenshots.push({
+            key,
+            role,
+            width,
+            height,
+            native,
+            panel,
+            path,
+          });
+        };
+        try {
+          if (key !== 'box')
+            await page
+              .getByRole('button', { name: '菜单', exact: true })
+              .click();
+          await page
+            .getByRole('button', { name: '游戏设置', exact: true })
+            .click();
+          await page
+            .getByRole('switch', { name: '声音', exact: true })
+            .waitFor({ state: 'visible' });
+          await assertSettingRowsAndHelp(page);
+          await screenshot('game');
+          await page.keyboard.press('Escape');
+          await page
+            .getByRole('button', { name: '视频设置', exact: true })
+            .click();
+          const mode = page.getByLabel('显示模式', { exact: true });
+          await mode.waitFor({ state: 'visible' });
+          if (native) {
+            const resolution = page.getByLabel('适配方式', { exact: true });
+            const scale = page.getByLabel('界面大小', { exact: true });
+            await resolution.waitFor({ state: 'visible' });
+            assert.deepEqual(
+              await mode
+                .locator('option')
+                .evaluateAll((options) =>
+                  options.map((option) => option.value),
+                ),
+              ['fullscreen', 'borderless', 'windowed'],
+            );
+            await mode.selectOption('borderless');
+            assert.equal(await mode.inputValue(), 'borderless');
+            await mode.selectOption('fullscreen');
+            assert.equal(await mode.inputValue(), 'fullscreen');
+            await mode.selectOption('windowed');
+            await resolution.selectOption('1920x1080');
+            await scale.selectOption('125');
+            assert.equal(await resolution.inputValue(), '1920x1080');
+            assert.equal(await scale.inputValue(), '125');
+            assert.deepEqual(
+              await page.evaluate(() => window.nativeSettingsCalls),
+              {
+                display: [
+                  { resolution: '1920x1080', interfaceScale: 100 },
+                  { resolution: '1920x1080', interfaceScale: 125 },
+                ],
+                window: ['borderless', 'fullscreen', 'windowed'],
+              },
+            );
+            await page
+              .getByRole('button', { name: '恢复自动适配', exact: true })
+              .click();
+            assert.equal(await resolution.inputValue(), 'auto');
+            assert.equal(await scale.inputValue(), '100');
+            assert.deepEqual(
+              await page.evaluate(() =>
+                window.nativeSettingsCalls.display.at(-1),
+              ),
+              { resolution: 'auto', interfaceScale: 100 },
+            );
+          } else {
+            assert.equal(
+              await page
+                .locator('#display-resolution, #display-interface-scale')
+                .count(),
+              0,
+              'Browser player has no native display controls',
+            );
+            assert.equal(
+              await mode.locator('option[value="borderless"]').count(),
+              0,
+              'Browser player has no native borderless mode',
+            );
+          }
+          await assertSettingRowsAndHelp(page);
+          await screenshot('video');
+        } finally {
+          await page.evaluate(() => window.configureNativeSettings(false));
+        }
       });
     }
   for (const width of [320, 360, 390, 844, 1280])
@@ -465,6 +697,7 @@ try {
         await phone
           .getByRole('button', { name: '视频设置', exact: true })
           .click();
+        await assertSettingRowsAndHelp(phone, { touch: true });
         const mode = phone.getByLabel('显示模式', { exact: true });
         await mode.selectOption('fullscreen');
         await phone.waitForFunction(() => Boolean(document.fullscreenElement));

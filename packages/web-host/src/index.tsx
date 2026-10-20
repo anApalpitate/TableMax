@@ -24,6 +24,7 @@ export { DecisionCountdown } from './components/DecisionCountdown';
 export { RulesGuide } from './components/RulesGuide';
 export { useDecisionClock } from './components/useDecisionClock';
 export { BeginnerGuidanceSetting } from './components/BeginnerGuidanceSetting';
+export { SettingHelp } from './components/SettingHelp';
 export { useGuidancePreference } from './preferences/useGuidancePreference';
 export {
   useSoundPreference,

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { SettingHelp } from '@tablemax/web-host';
 import type { JsonValue } from '@tablemax/game-sdk';
 import type { RoomSession } from '../session/useRoomSession';
 import { useGameClient } from '../game-clients/registry';
@@ -36,12 +37,14 @@ function SelectedGameSetup({ session }: { session: RoomSession }) {
       className="game-setup-settings"
       aria-label={`${game.name} 开局设置`}
     >
-      <h3>{game.name} 开局设置</h3>
-      <p>
-        {session.view?.status === 'lobby'
-          ? '仅开局前可调整；应用后真人玩家需重新准备。'
-          : '当前对局规则已固定，下一场开始前可调整。'}
-      </p>
+      <SettingHelp
+        label={`${game.name} 开局设置`}
+        hint={
+          session.view?.status === 'lobby'
+            ? '仅开局前可调整；应用后真人玩家需重新准备。'
+            : '当前对局规则已固定，下一场开始前可调整。'
+        }
+      />
       {error ? (
         <p role="alert">
           {error}
