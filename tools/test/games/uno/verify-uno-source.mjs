@@ -982,7 +982,13 @@ try {
         'config:' + role + ':' + status + ':' + control,
         async () => {
           await page.setViewportSize({ width: 390, height: 844 });
-          await ready(page, { box: true, role, status, control });
+          await ready(page, {
+            box: true,
+            role,
+            status,
+            control,
+            setup: { drawPenaltyStacking: true, catchUnoDelayMs: 500 },
+          });
           await openSettings(page, true);
           const slider = page.getByLabel('抓漏延迟', { exact: true }),
             toggle = page.getByRole('switch', {
@@ -993,6 +999,7 @@ try {
           const editable = status === 'lobby' && control;
           assert.equal(await slider.isDisabled(), !editable);
           assert.equal(await toggle.isDisabled(), !editable);
+          assert.equal(await toggle.getAttribute('aria-checked'), 'true');
           await assertSetupRows(page);
           assert.equal(await slider.getAttribute('min'), '0');
           assert.equal(await slider.getAttribute('max'), '5000');
@@ -1027,6 +1034,90 @@ try {
             }
           }
           if (editable) {
+            for (const viewport of [
+              { width: 320, height: 568 },
+              { width: 390, height: 844 },
+              { width: 1280, height: 720 },
+            ]) {
+              await page.setViewportSize(viewport);
+              await slider.scrollIntoViewIfNeeded();
+              await slider.focus();
+              await slider.press('Home');
+              const track = await slider.boundingBox();
+              assert(track && track.width > 20);
+              const padding = await slider.evaluate((node) =>
+                parseFloat(getComputedStyle(node).paddingLeft),
+              );
+              await page.mouse.move(
+                track.x + padding + 8,
+                track.y + track.height / 2,
+              );
+              await page.mouse.down();
+              await page.mouse.move(
+                track.x + track.width - 1,
+                track.y + track.height / 2,
+                { steps: 25 },
+              );
+              await page.mouse.up();
+              assert.equal(
+                await slider.inputValue(),
+                '5000',
+                `Pointer drag reaches 5 seconds at ${viewport.width}px`,
+              );
+              await slider.press('End');
+              await page.mouse.move(
+                track.x + track.width - padding - 8,
+                track.y + track.height / 2,
+              );
+              await page.mouse.down();
+              await page.mouse.move(track.x + 1, track.y + track.height / 2, {
+                steps: 25,
+              });
+              await page.mouse.up();
+              assert.equal(
+                await slider.inputValue(),
+                '0',
+                `Pointer drag reaches zero at ${viewport.width}px`,
+              );
+              assert.equal(
+                await slider.evaluate(
+                  (node) => getComputedStyle(node).paddingLeft,
+                ),
+                '0px',
+                'Native slider does not inherit text-input padding',
+              );
+              const touch = await page.context().newCDPSession(page);
+              try {
+                await touch.send('Emulation.setTouchEmulationEnabled', {
+                  enabled: true,
+                  maxTouchPoints: 1,
+                });
+                const y = track.y + track.height / 2,
+                  start = track.x + 8,
+                  end = track.x + track.width - 1;
+                await touch.send('Input.dispatchTouchEvent', {
+                  type: 'touchStart',
+                  touchPoints: [{ x: start, y }],
+                });
+                for (let i = 1; i <= 20; i++)
+                  await touch.send('Input.dispatchTouchEvent', {
+                    type: 'touchMove',
+                    touchPoints: [{ x: start + ((end - start) * i) / 20, y }],
+                  });
+                await touch.send('Input.dispatchTouchEvent', {
+                  type: 'touchEnd',
+                  touchPoints: [],
+                });
+                assert.equal(
+                  await slider.inputValue(),
+                  '5000',
+                  `Touch drag reaches 5 seconds at ${viewport.width}px`,
+                );
+              } finally {
+                await touch.detach();
+              }
+            }
+            await page.setViewportSize({ width: 390, height: 844 });
             await slider.focus();
             await slider.press('Home');
             for (let step = 0; step < 17; step++)
@@ -1039,7 +1130,7 @@ try {
             const snapshot = await page.evaluate(() => window.snapshot());
             assert.deepEqual(snapshot.commands.at(-1).command, {
               type: 'set-game-setup',
-              setup: { drawPenaltyStacking: true, catchUnoDelayMs: 1700 },
+              setup: { drawPenaltyStacking: false, catchUnoDelayMs: 1700 },
             });
           } else
             assert.equal(
