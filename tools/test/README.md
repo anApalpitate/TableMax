@@ -1,5 +1,11 @@
 # 验证工具
 
+## 马尼拉信息精简与行动引导
+
+`games/manila/verify-manila-harbor.mjs --evidence=<新安全名称> --only=clarity-layout,action-guidance,stocks-finance --viewports=320x568,844x390`复用当前React与合法规则投影，检查岸上岗位实际字形／完整棋子居中、单份保存提示的字形碰撞与布局不变、全部玩家行动入口的呼吸／定位／减少动态、纯图形股票及独立抵押／赎回和强制付款。`clarity-layout`可用`--roles=player`或`--roles=host,public`限定三端角色，并用相同视口参数覆盖720p至4K；另外两组验证玩家行为及公开端秘密隔离。检查实现为[clarity-checks.mjs](games/manila/clarity-checks.mjs)，由原港湾脚本调用，不另建运行入口。
+
+以上通过现有`game:manila`显式批次计划执行，默认隐藏、静音、仅监听127.0.0.1。证据仍进入`artifacts/maintenance/manila-harbor-rebuild-20261017/mobile/<名称>`并绑定源码与参数；模拟视口和控制的运输状态不代表实体手机、Safari、系统DPI、真实服务或安装器验收。
+
 ## 开发盒子打开网址回归
 
 `box/verify-box-repository.mjs --require-medium --run=<独立名称>`使用当前原路径开发EXE，读取实际进程令牌并断言非提权Medium，验证主机／公共屏的可信“打开网址”和GitHub目标；实际默认浏览器启动仅捕获已批准目标，另用隐藏静音Edge访问回环加入地址并确认网页玩家盒子。`--native-fixture`补同一文档切换`/host`与`/host/game`，并保留合成点击、过期请求、错误焦点、恶意网址、同URL子frame和玩家路由的拒绝检查。通过`box`批次计划执行；默认仅127.0.0.1、独立临时数据，不等同系统默认浏览器关联、实体手机或安装器验收。

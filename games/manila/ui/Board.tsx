@@ -50,7 +50,13 @@ export function Space({
   locked: boolean;
   select(action: Action): void;
 }) {
-  const content = (
+  const shore = space.kind !== 'cargo';
+  const hasPayout =
+    (space.kind === 'port' ||
+      space.kind === 'shipyard' ||
+      space.kind === 'insurance') &&
+    space.payout != null;
+  const heading = (
     <>
       <span className="mn-space-name">
         {space.kind === 'cargo'
@@ -82,40 +88,42 @@ export function Space({
             title={`入驻费用 ${space.cost} 比索`}
             aria-label={`入驻费用 ${space.cost} 比索`}
           >
-            {space.cost === 0 ? '免费' : `−${space.cost} ₱`}
+            {space.cost === 0 ? '免费' : `${shore ? '' : '−'}${space.cost} ₱`}
           </span>
         )}
       </span>
-      {(space.kind === 'port' ||
-        space.kind === 'shipyard' ||
-        space.kind === 'insurance') &&
-        space.payout != null && (
-          <span
-            className="mn-space-earn"
-            title={
-              space.kind === 'insurance'
-                ? `即收 ${space.payout} 比索，同时承担修船赔付`
-                : `${space.kind === 'port' ? '抵港' : '进坞'}条件满足时收入 ${space.payout} 比索，未扣除入驻费用`
-            }
-            aria-label={
-              space.kind === 'insurance'
-                ? `立即收入 ${space.payout} 比索，有修船赔付风险`
-                : `条件收益 ${space.payout} 比索，未扣除费用`
-            }
-          >
-            <CopperMark kind={space.kind === 'insurance' ? 'risk' : 'income'} />
-            <span className="mn-money">
-              {space.kind === 'insurance' ? '即收 ' : '+'}
-              {space.payout} ₱
-            </span>
+    </>
+  );
+  const content = (
+    <>
+      {shore ? <span className="mn-space-heading">{heading}</span> : heading}
+      {hasPayout && (
+        <span
+          className="mn-space-earn"
+          title={
+            space.kind === 'insurance'
+              ? `即收 ${space.payout} 比索，同时承担修船赔付`
+              : `${space.kind === 'port' ? '抵港' : '进坞'}条件满足时收入 ${space.payout} 比索，未扣除入驻费用`
+          }
+          aria-label={
+            space.kind === 'insurance'
+              ? `立即收入 ${space.payout} 比索，有修船赔付风险`
+              : `条件收益 ${space.payout} 比索，未扣除费用`
+          }
+        >
+          <span className="mn-money">
+            {space.kind === 'insurance' ? '即收 ' : '+'}
+            {space.payout} ₱
           </span>
-        )}
+        </span>
+      )}
     </>
   );
   return (
     <div
       className={`mn-space-wrap mn-space-wrap--${space.kind}`}
       data-mn-space={space.id}
+      data-mn-space-lines={shore ? (hasPayout ? '2' : '1') : undefined}
       data-mn-insurance={space.kind === 'insurance' ? 'true' : undefined}
     >
       {action ? (

@@ -62,19 +62,53 @@
   .mn-layout
   .mn-main
   .mn-harbor
+  > .mn-shore {
+  /* Each 48px position sits inside a facility with two 1px borders. */
+  grid-template-rows: repeat(5, minmax(50px, 1fr));
+}
+.mn-screen:is(.mn-screen--host, .mn-screen--public)
+  .mn-layout
+  .mn-main
+  .mn-harbor
   .mn-shore
   .mn-space {
   box-sizing: border-box;
-  column-gap: 6px;
-  row-gap: 0;
+  gap: 0;
   align-content: center;
   justify-content: center;
   justify-items: center;
-  grid-template-columns: max-content max-content;
-  grid-template-rows: 28px 22px;
-  min-height: 52px;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: 26px 20px;
+  height: 48px;
+  min-height: 48px;
   padding: 0 3px;
-  line-height: 22px;
+  line-height: 20px;
+  background: #fffaf0;
+  border-color: #cab98e;
+}
+.mn-screen:is(.mn-screen--host, .mn-screen--public)
+  .mn-layout
+  .mn-main
+  .mn-harbor
+  .mn-shore
+  [data-mn-space-lines='1']
+  > .mn-space {
+  grid-template-rows: 26px;
+}
+.mn-screen:is(.mn-screen--host, .mn-screen--public)
+  .mn-layout
+  .mn-main
+  .mn-harbor
+  .mn-shore
+  .mn-space-heading {
+  grid-area: 1 / 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-width: 0;
+  max-width: 100%;
+  min-height: 26px;
 }
 .mn-screen:is(.mn-screen--host, .mn-screen--public)
   .mn-layout
@@ -83,7 +117,6 @@
   .mn-shore
   .mn-space-name {
   align-self: center;
-  grid-area: 1 / 1;
   font-size: 18px;
   line-height: 22px;
   white-space: nowrap;
@@ -94,12 +127,12 @@
   .mn-harbor
   .mn-shore
   .mn-space-value {
-  grid-area: 1 / 2;
   display: flex;
+  flex: none;
   align-items: center;
   justify-content: center;
-  height: 28px;
-  min-height: 28px;
+  height: 26px;
+  min-height: 26px;
   line-height: 22px;
 }
 .mn-screen:is(.mn-screen--host, .mn-screen--public)
@@ -117,11 +150,11 @@
   .mn-harbor
   .mn-shore
   .mn-space-earn {
-  grid-area: 2 / 1 / 3 / 3;
+  grid-area: 2 / 1;
   justify-self: center;
   align-self: center;
   font-size: 16px;
-  line-height: 22px;
+  line-height: 20px;
   white-space: nowrap;
 }
 .mn-screen:is(.mn-screen--host, .mn-screen--public)
@@ -131,6 +164,7 @@
   .mn-shore
   .mn-space-value
   .mn-worker {
+  /* Center the complete pawn silhouette, including its head above the body. */
   transform: translateY(3px);
 }
 @media (min-width: 621px) {
@@ -182,16 +216,6 @@
     .mn-shore
     :is(.mn-dock-slots, .mn-specialist-slots) {
     align-self: center;
-  }
-  .mn-screen:is(.mn-screen--host, .mn-screen--public)
-    .mn-layout
-    .mn-main
-    .mn-harbor
-    .mn-shore
-    .mn-space {
-    height: 52px;
-    background: #fffaf0;
-    border-color: #cab98e;
   }
 }
 /* Desktop lane cards reserve enough room for all four numbered crew positions. */
@@ -334,34 +358,5 @@
     > :is(.mn-docks, .mn-specialists)
     > :is(.mn-dock-group, .mn-specialist-group) {
     padding: 0 4px;
-  }
-}
-@media (min-width: 621px) {
-  .mn-screen:is(.mn-screen--host, .mn-screen--public)
-    .mn-layout
-    .mn-main
-    .mn-harbor
-    .mn-shore
-    .mn-space {
-    height: 48px;
-    min-height: 48px;
-    grid-template-rows: 26px 20px;
-  }
-  .mn-screen:is(.mn-screen--host, .mn-screen--public)
-    .mn-layout
-    .mn-main
-    .mn-harbor
-    .mn-shore
-    .mn-space-value {
-    height: 26px;
-    min-height: 26px;
-  }
-  .mn-screen:is(.mn-screen--host, .mn-screen--public)
-    .mn-layout
-    .mn-main
-    .mn-harbor
-    .mn-shore
-    .mn-space-earn {
-    line-height: 20px;
   }
 }

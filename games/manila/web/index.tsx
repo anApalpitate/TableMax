@@ -25,6 +25,7 @@ import {
   RevealedShares,
 } from '../ui/Board';
 import { PlayerControls } from '../ui/PlayerControls';
+import { Finance } from '../ui/Finance';
 import { phaseNames } from '../ui/labels';
 import { manilaRulebook } from '../ui/RulesGuide';
 import { DetailButton, ManilaInteraction } from '../ui/interaction';
@@ -42,10 +43,13 @@ import '../ui/host-layout.css';
 import '../ui/harbor-layout.css';
 import '../ui/stage.css';
 import { useBoardAnchor } from '../ui/useBoardAnchor';
+import { useActionGuidance } from '../ui/useActionGuidance';
+import { useStatusSaveAnchor } from '../ui/useStatusSaveAnchor';
 import { VoyageResultCard } from '../ui/VoyageResult';
 import '../ui/voyage-layout.css';
 import '../ui/label-layout.css';
 import '../ui/player-layout.css';
+import '../ui/stock-layout.css';
 
 function ManilaScreen({ session }: { session: GameHost }) {
   const { view, role, command, connected, locked, canControl } = session;
@@ -70,6 +74,7 @@ function ManilaScreen({ session }: { session: GameHost }) {
   }, []);
   const game = view?.gameView as ManilaView | null;
   const [panel, setPanel] = useState<'menu' | 'rules' | 'ledger' | null>(null);
+  const [financeBoundary, setFinanceBoundary] = useState<string | null>(null);
   const [selection, setSelection] = useState<{
     boundary: string;
     action: Action | null;
@@ -90,21 +95,11 @@ function ManilaScreen({ session }: { session: GameHost }) {
     live.current = session;
   });
   const scrollRef = useRef<HTMLDivElement>(null);
-  const goToAction = () => {
-    const owner = scrollRef.current;
-    const target = owner?.querySelector('#mn-action-area');
-    if (!owner || !target) return;
-    owner.scrollTo({
-      top:
-        owner.scrollTop +
-        target.getBoundingClientRect().top -
-        owner.getBoundingClientRect().top -
-        8,
-      behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches
-        ? 'instant'
-        : 'smooth',
-    });
-  };
+  const statusRef = useRef<HTMLElement>(null);
+  useStatusSaveAnchor(
+    statusRef,
+    `${boundary}|${view?.revision}|${session.messageKind}|${session.message}|${role}`,
+  );
   useBoardAnchor(
     scrollRef,
     [boundary, view?.revision, JSON.stringify(draft), locked].join('|'),
@@ -143,6 +138,24 @@ function ManilaScreen({ session }: { session: GameHost }) {
     );
   const active =
     connected && view?.status === 'playing' && !view.paused && !view.botError;
+  const guidance = useActionGuidance({
+    boundary,
+    enabled: Boolean(
+      role === 'player' &&
+      active &&
+      !locked &&
+      view?.decisionId &&
+      ((game?.phase === 'financing' &&
+        game.payment?.seatId === game.self?.seatId) ||
+        actions.some(
+          (action) =>
+            !['mortgage', 'repay', 'next-voyage'].includes(action.type),
+        )),
+    ),
+    revision: view?.revision,
+    scrollRef,
+  });
+  const { goToAction } = guidance;
   const saved =
     session.motion.length > 0 && view?.playMode !== 'test' && active;
   const notice = !connected
@@ -174,6 +187,14 @@ function ManilaScreen({ session }: { session: GameHost }) {
       <button
         className="mn-action-link"
         onClick={goToAction}
+        disabled={!guidance.highlighted}
+        data-mn-guidance={
+          guidance.highlighted
+            ? guidance.pulsing
+              ? 'pulse'
+              : 'active'
+            : undefined
+        }
         aria-label="定位到本人操作区"
       >
         <CopperMark
@@ -196,14 +217,23 @@ function ManilaScreen({ session }: { session: GameHost }) {
                   ? '派遣'
                   : game.phase === 'auction'
                     ? '竞拍'
-                    : '本人操作'}{' '}
+                    : game.phase === 'board'
+                      ? '登船'
+                      : game.phase === 'plunder'
+                        ? '掠夺'
+                        : '本人操作'}{' '}
           ↓
         </span>
       </button>
     );
   const status =
     game && view ? (
-      <section className="mn-status" aria-label="当前阶段">
+      <section
+        ref={statusRef}
+        className="mn-status"
+        aria-label="当前阶段"
+        data-mn-phase={game.phase}
+      >
         <div className="mn-current-turn">
           {actor && (
             <img
@@ -213,8 +243,21 @@ function ManilaScreen({ session }: { session: GameHost }) {
             />
           )}
           <div className="mn-current-turn-copy">
-            <span className="mn-mobile-voyage">第 {game.voyage} 航次</span>
-            <strong className="mn-phase-name">{phaseNames[game.phase]}</strong>
+            {role === 'player' && game.phase === 'round-result' ? (
+              <span className="mn-result-heading">
+                <span className="mn-mobile-voyage">第 {game.voyage} 航次</span>
+                <strong className="mn-phase-name">
+                  {phaseNames[game.phase]}
+                </strong>
+              </span>
+            ) : (
+              <>
+                <span className="mn-mobile-voyage">第 {game.voyage} 航次</span>
+                <strong className="mn-phase-name">
+                  {phaseNames[game.phase]}
+                </strong>
+              </>
+            )}
             <span className="mn-status-detail">
               {game.phase === 'round-result' ? (
                 canControl || playerNextVoyage ? (
@@ -237,9 +280,6 @@ function ManilaScreen({ session }: { session: GameHost }) {
                 '等待保存结果'
               )}
               {actionJump}
-              <span className="mn-status-save">
-                <SessionFeedback session={session} mode="saved" />
-              </span>
             </span>
             {game.phase === 'auction' && (
               <span className="mn-auction-standing">
@@ -257,6 +297,9 @@ function ManilaScreen({ session }: { session: GameHost }) {
                 )}
               </span>
             )}
+            <span className="mn-status-save">
+              <SessionFeedback session={session} mode="saved" />
+            </span>
           </div>
         </div>
         <DecisionCountdown
@@ -268,7 +311,18 @@ function ManilaScreen({ session }: { session: GameHost }) {
           {role === 'player' &&
             game.phase === 'financing' &&
             game.payment?.seatId === game.self?.seatId && (
-              <button className="mn-payment-link" onClick={goToAction}>
+              <button
+                className="mn-payment-link"
+                onClick={goToAction}
+                disabled={!guidance.highlighted}
+                data-mn-guidance={
+                  guidance.highlighted
+                    ? guidance.pulsing
+                      ? 'pulse'
+                      : 'active'
+                    : undefined
+                }
+              >
                 <span>需要付款</span>
                 <strong>去处理 ↓</strong>
               </button>
@@ -315,6 +369,7 @@ function ManilaScreen({ session }: { session: GameHost }) {
       }
       data-play-mode={view?.playMode ?? 'play'}
       data-saved-motion={saved ? 'true' : 'false'}
+      data-mn-guidance-arrived={guidance.arrived || undefined}
       data-motion={
         saved && session.motion.includes('manila:sail') ? 'sail' : ''
       }
@@ -328,7 +383,6 @@ function ManilaScreen({ session }: { session: GameHost }) {
           <span>马尼拉经典版</span>
         </div>
         {role !== 'player' && status}
-        <SessionFeedback session={session} mode="saved" />
         <div className="mn-toolbar-tools">
           <ManilaEffects session={session} />
           <PlayModeBadge mode={view?.playMode} />
@@ -404,20 +458,36 @@ function ManilaScreen({ session }: { session: GameHost }) {
                       现金<strong>{game.self.cash} ₱</strong>
                     </span>
                   </div>
-                  <div className="mn-credit">
+                  <button
+                    className="mn-credit"
+                    type="button"
+                    aria-label="股份抵押与赎回"
+                    aria-haspopup="dialog"
+                    aria-expanded={financeBoundary === boundary}
+                    disabled={
+                      !active ||
+                      locked ||
+                      !actions.some(
+                        (action) =>
+                          action.type === 'mortgage' || action.type === 'repay',
+                      )
+                    }
+                    onClick={() => setFinanceBoundary(boundary)}
+                  >
                     <CopperMark kind="credit" />
                     <span>
                       抵押可借<strong>{game.self.availableCredit} ₱</strong>
                     </span>
-                  </div>
+                  </button>
                 </div>
                 <DetailButton
-                  title={game.phase === 'ended' ? '本人股份' : '本人秘密股份'}
+                  title="查看股票"
                   className="mn-secret-entry"
                   detail={
                     <ShareCertificates
                       shares={game.self.shares}
                       publicView={game.phase === 'ended'}
+                      compact
                     />
                   }
                 >
@@ -425,7 +495,7 @@ function ManilaScreen({ session }: { session: GameHost }) {
                     <CopperMark kind="shares" />
                     <i />
                   </span>
-                  <span>{game.self.shares.length} 股</span>
+                  <span>查看股票</span>
                 </DetailButton>
                 {game.latest && (
                   <DetailButton
@@ -568,6 +638,25 @@ function ManilaScreen({ session }: { session: GameHost }) {
           )}
         </OverlayPanel>
       )}
+      {financeBoundary === boundary &&
+        role === 'player' &&
+        game &&
+        connected &&
+        !view?.paused && (
+          <OverlayPanel
+            title="股份抵押与赎回"
+            close={() => setFinanceBoundary(null)}
+          >
+            <div className="mn-stock-finance">
+              <Finance
+                game={game}
+                actions={actions}
+                locked={locked}
+                choose={choose}
+              />
+            </div>
+          </OverlayPanel>
+        )}
       <PlayModeControl session={session} />
     </main>
   );

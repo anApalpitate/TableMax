@@ -232,9 +232,6 @@
   display: block;
   overflow-wrap: anywhere;
 }
-.mn-pilot-preview {
-  font-size: 16px;
-}
 .mn-bid-credit {
   margin-top: 6px !important;
 }
@@ -267,9 +264,6 @@
 }
 .mn-side .mn-controls {
   margin-top: 0;
-}
-.mn-side .mn-draft-grid {
-  grid-template-columns: minmax(0, 1fr);
 }
 .mn-finance {
   margin-top: 12px;
@@ -844,24 +838,8 @@
   flex: 1 1 0;
   min-width: max-content;
 }
-.mn-controls > .mn-auction-actions > .mn-alternatives {
-  flex: 1 1 0;
-  min-width: max-content;
-}
 .mn-controls > .mn-auction-actions > .mn-primary {
   flex-grow: 0.65;
-}
-.mn-controls > .mn-auction-actions > .mn-alternatives {
-  flex-grow: 1.4;
-  margin: 0;
-}
-.mn-controls
-  > .mn-auction-actions
-  > .mn-alternatives
-  > summary
-  > .mn-copper-mark {
-  width: 20px;
-  height: 20px;
 }
 .mn-controls[data-stage='auction'] > .mn-auction-actions > button {
   display: flex;
@@ -879,66 +857,11 @@
   line-height: 1.2;
   white-space: nowrap;
 }
-.mn-controls[data-stage='auction']
-  > .mn-auction-actions
-  > .mn-alternatives
-  > summary {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 4px;
-  font-size: 18px;
-}
-.mn-controls[data-stage='auction']
-  > .mn-auction-actions
-  > .mn-alternatives
-  > summary:not(:where(.mn-screen--player, .mn-screen--player *)) {
-  height: 48px;
-  min-height: 48px;
-  padding: 4px;
-  line-height: 1.2;
-  white-space: nowrap;
-}
-.mn-status-save:not(:where(.mn-screen--player, .mn-screen--player *)) {
-  display: none;
-}
-.mn-status-save .session-save-overlay {
-  line-height: 1.2;
-}
 @media (max-width: 360px) {
-  .mn-toolbar
-    > .session-save-anchor:not(
-      :where(.mn-screen--player, .mn-screen--player *)
-    ) {
-    display: none;
-  }
   .mn-status
     .mn-status-detail:not(:where(.mn-screen--player, .mn-screen--player *)) {
     display: flex;
   }
-  .mn-status-save {
-    align-self: center;
-  }
-  .mn-status-save:not(:where(.mn-screen--player, .mn-screen--player *)) {
-    display: block;
-    flex: 1 1 0;
-    min-width: 0;
-  }
-}
-.mn-action-grid {
-  display: grid;
-  gap: 8px;
-}
-.mn-action-grid:not(:where(.mn-screen--player, .mn-screen--player *)) {
-  grid-template-columns: repeat(auto-fit, minmax(185px, 1fr));
-}
-.mn-action-grid button {
-  text-align: left;
-  display: grid;
-  gap: 3px;
-}
-.mn-action-grid button strong {
-  font-size: 18px;
 }
 .mn-inline-actions {
   display: flex;
@@ -993,29 +916,6 @@
 .mn-confirm-actions:not(:where(.mn-screen--player, .mn-screen--player *)) {
   display: flex;
   gap: 8px;
-}
-.mn-draft-grid {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 10px;
-}
-.mn-draft-card {
-  background: #f1e7ce;
-  border: 1px solid #b29a6c;
-  border-radius: 10px;
-  padding: 10px;
-  display: grid;
-  gap: 8px;
-}
-.mn-draft-card label {
-  display: grid;
-  gap: 5px;
-}
-.mn-draft-card select {
-  min-height: 44px;
-  font: inherit;
-  padding: 7px;
-  max-width: 100%;
 }
 .mn-receipt {
   background: #fff9e4;
@@ -1567,11 +1467,6 @@
   font-size: 16px;
   line-height: 1.25;
 }
-.mn-action-tray > .mn-alternatives {
-  margin-left: auto;
-  margin-block: 0;
-  align-self: center;
-}
 .mn-action-tray > button[data-manila-action='pass'] {
   font-size: 18px;
 }
@@ -1586,63 +1481,6 @@
     :where(.mn-screen--player, .mn-screen--player *)
   ) {
   max-width: 145px;
-}
-.mn-alternatives > summary {
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 44px;
-  border: 1px solid #8d845b;
-  border-radius: 9px;
-  background: #f5edd3;
-  list-style: none;
-  font-size: 18px;
-  gap: 6px;
-}
-.mn-alternatives
-  > summary:not(:where(.mn-screen--player, .mn-screen--player *)) {
-  min-height: 44px;
-  padding: 5px 9px;
-  line-height: 1.2;
-  white-space: nowrap;
-}
-.mn-alternatives > summary::-webkit-details-marker {
-  display: none;
-}
-.mn-alternatives > summary:focus-visible {
-  outline: 3px solid #167a80;
-  outline-offset: 3px;
-}
-.mn-alternative-content {
-  position: fixed;
-  z-index: 40;
-  right: 12px;
-  bottom: max(126px, env(safe-area-inset-bottom));
-  width: min(480px, calc(100vw - 24px));
-  max-height: 62dvh;
-  overflow-y: auto;
-  overscroll-behavior: contain;
-  padding: 14px;
-  border: 2px solid #64927f;
-  border-radius: 14px;
-  box-shadow: 0 7px 30px #163e3655;
-  background: #fff8e8f5;
-}
-.mn-alternative-content h3 {
-  margin-bottom: 10px;
-}
-.mn-alternative-close {
-  position: sticky;
-  top: 0;
-  z-index: 1;
-  display: block;
-  margin: 0 0 8px auto;
-  min-height: 44px;
-  background: #fff8e8 !important;
-}
-.mn-alternative-content .mn-draft-grid {
-  grid-template-columns: 1fr;
 }
 .mn-cargo-tray {
   display: grid;
@@ -2134,31 +1972,6 @@
   }
   .mn-worker-source > span:last-child {
     font-size: 16px;
-  }
-  .mn-alternatives > summary {
-    max-width: none;
-    font-size: 16px;
-    text-align: center;
-  }
-  .mn-alternatives
-    > summary:not(:where(.mn-screen--player, .mn-screen--player *)) {
-    padding: 4px;
-    white-space: nowrap;
-  }
-  .mn-inline-actions > .mn-alternatives {
-    flex: none;
-  }
-  .mn-inline-actions > .mn-alternatives > summary {
-    max-width: none;
-  }
-  .mn-inline-actions
-    > .mn-alternatives
-    > summary:not(:where(.mn-screen--player, .mn-screen--player *)) {
-    white-space: nowrap;
-  }
-  .mn-cargo-tray + .mn-alternatives {
-    width: auto;
-    flex: none;
   }
   .mn-finance--payment .mn-inline-actions {
     grid-template-columns: 1fr;

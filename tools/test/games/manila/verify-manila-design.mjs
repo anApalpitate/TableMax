@@ -949,6 +949,11 @@ try {
   await page.evaluate(() =>
     window.renderManila({ phase: 'place', role: 'player' }),
   );
+  assert.equal(
+    await page.getByRole('button', { name: '查看股票', exact: true }).count(),
+    1,
+    'The player has one explicitly named stock viewer',
+  );
   const triggers = page.locator('.mn-detail-button');
   for (let index = 0; index < (await triggers.count()); index++) {
     const trigger = triggers.nth(index);
@@ -976,13 +981,13 @@ try {
       'Closing a detail restores focus to its trigger: ' + label,
     );
   }
-  const operationSummary = page
-    .locator('summary')
-    .filter({ hasText: '操作列表' })
-    .first();
-  if (await operationSummary.isVisible()) {
-    const box = await operationSummary.boundingBox();
-    assert.ok(box, 'Operation summary has a draggable area');
+  const financeEntry = page.getByRole('button', {
+    name: '股份抵押与赎回',
+    exact: true,
+  });
+  if (await financeEntry.isVisible()) {
+    const box = await financeEntry.boundingBox();
+    assert.ok(box, 'Finance entry has a visible button area');
     await page.mouse.move(box.x + 4, box.y + box.height / 2);
     await page.mouse.down();
     await page.mouse.move(box.x + box.width + 24, box.y + box.height / 2, {
@@ -993,7 +998,7 @@ try {
       window.getSelection()?.toString(),
     );
     assert.ok(
-      !selected?.includes('操作列表'),
+      !selected?.includes('抵押可借'),
       'Dragging across a button label does not select its text',
     );
   }

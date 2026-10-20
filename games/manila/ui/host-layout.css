@@ -44,15 +44,6 @@
   line-height: 1;
 }
 
-:is(.mn-screen--host, .mn-screen--public) .mn-toolbar > .session-save-anchor {
-  position: absolute;
-  left: 50px;
-  top: 34px;
-  flex: none;
-  width: 0;
-  height: 0;
-}
-
 :is(.mn-screen--host, .mn-screen--public) .mn-display-content {
   display: contents;
 }

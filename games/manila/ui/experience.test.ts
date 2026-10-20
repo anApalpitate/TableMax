@@ -7,10 +7,12 @@ import {
 import { describe, expect, it, vi } from 'vitest';
 import type { GameHost } from '@tablemax/web-host';
 import { rules } from '../rules';
+import { emptySpaces } from '../rules/catalog';
 import { finalScores, resolveWinners } from '../rules/scoring';
 import { turnSeat, validateState, type State } from '../rules/state';
 import type { Action, ManilaView } from '../rules/view';
 import { client } from '../web';
+import { Space } from './Board';
 import { ShareCertificates } from './Theme';
 import { VoyageResultCard } from './VoyageResult';
 
@@ -120,8 +122,6 @@ describe('Manila experience uses authorized public and player views', () => {
       expect(html).not.toContain('class="mn-result-legacy"');
       for (const id of ids) expect(html).toContain(`data-seat-id="${id}"`);
       expect(text).toContain('现金净变化');
-      expect(text).toContain('抵押借入');
-      expect(text).toContain('赎回支出');
       if (role === 'player')
         expect(html.indexOf('data-seat-id="C"')).toBeLessThan(
           html.indexOf('data-seat-id="A"'),
@@ -168,6 +168,47 @@ describe('Manila experience uses authorized public and player views', () => {
     expect(merchant).toContain('<dt>赎回支出</dt><dd>15 ₱</dd>');
     expect(merchant).toContain('<dt>期初现金</dt><dd>30 ₱</dd>');
     expect(merchant).toContain('<dt>期末现金</dt><dd>50 ₱</dd>');
+    expect(merchant).toContain('<dt>货船分红</dt><dd>18 ₱</dd>');
+    expect(merchant).toContain('<dt>保险实付</dt><dd>3 ₱</dd>');
+    expect(merchant).not.toContain('<dt>修船坞收入</dt>');
+  });
+
+  it('omits zero transfers while preserving zero cash boundaries and summary amounts', () => {
+    const game = rules.project(settledVoyage(), {
+      role: 'public',
+    }) as ManilaView;
+    // A controlled empty ledger checks display semantics, not a natural match.
+    game.result!.finance!.players.A = {
+      openingCash: 0,
+      closingCash: 0,
+      income: { cargo: 0, piracy: 0, port: 0, shipyard: 0, insurance: 0 },
+      expenses: { auction: 0, shares: 0, placement: 0, insurance: 0 },
+      borrowed: 0,
+      redeemed: 0,
+    };
+    const snapshot = structuredClone(game.result);
+    const html = renderToStaticMarkup(
+      createElement(VoyageResultCard, {
+        game,
+        seats: ids.map((id, index) => ({
+          id,
+          name: names[index]!,
+          avatarId: 'avatar-1' as const,
+        })),
+      }),
+    );
+    const merchant = html.match(
+      /<details class="mn-result-merchant" data-seat-id="A">([\s\S]*?)<\/details>/,
+    )![1]!;
+    const summary = merchant.match(/<summary>([\s\S]*?)<\/summary>/)![1]!;
+    expect(summary).toContain('<span>收入</span><b>0 ₱</b>');
+    expect(summary).toContain('<span>支出</span><b>0 ₱</b>');
+    expect(summary).toContain('data-mn-net="0"');
+    expect(summary).toContain('<span>现金净变化</span><b>0 ₱</b>');
+    expect(merchant.match(/<dt>/g)).toHaveLength(2);
+    expect(merchant).toContain('<dt>期初现金</dt><dd>0 ₱</dd>');
+    expect(merchant).toContain('<dt>期末现金</dt><dd>0 ₱</dd>');
+    expect(game.result).toEqual(snapshot);
   });
 
   it('renders older results honestly without inventing a full-voyage ledger', () => {
@@ -332,6 +373,65 @@ describe('Manila experience uses authorized public and player views', () => {
         rules.project(fresh(), { role: 'public' }) as ManilaView
       ).players.A!.availableWorkers;
       expect(html).toContain(`aria-label="可用伙伴 ${available} 人"`);
+    }
+  });
+
+  it('groups shore names with fees or occupants and keeps cargo fees signed', () => {
+    const game = rules.project(fresh(), { role: 'public' }) as ManilaView;
+    for (const space of emptySpaces(['nutmeg'])) {
+      const vacant = renderToStaticMarkup(
+        createElement(Space, {
+          space,
+          game,
+          names: { A: '甲' },
+          locked: false,
+          select: vi.fn(),
+        }),
+      );
+      expect(vacant).toContain(`aria-label="入驻费用 ${space.cost} 比索"`);
+      if (space.kind === 'cargo') {
+        expect(vacant).toContain(`−${space.cost} ₱`);
+        expect(vacant).not.toContain('class="mn-space-heading"');
+        expect(vacant).not.toContain('data-mn-space-lines=');
+        continue;
+      }
+      const hasPayout = space.payout !== null;
+      expect(vacant).toContain(
+        `data-mn-space-lines="${hasPayout ? '2' : '1'}"`,
+      );
+      expect(vacant).toContain(
+        '<span class="mn-space-heading"><span class="mn-space-name">',
+      );
+      expect(vacant).not.toContain('−');
+      expect(vacant).not.toContain('mn-copper-mark');
+      if (space.kind === 'insurance') {
+        expect(vacant).toContain('>免费</span>');
+        expect(vacant).toContain('>即收 10 ₱</span>');
+        expect(vacant).toContain('title="即收 10 比索，同时承担修船赔付"');
+        expect(vacant).toContain(
+          'aria-label="立即收入 10 比索，有修船赔付风险"',
+        );
+      } else if (hasPayout) {
+        expect(vacant).toContain(`>+${space.payout} ₱</span>`);
+      } else {
+        expect(vacant).not.toContain('class="mn-space-earn"');
+      }
+      const occupied = renderToStaticMarkup(
+        createElement(Space, {
+          space: { ...space, occupant: 'A' },
+          game,
+          names: { A: '甲' },
+          locked: false,
+          select: vi.fn(),
+        }),
+      );
+      expect(occupied).toContain(
+        `data-mn-space-lines="${hasPayout ? '2' : '1'}"`,
+      );
+      expect(occupied).toContain('class="mn-space-heading"');
+      expect(occupied).toContain('class="mn-worker-head"');
+      expect(occupied).toContain('title="甲"');
+      expect(occupied).not.toContain('class="mn-space-price mn-money"');
     }
   });
 });

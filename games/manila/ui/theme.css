@@ -42,24 +42,6 @@
     0 2px 3px #69492c18 !important;
   color: #514025;
 }
-.mn-screen .mn-alternatives > summary {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  border: 1px solid #ad865c;
-  border-radius: 10px;
-  background: linear-gradient(180deg, #fff7e4, #e8d1a8) !important;
-  box-shadow:
-    inset 0 0 0 2px #fff8,
-    0 2px 3px #69492c18 !important;
-  color: #514025;
-}
-.mn-screen
-  .mn-alternatives
-  > summary:not(:where(.mn-screen--player, .mn-screen--player *)) {
-  min-height: 44px;
-}
 .mn-detail-button {
   display: inline-flex;
   align-items: center;
@@ -464,50 +446,6 @@
 .mn-dock-group:not(:where(.mn-screen--player, .mn-screen--player *)) {
   align-self: start;
 }
-.mn-alternative-content {
-  bottom: max(8px, var(--mn-confirm-height, 0px), env(safe-area-inset-bottom));
-  padding: 12px;
-  background: linear-gradient(115deg, #fffdf0, #efe0bc);
-  border: 1px solid #a28c5f;
-}
-.mn-alternative-heading {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  position: sticky;
-  top: -12px;
-  z-index: 2;
-  padding-block: 4px;
-  margin-bottom: 8px;
-  background: #faf1da;
-}
-.mn-alternative-heading h3 {
-  margin: 0;
-}
-.mn-action-grid > button {
-  display: grid;
-  grid-template-columns: 46px minmax(0, 1fr);
-  align-items: center;
-  gap: 3px 8px;
-  text-align: left;
-}
-.mn-action-grid > button > .mn-site-art {
-  width: 46px;
-  height: 46px;
-  grid-row: span 2;
-}
-.mn-action-grid > button > .mn-cargo-art {
-  grid-row: span 2;
-  width: 46px;
-  height: 46px;
-}
-.mn-action-grid > button > strong {
-  font-size: 18px;
-}
-.mn-action-grid > button > span {
-  font-size: 16px;
-}
 .mn-finance-choices {
   display: grid;
   gap: 8px;
@@ -560,11 +498,6 @@
   gap: 4px 8px;
 }
 .mn-payment-context {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px 8px;
-}
-.mn-action-facts {
   display: flex;
   flex-wrap: wrap;
   gap: 4px 8px;
@@ -870,9 +803,6 @@
   }
   .mn-action-tray:not(:where(.mn-screen--player, .mn-screen--player *)) {
     flex-wrap: wrap;
-  }
-  .mn-action-tray > .mn-alternatives {
-    flex: none;
   }
   .mn-overlay.dialog-surface {
     padding: 12px;

@@ -55,10 +55,79 @@ export function CloseMark() {
 export function ShareCertificates({
   shares,
   publicView = false,
+  compact = false,
 }: {
   shares: ShareView[];
   publicView?: boolean;
+  compact?: boolean;
 }) {
+  if (compact)
+    return (
+      <div
+        className="mn-certificates mn-certificates--compact"
+        aria-label="本人股票"
+      >
+        {shares.map((share) => {
+          const revealed = publicView || share.revealed;
+          const label = `${cargoNames[share.cargo]}股份，${share.mortgaged ? '已抵押' : '未抵押'}，${revealed ? '已公开' : '仅你可见'}`;
+          return (
+            <article
+              className={`mn-certificate mn-certificate--compact${share.mortgaged ? ' mn-certificate--mortgaged' : ''}`}
+              key={share.id}
+              style={cargoStyle(cargoColors[share.cargo])}
+              role="img"
+              aria-label={label}
+              title={label}
+            >
+              <span className="mn-stock-art" aria-hidden="true">
+                <CargoArt cargo={share.cargo} />
+              </span>
+              <span className="mn-stock-marks" aria-hidden="true">
+                <svg
+                  className="mn-stock-mark mn-stock-mark--ownership"
+                  viewBox="0 0 24 24"
+                >
+                  {share.mortgaged ? (
+                    <>
+                      <path d="M5 3h14v18H5zM8 7h8M8 11h5" />
+                      <circle cx="12" cy="16" r="2" />
+                    </>
+                  ) : (
+                    <path d="m5 12 4 4L19 6" />
+                  )}
+                </svg>
+                <svg className="mn-stock-mark" viewBox="0 0 24 24">
+                  {revealed ? (
+                    <>
+                      <path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12Z" />
+                      <circle cx="12" cy="12" r="3" />
+                    </>
+                  ) : (
+                    <>
+                      <rect x="5" y="10" width="14" height="11" rx="2" />
+                      <path d="M8 10V7a4 4 0 0 1 8 0v3M12 14v3" />
+                    </>
+                  )}
+                </svg>
+              </span>
+            </article>
+          );
+        })}
+        {!shares.length && (
+          <span
+            className="mn-stock-empty"
+            role="img"
+            aria-label="尚未持有股票"
+            title="尚未持有股票"
+          >
+            <CopperMark kind="shares" />
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="m4 20 16-16" />
+            </svg>
+          </span>
+        )}
+      </div>
+    );
   return (
     <div className="mn-certificates">
       {shares.map((share) => (
@@ -130,21 +199,15 @@ export function VoyageDetail({ game }: { game: ManilaView }) {
       </p>
       <dl className="mn-symbol-key">
         <div>
-          <dt>− 费用</dt>
-          <dd>入驻时支付</dd>
+          <dt>费用 ₱</dt>
+          <dd>岗位首行金额在入驻时支付</dd>
         </div>
         <div>
-          <dt>
-            <CopperMark kind="income" />
-            ＋收益
-          </dt>
+          <dt>＋收益</dt>
           <dd>条件满足才收入，未扣入驻费</dd>
         </div>
         <div>
-          <dt>
-            <CopperMark kind="risk" />
-            即收
-          </dt>
+          <dt>即收</dt>
           <dd>保险立即领款，同时承担修船赔付</dd>
         </div>
         <div>

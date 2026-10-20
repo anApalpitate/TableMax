@@ -1,0 +1,127 @@
+.mn-wallet-summary > button.mn-credit {
+  flex: none;
+  min-width: max-content;
+  min-height: 44px;
+  padding: 0;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  box-shadow: none;
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+.mn-screen--player .mn-wallet-summary {
+  flex: none;
+  min-width: max-content;
+}
+.mn-wallet-summary > button.mn-credit:disabled {
+  opacity: 1;
+  cursor: default;
+}
+.mn-wallet-summary > button.mn-credit:focus-visible {
+  outline: 2px solid #167a80;
+  outline-offset: 3px;
+}
+.mn-certificates--compact {
+  grid-template-columns: repeat(auto-fill, minmax(76px, 1fr));
+  gap: 10px;
+}
+.mn-certificate--compact {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 8px;
+  min-width: 0;
+  min-height: 112px;
+  padding: 10px 6px 8px;
+}
+.mn-stock-art {
+  display: grid;
+  place-items: center;
+}
+.mn-stock-art > .mn-cargo-art {
+  width: 56px;
+  height: 56px;
+}
+.mn-stock-marks {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  color: #43625a;
+}
+.mn-stock-mark {
+  width: 20px;
+  height: 20px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.mn-certificate--mortgaged .mn-stock-mark--ownership {
+  color: #9b4134;
+}
+.mn-stock-empty {
+  position: relative;
+  display: grid;
+  place-items: center;
+  min-height: 96px;
+  color: #7b715a;
+}
+.mn-stock-empty > svg {
+  grid-area: 1 / 1;
+  width: 52px;
+  height: 52px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.5;
+  stroke-linecap: round;
+}
+.mn-stock-empty > svg:last-child {
+  color: #9b4134;
+}
+.mn-stock-finance .mn-finance {
+  margin-top: 0;
+}
+.mn-stock-finance .mn-finance-choices {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 210px), 1fr));
+}
+.mn-stock-finance .mn-finance-choice {
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr);
+  align-items: center;
+  gap: 3px 8px;
+  min-width: 0;
+  min-height: 80px;
+  padding: 10px;
+  border: 1px solid #ad865c;
+  border-radius: 10px;
+  background: linear-gradient(#fffaf0, #eee1c0);
+  color: #203c3b;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.mn-stock-finance .mn-finance-choice > * {
+  min-width: 0;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+.mn-stock-finance .mn-finance-choice > .mn-money {
+  white-space: nowrap;
+}
+.mn-stock-finance .mn-finance-choice:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+.mn-stock-finance .mn-finance-choice:focus-visible {
+  outline: 3px solid #167a80;
+  outline-offset: 3px;
+}
+.mn-stock-finance .mn-detail-note {
+  margin: 8px 0 0;
+  font-size: 16px;
+  line-height: 24px;
+}

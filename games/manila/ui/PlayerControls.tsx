@@ -1,15 +1,9 @@
-import { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { useState } from 'react';
 import type { Action, ManilaView } from '../rules/view';
-import {
-  actionLabel,
-  cargoColors,
-  cargoNames,
-  seatColors,
-  spaceName,
-} from './labels';
-import { CargoArt, SiteArt, Worker, cargoStyle } from './pieces';
+import { actionLabel, cargoNames, seatColors } from './labels';
+import { CargoArt, Worker } from './pieces';
 import { DragSource, useManilaInteraction } from './interaction';
-import { CloseMark, CopperMark } from './Theme';
+import { Finance } from './Finance';
 
 type Props = {
   boundary?: string;
@@ -22,99 +16,6 @@ type Props = {
 };
 function Money({ amount }: { amount: number }) {
   return <span className="mn-money">{amount} ₱</span>;
-}
-function CloseAlternatives({ title }: { title: string }) {
-  return (
-    <div className="mn-alternative-heading">
-      <h3>{title}</h3>
-      <button
-        className="mn-close"
-        type="button"
-        aria-label="收起操作列表"
-        onClick={(event) => {
-          const details = event.currentTarget.closest('details');
-          if (details) {
-            details.open = false;
-            details
-              .querySelector<HTMLElement>(':scope > summary')
-              ?.focus({ preventScroll: true });
-          }
-        }}
-      >
-        <CloseMark />
-      </button>
-    </div>
-  );
-}
-function Finance({
-  game,
-  actions,
-  locked,
-  choose,
-}: Pick<Props, 'game' | 'actions' | 'locked' | 'choose'>) {
-  const finance = actions.filter(
-    (action): action is Extract<Action, { type: 'mortgage' | 'repay' }> =>
-      action.type === 'mortgage' || action.type === 'repay',
-  );
-  const shares = game.self?.shares ?? [];
-  if (!shares.length) return null;
-  const choices = (
-    <div className="mn-finance-choices">
-      {shares.map((share) => {
-        const action = finance.find((entry) => entry.shareId === share.id);
-        return (
-          <button
-            key={share.id}
-            data-mn-finance-share={share.id}
-            data-manila-action={action?.type}
-            className="mn-finance-choice"
-            disabled={locked || !action}
-            onClick={() => {
-              if (action) choose(action);
-            }}
-          >
-            <CargoArt cargo={share.cargo} />
-            <strong>
-              {action
-                ? actionLabel(action, game)
-                : `${cargoNames[share.cargo]}${share.mortgaged ? '已抵押' : '暂不可抵押'}`}
-            </strong>
-            <span className="mn-money">
-              {action?.type === 'mortgage'
-                ? '+12 ₱'
-                : action?.type === 'repay'
-                  ? '−15 ₱'
-                  : share.mortgaged
-                    ? '已借 12 ₱'
-                    : '本次不可操作'}
-            </span>
-            <span>{share.revealed ? '已公开股份' : '未公开股份'}</span>
-          </button>
-        );
-      })}
-    </div>
-  );
-  return game.phase === 'financing' &&
-    game.payment?.seatId === game.self?.seatId ? (
-    <section
-      className="mn-finance mn-finance--payment"
-      aria-label="选择抵押股份"
-    >
-      <h3>选择一张股份</h3>
-      {choices}
-      <p>
-        每张抵押 +12 ₱；赎回支付 15 ₱ 并公开。未赎回的股份终局每张扣 15
-        ₱，资金足够后继续付款。
-      </p>
-    </section>
-  ) : (
-    <section className="mn-finance" aria-label="股份抵押与赎回">
-      {choices}
-      <p className="mn-detail-note">
-        抵押取得 12 ₱；赎回支付 15 ₱ 并公开该股份。抵押股份终局扣除 15 ₱。
-      </p>
-    </section>
-  );
 }
 export function PlayerControls({
   boundary,
@@ -135,40 +36,10 @@ export function PlayerControls({
   const bid = bidInput.boundary === boundary ? bidInput.amount : minimumBid;
   const setup = actions.some((action) => action.type === 'setup');
   const pilot = actions.some((action) => action.type === 'pilot');
-  const controls = useRef<HTMLElement>(null);
-  useLayoutEffect(() => {
-    controls.current
-      ?.querySelectorAll<HTMLDetailsElement>('details.mn-alternatives[open]')
-      .forEach((details) => {
-        if (details.contains(document.activeElement))
-          details
-            .querySelector<HTMLElement>(':scope > summary')
-            ?.focus({ preventScroll: true });
-        details.open = false;
-      });
-  }, [boundary]);
-  useEffect(() => {
-    const close = (event: KeyboardEvent) => {
-      if (event.key !== 'Escape') return;
-      const opened = controls.current?.querySelector<HTMLDetailsElement>(
-        'details.mn-alternatives[open]',
-      );
-      if (!opened) return;
-      opened.open = false;
-      opened
-        .querySelector<HTMLElement>(':scope > summary')
-        ?.focus({ preventScroll: true });
-    };
-    document.addEventListener('keydown', close);
-    return () => {
-      document.removeEventListener('keydown', close);
-    };
-  }, []);
   if (!actions.length)
     return (
       <section
         id="mn-action-area"
-        ref={controls}
         className="mn-controls mn-controls--waiting"
         aria-label="本人行动"
         data-stage={game.phase}
@@ -249,185 +120,15 @@ export function PlayerControls({
                   : game.phase === 'round-result'
                     ? '本航次已完成'
                     : '等待其他商人';
-  const alternatives = (
-    <>
-      {setup && (
-        <div className="mn-draft-grid">
-          {work.cargos.map((cargo, index) => (
-            <div
-              className="mn-draft-card"
-              key={index}
-              style={cargoStyle(cargoColors[cargo])}
-            >
-              <strong>第 {index + 1} 航道</strong>
-              <CargoArt cargo={cargo} />
-              {work.setupStep === 1 ? (
-                <label>
-                  货物
-                  <select
-                    value={cargo}
-                    disabled={locked}
-                    onChange={(event) =>
-                      work.setCargo(index, event.target.value as typeof cargo)
-                    }
-                  >
-                    {game.cargos.map((entry) => (
-                      <option value={entry.id} key={entry.id}>
-                        {cargoNames[entry.id]}（分红 {entry.payout}）
-                      </option>
-                    ))}
-                  </select>
-                </label>
-              ) : (
-                <label>
-                  {cargoNames[cargo]}起点
-                  <select
-                    value={work.positions[index]}
-                    disabled={locked}
-                    onChange={(event) =>
-                      work.setPosition(index, Number(event.target.value))
-                    }
-                  >
-                    {[0, 1, 2, 3, 4, 5].map((value) => (
-                      <option value={value} key={value}>
-                        {value} 格
-                      </option>
-                    ))}
-                  </select>
-                </label>
-              )}
-            </div>
-          ))}
-        </div>
-      )}
-      {pilot && (
-        <div className="mn-draft-grid">
-          {game.boats
-            .filter((boat) => boat.destination === 'sea')
-            .map((boat) => (
-              <label className="mn-draft-card" key={boat.cargo}>
-                <CargoArt cargo={boat.cargo} />
-                <strong
-                  className="mn-cargo"
-                  style={cargoStyle(cargoColors[boat.cargo])}
-                >
-                  <span>{cargoNames[boat.cargo]}</span>
-                  <span>{boat.position}格</span>
-                </strong>
-                <select
-                  aria-label={`${cargoNames[boat.cargo]}移动`}
-                  disabled={locked}
-                  value={work.deltas[boat.cargo] ?? 0}
-                  onChange={(event) =>
-                    work.setDelta(boat.cargo, Number(event.target.value))
-                  }
-                >
-                  {(budget === 1 ? [-1, 0, 1] : [-2, -1, 0, 1, 2])
-                    .filter((delta) => boat.position + delta >= 0)
-                    .map((delta) => (
-                      <option value={delta} key={delta}>
-                        {delta === 0
-                          ? '不移动'
-                          : `${delta > 0 ? '前进' : '后退'} ${Math.abs(delta)} 格`}
-                      </option>
-                    ))}
-                </select>
-                <span className="mn-pilot-preview">
-                  草稿：
-                  {boat.position + (work.deltas[boat.cargo] ?? 0) > 13
-                    ? '靠港'
-                    : `${boat.position + (work.deltas[boat.cargo] ?? 0)} 格`}
-                </span>
-              </label>
-            ))}
-        </div>
-      )}
-      {places.length > 0 && (
-        <div className="mn-action-grid">
-          {places.map((action) => {
-            const space = game.spaces.find(
-              (entry) => entry.id === action.space,
-            )!;
-            return (
-              <button
-                key={action.space}
-                disabled={locked}
-                aria-pressed={
-                  draft?.type === 'place' && draft.space === action.space
-                }
-                onClick={() => select(action)}
-              >
-                {space.kind === 'cargo' ? (
-                  <CargoArt cargo={space.cargo!} />
-                ) : (
-                  <SiteArt kind={space.kind} />
-                )}
-                <strong>{spaceName(space)}</strong>
-                <span className="mn-action-facts">
-                  <span>{payment(space.cost)}</span>
-                  {space.payout !== null && (
-                    <span>
-                      {space.kind === 'cargo'
-                        ? `分红池 ${space.payout} ₱ 均分`
-                        : space.kind === 'insurance'
-                          ? '立即领 10 ₱，承担修船赔付'
-                          : `成功获 ${space.payout} ₱`}
-                    </span>
-                  )}
-                </span>
-              </button>
-            );
-          })}
-        </div>
-      )}
-      {[...boards, ...plunders].length > 0 && (
-        <div className="mn-inline-actions">
-          {[...boards, ...plunders].map((action, index) => (
-            <button
-              key={index}
-              disabled={locked}
-              onClick={() => select(action)}
-              aria-pressed={JSON.stringify(draft) === JSON.stringify(action)}
-            >
-              {'cargo' in action && action.cargo ? (
-                <CargoArt cargo={action.cargo} />
-              ) : (
-                <SiteArt kind="pirate" />
-              )}
-              <span>{actionLabel(action, game)}</span>
-            </button>
-          ))}
-        </div>
-      )}
-      <Finance game={game} actions={actions} locked={locked} choose={choose} />
-    </>
-  );
-  const more = (setup ||
-    pilot ||
-    places.length ||
-    boards.length ||
-    plunders.length) && (
-    <details className="mn-alternatives">
-      <summary aria-label="展开替代操作">
-        <CopperMark kind="list" />
-        <span>操作列表</span>
-      </summary>
-      <div className="mn-alternative-content">
-        <CloseAlternatives title={title} />
-        {alternatives}
-      </div>
-    </details>
-  );
   return (
     <section
       id="mn-action-area"
-      ref={controls}
       className="mn-panel mn-controls"
       aria-label="本人行动"
       data-stage={game.phase}
     >
       <div className="mn-controls-heading">
-        <h2>{title}</h2>
+        <h2 tabIndex={-1}>{title}</h2>
         {bids.length > 0 && (
           <span className="mn-bid-range">
             出价范围{' '}
@@ -490,6 +191,7 @@ export function PlayerControls({
             <label htmlFor="mn-bid-amount">出价金额</label>
             <input
               id="mn-bid-amount"
+              data-mn-primary-control
               type="number"
               inputMode="numeric"
               min={bids[0]!.amount}
@@ -513,6 +215,7 @@ export function PlayerControls({
           {buys.map((action) => (
             <button
               key={action.cargo}
+              data-mn-primary-control
               disabled={locked}
               aria-pressed={
                 draft?.type === 'buy-share' && draft.cargo === action.cargo
@@ -536,6 +239,7 @@ export function PlayerControls({
             <>
               <DragSource
                 token={{ kind: 'worker' }}
+                data-mn-primary-control
                 label="拿起伙伴，拖到岗位或点击岗位"
                 className="mn-worker-source"
               >
@@ -554,6 +258,7 @@ export function PlayerControls({
               {game.cargos.map((cargo) => (
                 <DragSource
                   token={{ kind: 'cargo', cargo: cargo.id }}
+                  data-mn-primary-control
                   label={`拿起${cargoNames[cargo.id]}货物`}
                   key={cargo.id}
                   className="mn-cargo-source"
@@ -584,6 +289,7 @@ export function PlayerControls({
             <>
               <DragSource
                 token={{ kind: 'pirate' }}
+                data-mn-primary-control
                 label="拿起海盗，拖到可登船的货船"
                 className="mn-pirate-source"
               >
@@ -613,6 +319,7 @@ export function PlayerControls({
             .map((action) => (
               <button
                 key={action.type}
+                data-mn-primary-control
                 data-manila-action={action.type}
                 title={actionLabel(action, game)}
                 aria-label={actionLabel(action, game)}
@@ -622,7 +329,6 @@ export function PlayerControls({
                 {directLabel(action)}
               </button>
             ))}
-          {more}
         </div>
       )}
       {!(
@@ -638,6 +344,7 @@ export function PlayerControls({
           {bids.length > 0 && (
             <button
               className="mn-primary"
+              data-mn-primary-control
               data-manila-action="bid"
               disabled={locked || !bids.some((action) => action.amount === bid)}
               onClick={() => {
@@ -651,6 +358,7 @@ export function PlayerControls({
           {direct.map((action) => (
             <button
               key={action.type}
+              data-mn-primary-control
               data-manila-action={action.type}
               title={actionLabel(action, game)}
               aria-label={actionLabel(action, game)}
@@ -660,23 +368,6 @@ export function PlayerControls({
               <span className="mn-action-label">{directLabel(action)}</span>
             </button>
           ))}
-          {game.phase !== 'financing' && Boolean(game.self?.shares.length) && (
-            <details className="mn-alternatives">
-              <summary>
-                <CopperMark kind="shares" />
-                <span className="mn-action-label">股份操作</span>
-              </summary>
-              <div className="mn-alternative-content">
-                <CloseAlternatives title="股份抵押与赎回" />
-                <Finance
-                  game={game}
-                  actions={actions}
-                  locked={locked}
-                  choose={choose}
-                />
-              </div>
-            </details>
-          )}
         </div>
       )}
       {(draft || setup || pilot) && (
@@ -746,6 +437,7 @@ export function PlayerControls({
             {setup && work.setupStep === 1 ? (
               <button
                 className="mn-primary"
+                data-mn-primary-control
                 disabled={locked}
                 onClick={() => {
                   work.setSetupStep(2);
@@ -757,6 +449,7 @@ export function PlayerControls({
             ) : (
               <button
                 className="mn-primary"
+                data-mn-primary-control
                 data-manila-action={
                   setup ? 'setup' : pilot ? 'pilot' : draft?.type
                 }

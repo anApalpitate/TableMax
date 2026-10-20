@@ -109,30 +109,46 @@ export function VoyageResultCard({
                       <dt>期初现金</dt>
                       <dd>{finance.openingCash} ₱</dd>
                     </div>
-                    {Object.entries(incomeNames).map(([key, name]) => (
-                      <div key={key}>
-                        <dt>{name}</dt>
-                        <dd>
-                          {finance.income[key as keyof typeof incomeNames]} ₱
-                        </dd>
+                    {Object.entries(incomeNames)
+                      .filter(
+                        ([key]) =>
+                          finance.income[key as keyof typeof incomeNames] !== 0,
+                      )
+                      .map(([key, name]) => (
+                        <div key={key}>
+                          <dt>{name}</dt>
+                          <dd>
+                            {finance.income[key as keyof typeof incomeNames]} ₱
+                          </dd>
+                        </div>
+                      ))}
+                    {Object.entries(expenseNames)
+                      .filter(
+                        ([key]) =>
+                          finance.expenses[key as keyof typeof expenseNames] !==
+                          0,
+                      )
+                      .map(([key, name]) => (
+                        <div key={key}>
+                          <dt>{name}</dt>
+                          <dd>
+                            {finance.expenses[key as keyof typeof expenseNames]}{' '}
+                            ₱
+                          </dd>
+                        </div>
+                      ))}
+                    {finance.borrowed !== 0 && (
+                      <div>
+                        <dt>抵押借入</dt>
+                        <dd>{finance.borrowed} ₱</dd>
                       </div>
-                    ))}
-                    {Object.entries(expenseNames).map(([key, name]) => (
-                      <div key={key}>
-                        <dt>{name}</dt>
-                        <dd>
-                          {finance.expenses[key as keyof typeof expenseNames]} ₱
-                        </dd>
+                    )}
+                    {finance.redeemed !== 0 && (
+                      <div>
+                        <dt>赎回支出</dt>
+                        <dd>{finance.redeemed} ₱</dd>
                       </div>
-                    ))}
-                    <div>
-                      <dt>抵押借入</dt>
-                      <dd>{finance.borrowed} ₱</dd>
-                    </div>
-                    <div>
-                      <dt>赎回支出</dt>
-                      <dd>{finance.redeemed} ₱</dd>
-                    </div>
+                    )}
                     <div>
                       <dt>期末现金</dt>
                       <dd>{finance.closingCash} ₱</dd>

@@ -9,6 +9,7 @@ import { launchTestBrowser } from '../../support/browser-test.mjs';
 import { serveFixture } from '../../support/fixture-server.mjs';
 import { captureBrowserScreenshot } from '../../support/screenshots.mjs';
 import { fingerprint as sourceFingerprint } from '../../runner/evidence.mjs';
+import { registerClarityChecks } from './clarity-checks.mjs';
 
 assertWorkspaceRoot();
 process.env.TABLEMAX_AUTO_MAINTENANCE = '0';
@@ -40,6 +41,9 @@ const available = [
   'lane-heading',
   'surface-polish',
   'visual-semantics',
+  'clarity-layout',
+  'action-guidance',
+  'stocks-finance',
 ];
 const selected = option('only')?.split(',') ?? available;
 assert(selected.every((value) => available.includes(value)));
@@ -131,6 +135,16 @@ for(let i=0;i<10&&obligation.phase==='auction';i++){
 if(obligation.phase!=='financing')throw new Error('Legal auction did not reach financing');
 snapshots.financing=obligation;
 origins.financing={kind:'legal-max-bid-and-passes',payer,amount:obligation.payment.amount};
+let repayOnly=rules.initialize(ctx);
+const repaySeat=turnSeat(repayOnly);
+for(;;){
+ const mortgage=rules.legalActions(repayOnly,repaySeat).find(action=>action.type==='mortgage');
+ if(!mortgage)break;
+ repayOnly=validateState(rules.apply(repayOnly,mortgage,repaySeat,ctx).state,ids);
+}
+if(!repayOnly.players[repaySeat].shares.every(share=>share.mortgaged)||!rules.legalActions(repayOnly,repaySeat).some(action=>action.type==='repay'))throw new Error('Legal mortgages did not reach the repay-only fixture');
+snapshots['repay-only']=repayOnly;
+origins['repay-only']={kind:'legal-all-initial-shares-mortgaged',seatId:repaySeat,serial:repayOnly.serial,availableCredit:0};
 const richest=structuredClone(snapshots['auction-largest']),richActor=turnSeat(richest),richBid=rules.legalActions(richest,richActor).filter(action=>action.type==='bid').at(-1);
 if(!richBid)throw new Error('Largest-bid fixture has no legal bid');
 snapshots['auction-leading']=validateState(rules.apply(richest,richBid,richActor,ctx).state,ids);
@@ -159,7 +173,7 @@ const nativeScroll=Element.prototype.scrollIntoView;
 Element.prototype.scrollIntoView=function(options){window.scrollCalls.push({id:this.id,className:this.className,options});return nativeScroll.call(this,options);};
 const nativeOwnerScroll=Element.prototype.scrollTo;
 Element.prototype.scrollTo=function(...args){window.scrollCalls.push({method:'scrollTo',id:this.id,className:this.className,options:args[0]});return nativeOwnerScroll.apply(this,args);};
-function info(){const v=current.session.view;return {actor:turnSeat(current.state),seatId:current.seatId,phase:current.state.phase,legal:v.actions,boats:v.gameView.boats,shares:v.gameView.self?.shares??[],result:v.gameView.result,seatOrder:v.gameView.seatOrder,decisionId:v.decisionId,branch:v.branch};}
+function info(){const v=current.session.view;return {actor:turnSeat(current.state),seatId:current.seatId,phase:current.state.phase,legal:v.actions,boats:v.gameView.boats,shares:v.gameView.self?.shares??[],availableCredit:v.gameView.self?.availableCredit??null,result:v.gameView.result,seatOrder:v.gameView.seatOrder,decisionId:v.decisionId,branch:v.branch};}
 function paint(){window.fixtureSession=current.session;flushSync(()=>root.render(<PlatformGame key={generation} session={current.session} client={client}/>));return info();}
 function sessionFor(state,options={}){
  const actor=turnSeat(state)??ids[0],role=options.role??'player';
@@ -278,7 +292,7 @@ const report = {
   interactions: 0,
   boundaries: [
     'Fresh fixture loads dispatch the product initial resize; allow its documented 400ms viewport grace to finish (450ms) before establishing an anchor baseline.',
-    'Nonzero selection baseline is explicitly positioned in the real owner. If the closed board fits the viewport, the existing action list is opened first to create a user-reachable scroll range; selecting the board closes it normally.',
+    'Nonzero selection baseline is explicitly positioned in the real owner. If the board fits the viewport, a real short viewport establishes a user-reachable scroll range before testing selection stability; no retired action list or synthetic content is introduced.',
     'Viewport height reduction models layout resize only; it does not prove physical keyboard/IME behavior.',
     'Retained React click callbacks are used only for stale-event defenses; ordinary game actions use real taps.',
   ],
@@ -514,6 +528,18 @@ try {
     const run = async (name, body) => {
       if (selected.includes(name)) tasks.push({ name, body });
     };
+    await registerClarityChecks({
+      page,
+      load,
+      tap,
+      settle,
+      shot,
+      width,
+      height,
+      report,
+      run,
+      context,
+    });
     await run('visual-semantics', async () => {
       for (const role of ['player', 'host', 'public']) {
         const actualSize =
@@ -928,8 +954,13 @@ try {
               .getBoundingClientRect();
             return {
               text: n.textContent,
-              label: { y: b.y, bottom: b.bottom },
-              boat: { y: image.y, bottom: image.bottom },
+              label: { x: b.x, right: b.right, y: b.y, bottom: b.bottom },
+              boat: {
+                x: image.x,
+                right: image.right,
+                y: image.y,
+                bottom: image.bottom,
+              },
             };
           }),
         );
@@ -945,7 +976,10 @@ try {
       );
       for (const lane of loadingLabels)
         assert(
-          lane.boat.bottom <= lane.label.y - 4,
+          lane.boat.bottom <= lane.label.y - 4 ||
+            lane.label.bottom <= lane.boat.y - 4 ||
+            lane.boat.right <= lane.label.x - 4 ||
+            lane.label.right <= lane.boat.x - 4,
           'Loading label has at least four actual image-bbox pixels of separation from the ship',
         );
       assert.equal(
@@ -1054,6 +1088,29 @@ try {
         report.metrics.push({ width, phase, command });
       });
     await run('stability', async () => {
+      const ensureScrollable = async () => {
+        if (
+          (await owner.evaluate((n) => n.scrollHeight - n.clientHeight)) < 1
+        ) {
+          const before = page.viewportSize();
+          await page.setViewportSize({
+            ...before,
+            height: Math.min(before.height, 320),
+          });
+          await settle();
+          await page.waitForTimeout(450);
+          report.metrics.push({
+            width,
+            kind: 'short-viewport-scroll-baseline',
+            before,
+            actualViewport: page.viewportSize(),
+          });
+        }
+        assert(
+          (await owner.evaluate((n) => n.scrollHeight - n.clientHeight)) > 0,
+          'The real scroll owner has reachable content at the measured viewport',
+        );
+      };
       await load({ phase: 'setup' });
       const slotsAtCargo = await page
         .locator('.mn-lane-control')
@@ -1075,6 +1132,7 @@ try {
         slotsAtCargo,
         'Lane control slot height remains stable between cargo and position steps',
       );
+      await ensureScrollable();
       await arrow(0, 1).scrollIntoViewIfNeeded();
       const scrollBaseline = await owner.evaluate((n) => ({
         scrollTop: n.scrollTop,
@@ -1144,8 +1202,7 @@ try {
       const target = page
         .locator('.mn-specialist-slots .mn-space--legal')
         .last();
-      if ((await owner.evaluate((n) => n.scrollHeight - n.clientHeight)) < 1)
-        await tap(page.locator('.mn-alternatives > summary').first());
+      await ensureScrollable();
       await target.scrollIntoViewIfNeeded();
       await owner.evaluate((n) => {
         if (n.scrollTop < 1)
@@ -1175,8 +1232,6 @@ try {
         Math.abs(selectedBox.y - before.y) <= 1,
         'Selecting does not shift target',
       );
-      const openListClose = page.locator('.mn-alternatives[open] .mn-close');
-      if (await openListClose.count()) await tap(openListClose.first());
       const cancel = page.getByRole('button', { name: '取消', exact: true });
       await cancel.scrollIntoViewIfNeeded();
       await settle();
@@ -1252,7 +1307,6 @@ try {
         page.getByRole('button', { name: '下一步：设起点', exact: true }),
       );
       await tap(arrow(0, 1));
-      await tap(page.locator('.mn-alternatives > summary').first());
       await remember();
       await page.evaluate(() => window.harbor.boundary());
       await settle();
@@ -1261,11 +1315,6 @@ try {
         'Decision boundary keeps DOM identities',
       );
       assert.equal(await positionControls.count(), 0, 'Setup step resets');
-      assert.equal(
-        await page.locator('.mn-alternatives[open]').count(),
-        0,
-        'Boundary closes temporary action lists',
-      );
       await load({ phase: 'auction' });
       const input = page.locator('#mn-bid-amount');
       const min = await input.getAttribute('min');
@@ -1920,14 +1969,41 @@ try {
             );
           assert.equal(
             details['抵押借入'],
-            `${finance.borrowed} ₱`,
-            'Borrowing has its own detail line',
+            finance.borrowed === 0 ? undefined : `${finance.borrowed} ₱`,
+            'Only nonzero borrowing has its own detail line',
           );
           assert.equal(
             details['赎回支出'],
-            `${finance.redeemed} ₱`,
-            'Redemption has its own detail line',
+            finance.redeemed === 0 ? undefined : `${finance.redeemed} ₱`,
+            'Only nonzero redemption has its own detail line',
           );
+          for (const [values, names] of [
+            [
+              finance.income,
+              {
+                cargo: '货船分红',
+                piracy: '海盗分红',
+                port: '港口收入',
+                shipyard: '修船坞收入',
+                insurance: '保险入场收入',
+              },
+            ],
+            [
+              finance.expenses,
+              {
+                auction: '竞拍支出',
+                shares: '购股支出',
+                placement: '派遣支出',
+                insurance: '保险实付',
+              },
+            ],
+          ])
+            for (const [key, name] of Object.entries(names))
+              assert.equal(
+                details[name],
+                values[key] === 0 ? undefined : `${values[key]} ₱`,
+                name + ' appears exactly when its transfer is nonzero',
+              );
           assert.equal(details['期初现金'], `${finance.openingCash} ₱`);
           assert.equal(details['期末现金'], `${finance.closingCash} ₱`);
           await tap(merchant.locator(':scope > summary'));
@@ -2416,65 +2492,67 @@ try {
       );
     });
     await run('share', async () => {
-      await load({ phase: 'share-funded' });
+      const fixture = await load({ phase: 'share-funded' });
       const skip = page.locator('[data-manila-action="skip-share"]');
       await skip.scrollIntoViewIfNeeded();
       await settle();
-      const metrics = await page.evaluate(() => {
-        const skip = document.querySelector(
-          '[data-manila-action="skip-share"]',
-        );
-        const summary = document.querySelector(
-          '#mn-action-area .mn-inline-actions > .mn-alternatives > summary',
-        );
-        const read = (n) => {
-          const r = n.getBoundingClientRect(),
-            s = getComputedStyle(n);
-          const label = n.querySelector(':scope > span:last-child') ?? n;
-          const range = document.createRange();
-          range.selectNodeContents(label);
-          const t = range.getBoundingClientRect();
-          return {
-            x: r.x,
-            y: r.y,
-            width: r.width,
-            height: r.height,
-            padding: s.padding,
-            fontSize: s.fontSize,
-            lineHeight: s.lineHeight,
-            textY: t.y,
-            textHeight: t.height,
-            textCenter: t.y + t.height / 2,
-            center: r.y + r.height / 2,
-          };
-        };
-        return {
-          skip: read(skip),
-          finance: read(summary),
-          sameContainer:
-            skip.parentElement === summary.parentElement.parentElement,
-        };
-      });
-      report.metrics.push({ width, phase: 'share', ...metrics });
-      await shot('share-actions');
-      assert(
-        metrics.sameContainer,
-        'Skip-share and finance entry share one action row',
+      const choices = page.locator('.mn-share-choices button');
+      assert.equal(
+        await choices.count(),
+        fixture.legal.filter((action) => action.type === 'buy-share').length,
+        'Every authorized purchase has a direct share choice',
       );
-      assert(
-        Math.abs(metrics.skip.y - metrics.finance.y) <= 1 &&
-          Math.abs(metrics.skip.height - metrics.finance.height) <= 1,
-        'Actual share phase action entries share a top and height',
+      for (const button of [skip, ...(await choices.all())]) {
+        const box = await button.boundingBox();
+        assert(
+          box.width >= 44 && box.height >= 44,
+          'Share actions keep a 44px target',
+        );
+        assert(
+          await button.isEnabled(),
+          'Authorized share actions stay enabled',
+        );
+      }
+      const finance = page.getByRole('button', {
+        name: '股份抵押与赎回',
+        exact: true,
+      });
+      const hasFinanceActions = fixture.legal.some((action) =>
+        ['mortgage', 'repay'].includes(action.type),
       );
       assert.equal(
-        metrics.skip.padding,
-        metrics.finance.padding,
-        'Share action entries use identical padding',
+        await finance.isEnabled(),
+        hasFinanceActions,
+        'Wallet finance availability follows the actual authorized actions',
       );
-      assert(
-        Math.abs(metrics.skip.textCenter - metrics.finance.textCenter) <= 1,
-        'Share action labels share their visual text baseline',
+      if (hasFinanceActions) {
+        await tap(finance);
+        const overlay = page.locator('.mn-overlay:has(.mn-stock-finance)');
+        assert(
+          await overlay.isVisible(),
+          'The wallet entry opens the finance choices',
+        );
+        await tap(overlay.getByRole('button', { name: /关闭/ }));
+      }
+      await tap(choices.first());
+      assert.equal(
+        (await commands()).length,
+        0,
+        'Selecting a share only creates a draft',
       );
+      assert.equal(
+        await page.locator('.mn-confirm').count(),
+        1,
+        'A share purchase requires concrete confirmation',
+      );
+      await tap(page.getByRole('button', { name: '取消', exact: true }));
+      report.metrics.push({
+        width,
+        phase: 'share',
+        directChoices: await choices.count(),
+        financeEntry: 'wallet',
+      });
+      await shot('share-actions');
       assert(await skip.isEnabled());
       await tap(skip);
       await page.evaluate(() => window.harbor.validate());
@@ -2491,13 +2569,13 @@ try {
         pilot: '.mn-position-controls',
         plunder: '[data-manila-drop^="destination:"]',
         mortgage:
-          '.mn-alternatives > summary,.mn-finance-choice[data-manila-action="mortgage"]',
-        repay:
-          '.mn-alternatives > summary,.mn-finance-choice[data-manila-action="repay"]',
+          '.mn-credit,.mn-finance-choice[data-manila-action="mortgage"]',
+        repay: '.mn-credit,.mn-finance-choice[data-manila-action="repay"]',
         'next-voyage': '.mn-next-voyage',
       };
       for (const phase of [
         'auction',
+        'repay-only',
         'share-funded',
         'setup',
         'place',
@@ -2510,11 +2588,20 @@ try {
         'round-result',
       ]) {
         const fixture = await load({ phase });
-        for (const type of new Set(fixture.legal.map((a) => a.type)))
+        const publicCargos = await page.evaluate(
+          () => window.fixtureSession.view.gameView.cargos,
+        );
+        for (const type of new Set(fixture.legal.map((a) => a.type))) {
           assert(
             await page.locator(selectors[type]).count(),
             phase + ' exposes the authorized ' + type + ' entry',
           );
+          if (['mortgage', 'repay'].includes(type))
+            assert(
+              await page.locator(selectors[type]).first().isEnabled(),
+              phase + ' keeps its authorized finance entry enabled',
+            );
+        }
         const metrics = await page.evaluate(() => {
           const rect = (n) => {
             const r = n.getBoundingClientRect();
@@ -2550,8 +2637,11 @@ try {
                 space: rect(n),
                 name: rect(n.querySelector('.mn-space-name')),
                 value: rect(n.querySelector('.mn-space-value')),
+                worker:
+                  n.querySelector('.mn-worker') &&
+                  rect(n.querySelector('.mn-worker')),
                 head:
-                  n.querySelector('.mn-worker-head') &&
+                  n.querySelector('.mn-worker-head')?.checkVisibility() &&
                   rect(n.querySelector('.mn-worker-head')),
               })),
             payouts: [
@@ -2559,11 +2649,17 @@ try {
             ]
               .filter((n) => n.checkVisibility())
               .map((n) => ({
+                cargo: n.closest('.mn-lane').dataset.mnCargo,
                 text: n.textContent,
+                label: n.querySelector(':scope > span').textContent.trim(),
+                amount: n
+                  .querySelector(':scope > strong')
+                  .textContent.replace(/\s+/g, ''),
+                aria: n.getAttribute('aria-label'),
                 box: rect(n),
                 lane: rect(n.closest('.mn-lane')),
               })),
-            dice: [...document.querySelectorAll('.mn-lane .mn-dice')]
+            dice: [...document.querySelectorAll('.mn-lane .mn-die')]
               .filter((n) => n.checkVisibility())
               .map((n) => ({
                 box: rect(n),
@@ -2588,6 +2684,15 @@ try {
                 state: n.dataset.mnLaneState,
                 count: Number(n.dataset.mnCrewCount),
                 readout: n.querySelector('.mn-manifest-kicker')?.textContent,
+                readoutAria: n
+                  .querySelector('.mn-manifest-kicker')
+                  ?.getAttribute('aria-label'),
+                readoutCount: n
+                  .querySelector('.mn-manifest-kicker > b')
+                  ?.textContent.trim(),
+                readoutCountVisible: n
+                  .querySelector('.mn-manifest-kicker > b')
+                  ?.checkVisibility(),
                 roster:
                   n.querySelector('.mn-manifest-members') &&
                   rect(n.querySelector('.mn-manifest-members')),
@@ -2613,10 +2718,12 @@ try {
           kind: 'all-action-entries',
           ...metrics,
         });
+        const activeLanes =
+          fixture.phase === 'setup' || fixture.boats.length > 0;
         assert(
           metrics.slots.every(
             (slot) =>
-              slot.height >= 64 &&
+              slot.height >= (activeLanes ? 64 : 44) &&
               slot.contents.every(
                 (content) =>
                   content.x >= slot.x - 1 &&
@@ -2625,33 +2732,23 @@ try {
                   content.bottom <= slot.bottom + 1,
               ),
           ),
-          'Every phase reserves at least 64px for lane controls and fully contains their growing contents',
+          'Active lanes reserve at least 64px for controls; empty lanes retain a 44px readable region and all contents stay inside their slot',
         );
         assert.equal(
           metrics.pirateLines.length,
-          1,
-          'Every mobile action phase exposes one pirate intercept marker',
+          0,
+          'Player lanes do not restore the retired floating pirate marker',
         );
-        const pirateLine = metrics.pirateLines[0];
-        assert.match(
-          pirateLine.label,
-          /海盗拦截/,
-          'Pirate intercept marker names the 13-cell boundary',
-        );
-        assert(
-          pirateLine.box.width >= 40 &&
-            pirateLine.box.right <= pirateLine.lanes.right + 1,
-          'Pirate intercept marker stays inside the lanes',
-        );
-        assert.equal(
-          pirateLine.active,
-          phase === 'board' ||
-            phase === 'plunder' ||
-            fixture.boats.some(
-              (boat) => boat.destination === 'sea' && boat.position === 13,
-            ),
-          'Pirate intercept marker activates on the 13-cell boundary',
-        );
+        if (phase === 'board') {
+          const boundary = page.locator(
+            '.mn-track-cells .mn-cell-current[data-mn-cell="13"]',
+          );
+          assert(
+            (await boundary.count()) > 0 &&
+              (await boundary.first().isVisible()),
+            'Boarding keeps its actual current-cell 13 boundary visible',
+          );
+        }
         for (const space of metrics.spaces) {
           const overlapX =
             Math.min(space.value.right, space.name.right) -
@@ -2667,11 +2764,36 @@ try {
             space.value.bottom <= space.space.bottom + 1,
             'Space value stays within the same cell',
           );
-          if (space.head)
+          if (space.worker) {
+            const pawn = {
+              x: Math.min(space.worker.x, space.head?.x ?? space.worker.x),
+              y: Math.min(space.worker.y, space.head?.y ?? space.worker.y),
+              right: Math.max(
+                space.worker.right,
+                space.head?.right ?? space.worker.right,
+              ),
+              bottom: Math.max(
+                space.worker.bottom,
+                space.head?.bottom ?? space.worker.bottom,
+              ),
+            };
             assert(
-              space.head.y >= space.value.y - 1,
-              'Pawn head fits the lower state field',
+              pawn.x >= space.space.x - 1 &&
+                pawn.right <= space.space.right + 1 &&
+                pawn.y >= space.space.y - 1 &&
+                pawn.bottom <= space.space.bottom + 1,
+              'The complete pawn silhouette stays inside its position',
             );
+            assert(
+              Math.min(pawn.right, space.name.right) -
+                Math.max(pawn.x, space.name.x) <=
+                1 ||
+                Math.min(pawn.bottom, space.name.bottom) -
+                  Math.max(pawn.y, space.name.y) <=
+                  1,
+              'The complete pawn silhouette stays clear of its position name',
+            );
+          }
         }
         for (const item of metrics.touchEntries)
           assert(
@@ -2689,8 +2811,47 @@ try {
             ),
             'Auction action entries preserve matching top and height',
           );
+        const expectedPayouts =
+          fixture.phase === 'setup' ? 3 : fixture.boats.length;
+        assert.equal(
+          metrics.payouts.length,
+          expectedPayouts,
+          'Every loaded or setup cargo lane exposes one payout label',
+        );
+        assert.equal(
+          new Set(metrics.payouts.map((payout) => payout.cargo)).size,
+          expectedPayouts,
+          'Payout labels belong to distinct cargo lanes',
+        );
         for (const payout of metrics.payouts) {
-          assert(payout.text.includes('分红池'));
+          const cargo = publicCargos.find((entry) => entry.id === payout.cargo);
+          assert(
+            cargo,
+            'Every payout refers to a cargo in the public projection',
+          );
+          const boat = fixture.boats.find(
+            (entry) => entry.cargo === payout.cargo,
+          );
+          const lostIncome =
+            boat?.plundered || boat?.destination === 'shipyard';
+          const amount = lostIncome ? 0 : cargo.payout;
+          assert.equal(
+            payout.label,
+            lostIncome ? '船员' : '整船',
+            'Payout label distinguishes crew loss from the whole-boat pool',
+          );
+          assert.equal(
+            payout.amount,
+            `${amount}₱`,
+            'Payout amount matches the public cargo and actual boat outcome',
+          );
+          assert.equal(
+            payout.aria,
+            lostIncome
+              ? `本船船员无分红：${boat.plundered ? '已被掠夺' : '进入修船坞'}`
+              : `整船分红池 ${cargo.payout} 比索，船员均分`,
+            'Accessible payout text preserves the whole-boat meaning or actual loss reason',
+          );
           assert(
             payout.box.x >= payout.lane.x - 1 &&
               payout.box.right <= payout.lane.right + 1,
@@ -2756,10 +2917,19 @@ try {
               count,
               'Sea lane manifest exposes the actual saved crew count',
             );
-            assert.match(
-              crew.readout,
-              /船员/,
-              `${phase}/${crew.cargo}: Sea lane manifest labels the crew row`,
+            assert.equal(
+              crew.readoutAria,
+              `船员 ${count} 人`,
+              `${phase}/${crew.cargo}: The accessible crew count matches the public occupants`,
+            );
+            assert.equal(
+              crew.readoutCount,
+              String(count),
+              'The visible crew number matches the public occupants',
+            );
+            assert(
+              crew.readoutCountVisible,
+              'The actual crew number remains visible',
             );
           }
           assert.notEqual(
@@ -2773,6 +2943,66 @@ try {
             'The retired crew-count sentence is not rendered as a text block',
           );
         }
+        const pirateEntry = page.locator(
+          '.mn-specialist-group--pirate > .mn-detail-button',
+        );
+        assert.equal(
+          await pirateEntry.count(),
+          1,
+          'The shore retains one pirate rules entry',
+        );
+        await pirateEntry.scrollIntoViewIfNeeded();
+        await tap(pirateEntry);
+        const pirateDetail = page.locator('.mn-detail-card[aria-label="海盗"]');
+        await pirateDetail.waitFor({ state: 'visible' });
+        const pirateRules = [
+          '第二掷停13格',
+          '登上货船的空位',
+          '第三掷停13格',
+          '掠夺货船，选择送往港口或修船坞',
+        ];
+        for (const text of pirateRules) {
+          const line = pirateDetail.getByText(text, { exact: true });
+          await line.scrollIntoViewIfNeeded();
+          assert(
+            await line.isVisible(),
+            `${phase}: Pirate rules remain readable: ${text}`,
+          );
+          const box = await line.boundingBox();
+          const card = await pirateDetail.boundingBox();
+          assert(
+            box.x >= card.x - 1 &&
+              box.x + box.width <= card.x + card.width + 1 &&
+              box.y >= card.y - 1 &&
+              box.y + box.height <= card.y + card.height + 1,
+            `${phase}: Pirate rules fit inside the visible detail card: ${text}`,
+          );
+        }
+        await tap(
+          pirateDetail.getByRole('button', { name: '关闭海盗', exact: true }),
+        );
+        assert.equal(
+          await pirateDetail.count(),
+          0,
+          'The pirate rules detail closes completely',
+        );
+        assert(
+          await pirateEntry.evaluate((node) => document.activeElement === node),
+          'Closing pirate rules returns focus to the shore entry',
+        );
+        assert.deepEqual(
+          await commands(),
+          [],
+          `${phase}: Opening, reading and closing pirate rules submits no action`,
+        );
+        report.metrics.push({
+          width,
+          phase,
+          kind: 'pirate-detail-access',
+          rules: pirateRules,
+          restoredFocus: true,
+          submittedActions: 0,
+        });
         if (
           ['place', 'crew-full', 'pilot-small', 'round-result'].includes(phase)
         )
@@ -3214,13 +3444,6 @@ try {
             before,
             `${phase}: hiding save feedback moves no layout region`,
           );
-          const summary = page
-            .locator('.mn-controls .mn-alternatives > summary')
-            .first();
-          if (await summary.isVisible()) {
-            await tap(summary);
-            await inspect(phase, variant + '/alternatives-open');
-          }
           if (phase === 'place') {
             const target = page.locator('.mn-space--legal').first();
             await tap(target);
@@ -3252,6 +3475,9 @@ try {
       }
     });
     const priority = [
+      'clarity-layout',
+      'action-guidance',
+      'stocks-finance',
       'text-flow',
       'voyage-result',
       'share',

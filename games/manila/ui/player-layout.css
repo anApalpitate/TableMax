@@ -44,6 +44,77 @@
   min-width: 0;
   gap: 2px 6px;
   white-space: normal;
+  position: relative;
+}
+.mn-result-heading {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 2px 6px;
+}
+@media (max-width: 430px) {
+  .mn-screen--player > .mn-status[data-mn-phase='round-result'] {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 4px 6px;
+  }
+  .mn-screen--player
+    .mn-status[data-mn-phase='round-result']
+    :is(.mn-current-turn, .mn-current-turn-copy) {
+    display: contents;
+  }
+  .mn-screen--player
+    .mn-status[data-mn-phase='round-result']
+    .mn-result-heading {
+    grid-area: 1 / 1 / 2 / -1;
+  }
+  .mn-screen--player
+    .mn-status[data-mn-phase='round-result']
+    .mn-status-detail {
+    grid-area: 2 / 1;
+  }
+  .mn-screen--player .mn-status[data-mn-phase='round-result'] .mn-stage-action {
+    grid-area: 2 / 2;
+    align-self: center;
+  }
+}
+/* The acknowledgement belongs to the phase copy, never to the wordmark. */
+.mn-screen .mn-current-turn-copy {
+  position: relative;
+}
+.mn-screen .mn-status-save,
+.mn-screen .mn-status-save > .session-save-anchor {
+  position: absolute;
+  inset-inline-end: 0;
+  top: 0;
+  width: 0;
+  height: 0;
+  min-width: 0;
+  min-height: 0;
+  margin: 0;
+  padding: 0;
+  flex: none;
+  pointer-events: none;
+}
+.mn-screen .mn-status-save .session-save-overlay {
+  position: absolute;
+  inset-inline-start: auto;
+  inset-inline-end: 0;
+  top: 0;
+  bottom: auto;
+  transform: none;
+  white-space: nowrap;
+  font-size: 16px;
+  line-height: 24px;
+}
+:is(.mn-screen--host, .mn-screen--public) .mn-toolbar > .mn-status {
+  flex: 1 1 auto;
+}
+:is(.mn-screen--host, .mn-screen--public) .mn-current-turn {
+  flex: 1 1 auto;
+}
+:is(.mn-screen--host, .mn-screen--public) .mn-current-turn-copy {
+  flex: 1 1 auto;
 }
 .mn-screen--player
   .mn-shore
@@ -103,6 +174,7 @@
 .mn-screen--player .mn-stage-action {
   flex: 0 1 auto;
   min-width: 0;
+  align-self: flex-end;
 }
 .mn-screen--player .mn-stage-action > button {
   height: auto;
@@ -121,6 +193,42 @@
   padding: 8px 10px;
   font-size: 18px;
   line-height: 26px;
+}
+.mn-screen--player [data-mn-guidance] {
+  color: #153e36;
+  background: #f5d888;
+  border-color: #957234;
+  box-shadow: 0 0 0 2px #eac36d80;
+}
+.mn-screen--player [data-mn-guidance='pulse'] {
+  animation: mn-action-guidance 1.8s ease-in-out infinite;
+}
+@keyframes mn-action-guidance {
+  0%,
+  100% {
+    box-shadow: 0 0 0 2px #eac36d60;
+  }
+  50% {
+    box-shadow:
+      0 0 0 4px #eac36db0,
+      0 0 12px #c3913240;
+  }
+}
+.mn-screen--player[data-mn-guidance-arrived] #mn-action-area {
+  outline: 2px solid #a78642;
+  outline-offset: -2px;
+}
+.mn-controls-heading h2:focus {
+  outline: none;
+}
+.mn-controls-heading h2:focus-visible {
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .mn-screen--player [data-mn-guidance='pulse'] {
+    animation: none;
+  }
 }
 .mn-screen--player .mn-stage-action:empty {
   display: none;
@@ -191,8 +299,9 @@
   align-items: stretch;
 }
 .mn-screen--player .mn-shore .mn-space {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-auto-rows: auto;
   align-content: center;
   align-items: center;
   justify-content: center;
@@ -206,6 +315,18 @@
   line-height: 26px;
   background: #fffaf0;
   border-color: #cab98e;
+}
+.mn-screen--player .mn-shore .mn-space-heading {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0 6px;
+  min-width: 0;
+  min-height: 31px;
+}
+.mn-screen--player .mn-shore .mn-space-value .mn-worker {
+  transform: translateY(3.5px);
 }
 .mn-screen--player .mn-space-name {
   flex: 0 1 auto;
@@ -413,9 +534,6 @@
 .mn-screen--player .mn-bid-range {
   white-space: normal;
 }
-.mn-screen--player .mn-controls :is(p, label, .mn-bid-range, .mn-action-facts) {
-  line-height: 24px;
-}
 .mn-screen--player .mn-confirm-description strong {
   font-size: 18px;
   line-height: 26px;
@@ -436,7 +554,6 @@
   align-self: stretch;
 }
 .mn-screen--player .mn-controls > .mn-action-row > button,
-.mn-screen--player .mn-controls > .mn-action-row > .mn-alternatives > summary,
 .mn-screen--player .mn-action-tray :is(button, summary) {
   height: auto;
   min-height: 44px;
@@ -454,12 +571,10 @@
   white-space: normal;
 }
 .mn-screen--player .mn-finance-choices,
-.mn-screen--player .mn-action-grid,
 .mn-screen--player .mn-share-choices {
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 210px), 1fr));
 }
 .mn-screen--player .mn-finance-choice,
-.mn-screen--player .mn-action-grid > button,
 .mn-screen--player .mn-share-choices > button {
   height: auto;
   min-width: 0;
@@ -468,7 +583,6 @@
   overflow-wrap: anywhere;
 }
 .mn-screen--player .mn-finance-choice > *,
-.mn-screen--player .mn-action-grid > button > *,
 .mn-screen--player .mn-share-choices > button > * {
   min-width: 0;
   white-space: normal;
@@ -553,41 +667,6 @@
 }
 
 /* Save feedback has no flex/grid item or hit area, even when its text is hidden. */
-.mn-screen > .mn-toolbar > .session-save-anchor {
-  position: absolute;
-  flex: none;
-  left: 50px;
-  top: 34px;
-  width: 0;
-  height: 0;
-  min-width: 0;
-  min-height: 0;
-  margin: 0;
-  padding: 0;
-  pointer-events: none;
-}
-.mn-screen > .mn-toolbar > .session-save-anchor > .session-save-overlay {
-  left: 0;
-  right: auto;
-}
-:is(.mn-screen--host, .mn-screen--public) > .mn-toolbar > .session-save-anchor {
-  top: 48px;
-}
-.mn-screen--player > .mn-toolbar > .session-save-anchor {
-  display: block;
-}
-.mn-screen--player .mn-status-save {
-  display: none;
-  position: absolute;
-  flex: none;
-  width: 0;
-  height: 0;
-  min-width: 0;
-  min-height: 0;
-  margin: 0;
-  padding: 0;
-  pointer-events: none;
-}
 
 .mn-screen--player :where(.mn-status) strong {
   font-size: 18px;
@@ -752,6 +831,9 @@
 }
 
 @media (min-width: 621px) {
+  .mn-screen--player {
+    --mn-lane-control-min: 86px;
+  }
   .mn-screen--player .mn-lane-heading {
     display: grid;
     grid-template-columns: minmax(0, 1fr) auto;
@@ -782,10 +864,6 @@
     grid-area: 1 / 1;
     width: 26px;
     height: 26px;
-  }
-  .mn-screen--player > .mn-toolbar > .session-save-anchor {
-    left: 180px;
-    top: 27px;
   }
   .mn-screen--player {
     grid-template-rows: auto auto auto minmax(0, 1fr);
@@ -848,7 +926,7 @@
 
 @media (min-width: 621px) and (max-width: 1050px) {
   .mn-screen--player .mn-lane {
-    grid-template-rows: minmax(44px, auto) 84px;
+    grid-template-rows: minmax(44px, auto) minmax(86px, auto);
   }
 }
 
@@ -887,9 +965,6 @@
     justify-content: center;
     gap: 6px;
   }
-  .mn-screen--player {
-    --mn-lane-control-min: 74px;
-  }
   .mn-screen--player .mn-player-scroll {
     --mn-anchor-offscreen: 1;
     padding-block-end: var(--mn-anchor-tail, 0px);
@@ -914,20 +989,7 @@
     bottom: auto;
     transform: rotate(45deg);
   }
-  .mn-screen--player > .mn-toolbar > .session-save-anchor {
-    display: none;
-  }
   .mn-screen--player .mn-status-detail {
     position: static;
-  }
-  .mn-screen--player .mn-status-save {
-    display: block;
-    right: 6px;
-    bottom: auto;
-    top: 0;
-  }
-  .mn-screen--player .mn-status-save .session-save-overlay {
-    left: auto;
-    right: 0;
   }
 }
