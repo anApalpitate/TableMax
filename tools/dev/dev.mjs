@@ -8,6 +8,7 @@ import { spawn } from 'node:child_process';
 import { resolve } from 'node:path';
 import { writeFile } from 'node:fs/promises';
 import { normalizeBuiltExecutableSecurity } from '../shared/windows-executable-security.mjs';
+import { createDevelopmentSession } from './session.mjs';
 
 await buildProject();
 // A build directory can inherit a sandbox Low label. Starting that EXE from a
@@ -24,30 +25,40 @@ if (process.platform === 'win32') {
 }
 // Use the same assembled browser runtime and game release as the service.
 // A separate Vite origin cannot serve immutable game resources or share React.
-const desktop = spawn(
-  resolve('build/desktop/TableMax.exe'),
-  process.argv.slice(2).filter((argument) => argument !== '--'),
-  {
-    stdio: 'inherit',
-    windowsHide: true,
-    env: {
-      ...process.env,
-      TABLEMAX_HOST: '127.0.0.1',
-      TABLEMAX_BOX_DIRECTORY:
-        process.env.TABLEMAX_BOX_DIRECTORY ?? resolve('.cache/development'),
-      TABLEMAX_WEB_DEV_URL: undefined,
-      TABLEMAX_PACKAGED: '0',
+const session = await createDevelopmentSession();
+try {
+  const desktop = spawn(
+    resolve('build/desktop/TableMax.exe'),
+    process.argv.slice(2).filter((argument) => argument !== '--'),
+    {
+      stdio: 'inherit',
+      windowsHide: true,
+      env: {
+        ...session.env,
+        TABLEMAX_HOST: '127.0.0.1',
+        TABLEMAX_WEB_DEV_URL: undefined,
+        TABLEMAX_PACKAGED: '0',
+      },
     },
-  },
-);
-desktop.on('error', (error) => {
-  console.error(error);
-  process.exitCode = 1;
-});
-desktop.on('exit', (code) => {
-  process.exitCode = code ?? 1;
-});
-process.on('SIGINT', () => {
-  desktop.stdin?.end();
-  desktop.kill();
-});
+  );
+  const stop = () => desktop.kill();
+  process.on('SIGINT', stop);
+  process.on('SIGTERM', stop);
+  try {
+    await new Promise((done) => {
+      desktop.on('error', (error) => {
+        console.error(error);
+        process.exitCode = 1;
+      });
+      desktop.on('close', (code) => {
+        process.exitCode = code ?? 1;
+        done();
+      });
+    });
+  } finally {
+    process.off('SIGINT', stop);
+    process.off('SIGTERM', stop);
+  }
+} finally {
+  await session.dispose().catch((error) => console.warn(error.message));
+}
