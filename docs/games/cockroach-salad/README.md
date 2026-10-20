@@ -42,4 +42,4 @@
 
 保留首轮fixture分牌错误导致官方例子失败（d2de0ff4）及新增整局发现连续禁忌牌暂存三个禁忌导致严格校验拒绝（89e6cab6）；后者改为禁忌牌仅保留新可见禁忌、普通覆盖牌保留首回合旧禁忌。修复后开新预算轮定向复验通过。
 
-此处为源码规则／策略证据。真实服务保存／重启／暂停／回退、三端实际渲染、声音试听、实体设备及完整installer由主任务整合验收，不用单测推断已通过。
+后续[真实Socket与SQLite](../../../artifacts/maintenance/test-history/runs/19d37975-46ee-4077-a47c-419349609daf/results.json)、[源码53项界面矩阵](../../../artifacts/maintenance/cockroach-source/final-freeze-20261021/report.json)及[最终冻结游戏](../../../artifacts/maintenance/cockroach-delivery-20261021/installed-r2/results.json)均通过，含生产作答／质疑保存、共同窗口、无人操作处罚、资源解码及保存重启。规则示例采用18px响应式图文，320px蔬菜示例两列；实际资源由显式glob冻结。正式安装与本地current为1.0.8.8，统一见[验收](../../reference/acceptance.md#德国小强与蟑螂沙拉完整交付2026-10-21)。实体手机、真实网络、多物理DPI与真人声音试听未实测，不用源码／机器证据冒称通过。

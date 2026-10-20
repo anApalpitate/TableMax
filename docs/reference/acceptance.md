@@ -4,21 +4,31 @@
 
 ## 当前源码与本地交付
 
-本轮公开版本保持 **1.0.8**；用户明确要求替换同一Release的安装器、源码附件与说明，保留原标签。新候选为 **1.0.8.7**，状态见[替换记录](#v108附件替换2026-10-21)；原 **1.0.8.6** 的实际验证与首次发布证明保留于[历史记录](#v108发行验收2026-10-19)。原发行在隔离工作树构建，本次在主工作树冻结已验证运行输入，保留其他任务未提交改动。
+公开版本保持 **1.0.8**，线上附件仍为已发布的 **1.0.8.7**，见[替换记录](#v108附件替换2026-10-21)。本地current已推广为 **1.0.8.8**，新增德国小强与蟑螂沙拉，预装9款游戏／10个玩法，见[本轮完整交付](#德国小强与蟑螂沙拉完整交付2026-10-21)。本轮不发布、不改标签或线上附件；首次1.0.8.6验证保留于[历史记录](#v108发行验收2026-10-19)。
 
 上一轮主工作树本地current已核验恢复为[1.0.7.22](#盒子与马尼拉界面优化2026-10-17)，含七款游戏／八个玩法；33原指针和修复回执保留于[恢复记录](../archive/current-pointer-repair-2026-10-18.md)。本轮发布前的线上附件对应[1.0.7.2原字节](#1072安装进度与版本交付2026-10-16)。旧1.0.6/current、内部载荷和原证明按历史身份保留；对应本地旧EXE／sidecar已退役，原路径不能再作为现存安装器或迁移复验输入，见[退役记录](../archive/local-release-retirement-2026-10-16.md)。
 
-源码与本地完整交付已包含经典马尼拉；本地current切换不覆盖线上附件、标签或原发行SHA映射。
+源码与本地完整交付已包含经典马尼拉、德国小强与蟑螂沙拉；本地current切换不覆盖线上附件、标签或原发行SHA映射。
 
 [GitHub v1.0.7](https://github.com/anApalpitate/TableMax/releases/tag/v1.0.7)为上一公开发行，非草稿、非预发布；本轮线上状态见1.0.8记录。附件仅[installer](https://github.com/anApalpitate/TableMax/releases/download/v1.0.7/TableMax-1.0.7-installer-win-x64.exe)与[source ZIP](https://github.com/anApalpitate/TableMax/releases/download/v1.0.7/TableMax-1.0.7-source.zip)；公开installer与本地1.0.7.2完全同字节。source ZIP为86,438,358字节，SHA `83d9080b3a0d54b8d01269710dd3a9bec7c417413e4d18429e9d4fc0c5660963`，由标签源码提交 `c1207fd0be68b05b2fa88e2989a2c7444ca3527b`导出；标签对象 `14e0eef4272aeaea5648f9bc08fb43de998e09d7`。[发布审计](../../artifacts/maintenance/v1.0.7/windows-editions/91e13f6af698a964df479b8233ecf5e2f063d9579f09f9e1f7f2d652542e7ca5/github-publication.json)核对两附件远端摘要、源码映射及RSA签名正文。历史附件保留，不部署Pages；失败和操作方法差异见[发布归档](../archive/installer-progress-v107-release-2026-10-16.md)。
 
 工作区占用及逐文件退役见[项目瘦身](project-slimming.md)；1.0.7.2发布任务未追加清理，马尼拉任务的单次维护单独记录。旧运行ZIP唯一迁移输入见[整理归档](../archive/tooling-delivery-organization-2026-10-15.md#旧运行zip的迁移输入)；下方旧标题保留历史导航。
 
+## 德国小强与蟑螂沙拉完整交付（2026-10-21）
+
+[完整安装器1.0.8.8](../../artifacts/releases/v1.0.8/1.0.8.8/TableMax-1.0.8.8-installer-win-x64.exe)38,251,047字节，SHA256 `6f3bf19bfa4c83a2bd9a6ff499b97e1e75e3efd3bacbd003ff79cfb8c48cc67c`；内部ZIP46,501,132字节，SHA256 `22d88bf48d7ca877f985fd08e763c74e2299cad94a8e161712f62dc3995c9403`；实际提取99,456,031字节，均低于120,000,000。冻结快照 `ebb0ce7cc3410f0deb413e5a2d49f7cb26bd156312050ff82c7416a33540f5a5`。两款规则、数字改编、来源与三档人机分别见[德国小强](../games/cockroach-poker/README.md)和[蟑螂沙拉](../games/cockroach-salad/README.md)。
+
+[正式安装证明](../../artifacts/maintenance/cockroach-delivery-20261021/finalized-installation-r2.json)通过：原路径标准账户Medium启动、中文向导、默认目录／长路径外置数据／旧框架失败恢复三条8步更新链，以及正式产品首装、复装、保存、默认卸载、同根重装读回和再次卸载12项检查。临时账户及profile删除、errors为空，见[隔离终态](../../artifacts/maintenance/cockroach-delivery-20261021/production-r2/isolated-account.json)。首次健康启动同次采样118,305,209字节，低于硬限、触发110,000,000工程预警；不称整个安装过程绝对峰值。
+
+[冻结游戏实玩](../../artifacts/maintenance/cockroach-delivery-20261021/installed-r2/results.json)通过：真实Native WebView2主机／公共屏与隐藏Edge手机模拟、两款生产动作、沙拉共同窗口与无人操作处罚、资源逐项SHA／图像及WAV解码、真实保存及重启暂停恢复。资源闭包为德国小强11个SVG＋3个WAV、沙拉6个SVG；无页面错误。源码[53项界面检查](../../artifacts/maintenance/cockroach-source/final-freeze-20261021/report.json)另覆盖320px至4K、125%／150%像素密度及减少动态；独立截图复审未见剩余游戏P0/P1/P2。以上不代替实体手机、真实LAN／公网、物理多DPI或真人声音试听；未改通用安装器，既有迁移页次要“浏览”按钮视觉问题仍按下方历史边界保留。
+
+[推广回执](../../artifacts/maintenance/cockroach-delivery-20261021/promotion-r2.json)确认current为1.0.8.8、修订预留确认，仅保留最新已验收本地EXE；公开版本与线上1.0.8.7原附件未变。第一未接受候选虽安装通过，冻结游戏检查发现漏资源，已修复后整包重验，同次交付只计修订8；[首候选退役原因及原SHA](../../artifacts/maintenance/cockroach-delivery-20261021/candidate-r1-retirement.json)与全部失败证据保留。
+
 ## v1.0.8附件替换（2026-10-21）
 
 用户明确选择覆盖现有v1.0.8，Release ID `416648428`。替换前原两附件已下载并核对实际字节及远端摘要，[备份核对](../../artifacts/maintenance/v1.0.8/replacement-20261021/original-release/backup-verification.json)通过；旧标签源码提交、标签对象和原字节映射保留，下方首次发布记录不改写为新包证明。
 
-新[完整安装器1.0.8.7](../../artifacts/releases/v1.0.8/1.0.8.7/TableMax-1.0.8.7-installer-win-x64.exe)预装七款游戏／八玩法，38,168,090字节，SHA256 `1e310d2fe9204ac60b0d12e74208da7db84f014823aa6124c25aa160535b1ede`；内部ZIP46,411,577字节，实际提取99,348,196字节，三项均小于120,000,000字节。冻结快照 `0172cd536654f78c9ec47540edefd13f92e5cfc5ea05c08e5a5c67b244b768ce`；原路径EXE单文件安全标记归一化保留SHA、owner、DACL与数据流，见[回执](../../artifacts/maintenance/v1.0.8/replacement-20261021/original-security-normalization.json)。
+当时的完整安装器1.0.8.7（本地原件已按上述推广保留策略退役，线上附件保持同字节）预装七款游戏／八玩法，38,168,090字节，SHA256 `1e310d2fe9204ac60b0d12e74208da7db84f014823aa6124c25aa160535b1ede`；内部ZIP46,411,577字节，实际提取99,348,196字节，三项均小于120,000,000字节。冻结快照 `0172cd536654f78c9ec47540edefd13f92e5cfc5ea05c08e5a5c67b244b768ce`；原路径EXE单文件安全标记归一化保留SHA、owner、DACL与数据流，见[回执](../../artifacts/maintenance/v1.0.8/replacement-20261021/original-security-normalization.json)。
 
 源码TypeScript、112个改动TS／TSX文件ESLint、145个生产文件Prettier通过；名称与长度115用例、其余定向规则及平台232用例通过，设置与计时等116用例及UNO界面8项通过，见[定向报告](../../artifacts/maintenance/release-1-0-8-validation-guidance-20261021/report.json)。版本预留、推广、保留与附件替换守卫分别定向通过；保留原失败账，不将复用证据重复计数。源码模拟视口不代表实体手机、Safari、真实LAN或物理4K设备，本轮没有新增这些设备证明。
 

@@ -365,3 +365,10 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File tools/test/installation/
 此模式与迁移、fixture-only、HandoffPreparedReport及IncludeWizardAcceptance互斥；完整生产链默认先执行同一原EXE检查。它在新标准账户／真实profile中以CreateProcess直接启动冻结交付路径的原EXE，不复制EXE、不向源目录写入夹具；核真实原bootstrap及向导子进程的映像、SID、Medium、非提权令牌，实际中文向导、默认路径、返回及正常取消。只有原进程返回Inno正常取消码2、自有Job自然归零、登记及目标目录未改、原EXE逐SHA及安全标记未变、源目录内容未变，并删除测试账户／profile后，才写`original-executable-evidence.json`。这补充原完整系统证明，不将取消操作算作安装通过，也不重跑未受影响安装链。
 
 完整生产链把该补充记录绑定到execution-receipt，独立封存保留引用；本地current切换及发布预检读取其原始报告、截图、账户清理记录并重新读取原EXE安全标记，缺失、路径为副本、内容或元数据改变均拒绝。对既有已验收current补证使用`node tools/release/original-executable-acceptance.mjs --current=<当前current.json> --proof=<补充证明>`，仅原子附加证明引用，不改原系统证明、候选、EXE、版本或公开附件。
+
+## 德国小强与蟑螂沙拉验证
+
+以下脚本登记为`game:cockroach-poker,game:cockroach-salad`，放入version 1独立计划，经`node tools/test/runner/test-scoped.mjs --scope=game:cockroach-poker,game:cockroach-salad --plan=<计划.json>`运行；保留原失败账，实质修复后只复验受影响范围。
+
+- `games/cockroach/verify-cockroach-source.mjs --evidence=<唯一安全名称> [--density-only]`：实际生产客户端和规则派生内存夹具，默认53项三端／320px至4K／密度／减少动态检查，并检查320px规则示例字号；源码及资源逐SHA绑定。仅证明源码浏览器，不冒称Socket、SQLite、安装或实体设备通过。
+- `games/cockroach/verify-cockroach-installed.mjs --delivery=<installer-delivery.json> --proof=<正式完成的shipping proof或封存proof> --evidence=<全新artifacts/maintenance目录>`：先核原EXE、载荷、两个清单及已卸载／保留runtime证明，再从精确冻结成员建立隔离副本。真实Native WebView2主机／公共屏、隐藏静音Edge手机模拟，执行两款生产动作、沙拉共同窗口与无人操作处罚、全部声明资源SHA及图像／WAV解码、实际保存重启；结束复核所有输入和保留runtime未变。安装系统验收须独立完成，不以此脚本替代；不证明实体手机、真实网络、多物理DPI或真人试听。

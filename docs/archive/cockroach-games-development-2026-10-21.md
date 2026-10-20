@@ -1,6 +1,6 @@
 # 德国小强与蟑螂沙拉开发定案
 
-2026-10-21用户经本轮问答确认。状态：goal开发进行中，两款模块分别实施，主线负责平台计时、集成与交付；目标仍为一次完成两款，不拆成只交付一款或仅交付原型。需求入口见[需求基线](../requirements.md)，游戏状态见[候选清单](../games/candidates.md)。
+2026-10-21用户经本轮问答确认，两款已一次完成开发、适用验证与完整安装器1.0.8.8本地交付。本页归档保留定案、研究边界、失败与交付过程；当前规则分别维护在[德国小强](../games/cockroach-poker/README.md)、[蟑螂沙拉](../games/cockroach-salad/README.md)，当前产物与设备边界见[验收](../reference/acceptance.md#德国小强与蟑螂沙拉完整交付2026-10-21)。本任务不授权公开发布。
 
 ## 目标与交付范围
 
@@ -66,8 +66,8 @@
 - [x] 两款分别证明人机只用授权信息、完整合法行动、策略差异；蟑螂沙拉另证实反应／失误／漏抓参数有效，不以不可战胜的瞬答替代强度。
 - [x] 验证暂停、断线／重连、重复／过期动作、进程重启、回退、旧授权撤销和计时恢复，防止重罚、重复分牌、跨窗口质疑、恢复跳罚或秘密泄露。
 - [x] 按[范围验证](../reference/validation.md)完成两款及实际影响的盒子／共享项，检查三端交互、计时可读性、触控、短屏、4K／DPI与动效；证据区分源码模拟、实际渲染和实体设备，不以自动检查冒称真人认可。
-- [ ] 两款一并达到正式游戏标准后导出完整installer，按[安装验收](../reference/installation-validation.md)与[交付规则](../reference/acceptance.md)完成实际交付检查；未通过不得标记goal完成。需要真人或额外权限才能取得的证据如实列为缺口，不用推测结论替代。
-- [ ] 完成时将长期规则／来源／参数／验证移入各游戏唯一主题，更新需求、游戏与交付状态，归档本任务并修复入链；主agent仅提交／推送本任务已验证改动，不发布。
+- [x] 两款一并达到正式游戏标准后导出完整installer，按[安装验收](../reference/installation-validation.md)与[交付规则](../reference/acceptance.md)完成实际交付检查；实际安装与同SHA冻结游戏验证均通过。实体设备、真实网络、多物理DPI与真人试听未冒称通过。
+- [x] 长期规则／来源／参数／验证已归各游戏唯一主题，更新需求、游戏与交付状态，归档本任务并修复入链；主agent仅提交／推送本任务已验证改动，不发布。
 
 当前goal目标：依据本定案，一次完成德国小强经典版与蟑螂沙拉经典基础及已确认数字改编，达到现有正式游戏标准，完成适用验证与完整installer交付；全过程保留其他任务改动及既有存档／发行边界。不设置预算或承诺开发日期。
 
@@ -81,10 +81,12 @@
 
 源码41项实际渲染／按钮检查见[完整输入绑定报告](../../artifacts/maintenance/cockroach-source/bound-inputs-20261021/report.json)，绑定61个源码／资源输入。首轮Edge在沙箱无法启动；改用正常本机隐藏静音Edge。初次自动通过后人工发现手机纵排标题、长姓名挤压与主操作位于次要收牌区下方，已修复并补位置／标题／短桌面断言。Windows路径分隔符曾导致报告仅绑定验证器，修正后补录全部源码和资源并复验；旧报告不升级为完整输入证明。全工程TypeScript、任务文件ESLint与适用Prettier通过；旧失败证据均保留。
 
-完整候选1.0.8.8已冻结，snapshot `8c371a7a7f65abe90163b0e3794d774b2a1c79a9c47815f1a4b20098a1378db4`；EXE 38,195,893、内部ZIP 46,441,560、实际提取99,390,440字节。签名闭包10个发行、18个blob通过；正式安装尚未通过，不能标为最终交付。剩余：实际标准账户安装／更新／恢复／卸载链、冻结载荷两款实际运行、current推广与任务归档。公开版本仍1.0.8，不发布。
+第一候选1.0.8.8的snapshot为 `8c371a7a7f65abe90163b0e3794d774b2a1c79a9c47815f1a4b20098a1378db4`；EXE 38,195,893、内部ZIP 46,441,560、实际提取99,390,440字节。签名闭包10个发行、18个blob通过；当时正式安装待验，随后因下述漏资源问题退役，不能据此标为最终交付。公开版本仍1.0.8，不发布。
 
 新增125%／150%像素密度和减少动态定向12项通过，见[密度报告](../../artifacts/maintenance/cockroach-source/density-20261021/report.json)，未重复执行已通过的41项布局／按钮；这些是桌面浏览器模拟，不冒称物理DPI或真实手机。
 
 第一候选的标准账户安装、更新、框架恢复、卸载及原路径Medium启动均通过，[封存证明](../../artifacts/maintenance/cockroach-delivery-20261021/finalized-installation-r1.json)与[隔离清理](../../artifacts/maintenance/cockroach-delivery-20261021/production-r1/isolated-account.json)保留。但实际安装后游戏检查发现德国小强未冻结SVG／WAV，沙拉只收录三张介绍SVG；不能推广该候选。已将两款动态资源引用改为可扫描的字面量glob，补齐德国小强从清单投影的游戏库介绍，并记录[首候选退役原因与SHA](../../artifacts/maintenance/cockroach-delivery-20261021/candidate-r1-retirement.json)，沿用尚未交付的修订8重新冻结。
 
-独立视觉审查发现的圆点串联、公共屏统计数字孤行与规则标题落字已修复；沙拉规则小字号SVG示例改为18px响应式图文，320px四蔬菜示例改两列。[最终源码53项](../../artifacts/maintenance/cockroach-source/final-freeze-20261021/report.json)通过，另有320px示例字号与溢出断言。安装后验证器的无效连接徽标等待、资源枚举和目录层级错误先后保留失败记录；产品资源缺陷与脚本修复分别处理，未放宽资源完整性、按钮保存或重启断言。全工程类型与本任务ESLint通过。剩余仍为修正后最终字节的安装及冻结实玩、推广与归档。
+独立视觉审查发现的圆点串联、公共屏统计数字孤行与规则标题落字已修复；沙拉规则小字号SVG示例改为18px响应式图文，320px四蔬菜示例改两列。[最终源码53项](../../artifacts/maintenance/cockroach-source/final-freeze-20261021/report.json)通过，另有320px示例字号与溢出断言。安装后验证器的无效连接徽标等待、资源枚举和目录层级错误先后保留失败记录；产品资源缺陷与脚本修复分别处理，未放宽资源完整性、按钮保存或重启断言。全工程类型与本任务ESLint通过。
+
+最终snapshot `ebb0ce7cc3410f0deb413e5a2d49f7cb26bd156312050ff82c7416a33540f5a5`已完成[正式安装封存](../../artifacts/maintenance/cockroach-delivery-20261021/finalized-installation-r2.json)、[两款冻结实玩及保存重启](../../artifacts/maintenance/cockroach-delivery-20261021/installed-r2/results.json)和[current推广](../../artifacts/maintenance/cockroach-delivery-20261021/promotion-r2.json)。完整EXE及预算、源版本、实际设备边界统一见验收，不复制第二份当前哈希表。工程收尾深度容量审计独立于产品验收；受保护材料与安全候选不足不能写成已达到6GB。
