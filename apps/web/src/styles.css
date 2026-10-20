@@ -345,34 +345,6 @@ select {
   display: block;
   flex: 0 0 auto;
 }
-.connection-help {
-  display: grid;
-  gap: 14px;
-}
-.connection-help > label {
-  font-weight: 700;
-}
-.connection-help__address {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  gap: 12px;
-  align-items: center;
-}
-.connection-help__address select {
-  width: 100%;
-  min-width: 0;
-  min-height: 48px;
-}
-.connection-help p {
-  margin: 0;
-}
-.connection-help ol {
-  margin: 0;
-  padding-left: 24px;
-}
-.connection-help li {
-  padding: 8px 0;
-}
 .owner-control {
   display: grid;
   gap: 8px;
@@ -441,9 +413,6 @@ select {
   margin-top: 24px;
 }
 @media (max-width: 560px) {
-  .connection-help__address {
-    grid-template-columns: 1fr;
-  }
   .box-screen .hero {
     flex-wrap: wrap;
   }

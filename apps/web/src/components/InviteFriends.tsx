@@ -1,17 +1,35 @@
-import { useEffect, useId, useState } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 import type { RoomSession } from '../session/useRoomSession';
 import { BoxOverlayPanel } from './BoxOverlayPanel';
 import './invite-friends.css';
 import { useNotifications } from './notifications/context';
 import { feedbackText } from '../content/feedback';
+import { SettingHelp } from '@tablemax/web-host';
+import {
+  composeExternalEntry,
+  cycleExternalEntry,
+  splitExternalEntry,
+  type ExternalPrefix,
+} from './external-entry';
+import './settings-panel.css';
 export function InviteFriends({ session }: { session: RoomSession }) {
   const notifications = useNotifications();
   const [help, setHelp] = useState(false);
+  const helpOpen = useRef(false);
   const [draftUrl, setDraftUrl] = useState('');
+  const [prefix, setPrefix] = useState<ExternalPrefix>('');
   const [saving, setSaving] = useState(false);
   const [saveMessage, setSaveMessage] = useState('');
   const [openMessage, setOpenMessage] = useState('');
   const externalId = useId();
+  const changeHelp = (open: boolean) => {
+    helpOpen.current = open;
+    setHelp(open);
+  };
+  const saveFeedback = (message: string, kind: 'success' | 'error') => {
+    if (helpOpen.current || !notifications) setSaveMessage(message);
+    else notifications.show(message, kind);
+  };
   useEffect(() => {
     const failed = () => {
       const message = feedbackText('network.openFailed');
@@ -46,18 +64,20 @@ export function InviteFriends({ session }: { session: RoomSession }) {
     setSaveMessage('');
     try {
       if (await saveExternalJoinUrl(value)) {
-        if (value === null) setDraftUrl('');
+        const next = splitExternalEntry(
+          value === null ? '' : new URL(value).origin,
+        );
+        setPrefix(next.prefix);
+        setDraftUrl(next.value);
         const message =
           value === null
             ? feedbackText('network.restoredLan')
             : feedbackText('network.qrUpdated');
-        if (notifications) notifications.show(message, 'success');
-        else setSaveMessage(message);
-      }
+        saveFeedback(message, 'success');
+      } else saveFeedback(feedbackText('network.externalSaveFailed'), 'error');
     } catch {
       const message = feedbackText('network.externalSaveFailed');
-      if (notifications) notifications.show(message, 'error');
-      else setSaveMessage(message);
+      saveFeedback(message, 'error');
     } finally {
       setSaving(false);
     }
@@ -127,39 +147,57 @@ export function InviteFriends({ session }: { session: RoomSession }) {
           {feedbackText('network.noAddressHelp')}
         </p>
       )}
+      {!help && saveMessage && (
+        <p className="invite-friends__empty" role="status">
+          {saveMessage}
+        </p>
+      )}
       <button
         type="button"
         className="secondary"
         onClick={() => {
-          setDraftUrl(externalJoinUrl ?? '');
+          const next = splitExternalEntry(externalJoinUrl ?? '');
+          setPrefix(next.prefix);
+          setDraftUrl(next.value);
           setSaveMessage('');
-          setHelp(true);
+          changeHelp(true);
         }}
       >
         连接帮助
       </button>
       {help && (
-        <BoxOverlayPanel title="连接帮助" close={() => setHelp(false)}>
+        <BoxOverlayPanel
+          title="连接帮助"
+          className="settings-panel settings-panel--connection"
+          close={() => changeHelp(false)}
+        >
           <div className="connection-help">
             <div className="connection-help__methods">
-              <p>
-                <strong>{loopbackOnly ? '仅本机连接' : '手机扫码'}</strong>
-                {loopbackOnly
-                  ? '当前服务只接受这台电脑的连接。'
-                  : '用手机相机或扫码工具打开二维码中的网站。'}
-              </p>
-              <p>
-                <strong>直接打开</strong>
-                {loopbackOnly
-                  ? '点击二维码下方“打开网址”，或在这台电脑的浏览器输入当前加入地址。'
-                  : '点击二维码下方“打开网址”，或在手机、电脑浏览器输入当前加入地址。'}
-              </p>
+              <SettingHelp
+                label="连接方式"
+                hint={
+                  loopbackOnly
+                    ? '点击二维码下方“打开网址”，或在这台电脑的浏览器输入当前加入地址。'
+                    : '用手机相机扫描二维码，或在手机、电脑浏览器打开当前加入地址。'
+                }
+              />
+              <span>{loopbackOnly ? '仅本机' : '扫码或网址'}</span>
             </div>
+            {loopbackOnly && (
+              <p className="connection-help__status" role="status">
+                当前网址仅限这台电脑使用，手机无法通过此地址加入。
+              </p>
+            )}
             <div className="connection-help__field">
-              <label htmlFor="address">电脑地址</label>
+              <SettingHelp
+                id="connection-address-label"
+                label="电脑地址"
+                hint="优先选择 Wi-Fi 或以太网地址，避免访客网络、VPN或未取得局域网地址的网卡；保存外部入口时暂停选择。"
+              />
               <div className="connection-help__address">
                 <select
                   id="address"
+                  aria-labelledby="connection-address-label"
                   value={address}
                   disabled={!isHost || !!externalJoinUrl || !addresses.length}
                   onChange={(e) => setAddress(e.target.value)}
@@ -186,15 +224,32 @@ export function InviteFriends({ session }: { session: RoomSession }) {
                 <button
                   type="button"
                   className="secondary"
+                  aria-label="刷新连接地址"
+                  title="刷新连接地址"
                   onClick={() => void refreshNetwork()}
                 >
-                  刷新连接地址
+                  <svg
+                    width="22"
+                    height="22"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="1.8"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    aria-hidden="true"
+                  >
+                    <path d="M20 7v5h-5M4 17v-5h5M6.1 7a7 7 0 0 1 11.6-1L20 9M4 15l2.3 3A7 7 0 0 0 17.9 17" />
+                  </svg>
                 </button>
               </div>
             </div>
             {joinUrl && (
               <div className="connection-help__current">
-                <span>当前加入地址</span>
+                <SettingHelp
+                  label="当前网址"
+                  hint="二维码与“打开网址”使用此已保存地址；可选中文字复制到玩家浏览器。"
+                />
                 <p className="connection-help__url">{joinUrl}</p>
               </div>
             )}
@@ -203,31 +258,62 @@ export function InviteFriends({ session }: { session: RoomSession }) {
                 className="connection-help__external"
                 onSubmit={(event) => {
                   event.preventDefault();
-                  void saveExternal(draftUrl.trim());
+                  void saveExternal(composeExternalEntry(prefix, draftUrl));
                 }}
               >
-                <label htmlFor={externalId}>外部入口网址</label>
-                <input
-                  id={externalId}
-                  type="url"
-                  name="external-entry"
-                  inputMode="url"
-                  autoCapitalize="none"
-                  autoComplete="off"
-                  spellCheck={false}
-                  maxLength={2048}
-                  value={draftUrl}
-                  disabled={saving}
-                  placeholder="例如 https://example.com:12345"
-                  aria-describedby={`${externalId}-hint`}
-                  onChange={(event) => {
-                    setDraftUrl(event.target.value);
-                    setSaveMessage('');
-                  }}
+                <SettingHelp
+                  id={`${externalId}-label`}
+                  label="外部入口网址"
+                  hint={`${feedbackText('network.urlHint')} 前缀按钮可循环切换无前缀、http://、https://；无前缀时输入完整网址。`}
                 />
-                <p id={`${externalId}-hint`}>
-                  {feedbackText('network.urlHint')}
-                </p>
+                <div className="connection-help__entry">
+                  <button
+                    type="button"
+                    className="secondary connection-help__prefix"
+                    aria-label="网址前缀"
+                    aria-description={`当前${prefix || '无前缀'}，点击切换下一个前缀。`}
+                    disabled={saving}
+                    onClick={() => {
+                      const next = cycleExternalEntry(prefix, draftUrl);
+                      setPrefix(next.prefix);
+                      setDraftUrl(next.value);
+                      setSaveMessage('');
+                    }}
+                  >
+                    {prefix || '无前缀'}
+                  </button>
+                  <input
+                    id={externalId}
+                    type={prefix ? 'text' : 'url'}
+                    pattern={prefix ? undefined : '[Hh][Tt][Tt][Pp][Ss]?://.+'}
+                    title={
+                      prefix
+                        ? undefined
+                        : '请输入带 http:// 或 https:// 的完整网址，或点击前缀按钮选择协议。'
+                    }
+                    name="external-entry"
+                    inputMode="url"
+                    autoCapitalize="none"
+                    autoComplete="off"
+                    spellCheck={false}
+                    maxLength={2048 - prefix.length}
+                    value={draftUrl}
+                    disabled={saving}
+                    placeholder={
+                      prefix ? 'example.com:12345' : 'https://example.com:12345'
+                    }
+                    aria-labelledby={`${externalId}-label`}
+                    onChange={(event) => {
+                      const value = event.target.value;
+                      const next = splitExternalEntry(value);
+                      if (prefix && next.prefix) {
+                        setPrefix(next.prefix);
+                        setDraftUrl(next.value);
+                      } else setDraftUrl(value);
+                      setSaveMessage('');
+                    }}
+                  />
+                </div>
                 <div className="connection-help__external-actions">
                   <button type="submit" disabled={saving || !draftUrl.trim()}>
                     {saving ? feedbackText('common.saving') : '保存外部入口'}

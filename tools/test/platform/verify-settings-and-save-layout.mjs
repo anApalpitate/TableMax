@@ -29,6 +29,7 @@ assert(
       'settings-layout',
       'seat-names',
       'management-layout',
+      'connection-layout',
       'save-layout',
       'sound',
       'mobile',
@@ -123,6 +124,14 @@ window.configureNativeSettings=(enabled)=>{
  window.tablemaxWindow={read:async()=>({mode,fullscreen:mode==='fullscreen'}),subscribe:()=>noop,setMode:async next=>{window.nativeSettingsCalls.window.push(next);mode=next;return {mode,fullscreen:mode==='fullscreen'};},setFullscreen:async enabled=>{mode=enabled?'fullscreen':'windowed';return {mode,fullscreen:enabled};}};
 };
 function SeatNamesBox({role}){const session=useRoomSession(role);window.seatLiveSession=session;return <BoxScreen session={session}/>;}
+window.renderConnection=role=>{
+ history.replaceState(null,'','/'+role);
+ const session=sessionFor('box',role);session.fixtureKey='connection-'+(++renderSequence);
+ session.addresses=['127.0.0.1'];session.adapters=[{address:'127.0.0.1',name:'本机回环地址',kind:'loopback'}];session.address='127.0.0.1';session.externalJoinUrl=null;session.networkMessage='';session.setAddress=noop;session.refreshNetwork=async()=>{};
+ window.connectionCalls=[];
+ session.saveExternalJoinUrl=value=>{window.connectionCalls.push(value);return new Promise(resolve=>{window.finishConnectionSave=success=>{current.session={...current.session,externalJoinUrl:success?value:current.session.externalJoinUrl,networkMessage:success?'':'外部入口保存失败，请重试。'};paint();resolve(success);};});};
+ current={key:'box',session};window.setConnectionExternal=value=>{current.session={...current.session,externalJoinUrl:value};paint();};paint();
+};
 window.renderManagement=({status,full=false})=>{
  history.replaceState(null,'','/host');
  const session=sessionFor('box','host');
@@ -184,6 +193,7 @@ const report = {
   screenshots: [],
   fixtureBoundaries: [
     'Seat-name cases use the real useRoomSession pending/locked guards with a controlled Socket.IO transport and schema-validated projections/ACKs. They do not prove server authorization, durable persistence, joining or physical devices.',
+    'Connection-layout cases render real BoxScreen/InviteFriends and control saveExternalJoinUrl promises. They prove UI composition, draft state, native form validation and callback arguments, not backend persistence, reachable external hosts, actual LAN connections or firewall behavior.',
   ],
 };
 await writeFile(
@@ -409,6 +419,362 @@ try {
       }).catch(() => undefined);
     }
   };
+  for (const [width, height] of [
+    [320, 568],
+    [390, 844],
+    [1280, 900],
+  ])
+    for (const role of ['host', 'public']) {
+      await check(`box:${role}:${width}:connection-layout`, async () => {
+        const connectionContext = await browser.newContext({
+          viewport: { width, height },
+          hasTouch: true,
+          reducedMotion: 'reduce',
+        });
+        const connectionPage = await connectionContext.newPage();
+        connectionPage.on('pageerror', (error) =>
+          report.errors.push(error.message),
+        );
+        const open = async () => {
+          await connectionPage
+            .getByRole('button', { name: '连接帮助', exact: true })
+            .click();
+          await connectionPage
+            .locator('.settings-panel--connection')
+            .waitFor({ state: 'visible' });
+        };
+        const screenshot = async (panel) => {
+          const path = join(
+            output,
+            `connection-layout-${role}-${width}-${panel}.png`,
+          );
+          await captureBrowserScreenshot(connectionPage, {
+            path,
+            fullPage: true,
+          });
+          report.screenshots.push({
+            role,
+            width,
+            height,
+            panel: 'connection-' + panel,
+            path,
+          });
+        };
+        const geometry = async () => {
+          const result = await connectionPage
+            .locator(
+              '.settings-panel--connection,.connection-help__url,.connection-help__external,input[name="external-entry"]',
+            )
+            .evaluateAll((nodes) =>
+              nodes.map((node) => {
+                const rect = node.getBoundingClientRect();
+                return {
+                  inside: rect.left >= 0 && rect.right <= innerWidth + 1,
+                  unclipped:
+                    node instanceof HTMLInputElement ||
+                    node.scrollWidth <= node.clientWidth + 1,
+                };
+              }),
+            );
+          assert(result.length > 0);
+          for (const item of result)
+            assert(
+              item.inside && item.unclipped,
+              'Connection cards and long URLs fit the viewport without horizontal clipping',
+            );
+        };
+        const help = async () => {
+          const labels = connectionPage.locator(
+            '.settings-panel--connection .setting-help__label',
+          );
+          assert(
+            (await labels.count()) > 0,
+            'Connection explanations use help labels',
+          );
+          for (let index = 0; index < (await labels.count()); index++) {
+            const label = labels.nth(index);
+            const reset = async () => {
+              await label.evaluate((node) => node.blur());
+              await connectionPage.mouse.move(0, 0);
+            };
+            const readable = async () => {
+              const tip = label.locator('..').locator('.setting-help__tip');
+              await tip.waitFor({ state: 'visible' });
+              assert((await tip.textContent()).trim().length > 0);
+              assert.equal(
+                await label.getAttribute('aria-describedby'),
+                await tip.getAttribute('id'),
+              );
+              assert(
+                await tip.evaluate((node) => {
+                  const rect = node.getBoundingClientRect();
+                  return (
+                    parseFloat(getComputedStyle(node).fontSize) >= 16 &&
+                    rect.left >= 0 &&
+                    rect.top >= 0 &&
+                    rect.right <= innerWidth + 1 &&
+                    rect.bottom <= innerHeight + 1 &&
+                    node.scrollHeight <= node.clientHeight + 1 &&
+                    node.scrollWidth <= node.clientWidth + 1
+                  );
+                }),
+                'Connection help is readable and within the viewport',
+              );
+            };
+            await reset();
+            await label.hover();
+            await readable();
+            await reset();
+            await label.focus();
+            await readable();
+            await label.press('Escape');
+            assert.equal(
+              await label.locator('..').locator('.setting-help__tip').count(),
+              0,
+            );
+            assert(
+              await label.isVisible(),
+              'Escape only closes connection help tooltip',
+            );
+            await reset();
+            await label.tap();
+            await readable();
+            await reset();
+          }
+        };
+        try {
+          await connectionPage.goto(server.url);
+          await connectionPage.waitForFunction(
+            () => typeof window.renderConnection === 'function',
+          );
+          await connectionPage.evaluate(
+            (role) => window.renderConnection(role),
+            role,
+          );
+          await open();
+          const panel = connectionPage.locator('.settings-panel--connection');
+          await panel
+            .getByText(/手机无法通过此地址加入/)
+            .waitFor({ state: 'visible' });
+          await help();
+          await geometry();
+          const details = panel.locator('.connection-help__troubleshooting');
+          await details.locator('summary').click();
+          assert.equal(await details.getAttribute('open'), '');
+          assert(
+            (await details.textContent()).includes('TableMax'),
+            'Loopback troubleshooting retains the running-service guidance',
+          );
+          assert(
+            (await details.textContent()).includes('原浏览器'),
+            'Troubleshooting retains seat recovery guidance',
+          );
+          await screenshot('loopback');
+          const longUrl =
+            'https://' +
+            [
+              'a'.repeat(60),
+              'b'.repeat(60),
+              'c'.repeat(60),
+              'example',
+              'test',
+            ].join('.') +
+            ':12345';
+          if (role === 'public') {
+            assert.equal(
+              await panel.locator('input[name="external-entry"]').count(),
+              0,
+              'Public screen has no external-entry form',
+            );
+            assert.equal(
+              await panel
+                .getByRole('button', { name: '网址前缀', exact: true })
+                .count(),
+              0,
+            );
+            await connectionPage.keyboard.press('Escape');
+            await connectionPage.evaluate(
+              (value) => window.setConnectionExternal(value),
+              longUrl,
+            );
+            await open();
+            assert.equal(
+              await panel.locator('.connection-help__url').textContent(),
+              longUrl,
+            );
+            await geometry();
+            await help();
+            await screenshot('long-url');
+            assert.deepEqual(
+              await connectionPage.evaluate(() => window.connectionCalls),
+              [],
+            );
+            return;
+          }
+          const prefix = panel.getByRole('button', {
+              name: '网址前缀',
+              exact: true,
+            }),
+            input = panel.locator('input[name="external-entry"]');
+          const assertPrefix = async (text) =>
+            assert(
+              (await prefix.textContent()).includes(text),
+              `Prefix displays ${text}`,
+            );
+          await assertPrefix('无前缀');
+          assert.equal(await input.getAttribute('type'), 'url');
+          await input.fill('https://switch.example.test/path');
+          await prefix.click();
+          await assertPrefix('http://');
+          assert.equal(
+            await input.inputValue(),
+            'switch.example.test/path',
+            'Choosing http strips any previous complete protocol',
+          );
+          await prefix.click();
+          await assertPrefix('https://');
+          await prefix.click();
+          await assertPrefix('无前缀');
+          const bare = 'bare.example.test:12345';
+          await input.fill(bare);
+          assert.equal(await input.inputValue(), bare);
+          assert.equal(
+            await input.evaluate((node) => node.checkValidity()),
+            false,
+            'Bare address is invalid with no prefix',
+          );
+          await panel
+            .getByRole('button', { name: '保存外部入口', exact: true })
+            .click();
+          assert.deepEqual(
+            await connectionPage.evaluate(() => window.connectionCalls),
+            [],
+            'No prefix never silently supplies a protocol',
+          );
+          await prefix.click();
+          await assertPrefix('http://');
+          assert.equal(await input.getAttribute('type'), 'text');
+          const a = await prefix.boundingBox(),
+            b = await input.boundingBox();
+          assert(
+            a &&
+              b &&
+              a.x + a.width <= b.x + 1 &&
+              Math.min(a.y + a.height, b.y + b.height) > Math.max(a.y, b.y),
+            'Prefix button precedes input on the same row',
+          );
+          await panel
+            .getByRole('button', { name: '保存外部入口', exact: true })
+            .click();
+          assert.deepEqual(
+            await connectionPage.evaluate(() => window.connectionCalls),
+            ['http://' + bare],
+          );
+          assert(
+            (await prefix.isDisabled()) && (await input.isDisabled()),
+            'Prefix and input are disabled during save',
+          );
+          await connectionPage.evaluate(() =>
+            window.finishConnectionSave(true),
+          );
+          await panel
+            .getByText('二维码已更新。', { exact: true })
+            .waitFor({ state: 'visible' });
+          await input.waitFor({ state: 'visible' });
+          await connectionPage.keyboard.press('Escape');
+          await open();
+          await assertPrefix('http://');
+          assert.equal(
+            await input.inputValue(),
+            bare,
+            'Saved URL reopens as protocol and body',
+          );
+          await prefix.click();
+          await assertPrefix('https://');
+          await input.fill('http://pasted.example.test/entry');
+          await assertPrefix('http://');
+          assert.equal(
+            await input.inputValue(),
+            'pasted.example.test/entry',
+            'Pasting a complete URL adopts its protocol without duplication',
+          );
+          await input.fill(longUrl);
+          await assertPrefix('https://');
+          assert.equal(await input.inputValue(), longUrl.slice(8));
+          await panel
+            .getByRole('button', { name: '保存外部入口', exact: true })
+            .click();
+          assert.deepEqual(
+            await connectionPage.evaluate(() =>
+              window.connectionCalls.slice(-1),
+            ),
+            [longUrl],
+          );
+          assert((await prefix.isDisabled()) && (await input.isDisabled()));
+          await connectionPage.evaluate(() =>
+            window.finishConnectionSave(false),
+          );
+          await connectionPage.waitForFunction(
+            () =>
+              !document.querySelector('input[name="external-entry"]').disabled,
+          );
+          await assertPrefix('https://');
+          assert.equal(
+            await input.inputValue(),
+            longUrl.slice(8),
+            'Failed save retains the complete draft body',
+          );
+          await panel
+            .getByText('外部入口保存失败，请重试。', { exact: true })
+            .waitFor({ state: 'visible' });
+          await geometry();
+          await screenshot('failed-draft');
+          await panel
+            .getByRole('button', { name: '保存外部入口', exact: true })
+            .click();
+          await connectionPage.evaluate(() =>
+            window.finishConnectionSave(true),
+          );
+          await connectionPage.waitForFunction(
+            () =>
+              !document.querySelector('input[name="external-entry"]').disabled,
+          );
+          assert.equal(
+            await panel.locator('.connection-help__url').textContent(),
+            longUrl,
+          );
+          await geometry();
+          await screenshot('long-url');
+          await panel
+            .getByRole('button', { name: '使用局域网', exact: true })
+            .click();
+          assert.equal(
+            await connectionPage.evaluate(() => window.connectionCalls.at(-1)),
+            null,
+          );
+          assert((await prefix.isDisabled()) && (await input.isDisabled()));
+          await connectionPage.evaluate(() =>
+            window.finishConnectionSave(true),
+          );
+          await connectionPage.waitForFunction(
+            () =>
+              !document.querySelector('input[name="external-entry"]').disabled,
+          );
+          await assertPrefix('无前缀');
+          assert.equal(await input.inputValue(), '');
+          assert.equal(await input.getAttribute('type'), 'url');
+          await panel
+            .getByText(/手机无法通过此地址加入/)
+            .waitFor({ state: 'visible' });
+          await screenshot('lan-restored');
+        } catch (error) {
+          await screenshot('failure').catch(() => undefined);
+          throw error;
+        } finally {
+          await connectionContext.close();
+        }
+      });
+    }
   for (const [width, height] of [
     [320, 568],
     [390, 844],
