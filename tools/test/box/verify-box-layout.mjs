@@ -1420,8 +1420,8 @@ try {
       await actionChecks(hostSurface, publicSurface);
       await reviewSheets();
     } else {
-      const chinese = await newPlayer('蓝天白云与朋友们一起探索奇妙桌游世界');
-      const english = await newPlayer('AlexandraLongPlayerName');
+      const chinese = await newPlayer('蓝天白云桌游朋友');
+      const english = await newPlayer('AlexandraPlayer1');
       const unseated = await newPlayer();
       await command({
         type: 'add-bot',
@@ -1669,9 +1669,8 @@ try {
         secrets.add(restored);
         assert.equal(
           (await view(restored)).self.seatId,
-          (await view()).seats.find(
-            (seat) => seat.name === 'AlexandraLongPlayerName',
-          ).id,
+          (await view()).seats.find((seat) => seat.name === 'AlexandraPlayer1')
+            .id,
         );
         await checked(
           'Real administrator transfer request, verification code and approval confirmation rendered; approval retained original seat',

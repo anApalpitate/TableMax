@@ -353,6 +353,8 @@ async function createSavedPlayer(desktop, caseId) {
       socket.disconnect();
     }
   }
+  // Deliberately uses the old portable admission limit: migration must preserve
+  // existing saved names even when a new registration would reject their length.
   const name = '便携迁移已保存玩家 ' + caseId;
   const joined = await post(runtime.origin, '/api/session/join', { name });
   assert.equal(typeof joined.token, 'string');

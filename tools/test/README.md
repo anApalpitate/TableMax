@@ -1,5 +1,7 @@
 # 验证工具
 
+正常流程昵称夹具使用最多8个中文字或16个半角字符，混合计长；布局边界覆盖8字中文、16字符无空格英文及混合输入，长度判断复用协议实现。超限拒绝与旧存档兼容测试须明确保留理由，历史报告不改写。统一要求见[昵称测试输入](../../docs/reference/validation.md#按变更范围选择检查)。
+
 ## 马尼拉信息精简与行动引导
 
 `games/manila/verify-manila-harbor.mjs --evidence=<新安全名称> --only=clarity-layout,action-guidance,stocks-finance --viewports=320x568,844x390`复用当前React与合法规则投影，检查岸上岗位实际字形／完整棋子居中、单份保存提示的字形碰撞与布局不变、全部玩家行动入口的呼吸／定位／减少动态、纯图形股票及独立抵押／赎回和强制付款。`clarity-layout`可用`--roles=player`或`--roles=host,public`限定三端角色，并用相同视口参数覆盖720p至4K；另外两组验证玩家行为及公开端秘密隔离。检查实现为[clarity-checks.mjs](games/manila/clarity-checks.mjs)，由原港湾脚本调用，不另建运行入口。
@@ -57,7 +59,7 @@ version 1、version 2 和准确文件 Vitest 入口均关闭子项自动维护�
 
 马尼拉整图返修增加 `node tools/test/games/manila/verify-manila-harbor.mjs --suite=composition --evidence=<新安全名称> --only=share,entries --widths=320,390,430,844`。`share`测“不购买股份／股份操作”外框同高、文字中心与入口尺寸；`entries`覆盖各行动阶段热区。原稳定性／权限组仍可按`--only`定向运行，证据进入 `artifacts/maintenance/manila-board-composition-20261017/mobile/<名称>`；假运输和模拟触控不代表真实服务、设备或安装验收。
 
-2026-10-20新增`--only=text-flow`，覆盖14个合法阶段的普通／24字符长昵称、实际可出的最大竞价、操作展开、草稿、付款与恢复反馈。支持`--viewports=320x568,390x844,844x390`指定宽高组合，不能与`--widths`混用；`--widths`允许320至3840。对可见字形检查卡片归属、裁切祖先、文字／图标／控件碰撞及横向溢出，对主滚动区离屏字形不虚报固定顶栏碰撞；保存显示隐藏须保持其他组件矩形不变。金额来自合法自然局面，不将人为巨大整数称作实测上限。该脚本仍通过`game:manila`批次计划执行。
+2026-10-20新增`--only=text-flow`，覆盖14个合法阶段的普通／现行上限昵称（8字中文、16字符半角及混合）、实际可出的最大竞价、操作展开、草稿、付款与恢复反馈。支持`--viewports=320x568,390x844,844x390`指定宽高组合，不能与`--widths`混用；`--widths`允许320至3840。对可见字形检查卡片归属、裁切祖先、文字／图标／控件碰撞及横向溢出，对主滚动区离屏字形不虚报固定顶栏碰撞；保存显示隐藏须保持其他组件矩形不变。金额来自合法自然局面，不将人为巨大整数称作实测上限。该脚本仍通过`game:manila`批次计划执行。
 
 马尼拉体验深化验证增加触摸无效／取消／合法落点、旋转保留草稿、货物与起点／领航拖放、点击与键盘及长按详情、确认区避让、手机显式声音开启与旧事件不补播、真实音频解码、终局演出和完整UI航次。`box/verify-box-layout.mjs --settings-only --zip=<实际payload.zip> --sha256=<SHA> --evidence=<新名>`执行三设置页正常／文字压力布局；共用几何方法为[settings-layout-measurement.mjs](box/settings-layout-measurement.mjs)。[installed-update-layout.mjs](installation/installed-update-layout.mjs)仅由正式安装验收在同次真实Native中调用，核支持状态、16项布局及身份／静音／窗口恢复，截图与报告进入安装证明；不触发在线检查、下载或更新。文字压力仅为明确标注的文本布局夹具，不代表真实错误或进度状态已发生。
 

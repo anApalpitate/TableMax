@@ -124,7 +124,7 @@ export async function prepare(
     const players = [];
     for (let index = 0; index < count; index++) {
       const player = await room.join(
-        index === 0 ? 'UNO验收abcdefghijklmnop' : `朋友 ${index + 1}`,
+        index === 0 ? 'UNO验收ABCDEFGHI' : `朋友 ${index + 1}`,
         undefined,
         `avatar-${20 + index}`,
       );

@@ -539,13 +539,7 @@ try {
     const page = phones[i];
     await page
       .getByLabel('你的昵称')
-      .fill(
-        i === 1
-          ? '手机乙昵称超过一行也要保留清晰座位与准备状态'
-          : i === 2
-            ? '手机丙'
-            : '手机甲',
-      );
+      .fill(i === 1 ? '手机乙座位与准备' : i === 2 ? '手机丙' : '手机甲');
     if (i === 0) {
       await capture(page, 'phone-first-screen-join-360', 360, 640, true);
       await firstScreenControls(

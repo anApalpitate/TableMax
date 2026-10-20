@@ -636,6 +636,11 @@ try {
       })),
     );
     const phones = [];
+    const boundaryNames = {
+      1: '八字中文昵称测试',
+      2: 'ABCDEFGHIJKLMNOP',
+      3: '混合Player123456',
+    };
     for (let index = 0; index < 6; index++) {
       const phone = await openPhone(index);
       phones.push(phone);
@@ -646,11 +651,7 @@ try {
       );
       await phone
         .getByLabel('你的昵称')
-        .fill(
-          index === 1
-            ? '长昵称朋友在四倍分辨率下依然清晰'
-            : `手机朋友 ${index + 1}`,
-        );
+        .fill(boundaryNames[index] ?? `手机朋友 ${index + 1}`);
       await phone.getByRole('button', { name: '加入', exact: true }).click();
       await phone
         .getByRole('button', { name: '我准备好了', exact: true })

@@ -60,7 +60,7 @@ window.renderSaveCase=(options={})=>{
  const state=rules.initialize(context),decisions=rules.decisions(state);
  const actor=decisions[0]?.seatId??ids[0];
  const seats=ids.map((id,i)=>({id,name:['阿蓝','小林','港口伙伴','长昵称测试商人','小船长'][i]??('朋友'+i),avatarId:'avatar-'+(i+1),controller:'human',ready:true,online:true,botDifficulty:null}));
- if(longName)seats.find(s=>s.id===actor).name='长昵称测试商人甲乙';
+ if(longName)seats.find(s=>s.id===actor).name='长昵称测试商人甲';
  const message={none:'',saved:'已保存',progress:'正在提交…',error:'保存失败，请重试。',connection:'连接中断，正在重连。',retry:'等待服务器确认。'}[feedback];
  const view={instanceId:'overlay-'+id,branch:0,revision:1,status:id==='box'?'lobby':'playing',paused:false,playMode:'play',gameView:rules.project(state,role==='player'?{role:'player',seatId:actor}:{role:'public'}),decisionId:decisions[0]?.id??null,countdownSeconds:30,decisionClock:null,actions:role==='player'?rules.legalActions(state,actor).filter(a=>!noFinance||!['mortgage','repay'].includes(a.type)):[],lifecycleActions:[],seats,history:[],joinOpen:true,ownerSeatId:actor,game:{...rules.manifest,releaseRef:'fixture',minPlayers:rules.manifest.players.min,maxPlayers:rules.manifest.players.max}};
  if(withClock)view.decisionClock={id:'e6ed6d54-cf77-4fa3-95ea-bf2d105c0728',remainingMs:18000,serverTime:Date.now(),running:false};

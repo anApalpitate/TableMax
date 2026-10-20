@@ -971,7 +971,7 @@ try {
                 variant === 'expansion' &&
                 count === 6 &&
                 index === 0
-                  ? '热爱研究的宝可梦训练家'
+                  ? '热爱宝可梦训练家'
                   : `玩家${index + 1}`,
               requestKey: randomBytes(32).toString('hex'),
             });

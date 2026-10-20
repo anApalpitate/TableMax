@@ -570,7 +570,7 @@ try {
         target.fontSize >= 18 && target.height >= 44 && target.width >= 44,
       );
       assert.ok(target.uncovered && target.whiteSpace === 'nowrap');
-      assert.ok(target.accessible.includes('很长昵称的朋友'));
+      assert.match(target.accessible, /昵称朋友[2-6]ABCDEFG/);
       assert.ok(target.right <= viewport.width + 1);
     }
     const rows = [...new Set(targets.map((target) => Math.round(target.y)))];

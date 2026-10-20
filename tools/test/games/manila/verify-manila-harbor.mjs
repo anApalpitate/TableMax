@@ -97,7 +97,7 @@ import ${file('apps/web/src/styles.css')};
 import ${file('apps/web/src/scrollbars.css')};
 const ids=['A','B','C','D','E'];
 const seats=ids.map((id,i)=>({id,name:['阿蓝','小林','港口伙伴','长昵称测试商人','小船长'][i],avatarId:'avatar-'+(i+1),controller:'human',ready:true,online:true,botDifficulty:null}));
-const longNames=['这是一位使用二十四个汉字完整昵称的港口商人朋友甲乙','ABCDEFGHIJKLMNOPQRSTUVWXYZ'.slice(0,24),'港务长与海盗伙伴们的完整昵称测试商人甲乙丙丁戊己','MerchantWithoutAnySpaces1','中文商人与ABCDEFGHIJKLMNOPQRSTUVWXYZ'].map(name=>name.slice(0,24));
+const longNames=['马尼拉港湾商人甲','ABCDEFGHIJKLMNOP','港湾商人ABCDEFGH','MerchantPlayer01','牌友港湾ABCDEFGH'];
 let seed=35719;
 const random=()=>{seed=(Math.imul(seed,1664525)+1013904223)>>>0;return seed/4294967296};
 const ctx={seats:ids,random:{next:random}}, snapshots={}, origins={};
@@ -3423,7 +3423,7 @@ try {
               maximum,
             });
           }
-          const variant = longNames ? '24-character-names' : 'ordinary-names';
+          const variant = longNames ? 'maximum-legal-names' : 'ordinary-names';
           const before = await layout();
           await page.evaluate(() =>
             window.harbor.update({ message: '已保存', messageKind: 'saved' }),

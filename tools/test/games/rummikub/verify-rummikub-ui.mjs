@@ -301,7 +301,7 @@ export async function prepare(id,dataDir,rackSize,playerCount){
  const repo=new SqliteSaveRepository(dataDir),room=new RoomCoordinator(custom,bot,repo);
  const command=async(token,command)=>{const current=room.view(token);const reply=await room.command(token,{actionId:randomUUID(),instanceId:current.instanceId,revision:current.revision,branch:current.branch,command});assert.equal(reply.ok,true,JSON.stringify(reply));};
  const players=[];
- for(let i=0;i<playerCount;i++){const player=await room.join(i===0?'拉密重组长昵称abcdefghijkl':'朋友 '+(i+1),undefined,'avatar-'+(20+i));players.push({...player,seatId:room.view(player.token).self.seatId});await command(player.token,{type:'ready',ready:true});}
+ for(let i=0;i<playerCount;i++){const player=await room.join(i===0?'拉密重组ABCDEFGH':'朋友 '+(i+1),undefined,'avatar-'+(20+i));players.push({...player,seatId:room.view(player.token).self.seatId});await command(player.token,{type:'ready',ready:true});}
  await command(room.hostToken,{type:'set-owner',seatId:players[0].seatId});
  await command(room.hostToken,{type:'start'});
  const saved=repo.load();rules.validateState(saved.snapshot.state,saved.seats.map(seat=>seat.id));repo.close();
@@ -896,8 +896,7 @@ for (const scenario of scenarios) {
           method: 'POST',
           headers: { 'content-type': 'application/json' },
           body: JSON.stringify({
-            name:
-              index === 0 ? '拉密入口长昵称abcdefghijkl' : `朋友 ${index + 1}`,
+            name: index === 0 ? '拉密入口ABCDEFGH' : `朋友 ${index + 1}`,
             requestKey: randomBytes(32).toString('hex'),
             avatarId: `avatar-${20 + index}`,
           }),

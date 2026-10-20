@@ -366,7 +366,7 @@ try {
   );
   await playerUi(player)
     .getByLabel('你的昵称', { exact: true })
-    .fill('直接打开网页的玩家');
+    .fill('网页加入测试玩家');
   await playerUi(player)
     .getByRole('button', { name: '加入', exact: true })
     .click();

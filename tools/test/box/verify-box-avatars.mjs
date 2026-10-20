@@ -735,8 +735,12 @@ try {
     ),
   );
   const first = await openPhone(0, 360, 640);
-  const longName = '手机甲昵称很长也要完整保留姓名与头像身份';
-  assert.ok(longName.length <= 24);
+  const longName = '手机甲昵称完整名';
+  assert.equal(
+    [...longName].length,
+    8,
+    'Eight Han characters reach the submitted nickname limit',
+  );
   await first.locator('#nickname').fill(longName);
   const initialPicker = await picker(first);
   await avatarImages(initialPicker);

@@ -410,13 +410,11 @@ try {
   await phone
     .getByRole('button', { name: '修改人机名称', exact: true })
     .click();
-  await phone
-    .getByLabel('人机名称', { exact: true })
-    .fill('会思考的长名字伙伴');
+  await phone.getByLabel('人机名称', { exact: true }).fill('思考长名人机伙伴');
   await phone.getByRole('button', { name: '保存名称', exact: true }).click();
   await until(
     async () =>
-      (await view()).seats.some((seat) => seat.name === '会思考的长名字伙伴'),
+      (await view()).seats.some((seat) => seat.name === '思考长名人机伙伴'),
     'owner rename saved',
   );
   await phone

@@ -187,8 +187,8 @@ async function begin(count) {
         body: JSON.stringify({
           name:
             index === 0
-              ? 'W'.repeat(24)
-              : 'W'.repeat(22) + String(index + 1).padStart(2, '0'),
+              ? 'W'.repeat(16)
+              : 'W'.repeat(14) + String(index + 1).padStart(2, '0'),
           avatarId: `avatar-${20 + index}`,
         }),
       })

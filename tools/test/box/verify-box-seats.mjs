@@ -105,7 +105,7 @@ const normalCatalog=moduleCatalog.filter(m=>!m.internal).map(m=>m.catalog);
 const uno=normalCatalog.find(game=>game.id==='uno');
 window.commands=[];
 window.normalCatalog=normalCatalog;
-const names=['很长的中文昵称需要每个汉字都完整可见','ExtraLongUnbrokenNickname','默认策略朋友','豆包策略朋友','绝悟策略朋友','离线后仍在座的真人','亲爱的第七位朋友','Mixed中文EnglishLongName','第九位的中文名字也比较长','FriendTen','朋友十一','本人第十二座SelfPlayer'];
+const names=['中文昵称完整可见','ABCDEFGHIJKLMNOP','默认策略朋友','豆包策略朋友','绝悟策略朋友','离线仍在座的真人','亲爱的第七位朋友','阿明abcdefghijkl','第九位中文朋友甲','FriendTen','朋友十一','本人第十二座Self'];
 const ringNames=['朋友一','朋友二','默认队友','豆包队友','绝悟队友','朋友六'];
 function App(){
  const [options,setOptions]=useState({role:'host',capacity:6,occupied:5}),[name,setName]=useState('朋友');

@@ -246,7 +246,7 @@ try {
   const response = await fetch(origin + '/api/session/join', {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
-    body: JSON.stringify({ name: '不能保存的隔离玩家' }),
+    body: JSON.stringify({ name: '隔离保存测试玩家' }),
     signal: AbortSignal.timeout(10000),
   });
   const rejected = await response.json();

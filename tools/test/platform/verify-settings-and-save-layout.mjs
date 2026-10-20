@@ -100,7 +100,7 @@ function Probe(){const [enabled,setEnabled]=useSoundPreference();window.setSound
 function sessionFor(key,role){
  const count=key==='rummikub'?4:5;
  const ids=Array.from({length:count},(_,i)=>'s'+i);
- const seats=ids.map((id,i)=>({id,name:i===0?'长昵称测试玩家VeryLongNicknameWithoutSpaces':('玩家'+i),avatarId:'avatar-'+(i+1),controller:'human',ready:true,online:true,botDifficulty:null}));
+ const seats=ids.map((id,i)=>({id,name:i===0?'阿明abcdefghijkl':('玩家'+i),avatarId:'avatar-'+(i+1),controller:'human',ready:true,online:true,botDifficulty:null}));
  const entry=entries[key]??entries.manila;
  let seed=1257;const context={seats:ids,random:{next:()=>{seed=(Math.imul(seed,1664525)+1013904223)>>>0;return seed/4294967296}}};
  let state=entry.rules.initialize(context);
@@ -139,7 +139,7 @@ window.renderManagement=({status,full=false})=>{
  history.replaceState(null,'','/host');
  const session=sessionFor('box','host');
  session.fixtureKey='management-'+(++renderSequence);
- session.view={...session.view,status,ownerSeatId:'s0',self:{role:'host',seatId:null},capabilities:{manage:true,control:true,manageSeats:true},transferRequests:[],history:[{id:'checkpoint-one',label:'检查点一',revealedInformation:false,step:1,seatId:'s0',roundNumber:1},{id:'checkpoint-two',label:'检查点二',revealedInformation:true,step:2,seatId:'s1',roundNumber:1}],seats:session.view.seats.map((seat,index)=>({...seat,name:index===0?'长'.repeat(24):index===1?'VeryLongNicknameNoSpacesX':seat.name}))};
+ session.view={...session.view,status,ownerSeatId:'s0',self:{role:'host',seatId:null},capabilities:{manage:true,control:true,manageSeats:true},transferRequests:[],history:[{id:'checkpoint-one',label:'检查点一',revealedInformation:false,step:1,seatId:'s0',roundNumber:1},{id:'checkpoint-two',label:'检查点二',revealedInformation:true,step:2,seatId:'s1',roundNumber:1}],seats:session.view.seats.map((seat,index)=>({...seat,name:index===0?'长'.repeat(8):index===1?'WWWWWWWWWWWWWWWW':seat.name}))};
  window.managementCommands=[];
  const paintManagement=()=>{if(full)flushSync(()=>root.render(<OverlayPanel key={session.fixtureKey} title="共享管理组件" className="settings-panel settings-panel--management" close={noop}><RoomManagement session={current.session}/></OverlayPanel>));else paint();};
  session.command=command=>{window.managementCommands.push(structuredClone(command));if(command.type==='set-owner')current.session={...current.session,view:{...current.session.view,ownerSeatId:command.seatId}};if(command.type==='approve-transfer'||command.type==='reject-transfer')current.session={...current.session,view:{...current.session.view,transferRequests:current.session.view.transferRequests.filter(request=>request.requestId!==command.requestId)}};paintManagement();};
@@ -151,7 +151,7 @@ window.renderSeatNames=({role,owner,status})=>{
  history.replaceState(null,'','/'+role);
  sessionStorage.setItem('tablemax-host','seat-host-fixture');localStorage.setItem('tablemax-player','seat-player-fixture');
  const self=role==='player'?(owner?'s0':'s1'):null;
- const view=RoomViewSchema.parse({instanceId:'00000000-0000-4000-8000-000000000001',revision:1,branch:0,status,paused:false,restored:false,joinOpen:true,playMode:'play',countdownSeconds:30,decisionClock:null,game:{id:'uno',name:'UNO',min:2,max:6,decisionTimer:true},catalog:[],ownerSeatId:'s0',capabilities:{manage:role==='host',control:role==='host'||owner,manageSeats:role==='host'||role==='player'&&owner},seats:[{id:'s0',name:'长'.repeat(24),avatarId:'avatar-1',controller:'human',ready:true,online:true,botDifficulty:null},{id:'s1',name:'VeryLongNicknameNoSpacesX',avatarId:'avatar-2',controller:'human',ready:true,online:true,botDifficulty:null},{id:'s2',name:'人机朋友',avatarId:'avatar-3',controller:'bot',ready:true,online:true,botDifficulty:'default'}],self:{role,seatId:self},gameView:null,decisionId:null,selectionToken:null,actions:[],lifecycleActions:[],history:[],botError:null,endReason:null});
+ const view=RoomViewSchema.parse({instanceId:'00000000-0000-4000-8000-000000000001',revision:1,branch:0,status,paused:false,restored:false,joinOpen:true,playMode:'play',countdownSeconds:30,decisionClock:null,game:{id:'uno',name:'UNO',min:2,max:6,decisionTimer:true},catalog:[],ownerSeatId:'s0',capabilities:{manage:role==='host',control:role==='host'||owner,manageSeats:role==='host'||role==='player'&&owner},seats:[{id:'s0',name:'长'.repeat(8),avatarId:'avatar-1',controller:'human',ready:true,online:true,botDifficulty:null},{id:'s1',name:'WWWWWWWWWWWWWWWW',avatarId:'avatar-2',controller:'human',ready:true,online:true,botDifficulty:null},{id:'s2',name:'人机朋友',avatarId:'avatar-3',controller:'bot',ready:true,online:true,botDifficulty:'default'}],self:{role,seatId:self},gameView:null,decisionId:null,selectionToken:null,actions:[],lifecycleActions:[],history:[],botError:null,endReason:null});
  window.seatFixtureProjection={stamp:{serverSessionId:'00000000-0000-4000-8000-000000000002',instanceId:view.instanceId,branch:0,viewSeq:1},syncHint:'idle',interactionWatermark:0,view};
  window.seatFixtureCommands=[];
  flushSync(()=>root.render(<SeatNamesBox key={'seat-names-'+(++renderSequence)} role={role}/>));
@@ -974,14 +974,14 @@ try {
               .nth(0)
               .locator('.device-transfer-request__identity > strong')
               .textContent(),
-            '长'.repeat(24),
+            '长'.repeat(8),
           );
           assert.equal(
             await requests
               .nth(1)
               .locator('.device-transfer-request__identity > strong')
               .textContent(),
-            'VeryLongNicknameNoSpacesX',
+            'WWWWWWWWWWWWWWWW',
           );
           assert.equal(
             await requests

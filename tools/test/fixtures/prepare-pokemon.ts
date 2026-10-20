@@ -87,9 +87,7 @@ export async function prepare(
   };
   for (let i = 0; i < original.length; i++) {
     const player = await room.join(
-      id === 'layout' && i === 0
-        ? '很长的朋友昵称测试十二字'
-        : `场景玩家 ${i + 1}`,
+      id === 'layout' && i === 0 ? '宝可梦场景玩家甲' : `场景玩家 ${i + 1}`,
     );
     players.push(player);
     const result = await command(player.token, { type: 'ready', ready: true });

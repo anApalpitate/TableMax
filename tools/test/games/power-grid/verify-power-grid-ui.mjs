@@ -118,7 +118,7 @@ const fixtures=await (await fetch('./fixtures.json')).json();
 window.__commands=[];window.__plays=[];
 HTMLMediaElement.prototype.play=function(){window.__plays.push(this.src);return Promise.resolve();};
 HTMLMediaElement.prototype.pause=function(){};
-const names=['一号电力公司测试长昵称abcdefghijklmnop','蓝色莱茵电力','第三家电力公司','第四家绿色电网','五号原子动力','六号能源投资'];
+const names=['电力公司ABCDEFGH','蓝色莱茵电力','第三家电力公司','第四家绿色电网','五号原子动力','六号能源投资'];
 function Fixture(){const [setting,setSetting]=useState({name:'regions',role:'host',paused:false,serial:0});const [feedback,setFeedback]=useState(null);
 window.setFixture=(name,role='host',paused=false)=>{setFeedback(null);window.__commands=[];setSetting(s=>({name,role,paused,serial:s.serial+1}));};
 window.changeFixture=(name)=>{window.__commands=[];setSetting(s=>({...s,name}));};

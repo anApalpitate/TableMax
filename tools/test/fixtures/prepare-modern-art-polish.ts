@@ -133,8 +133,7 @@ export async function prepareThreeDigit(work: string, count: 4 | 5) {
   let steps = 0;
   try {
     for (let index = 0; index < count; index++) {
-      const name =
-        index === 0 ? '艺术玩家长昵称十二字测试' : `美术馆 ${index + 1}`;
+      const name = index === 0 ? '现代艺术玩家甲乙' : `美术馆 ${index + 1}`;
       const player = await room.join(name, undefined, `avatar-${20 + index}`);
       players.push({
         ...player,
@@ -351,8 +350,7 @@ export async function prepare<Count extends 3 | 4 | 5>(
   }
   try {
     for (let index = 0; index < count; index++) {
-      const name =
-        index === 0 ? '艺术玩家长昵称十二字测试' : `美术馆 ${index + 1}`;
+      const name = index === 0 ? '现代艺术玩家甲乙' : `美术馆 ${index + 1}`;
       const admission = await room.join(
         name,
         undefined,

@@ -793,7 +793,7 @@ async function basicsAudit(hostSocket) {
   });
   await projectionAudit('initial-sorting-clock');
   evidence.checks.push(
-    'Original/artist/auction sorting keeps saved hand IDs, identity and decision; offer has no timer/progress while paused or running and never advances itself; resumed 24-character offer and other-phone waiting fit 320/360; auction clock independent audit is recorded separately when available for this exact archive',
+    'Original/artist/auction sorting keeps saved hand IDs, identity and decision; offer has no timer/progress while paused or running and never advances itself; resumed maximum-length nickname offer and other-phone waiting fit 320/360; auction clock independent audit is recorded separately when available for this exact archive',
   );
 }
 async function installMediaProbe(page) {
@@ -1600,8 +1600,8 @@ async function newPhone(index, restore = false) {
       .fill(
         longNames
           ? index === 0
-            ? 'W'.repeat(24)
-            : `第${index + 1}位长昵称美术馆玩家`
+            ? 'W'.repeat(16)
+            : `第${index + 1}位美术馆玩家A`
           : '美术馆 ' + (index + 1),
       );
     await page.getByRole('button', { name: '加入', exact: true }).click();

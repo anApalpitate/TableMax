@@ -199,7 +199,7 @@ function scenario(name,setup){
  rules.validateState(state,state.seats);
  return {state,actor,before,result};
 }
-function displayNames(mode,seats){return seats.map((id,i)=>({id,name:mode==='chinese'?'长'.repeat(24):mode==='latin'?'LongNicknameWithoutSpaces'.slice(0,24):'玩家'+(i+1),avatarId:'avatar-'+(i+1),controller:'human',ready:true,online:true,botDifficulty:null}));}
+function displayNames(mode,seats){return seats.map((id,i)=>({id,name:mode==='chinese'?'长'.repeat(8):mode==='latin'?'LongNicknameWithoutSpaces'.slice(0,16):'玩家'+(i+1),avatarId:'avatar-'+(i+1),controller:'human',ready:true,online:true,botDifficulty:null}));}
 function sessionFor(options){
  const setup=validateUnoSetup(options.setup??{drawPenaltyStacking:false,catchUnoDelayMs:500});
  const made=scenario(options.scenario??'normal',setup),role=options.role??'player',actor=options.actor??made.actor;

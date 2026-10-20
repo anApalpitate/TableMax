@@ -168,9 +168,9 @@ function Fixture() {
     id,
     name:
       index === 0
-        ? '第一位很长昵称的朋友ABCDEFGHIJ'
+        ? '首席宝可梦玩家甲'
         : setting.longTargets
-          ? `很长昵称的朋友${index + 1}ABCDEFGHIJ`
+          ? `昵称朋友${index + 1}ABCDEFG`
           : `朋友 ${index + 1}`,
     controller: 'human',
     ready: true,

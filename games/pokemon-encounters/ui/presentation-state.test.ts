@@ -90,7 +90,7 @@ describe('public presentation preserves information boundaries', () => {
     expect(deck.abilityLabel).toBeNull();
   });
   it('retains full target names and both public swap positions as separate fields', () => {
-    const name = '一位名字比较长的朋友';
+    const name = '名字比较长的朋友';
     const item = presentAction(action('swap', 'special-snorlax', [0, 5]), {
       S1: name,
     });

@@ -55,7 +55,7 @@ await build({
           if (!result.ok) throw new Error(result.reason);
         };
         for (let index = 0; index < 6; index++) {
-          const player = await room.join(index === 0 ? '长昵称朋友完整显示并保持卡面清楚' : '卡面朋友 ' + (index + 1));
+          const player = await room.join(index === 0 ? '长昵称卡面朋友甲' : '卡面朋友 ' + (index + 1));
           players.push({ ...player, seatId: room.view(player.token).self.seatId });
           await command(player.token, { type: 'ready', ready: true });
         }

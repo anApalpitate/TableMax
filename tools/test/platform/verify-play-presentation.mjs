@@ -455,11 +455,7 @@ try {
     );
     await phone
       .getByLabel('你的昵称')
-      .fill(
-        i === 1
-          ? '长昵称手机玩家不应该被截断到看不清本人座位'
-          : `现场朋友 ${i + 1}`,
-      );
+      .fill(i === 1 ? '现场手机玩家朋友' : `现场朋友 ${i + 1}`);
     await phone.getByRole('button', { name: '加入', exact: true }).click();
     await phone
       .getByRole('button', { name: '我准备好了', exact: true })
