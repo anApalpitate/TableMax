@@ -397,7 +397,7 @@ async function observeSavedPlayer({
         }
       }
       const joined = await servicePost(runtime.origin, '/api/session/join', {
-        name: '卸载重装保留的隔离玩家',
+        name: '卸载重装隔离玩家',
       });
       assert.equal(typeof joined.token, 'string');
       view = (

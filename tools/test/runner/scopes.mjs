@@ -145,6 +145,7 @@ const unitScopes = {
 const verificationScopes = {
   'tools/shared/application-version.test.mjs': ['tooling'],
   'tools/release/installer-retention.test.mjs': ['tooling'],
+  'tools/release/published-release-replacement.test.mjs': ['tooling'],
   'tools/dev/session.test.mjs': ['tooling'],
   'tools/dev/verify-session.mjs': ['tooling'],
   'tools/shared/windows-executable-security.test.mjs': ['tooling'],

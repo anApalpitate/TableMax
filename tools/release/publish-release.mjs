@@ -5,15 +5,27 @@ import {
 if (isDirectExecution(import.meta.url)) assertWorkspaceRoot();
 
 import assert from 'node:assert/strict';
-import { execFile } from 'node:child_process';
+import { execFile, spawn } from 'node:child_process';
 import { promisify } from 'node:util';
-import { readFile, writeFile, stat, mkdir, copyFile } from 'node:fs/promises';
-import { createHash } from 'node:crypto';
-import { resolve, join, basename } from 'node:path';
+import { createWriteStream } from 'node:fs';
+import {
+  readFile,
+  writeFile,
+  stat,
+  lstat,
+  mkdir,
+  copyFile,
+} from 'node:fs/promises';
+import { createHash, randomUUID } from 'node:crypto';
+import { resolve, join, basename, dirname } from 'node:path';
+import { pipeline } from 'node:stream/promises';
 import { PROJECT_GAME_PUBLIC_KEY } from '../../apps/server/src/game-packages/project-public-key.ts';
 import { gameReleaseAssets } from './game-release-assets.mjs';
 import { windowsExecutableName } from './windows-executable-name.mjs';
-import { assertDeliveryPath } from './delivery-paths.mjs';
+import {
+  assertDeliveryPath,
+  assertNoDeliveryLinks,
+} from './delivery-paths.mjs';
 import {
   loadIsolationEvidence,
   verifyInstallationPublication,
@@ -21,6 +33,12 @@ import {
 import { verifyPreservedRuntime } from './installation-verifier.mjs';
 import { verifyOriginalExecutableAcceptance } from './original-executable-acceptance.mjs';
 import { verifyGitHubRelease } from '../shared/application-update.mjs';
+import {
+  parsePublishedReplacement,
+  publishedReleaseSnapshot,
+  assertPublishedReleaseUnchanged,
+  replacePublishedRelease,
+} from './published-release-replacement.mjs';
 assert.ok(
   process.argv.includes('--publish'),
   'Publication is disabled by default. Explicit user release authorization and --publish are required.',
@@ -32,14 +50,23 @@ const run = async (command, args) =>
       maxBuffer: 1024 * 1024,
     })
   ).stdout.trim();
-const hash = async (path) =>
-  createHash('sha256')
-    .update(await readFile(path))
-    .digest('hex');
+const bytesHash = (bytes) => createHash('sha256').update(bytes).digest('hex');
+const hash = async (path) => bytesHash(await readFile(path));
+const assertConfirmedBuild = async () => {
+  try {
+    await lstat(resolve('build-version.reservation.json'));
+    assert.fail(
+      'Confirm the accepted build revision before publication; build-version.reservation.json still exists',
+    );
+  } catch (error) {
+    if (error.code !== 'ENOENT') throw error;
+  }
+};
 const { version } = JSON.parse(await readFile('package.json', 'utf8'));
 const repo = 'anApalpitate/TableMax';
 const tag = `v${version}`;
 const replaceDraft = process.argv.includes('--replace-draft');
+const replacePublished = parsePublishedReplacement(process.argv.slice(2));
 const createdDraftArguments = process.argv.filter((arg) =>
   arg.startsWith('--created-draft-id='),
 );
@@ -71,6 +98,9 @@ const evidence = resolve(
 const notes = process.argv.find((arg) => arg.startsWith('--notes='))?.slice(8);
 assert.ok(notes, 'Provide reviewed release notes with --notes=<file>');
 await stat(notes);
+const reviewedNotesBytes = await readFile(notes);
+const reviewedNotes = reviewedNotesBytes.toString('utf8');
+const reviewedNotesSha256 = bytesHash(reviewedNotesBytes);
 const localExes = ['full'].map((edition) => {
   const delivery = payloadIndex.deliveries.find(
     (item) => item.edition === edition,
@@ -139,7 +169,7 @@ for (const edition of ['full']) {
         delivery.executable.installation.manifestPath,
       ),
       snapshot: payloadIndex.snapshot,
-      notes: await readFile(notes, 'utf8'),
+      notes: reviewedNotes,
       releaseVersion: version,
       buildVersion: payloadIndex.buildVersion,
     });
@@ -161,13 +191,14 @@ for (const edition of ['full']) {
     'Shipping EXE changed after validation',
   );
 }
+await assertConfirmedBuild();
 assert.ok(
   createdDraftId === undefined || applicationUpdate,
   'Resuming a created draft requires an authenticated installer release',
 );
 const commit = await run('git', ['rev-parse', 'HEAD']);
 const tagCommit = await run('git', ['rev-parse', `${tag}^{commit}`]);
-if (!replaceDraft)
+if (!replaceDraft && !replacePublished)
   assert.equal(
     tagCommit,
     commit,
@@ -180,7 +211,35 @@ assert.ok(
   ),
   'Push verified release tag first',
 );
-let previous;
+let previous, reviewedPublishedBytes, publishedOptions;
+if (replacePublished) {
+  assert.ok(
+    applicationUpdate,
+    'Published replacement requires the authenticated installer gates',
+  );
+  const reviewedPath = resolve(replacePublished.reviewedReleasePath);
+  assertNoDeliveryLinks(reviewedPath);
+  reviewedPublishedBytes = await readFile(reviewedPath);
+  assert.equal(
+    bytesHash(reviewedPublishedBytes),
+    replacePublished.reviewedReleaseSha256,
+    'Reviewed release metadata changed',
+  );
+  const reviewed = JSON.parse(reviewedPublishedBytes);
+  publishedOptions = {
+    releaseId: replacePublished.releaseId,
+    tag,
+    assetNames: [windowsExecutableName(version, 'full'), basename(source)],
+  };
+  const expected = publishedReleaseSnapshot(reviewed, publishedOptions);
+  previous = JSON.parse(
+    await run('gh', [
+      'api',
+      `repos/${repo}/releases/${replacePublished.releaseId}`,
+    ]),
+  );
+  assertPublishedReleaseUnchanged(expected, previous, publishedOptions);
+}
 if (replaceDraft) {
   const draftId = process.argv
     .find((arg) => arg.startsWith('--draft-id='))
@@ -236,23 +295,202 @@ for (const unit of manifest.units) {
 }
 // Keep every frozen input in the gate without exceeding Win32's command line.
 const inputPaths = [...inputs];
-for (let offset = 0; offset < inputPaths.length; offset += 64) {
-  const batch = inputPaths.slice(offset, offset + 64);
-  assert.ok(
-    batch.reduce((length, path) => length + path.length + 3, 256) < 24000,
-    'Frozen source input batch exceeds the Windows command-line budget',
-  );
-  assert.equal(
-    await run('git', ['diff', '--name-only', 'HEAD', '--', ...batch]),
-    '',
-    'Commit all frozen runtime source inputs before publishing',
-  );
-}
+const verifyFrozenSource = async () => {
+  for (let offset = 0; offset < inputPaths.length; offset += 64) {
+    const batch = inputPaths.slice(offset, offset + 64);
+    assert.ok(
+      batch.reduce((length, path) => length + path.length + 3, 256) < 24000,
+      'Frozen source input batch exceeds the Windows command-line budget',
+    );
+    assert.equal(
+      await run('git', ['diff', '--name-only', 'HEAD', '--', ...batch]),
+      '',
+      'Commit all frozen runtime source inputs before publishing',
+    );
+  }
+};
+await verifyFrozenSource();
 await mkdir(publicDirectory, { recursive: true });
 for (let i = 0; i < exes.length; i++) await copyFile(localExes[i], exes[i]);
 const assets = [...exes, source];
+if (replacePublished) {
+  assert.equal(
+    (await stat(exes[0])).size,
+    applicationUpdate.description.bytes,
+    'Public installer size differs from the accepted signed identity',
+  );
+  assert.equal(
+    await hash(exes[0]),
+    applicationUpdate.description.sha256,
+    'Public installer SHA-256 differs from the accepted signed identity',
+  );
+}
 let backup,
+  publishedAudit,
+  publishedBackupManifest,
   obsolete = [];
+if (replacePublished) {
+  const directory = resolve(
+    'artifacts/maintenance',
+    tag,
+    `published-replacement-${Date.now()}-${randomUUID()}`,
+  );
+  assertNoDeliveryLinks(directory);
+  backup = join(directory, 'previous');
+  await mkdir(backup, { recursive: true });
+  publishedAudit = join(directory, 'github-publication.json');
+  const initial = {
+    mode: 'replace-published',
+    result: 'pending',
+    phase: 'backing-up-reviewed-release',
+    releaseId: previous.id,
+    tag,
+    sourceCommit: commit,
+    tagCommit,
+    tagObject,
+    reviewedReleasePath: resolve(replacePublished.reviewedReleasePath),
+    reviewedReleaseSha256: replacePublished.reviewedReleaseSha256,
+    reviewedSnapshot: publishedReleaseSnapshot(previous, publishedOptions),
+    backup,
+  };
+  await writeFile(publishedAudit, JSON.stringify(initial, null, 2) + '\n', {
+    flag: 'wx',
+  });
+  try {
+    await writeFile(
+      join(backup, 'reviewed-release.json'),
+      reviewedPublishedBytes,
+      { flag: 'wx' },
+    );
+    await writeFile(
+      join(backup, 'release-before.json'),
+      JSON.stringify(previous, null, 2) + '\n',
+      { flag: 'wx' },
+    );
+    await writeFile(join(backup, 'body-before.md'), previous.body, {
+      flag: 'wx',
+    });
+    const saved = [];
+    for (const asset of previous.assets) {
+      const target = join(backup, asset.name);
+      const downloaded = resolve(
+        dirname(resolve(replacePublished.reviewedReleasePath)),
+        asset.name,
+      );
+      let local = false;
+      try {
+        assertNoDeliveryLinks(downloaded);
+        const entry = await stat(downloaded);
+        assert(
+          entry.isFile(),
+          'Reviewed downloaded asset must be an ordinary file',
+        );
+        assert.equal(
+          entry.size,
+          asset.size,
+          'Reviewed downloaded asset size changed',
+        );
+        assert.equal(
+          await hash(downloaded),
+          asset.digest.slice(7),
+          'Reviewed downloaded asset SHA-256 changed',
+        );
+        await copyFile(downloaded, target);
+        local = true;
+      } catch (error) {
+        if (error.code !== 'ENOENT') throw error;
+      }
+      if (!local) {
+        const child = spawn(
+          'gh',
+          [
+            'api',
+            `repos/${repo}/releases/assets/${asset.id}`,
+            '--header',
+            'Accept: application/octet-stream',
+          ],
+          { windowsHide: true, stdio: ['ignore', 'pipe', 'pipe'] },
+        );
+        let stderr = '';
+        child.stderr.on('data', (bytes) => {
+          stderr = (stderr + bytes.toString()).slice(-8192);
+        });
+        const completion = new Promise((accept, reject) => {
+          child.once('error', reject);
+          child.once('close', (code) =>
+            code === 0
+              ? accept()
+              : reject(
+                  new Error(
+                    `Old release asset download failed (${code}): ${stderr}`,
+                  ),
+                ),
+          );
+        });
+        await Promise.all([
+          pipeline(child.stdout, createWriteStream(target, { flags: 'wx' })),
+          completion,
+        ]);
+      }
+      assert.equal(
+        (await stat(target)).size,
+        asset.size,
+        'Old attachment backup size mismatch',
+      );
+      assert.equal(
+        await hash(target),
+        asset.digest.slice(7),
+        'Old attachment backup SHA-256 mismatch',
+      );
+      saved.push({
+        id: asset.id,
+        name: asset.name,
+        bytes: asset.size,
+        sha256: asset.digest.slice(7),
+        path: target,
+        source: local ? downloaded : 'GitHub asset ID download',
+      });
+    }
+    publishedBackupManifest = {
+      reviewedReleaseSha256: replacePublished.reviewedReleaseSha256,
+      releaseId: previous.id,
+      files: await Promise.all(
+        ['reviewed-release.json', 'release-before.json', 'body-before.md'].map(
+          async (name) => ({
+            name,
+            path: join(backup, name),
+            bytes: (await stat(join(backup, name))).size,
+            sha256: await hash(join(backup, name)),
+          }),
+        ),
+      ),
+      assets: saved,
+    };
+    await writeFile(
+      join(backup, 'asset-backups.json'),
+      JSON.stringify(publishedBackupManifest, null, 2) + '\n',
+      { flag: 'wx' },
+    );
+    await writeFile(
+      publishedAudit,
+      JSON.stringify(
+        {
+          ...initial,
+          phase: 'reviewed-release-backed-up',
+          backupManifest: publishedBackupManifest,
+        },
+        null,
+        2,
+      ) + '\n',
+    );
+  } catch (error) {
+    await writeFile(
+      publishedAudit,
+      JSON.stringify({ ...initial, error: error.message }, null, 2) + '\n',
+    );
+    throw error;
+  }
+}
 if (replaceDraft) {
   const base = resolve('artifacts/maintenance', tag, 'pages-release-20261011');
   await mkdir(join(base, 'previous'), { recursive: true });
@@ -385,16 +623,28 @@ const record = {
   commit,
   tag,
   repo,
-  mode: replaceDraft
-    ? 'replace-draft'
-    : createdDraftId
-      ? 'resume-created-draft'
-      : 'new-release',
+  mode: replacePublished
+    ? 'replace-published'
+    : replaceDraft
+      ? 'replace-draft'
+      : createdDraftId
+        ? 'resume-created-draft'
+        : 'new-release',
   ...(createdDraftId ? { createdDraftId } : {}),
   sourceCommit: commit,
   tagCommit,
   tagObject,
   ...(backup ? { backup, previousReleaseId: previous.id } : {}),
+  ...(replacePublished
+    ? {
+        reviewedReleasePath: resolve(replacePublished.reviewedReleasePath),
+        reviewedReleaseSha256: replacePublished.reviewedReleaseSha256,
+        reviewedSnapshot: publishedReleaseSnapshot(previous, publishedOptions),
+        backupManifest: publishedBackupManifest,
+        backupManifestSha256: await hash(join(backup, 'asset-backups.json')),
+        reviewedNotesSha256,
+      }
+    : {}),
   assets: await Promise.all(
     assets.map(async (path) => ({
       path,
@@ -403,15 +653,17 @@ const record = {
     })),
   ),
 };
-const audit = replaceDraft
-  ? resolve(
-      'artifacts/maintenance',
-      tag,
-      'pages-release-20261011',
-      `github-draft-replacement-${Date.now()}.json`,
-    )
-  : resolve(evidence, 'github-publication.json');
-if (replaceDraft)
+const audit =
+  publishedAudit ??
+  (replaceDraft
+    ? resolve(
+        'artifacts/maintenance',
+        tag,
+        'pages-release-20261011',
+        `github-draft-replacement-${Date.now()}.json`,
+      )
+    : resolve(evidence, 'github-publication.json'));
+if (replaceDraft || replacePublished)
   await writeFile(
     audit,
     JSON.stringify(
@@ -419,9 +671,147 @@ if (replaceDraft)
       null,
       2,
     ) + '\n',
-    { flag: 'wx' },
+    replacePublished ? undefined : { flag: 'wx' },
   );
-if (replaceDraft) {
+if (replacePublished) {
+  const updatePath = join(dirname(audit), 'reviewed-release-update.json');
+  const update = { body: reviewedNotes, make_latest: 'true' };
+  const updateBytes = Buffer.from(JSON.stringify(update) + '\n');
+  await writeFile(updatePath, updateBytes, { flag: 'wx' });
+  record.replacement = await replacePublishedRelease({
+    reviewed: previous,
+    options: publishedOptions,
+    assets: record.assets.map((asset) => ({
+      ...asset,
+      name: basename(asset.path),
+    })),
+    approvedInstaller: applicationUpdate.description,
+    body: reviewedNotes,
+    fetchRelease: async () =>
+      JSON.parse(
+        await run('gh', [
+          'api',
+          `repos/${repo}/releases/${replacePublished.releaseId}`,
+        ]),
+      ),
+    fetchLatest: async () =>
+      JSON.parse(await run('gh', ['api', `repos/${repo}/releases/latest`])),
+    deleteAsset: async (id) =>
+      run('gh', [
+        'api',
+        '--method',
+        'DELETE',
+        `repos/${repo}/releases/assets/${id}`,
+      ]),
+    uploadAsset: async (asset) =>
+      JSON.parse(
+        await run('gh', [
+          'api',
+          '--method',
+          'POST',
+          `https://uploads.github.com/repos/${repo}/releases/${replacePublished.releaseId}/assets?name=${encodeURIComponent(asset.name)}`,
+          '--header',
+          'Content-Type: application/octet-stream',
+          '--input',
+          asset.path,
+        ]),
+      ),
+    updateRelease: async (value) => {
+      assert.deepEqual(value, update);
+      assert.equal(
+        await hash(updatePath),
+        bytesHash(updateBytes),
+        'Frozen release update request changed',
+      );
+      return run('gh', [
+        'api',
+        '--method',
+        'PATCH',
+        `repos/${repo}/releases/${replacePublished.releaseId}`,
+        '--input',
+        updatePath,
+      ]);
+    },
+    verifyInputs: async () => {
+      await assertConfirmedBuild();
+      assert.equal(
+        await hash(notes),
+        reviewedNotesSha256,
+        'Reviewed signed notes changed',
+      );
+      assert.equal(
+        await hash(resolve(replacePublished.reviewedReleasePath)),
+        replacePublished.reviewedReleaseSha256,
+        'Reviewed old release metadata changed',
+      );
+      assert.equal(
+        await run('git', ['rev-parse', 'HEAD']),
+        commit,
+        'Source commit changed during replacement',
+      );
+      assert.equal(
+        await run('git', ['rev-parse', tag]),
+        tagObject,
+        'Existing tag object changed',
+      );
+      assert.ok(
+        (
+          await run('git', ['ls-remote', 'origin', `refs/tags/${tag}`])
+        ).startsWith(tagObject + '\t'),
+        'Remote tag changed during replacement',
+      );
+      await verifyFrozenSource();
+      for (const asset of record.assets) {
+        const actualBytes = (await stat(asset.path)).size;
+        const actualSha256 = await hash(asset.path);
+        assert.equal(
+          actualBytes,
+          asset.bytes,
+          'Frozen replacement attachment size changed',
+        );
+        assert.equal(
+          actualSha256,
+          asset.sha256,
+          'Frozen replacement attachment changed',
+        );
+        if (basename(asset.path) === applicationUpdate.description.assetName) {
+          assert.equal(
+            actualBytes,
+            applicationUpdate.description.bytes,
+            'Installer size no longer matches its accepted signed identity',
+          );
+          assert.equal(
+            actualSha256,
+            applicationUpdate.description.sha256,
+            'Installer SHA-256 no longer matches its accepted signed identity',
+          );
+        }
+      }
+      assert.equal(
+        await hash(join(backup, 'asset-backups.json')),
+        record.backupManifestSha256,
+        'Old release backup manifest changed',
+      );
+      for (const asset of [
+        ...publishedBackupManifest.assets,
+        ...publishedBackupManifest.files,
+      ]) {
+        assert.equal(
+          (await stat(asset.path)).size,
+          asset.bytes,
+          'Old attachment backup size changed',
+        );
+        assert.equal(
+          await hash(asset.path),
+          asset.sha256,
+          'Old attachment backup changed',
+        );
+      }
+    },
+    persistAudit: async (state) =>
+      writeFile(audit, JSON.stringify({ ...record, ...state }, null, 2) + '\n'),
+  });
+} else if (replaceDraft) {
   // Re-read immediately before mutations: an already published draft is not authorized.
   const current = JSON.parse(
     await run('gh', ['api', `repos/${repo}/releases/${previous.id}`]),
@@ -692,6 +1082,30 @@ if (applicationUpdate) {
   );
 }
 assert.equal(latest.tag_name, tag, 'Published release must be latest');
+if (replacePublished) {
+  assert.equal(
+    String(latest.id),
+    replacePublished.releaseId,
+    'Latest release must retain the reviewed release ID',
+  );
+  assert.ok(
+    (await run('git', ['ls-remote', 'origin', `refs/tags/${tag}`])).startsWith(
+      tagObject + '\t',
+    ),
+    'Original remote tag must remain unchanged',
+  );
+  const finalRelease = JSON.parse(
+    await run('gh', [
+      'api',
+      `repos/${repo}/releases/${replacePublished.releaseId}`,
+    ]),
+  );
+  assertPublishedReleaseUnchanged(
+    record.replacement.expectedRemote,
+    finalRelease,
+    publishedOptions,
+  );
+}
 await writeFile(
   audit,
   JSON.stringify(

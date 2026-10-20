@@ -4,7 +4,7 @@
 
 本页维护打包、签名和推广的精确操作参数；当前已验交付及线上边界统一见[验收](../../docs/reference/acceptance.md#当前源码与本地交付)，产品发布规则见[Release流程](../../docs/reference/release.md)。
 
-新安装器先用 `--candidate` 封包：正常新构建原子分配四位修订，失败编号不复用，但保留已有 `current.json`。stdout 返回 `candidatePath`；该记录冻结候选交付和原 current 的原始 SHA，同目录 `full/installer-delivery.json` 供描述生成及实际安装验收。`--platform-from` 按原快照身份及游戏缓存逐成员 SHA 保留正式游戏，只刷新当前平台和组装器并生成新快照、新修订；可跨公开版本，但新快照必须记录目标版本与 `retainedGameVersion`，保留原游戏来源证明。`--snapshot` 则恢复原冻结快照，不分配新修订。
+新安装器先用 `--candidate` 封包并保留已有 `current.json`。新交付须在当前进程设置唯一`TABLEMAX_DELIVERY_SESSION`；同会话预留同一第四位，修复及重试不再次递增，正式验收推广后确认，详见[版本规则与实现边界](../../docs/reference/release.md#三位公开版本与四位本地构建2026-10-12)。stdout 返回 `candidatePath`；该记录冻结候选交付和原 current 的原始 SHA，同目录 `full/installer-delivery.json` 供描述生成及实际安装验收。`--platform-from` 按原快照身份及游戏缓存逐成员 SHA 保留正式游戏，只刷新当前平台和组装器并生成新快照，本地修订按上述规则归属本次更新；可跨公开版本，但新快照必须记录目标版本与 `retainedGameVersion`，保留原游戏来源证明。`--snapshot` 则恢复原冻结快照，不分配新修订。
 
 平台变更而游戏未变时，使用下列占位参数保留原游戏单元；先核对实际冻结快照和内部游戏源，不能直接复制历史候选路径。完整冻结恢复使用 --snapshot，与生成新平台候选区分。
 
@@ -33,6 +33,8 @@ node tools/release/sign-application-update.mjs "--description=<新描述.json>" 
 
 installation-promote只接受同一候选的正式GUID证明，核对候选冻结时的原current SHA并原子切换，不重新分配修订。必需系统范围、隔离与容量要求统一见[验证规格](../../docs/reference/installation-validation.md#完整安装与程序更新的证据分层)；fixture、helper-only及keep-installed诊断不能进入正式证明。
 
+本地安装器自动保留最新修订：候选封包成功后清理更早候选，保留已验收current；正式推广后只留新current。`node tools/release/installer-retention.mjs`只预览，核对后加`--apply`执行；两者均持有package-win互斥，保留旧manifest／payload／证明和逐文件SHA退役记录，错误返回pending，不回滚已通过的current。隔离回归：`node --test tools/release/installer-retention.test.mjs tools/release/installation-promote.test.mjs`。
+
 推广与发布共用 verifyInstallationAcceptance。实际保存／卸载后重装、容量口径及退出完成观察以[证明要求](../../docs/reference/installation-validation.md#完整安装与程序更新的证据分层)为准；门禁纯测试不是系统验收。
 
 ```powershell
@@ -52,6 +54,10 @@ node tools/release/installation-promote.mjs "--candidate=<封包输出candidateP
 本地程序使用四位 `1.x.x.y`，公开版本／附件使用三位 `1.x.x`，分配、冻结与发布映射见[版本流程](../../docs/reference/release.md#三位公开版本与四位本地构建2026-10-12)。只有获明确发布授权后才执行 `pnpm release:github -- --publish --notes=<已审文件>`，创建完整EXE与发布提交source ZIP两附件；本地导出和普通push不发布。
 
 安装器发行先上传草稿，通过CLI的 `release view --json apiUrl`取得精确REST ID，再按ID核对正文及两附件后公开。若本次新建草稿在上传后中断，已核对其ID、标签、完整正文及两附件摘要后，可用同一命令追加 `--created-draft-id=<本次草稿ID>`接续；入口保留完整源码／证明／签名门禁，不重传附件、不删除其他版本，只有仍为草稿且内容完全一致才公开。该参数不能用于已发布Release，也不代替其他草稿的替换流程。冻结源码检查按64项分批传给Git，逐项覆盖全部输入，避免Windows命令行长度上限。
+
+用户明确授权覆盖某个已发布版本时，使用`node --import tsx tools/release/publish-release.mjs --publish --replace-published --release-id=<已审核ID> --reviewed-release=<已下载原始release.json> --reviewed-release-sha256=<其SHA256> --notes=<已签完整正文.md>`。此模式与草稿模式互斥，保留原tag对象，分别记录tag源码与新附件实际源码提交；所有原EXE／完整安装／RSA正文／冻结源码门禁保持，未确认的会话修订拒绝发布。先保存并核对旧元数据、正文及两附件原始字节，再按ID逐项替换source ZIP、installer，最后只更新正文和latest；检查期间Release必须仍为已审核最新版。每步重核远端完整快照与本地已签installer身份；失败保留pending审计及备份，不擅自覆盖其他人的新修改。该模式不删除Release、不移动标签，不承诺同名附件替换原子完成。
+
+正式current推广成功后，若存在与候选相符的会话预留，入口调用`confirmBuildVersion()`确认；它仅移除预留，不改变冻结的`build-version.json`字节。确认失败保持已验收current并返回pending，发布继续拒绝；须核验实际原因与同一候选后完成确认，不重新递增或重跑未受影响验收。
 
 [构建与运行规范](../../docs/reference/build-and-run.md)维护运行和验收要求，[工具总索引](../README.md)用于按任务定位。内部辅助不是独立业务命令。
 
