@@ -45,6 +45,56 @@ function apply(s: State, action: Action, seat = s.turnSeat!): State {
 }
 describe('UNO三档本地策略逐节点与授权记忆', () => {
   it.each(difficulties)(
+    '%s面对+4按本人手牌继续传递，不能合法出+4时接受累计处罚',
+    (difficulty) => {
+      const base = fixture({
+        a: ['wild-draw-four-1', 'green-1-a', 'yellow-1-a'],
+        b: ['wild-draw-four-2', 'blue-1-a', 'green-2-a'],
+        c: ['yellow-2-a'],
+      });
+      base.setup = { drawPenaltyStacking: true, catchUnoDelayMs: 500 };
+      base.drawPenalty = null;
+      const pending = apply(base, {
+        type: 'play',
+        cardId: 'wild-draw-four-1',
+        color: 'red',
+      });
+      const chosen = decide(pending, 'b', difficulty);
+      expect(chosen).toMatchObject({
+        type: 'play',
+        cardId: 'wild-draw-four-2',
+      });
+      expect(isLegalAction(pending, chosen, 'b')).toBe(true);
+      const blocked = apply(base, {
+        type: 'play',
+        cardId: 'wild-draw-four-1',
+        color: 'blue',
+      });
+      expect(decide(blocked, 'b', difficulty)).toEqual({
+        type: 'accept-draw-four',
+      });
+    },
+  );
+  it('有授权违规证据时仍可优先质疑最新+4，不受可传递手牌干扰', () => {
+    const base = fixture({
+      a: ['wild-draw-four-1', 'red-1-a', 'yellow-1-a'],
+      b: ['wild-draw-four-2', 'blue-1-a', 'green-2-a'],
+      c: ['yellow-2-a'],
+    });
+    base.setup = { drawPenaltyStacking: true, catchUnoDelayMs: 500 };
+    base.drawPenalty = null;
+    const pending = apply(base, {
+      type: 'play',
+      cardId: 'wild-draw-four-1',
+      color: 'yellow',
+    });
+    const known = { ...memory(pending), knownCards: { a: ['red-1-a'] } };
+    for (const difficulty of ['doubao', 'juewu'] as const)
+      expect(decide(pending, 'b', difficulty, known)).toEqual({
+        type: 'challenge-draw-four',
+      });
+  });
+  it.each(difficulties)(
     '%s在补牌传递中按本人授权牌继续出牌或接受累计罚牌',
     (difficulty) => {
       const base = fixture({

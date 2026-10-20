@@ -382,7 +382,7 @@ export function applyAction(
     s.turnSeat = target;
     s.turnNumber++;
     s.stage = 'draw-four';
-    suffix = `，等待下一位接受或质疑${previousDebt ? `，累计补 ${previousDebt + 4} 张` : ''}`;
+    suffix = `，等待下一位接受或质疑${stacking && hand.length ? '，也可用 +4 继续传递' : ''}${previousDebt ? `，累计补 ${previousDebt + 4} 张` : ''}`;
   } else {
     let steps = 1;
     if (card.kind === 'reverse') {

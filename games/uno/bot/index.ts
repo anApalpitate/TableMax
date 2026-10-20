@@ -191,9 +191,17 @@ export function chooseAction(
       (memory.knownCards[claim.offender] ?? []).some(
         (id) => getCard(id).color === claim.previousColor,
       );
-    return difficulty !== 'default' && knownGuilty && challenge
-      ? challenge
-      : accept;
+    if (difficulty !== 'default' && knownGuilty && challenge) return challenge;
+    // Transfer only a legally usable +4 from our own authorized hand.
+    if (
+      !rawActions.some(
+        (a) =>
+          a.type === 'play' &&
+          getCard(a.cardId).kind === 'wild-draw-four' &&
+          !hand.some((card) => card.color === view.activeColor),
+      )
+    )
+      return accept;
   }
   const plays = rawActions
     .filter((a): a is Extract<Action, { type: 'play' }> => a.type === 'play')

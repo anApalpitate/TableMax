@@ -188,8 +188,8 @@ function scenario(name,setup){
  }else if(name==='catch'){
   state=configured(fixture({a:['red-1-a','yellow-2-a'],b:['red-2-a','blue-1-a'],c:['green-2-a','yellow-3-a']}),setup);
   state=step(state,{type:'play',cardId:'red-1-a'},'a').state;actor='c';
- }else if(name==='penalty'||name==='four'||name==='evidence'){
-  state=configured(fixture({a:['red-draw-two-a','yellow-2-a'],b:['blue-draw-two-a','wild-draw-four-1','red-1-a'],c:['green-draw-two-a','green-1-a'],d:['blue-2-a'],e:['yellow-1-a'],f:['blue-3-a']}),{...setup,drawPenaltyStacking:true});
+ }else if(name==='penalty'||name==='four'||name==='evidence'||name==='four-chain'){
+  state=configured(fixture({a:['red-draw-two-a','yellow-2-a'],b:['blue-draw-two-a','wild-draw-four-1','red-1-a'],c:name==='four-chain'?['wild-draw-four-2','green-1-a','blue-1-a']:['green-draw-two-a','green-1-a'],d:['blue-2-a'],e:['yellow-1-a'],f:['blue-3-a']}),{...setup,drawPenaltyStacking:true});
   state=step(state,{type:'play',cardId:'red-draw-two-a'},'a').state;
   if(name==='penalty')state=step(state,{type:'play',cardId:'blue-draw-two-a'},'b').state;
   else state=step(state,{type:'play',cardId:'wild-draw-four-1',color:'green'},'b').state;
@@ -987,7 +987,8 @@ try {
         },
         page,
       );
-  if (enabled('penalty'))
+  if (enabled('penalty')) {
+    await page.setViewportSize({ width: sizes[0][0], height: sizes[0][1] });
     for (const scenarioof of ['penalty', 'four'])
       await check(
         'penalty:' + scenarioof,
@@ -1030,6 +1031,37 @@ try {
         },
         page,
       );
+    await check(
+      'penalty:four-chain',
+      async () => {
+        await ready(page, { scenario: 'four-chain', actor: 'c', commit: true });
+        const legal = page.locator('.uno-hand-card--legal');
+        assert.equal(await legal.count(), 1);
+        assert.equal(
+          await legal.getAttribute('data-card-id'),
+          'wild-draw-four-2',
+        );
+        assert(
+          await page
+            .getByText('也可从手牌出 +4 继续传递，放弃质疑上一张 +4。', {
+              exact: true,
+            })
+            .isVisible(),
+        );
+        assertGeometry(await measurements(page));
+        await capture(page, 'pending-four-chain');
+        await legal.click();
+        await page.getByRole('button', { name: '蓝色', exact: true }).click();
+        const next = (await page.evaluate(() => window.snapshot())).view
+          .gameView;
+        assert.equal(next.drawPenalty.count, 10);
+        assert.equal(next.drawFour.offender, 'c');
+        assert.equal(next.drawFour.target, 'd');
+        assert.equal(next.activeColor, 'blue');
+      },
+      page,
+    );
+  }
   if (enabled('evidence'))
     await check(
       'evidence:authorized-new-result-and-restore',

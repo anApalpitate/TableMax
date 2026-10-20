@@ -905,6 +905,9 @@
   gap: 8px;
   flex-wrap: wrap;
 }
+.uno-screen .uno-reaction button {
+  font-size: 18px;
+}
 .uno-latest {
   position: relative;
   z-index: 3;

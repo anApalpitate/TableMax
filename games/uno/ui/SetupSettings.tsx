@@ -29,7 +29,7 @@ export function UnoSetupSettings({
       <div className="uno-setup-choice">
         <div>
           <label id={`${id}-stacking`}>补牌传递</label>
-          <p>受罚时可按本局规则继续出补牌，把累计张数传给下一位。</p>
+          <p>面对 +2 可接 +2 或 +4，面对 +4 可接 +4，把累计张数传给下一位。</p>
         </div>
         <button
           type="button"

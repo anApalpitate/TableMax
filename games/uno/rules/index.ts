@@ -107,12 +107,26 @@ export function legalActions(s: State, seat: string): Action[] {
       ...actions,
       ...COLORS.map((color) => ({ type: 'choose-color' as const, color })),
     ];
-  if (s.stage === 'draw-four')
+  if (s.stage === 'draw-four') {
+    if (
+      unoSetupFor(s).drawPenaltyStacking &&
+      s.hands[s.drawFour!.offender]!.length > 0
+    )
+      for (const id of s.hands[seat]!)
+        if (getCard(id).kind === 'wild-draw-four')
+          actions.push(
+            ...COLORS.map((color) => ({
+              type: 'play' as const,
+              cardId: id,
+              color,
+            })),
+          );
     return [
       ...actions,
       { type: 'accept-draw-four' },
       { type: 'challenge-draw-four' },
     ];
+  }
   if (s.stage === 'draw-penalty') {
     for (const id of s.hands[seat]!) {
       const card = getCard(id);

@@ -344,6 +344,9 @@ function UnoScreen({ session }: { session: GameHost }) {
                           : '当前颜色'}
                         。
                       </p>
+                      {actions.some((entry) => entry.type === 'play') && (
+                        <p>也可从手牌出 +4 继续传递，放弃质疑上一张 +4。</p>
+                      )}
                       <div className="uno-reaction-actions">
                         {accept && (
                           <button
