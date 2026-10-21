@@ -1,6 +1,7 @@
 import ts from 'typescript';
 import { createRequire } from 'node:module';
 import { resolve, dirname, relative } from 'node:path';
+import { lstat, readdir, realpath } from 'node:fs/promises';
 const require = createRequire(import.meta.url);
 const { globSync } = createRequire(require.resolve('vite/package.json'))(
   'tinyglobby',
@@ -10,6 +11,52 @@ export const mediaFile = (file) =>
     file.split('?')[0],
   );
 const posix = (value) => value.replaceAll('\\', '/');
+/** Discover runtime media from the manifest namespace, including dynamic resourceUrl calls. */
+export async function discoverGameMedia(item, workspace = process.cwd()) {
+  if (!/^[a-z][a-z0-9-]*$/.test(item.id))
+    throw new Error('Invalid game resource namespace');
+  const base = resolve(workspace);
+  const namespace = resolve(base, 'assets/games', item.id);
+  const equalPath = (a, b) =>
+    process.platform === 'win32'
+      ? a.toLowerCase() === b.toLowerCase()
+      : a === b;
+  const plain = async (path) => {
+    const info = await lstat(path);
+    if (info.isSymbolicLink() || !equalPath(await realpath(path), path))
+      throw new Error('Linked game resources are forbidden: ' + path);
+    return info;
+  };
+  // Check existing ancestors too: a namespace reached through a junction must
+  // never import bytes from another game or from outside the workspace.
+  for (const path of [
+    base,
+    resolve(base, 'assets'),
+    resolve(base, 'assets/games'),
+    namespace,
+  ]) {
+    try {
+      if (!(await plain(path)).isDirectory())
+        throw new Error('Game resource namespace must be a directory: ' + path);
+    } catch (error) {
+      if (error.code === 'ENOENT') return [];
+      throw error;
+    }
+  }
+  const files = [];
+  const visit = async (directory) => {
+    for (const entry of await readdir(directory, { withFileTypes: true })) {
+      const path = resolve(directory, entry.name);
+      const info = await plain(path);
+      if (info.isDirectory()) await visit(path);
+      else if (!info.isFile())
+        throw new Error('Special game resource rejected: ' + path);
+      else if (mediaFile(path)) files.push(posix(relative(base, path)));
+    }
+  };
+  await visit(namespace);
+  return files.sort();
+}
 export function logicalResource(file, root) {
   const path = posix(relative(resolve(root, 'assets/games'), file));
   if (path.startsWith('../') || path.includes('/../'))

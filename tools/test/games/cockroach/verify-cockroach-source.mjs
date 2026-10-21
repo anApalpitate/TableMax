@@ -63,6 +63,7 @@ import {flushSync} from 'react-dom';
 import {HostedGame} from ${file('packages/web-host/src/index.tsx')};
 import {configureGameHost} from ${file('packages/web-host/src/presentation-services.ts')};
 import {client as poker} from ${file('games/cockroach-poker/web/index.tsx')};
+import {Card as PokerCard,cardAssetFile} from ${file('games/cockroach-poker/ui/Theme.tsx')};
 import {client as salad} from ${file('games/cockroach-salad/web/index.tsx')};
 import {rules as pokerRules} from ${file('games/cockroach-poker/rules/index.ts')};
 import {rules as saladRules} from ${file('games/cockroach-salad/rules/index.ts')};
@@ -88,6 +89,8 @@ window.setup=(id,newRole,count=6,stage='opening')=>{current=fixtures[id];role=ne
  if(id==='salad'&&stage!=='opening'){if(stage==='overtime'){state=current.rules.applyAutomatic(state,current.rules.automaticAction(state).action,{seats:state.seats,random}).state;}else{state=current.rules.apply(state,{type:'answer',answer:'tomato'},self,{seats:state.seats,random}).state;}self=state.seats[1];}
  current.rules.validateState(state,state.seats);render();};
 window.setup('poker','player');
+window.pokerArtFiles=Array.from({length:64},(_,card)=>cardAssetFile(card));
+window.showPokerArt=()=>flushSync(()=>root.render(<main className="cp-theme"><div className="cp-hand">{Array.from({length:64},(_,card)=><PokerCard key={card} card={card}/>)}</div></main>));
 `,
 );
 let server, browser;
@@ -153,6 +156,89 @@ try {
       report.failures.push({ id, error: String(error) });
     }
   }
+  if (!densityOnly) {
+    await check('physical-poker-card-identity-and-all-64-images', async () => {
+      const kinds = [
+        'cockroach',
+        'stink-bug',
+        'bat',
+        'spider',
+        'fly',
+        'toad',
+        'rat',
+        'scorpion',
+      ];
+      assert.deepEqual(
+        await page.evaluate(() => window.pokerArtFiles),
+        kinds.flatMap((kind) =>
+          Array.from({ length: 8 }, (_, i) => `cards/${kind}-${i + 1}.jpg`),
+        ),
+        'Stable physical card IDs must select the corresponding eight illustrations',
+      );
+      await page.evaluate(() => window.showPokerArt());
+      const images = await page
+        .locator('main img')
+        .evaluateAll(async (nodes) => {
+          await Promise.all(nodes.map((node) => node.decode()));
+          return nodes.map((node) => ({
+            src: node.currentSrc,
+            width: node.naturalWidth,
+            height: node.naturalHeight,
+          }));
+        });
+      assert.equal(images.length, 64);
+      assert.equal(new Set(images.map((image) => image.src)).size, 64);
+      assert(
+        images.every((image) => image.width === 450 && image.height === 720),
+      );
+      report.checks.push({
+        id: 'physical-poker-image-details',
+        passed: true,
+        images,
+      });
+    });
+    await check('physical-salad-all-eight-faces-and-back', async () => {
+      const resources = [
+        ...['normal', 'taboo'].flatMap((type) =>
+          ['tomato', 'lettuce', 'cauliflower', 'pepper'].map(
+            (vegetable) => `${type}-${vegetable}.png`,
+          ),
+        ),
+        'back.png',
+      ];
+      const results = await page.evaluate(async (files) => {
+        const results = [];
+        for (const file of files) {
+          const url = `/assets/games/cockroach-salad/${file}`;
+          const response = await fetch(url);
+          const image = new Image();
+          image.src = url;
+          await image.decode();
+          results.push({
+            file,
+            status: response.status,
+            width: image.naturalWidth,
+            height: image.naturalHeight,
+          });
+        }
+        return results;
+      }, resources);
+      assert(
+        results.every(
+          (result) =>
+            result.status === 200 &&
+            result.width === 316 &&
+            result.height === 600,
+        ),
+        JSON.stringify(results),
+      );
+      report.checks.push({
+        id: 'physical-salad-image-details',
+        passed: true,
+        images: results,
+      });
+    });
+  }
   const sizes = [
     [320, 568],
     [390, 844],
@@ -172,22 +258,63 @@ try {
               role,
             });
             await page.locator('main').waitFor();
+            await page.evaluate(
+              () =>
+                new Promise((done) =>
+                  requestAnimationFrame(() => requestAnimationFrame(done)),
+                ),
+            );
             const result = await page.evaluate(async () => {
               await document.fonts.ready;
               await Promise.all(
                 [...document.images].map((i) => i.decode().catch(() => {})),
               );
               const main = document.querySelector('main');
+              const hand = document.querySelector('.cp-hand');
+              const answerImages = [
+                ...document.querySelectorAll('.salad-answer-buttons img'),
+              ].map((image) => {
+                const box = image.getBoundingClientRect();
+                const ratio = image.naturalWidth / image.naturalHeight;
+                return {
+                  width: Math.min(box.width, box.height * ratio),
+                  height: Math.min(box.height, box.width / ratio),
+                };
+              });
               const images = [...document.images].filter(
                 (i) => i.offsetParent !== null,
+              );
+              const svgImages = await Promise.all(
+                [...document.querySelectorAll('svg image')].map(
+                  async (node) => {
+                    const image = new Image();
+                    image.src = node.href.baseVal;
+                    await image.decode();
+                    return {
+                      src: node.href.baseVal,
+                      valid: image.naturalWidth > 0,
+                    };
+                  },
+                ),
               );
               return {
                 width: innerWidth,
                 scroll: document.documentElement.scrollWidth,
-                images: images.map((i) => ({
-                  src: i.getAttribute('src'),
-                  valid: i.complete && i.naturalWidth > 0,
-                })),
+                answerImages,
+                hand: hand
+                  ? {
+                      overflowing: hand.scrollWidth > hand.clientWidth + 1,
+                      hint: !!document.querySelector('.cp-hand-hint'),
+                      snap: getComputedStyle(hand).scrollSnapType,
+                    }
+                  : null,
+                images: [
+                  ...images.map((i) => ({
+                    src: i.getAttribute('src'),
+                    valid: i.complete && i.naturalWidth > 0,
+                  })),
+                  ...svgImages,
+                ],
                 small: [
                   ...main.querySelectorAll(
                     'button,strong,p,h1,h2,h3,legend,label,span',
@@ -207,6 +334,43 @@ try {
               };
             });
             assert(result.scroll <= result.width + 1, JSON.stringify(result));
+            if (game === 'poker' && role === 'player') {
+              assert.equal(result.hand.hint, result.hand.overflowing);
+              assert.equal(result.hand.snap, 'x mandatory');
+              if (width === 390) {
+                await page
+                  .locator('.cp-hand button')
+                  .last()
+                  .scrollIntoViewIfNeeded();
+                const finalCard = await page
+                  .locator('.cp-hand')
+                  .evaluate((hand) => {
+                    const bounds = hand.getBoundingClientRect();
+                    const card = hand.lastElementChild.getBoundingClientRect();
+                    return {
+                      left: card.left - bounds.left,
+                      right: bounds.right - card.right,
+                    };
+                  });
+                assert(
+                  finalCard.left >= -1 && finalCard.right >= -1,
+                  JSON.stringify(finalCard),
+                );
+                await page
+                  .locator('.cp-hand button')
+                  .first()
+                  .scrollIntoViewIfNeeded();
+              }
+            }
+            if (game === 'salad' && role === 'player' && width <= 800) {
+              assert.equal(result.answerImages.length, 5);
+              assert(
+                result.answerImages.every(
+                  (image) => image.width >= 24 && image.height >= 46,
+                ),
+                JSON.stringify(result.answerImages),
+              );
+            }
             assert(
               result.images.every((i) => i.valid),
               'Image decode: ' +
@@ -414,6 +578,15 @@ try {
   await server?.close();
   report.passed = report.failures.length === 0;
   await writeFile(reportPath, JSON.stringify(report, null, 2) + '\n');
+  if (process.env.TABLEMAX_TEST_OUTPUT_DIR)
+    await writeFile(
+      join(process.env.TABLEMAX_TEST_OUTPUT_DIR, 'results.json'),
+      JSON.stringify({
+        result: report.passed ? 'passed' : 'failed',
+        failures: report.failures.length,
+        report: reportPath,
+      }) + '\n',
+    );
 }
 console.log(
   JSON.stringify({

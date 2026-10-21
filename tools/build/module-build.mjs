@@ -9,7 +9,11 @@ import { build as esbuild } from 'esbuild';
 import { build as vite } from 'vite';
 import react from '@vitejs/plugin-react';
 import ts from 'typescript';
-import { mediaFile, gameResourcesPlugin } from './game-resources.mjs';
+import {
+  mediaFile,
+  gameResourcesPlugin,
+  discoverGameMedia,
+} from './game-resources.mjs';
 import { createRequire } from 'node:module';
 import { createHash } from 'node:crypto';
 import { applicationVersion } from '../shared/application-version.mjs';
@@ -28,7 +32,7 @@ import {
   access,
   realpath,
 } from 'node:fs/promises';
-import { resolve, join, relative, dirname } from 'node:path';
+import { resolve, join, relative, dirname, isAbsolute } from 'node:path';
 import {
   prepareDesktop,
   execute,
@@ -70,7 +74,7 @@ export async function introductionResourceInputs(item, workspace = root) {
       if (
         typeof path !== 'string' ||
         !path.startsWith(prefix) ||
-        !/^assets\/games\/[a-z][a-z0-9-]*\/(?:[a-zA-Z0-9_-]+\/)*[a-zA-Z0-9_-]+\.svg$/.test(
+        !/^assets\/games\/[a-z][a-z0-9-]*\/(?:[a-zA-Z0-9_-]+\/)*[a-zA-Z0-9_-]+\.(?:svg|png|jpg|jpeg|webp|gif)$/.test(
           path,
         )
       )
@@ -79,7 +83,7 @@ export async function introductionResourceInputs(item, workspace = root) {
       const info = await lstat(file);
       if (!info.isFile() || info.isSymbolicLink())
         throw new Error(
-          'Introduction illustration must be a regular SVG: ' + path,
+          'Introduction illustration must be a regular image: ' + path,
         );
       if (
         !posix(await realpath(file)).startsWith(
@@ -307,6 +311,13 @@ export async function inputsFor(unit, phase = createReadPhase('inputs')) {
     });
   const files = new Set(),
     globs = [];
+  if (unit.resourceDiscovery) {
+    const discovery = unit.resourceDiscovery;
+    const matches = await resourceDirectoryMatches(discovery);
+    if (JSON.stringify(matches) !== JSON.stringify(discovery.matches))
+      throw new Error('Game media changed during unit discovery: ' + unit.id);
+    globs.push({ ...discovery, matches });
+  }
   const options = {
     ...ts.convertCompilerOptionsFromJson(
       (await phase.json('tsconfig.json')).compilerOptions,
@@ -521,19 +532,21 @@ export async function validateInputs(
     )
       throw new Error('Inputs changed before snapshot: ' + record.id);
   for (const item of record.inputs.globs) {
-    const matches = globSync(
-      (item.patterns ?? [item.pattern]).map((pattern) =>
-        pattern.startsWith('!')
-          ? '!' + posix(resolve(root, pattern.slice(1)))
-          : posix(resolve(root, pattern)),
-      ),
-      {
-        absolute: true,
-        onlyFiles: true,
-      },
-    )
-      .sort()
-      .map((file) => posix(relative(root, file)));
+    const matches = item.mediaNamespace
+      ? await resourceDirectoryMatches(item)
+      : globSync(
+          (item.patterns ?? [item.pattern]).map((pattern) =>
+            pattern.startsWith('!')
+              ? '!' + posix(resolve(root, pattern.slice(1)))
+              : posix(resolve(root, pattern)),
+          ),
+          {
+            absolute: true,
+            onlyFiles: true,
+          },
+        )
+          .sort()
+          .map((file) => posix(relative(root, file)));
     if (JSON.stringify(matches) !== JSON.stringify(item.matches))
       throw new Error('Glob changed before snapshot: ' + record.id);
   }
@@ -640,7 +653,12 @@ async function compile(unit, out) {
     for (const file of unit.inputs) {
       const target = join(
         out,
-        posix(relative(resolve('assets/games', unit.module.id), resolve(file))),
+        posix(
+          relative(
+            resolve(unit.resourceRoot ?? `assets/games/${unit.module.id}`),
+            resolve(file),
+          ),
+        ),
       );
       await mkdir(dirname(target), { recursive: true });
       await copyFile(resolve(file), target);
@@ -944,18 +962,75 @@ export async function unitsFor(
         ...(await introductionResourceInputs(item)),
       ]),
     ];
-    for (const part of ['common', 'variant']) {
-      const inputs = media.filter(
-        (path) => path.includes('/expansion/') === (part === 'variant'),
-      );
-      if (inputs.length)
-        units.push({
-          id: `game-${item.id}-resources-${part}`,
-          kind: 'resources',
-          module: item,
-          inputs,
-        });
-    }
+    units.push(...(await gameResourceUnits(item, media)));
   }
   return units;
+}
+
+async function resourceDirectoryMatches(discovery) {
+  const workspace = resolve(root, discovery.workspace);
+  return (await discoverGameMedia({ id: discovery.mediaNamespace }, workspace))
+    .map((path) => posix(relative(root, resolve(workspace, path))))
+    .filter(
+      (path) =>
+        resourcePart(path, discovery.mediaNamespace, workspace) ===
+        discovery.part,
+    )
+    .sort();
+}
+
+function resourcePart(file, gameId, workspace) {
+  const path = posix(
+    relative(resolve(workspace, 'assets/games', gameId), resolve(root, file)),
+  );
+  return path.split('/').slice(0, -1).includes('expansion')
+    ? 'variant'
+    : 'common';
+}
+
+/** Resource units share production discovery with isolated future-module fixtures. */
+export async function gameResourceUnits(
+  item,
+  importedMedia = [],
+  workspace = root,
+) {
+  const namespace = resolve(workspace, 'assets/games', item.id);
+  const discovered = (await discoverGameMedia(item, workspace)).map((path) =>
+    posix(relative(root, resolve(workspace, path))),
+  );
+  const media = [...new Set([...importedMedia, ...discovered])].sort();
+  for (const file of media) {
+    const location = relative(namespace, resolve(root, file));
+    if (
+      isAbsolute(location) ||
+      location === '..' ||
+      location.startsWith('..\\') ||
+      location.startsWith('../')
+    )
+      throw new Error('Resource belongs to another game: ' + file);
+  }
+  return ['common', 'variant'].flatMap((part) => {
+    const inputs = media.filter(
+      (path) => resourcePart(path, item.id, workspace) === part,
+    );
+    return inputs.length
+      ? [
+          {
+            id: `game-${item.id}-resources-${part}`,
+            kind: 'resources',
+            module: item,
+            inputs,
+            resourceRoot: posix(relative(root, namespace)),
+            resourceDiscovery: {
+              mediaNamespace: item.id,
+              workspace: posix(relative(root, resolve(workspace))) || '.',
+              part,
+              matches: discovered.filter(
+                (path) => resourcePart(path, item.id, workspace) === part,
+              ),
+            },
+          },
+        ]
+      : [];
+  });
 }

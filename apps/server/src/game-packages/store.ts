@@ -547,8 +547,12 @@ export class PackageStore {
       )
         throw new Error('runtime-path-escape');
       for (let cursor = absolute; ; cursor = dirname(cursor)) {
-        if (existsSync(cursor) && lstatSync(cursor).isSymbolicLink())
-          throw new Error('runtime-link-rejected');
+        try {
+          if (lstatSync(cursor).isSymbolicLink())
+            throw new Error('runtime-link-rejected');
+        } catch (error) {
+          if ((error as NodeJS.ErrnoException).code !== 'ENOENT') throw error;
+        }
         if (dirname(cursor) === cursor) break;
       }
     };
@@ -843,8 +847,12 @@ export class PackageStore {
       throw new Error('store-path-escape');
     let cursor = absolute;
     for (;;) {
-      if (existsSync(cursor) && lstatSync(cursor).isSymbolicLink())
-        throw new Error('store-link-rejected');
+      try {
+        if (lstatSync(cursor).isSymbolicLink())
+          throw new Error('store-link-rejected');
+      } catch (error) {
+        if ((error as NodeJS.ErrnoException).code !== 'ENOENT') throw error;
+      }
       const parent = dirname(cursor);
       if (parent === cursor) break;
       cursor = parent;

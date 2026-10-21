@@ -10,7 +10,9 @@ import { writeFile } from 'node:fs/promises';
 import { normalizeBuiltExecutableSecurity } from '../shared/windows-executable-security.mjs';
 import { createDevelopmentSession } from './session.mjs';
 
-await buildProject();
+// Desktop/test arguments must never turn this full development assembly into
+// a partial --only build and then launch a stale build/desktop directory.
+await buildProject([]);
 // A build directory can inherit a sandbox Low label. Starting that EXE from a
 // normal terminal still makes the box Low, where Windows can ignore browser
 // activation. Normalize only this freshly built, marked development entry.

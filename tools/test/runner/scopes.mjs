@@ -167,6 +167,13 @@ const verificationScopes = {
   'tools/release/published-release-replacement.test.mjs': ['tooling'],
   'tools/dev/session.test.mjs': ['tooling'],
   'tools/dev/verify-session.mjs': ['tooling'],
+  'tools/build/module-efficiency.test.mjs': ['tooling'],
+  'tools/build/setup-desktop.test.mjs': ['tooling'],
+  'tools/dev/verify-game-resources.mjs': [
+    'tooling',
+    'game:cockroach-poker',
+    'game:cockroach-salad',
+  ],
   'tools/shared/windows-executable-security.test.mjs': ['tooling'],
   'tools/test/platform/verify-save-overlay.mjs': [
     'box',

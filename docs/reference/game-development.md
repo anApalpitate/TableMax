@@ -41,6 +41,8 @@ SDK 正文见 [源码](../../packages/game-sdk/src/index.ts)。`decisions(state)
 
 盒子目录分类在 `game-module.json` 的 `library.tags`维护，例如卡牌、家庭、策略；可选 `library.searchTerms`补充英文名、常用别名或玩法关键词。名称、分类、别名、玩法名称／摘要与ID参与检索，人数筛选使用 `catalog.min/max`。浏览目录只保留这些字段和小封面，完整图文规则及人机说明按已验证的精确预装发行读取，不进入搜索数据；缺少分类时显示“未分类”，正式游戏应填写适用tag。
 
+图文规则步骤的 `illustration` 使用本游戏 `assets/games/<id>/` 内的本地 SVG、PNG、JPG、JPEG、WebP 或 GIF 图片，构建时校验实际文件并收入对应冻结资源单元；不接受远程地址、跨游戏路径、路径越界或音频、PDF、JSON 等非图片。游戏媒体按清单ID自动发现，并保留源码导入与glob依赖跟踪，动态 `resourceUrl` 无需额外收录名单；旧局仍使用其原发行资源。
+
 元数据由[公共投影入口](../../packages/game-sdk/src/metadata.mjs)按用途生成：`GameCatalogEntry`是盒子浏览白名单，`RuntimeModuleManifest`供服务／Worker核验入口、兼容版本和预算，`GameWebManifest`只供浏览器加载网页入口及样式，`GameDetails`承载完整介绍、人机说明与引导能力。新发行将详情放在代码包 `web/details.json`，作者不维护第二份重复正文；按当前实例的精确发行读取。内部签名目录由预装／历史加载层核验，浏览器不读取整份内部仓库索引或签名发行描述。具体四类职责见[工程结构](architecture.md#独立发行与公共契约2026-10-11)。
 
 ## 注册与策略替换

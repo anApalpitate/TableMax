@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readFile } from 'node:fs/promises';
+import { mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
+import { resolve, join } from 'node:path';
 import { introductionResourceInputs } from './module-build.mjs';
 import {
   projectGameCatalog,
@@ -45,13 +46,16 @@ test('legacy manifests without illustration fields retain their existing inputs'
   assert.deepEqual(await introductionResourceInputs(module), []);
 });
 
-test('resource collector rejects remote, cross-game, escape and non-SVG paths', async () => {
+test('resource collector rejects remote, cross-game, escape and non-image paths', async () => {
   for (const illustration of [
     'https://example.com/introduction.svg',
     'assets/games/uno/introduction-1-v1.svg',
     'assets/games/pokemon-encounters/../uno/introduction-1-v1.svg',
     'assets/games/pokemon-encounters/expansion/../../introduction-1-v1.svg',
-    'assets/games/pokemon-encounters/cover-catalog-v2.webp',
+    'assets/games/pokemon-encounters/voice.wav',
+    'assets/games/pokemon-encounters/voice.mp3',
+    'assets/games/pokemon-encounters/rules.pdf',
+    'assets/games/pokemon-encounters/sources.json',
     7,
   ])
     await assert.rejects(
@@ -61,6 +65,43 @@ test('resource collector rejects remote, cross-game, escape and non-SVG paths', 
       }),
       /Invalid introduction illustration/,
     );
+});
+
+test('local rule illustrations accept PNG, JPEG, WebP and GIF alongside SVG', async (t) => {
+  await mkdir('tmp', { recursive: true });
+  const workspace = await mkdtemp(resolve('tmp/introduction-images-'));
+  t.after(() => rm(workspace, { recursive: true, force: true }));
+  const prefix = 'assets/games/future-table/';
+  await mkdir(join(workspace, prefix), { recursive: true });
+  const paths = ['svg', 'png', 'jpg', 'jpeg', 'webp', 'gif'].map(
+    (extension) => prefix + 'rule.' + extension,
+  );
+  for (const path of paths)
+    await writeFile(join(workspace, path), 'image fixture');
+  assert.deepEqual(
+    await introductionResourceInputs(
+      {
+        id: 'future-table',
+        introduction: {
+          steps: paths.map((illustration) => ({ illustration })),
+        },
+      },
+      workspace,
+    ),
+    paths.sort(),
+  );
+});
+
+test('current salad PNG illustrations join their frozen resource inputs', async () => {
+  const module = JSON.parse(
+    await readFile('games/cockroach-salad/game-module.json', 'utf8'),
+  );
+  const paths = await introductionResourceInputs(module);
+  assert.deepEqual(paths, [
+    'assets/games/cockroach-salad/back.png',
+    'assets/games/cockroach-salad/normal-tomato.png',
+    'assets/games/cockroach-salad/taboo-pepper.png',
+  ]);
 });
 
 test('resource collector rejects a missing local SVG instead of freezing an absent image', async () => {

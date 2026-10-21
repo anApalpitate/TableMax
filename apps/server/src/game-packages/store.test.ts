@@ -1,4 +1,6 @@
-import { describe, it, expect, afterEach } from 'vitest';
+import { describe, it, expect, afterEach, vi } from 'vitest';
+import fs from 'node:fs';
+import { syncBuiltinESMExports } from 'node:module';
 import { generateKeyPairSync, sign } from 'node:crypto';
 import {
   mkdtempSync,
@@ -7,6 +9,7 @@ import {
   readFileSync,
   mkdirSync,
   existsSync,
+  symlinkSync,
 } from 'node:fs';
 import { resolve, join } from 'node:path';
 import {
@@ -62,6 +65,164 @@ const roots: string[] = [];
 afterEach(() => {
   for (const root of roots.splice(0))
     rmSync(root, { recursive: true, force: true });
+});
+
+function developmentFixture() {
+  const f = fixture();
+  const runtime = join(f.root, 'runtime');
+  const module = structuredClone(f.release.module);
+  module.entries = {
+    rules: 'games/uno.cjs',
+    bot: 'bots/uno.cjs',
+    web: '/games/uno/web/entry.js',
+  };
+  module.styles = [];
+  for (const directory of ['games', 'bots', 'web/games/uno/web'])
+    mkdirSync(join(runtime, directory), { recursive: true });
+  writeFileSync(join(runtime, 'modules.json'), JSON.stringify([module]));
+  writeFileSync(join(runtime, module.entries.rules), 'exact development rules');
+  writeFileSync(join(runtime, module.entries.bot), 'exact development bot');
+  writeFileSync(join(runtime, 'web/games/uno/web/entry.js'), 'exact web');
+  const options = {
+    root: join(f.root, 'nested/missing/parents/packages'),
+    publicKey: f.publicKey,
+    protectedReleaseIds: () => [],
+    development: true,
+  };
+  return { ...f, runtime, module, options };
+}
+
+describe('development runtime path checks', () => {
+  it('creates absent parent directories and rejects damaged or extra installed files on reopening', () => {
+    for (const kind of ['damaged', 'extra']) {
+      const f = developmentFixture();
+      const store = new LocalModuleStore(f.options);
+      store.loadDevelopment(f.runtime);
+      const ref = store.current('uno')!.releaseId;
+      const installed = store.resolveModule(ref)!;
+      expect(installed).toBeDefined();
+      writeFileSync(
+        join(
+          installed.root,
+          kind === 'extra' ? 'extra.txt' : f.module.entries.rules,
+        ),
+        'unexpected bytes',
+      );
+      const reopened = new LocalModuleStore(f.options);
+      expect(reopened.resolveModule(ref)).toBeUndefined();
+      expect(reopened.snapshot().unavailableReleaseIds).toContain(ref);
+    }
+  });
+
+  it('rejects an installed-store ancestor junction without touching its target', () => {
+    const f = developmentFixture();
+    const outside = join(f.root, 'outside');
+    mkdirSync(outside);
+    writeFileSync(join(outside, 'sentinel'), 'preserved');
+    symlinkSync(
+      outside,
+      join(f.root, 'linked'),
+      process.platform === 'win32' ? 'junction' : 'dir',
+    );
+    expect(
+      () =>
+        new LocalModuleStore({
+          ...f.options,
+          root: join(f.root, 'linked/packages'),
+        }),
+    ).toThrow('store-link-rejected');
+    expect(readFileSync(join(outside, 'sentinel'), 'utf8')).toBe('preserved');
+    expect(existsSync(join(outside, 'packages'))).toBe(false);
+  });
+
+  it('rejects a runtime ancestor junction and rules-file symlink metadata', () => {
+    const f = developmentFixture();
+    const store = new LocalModuleStore(f.options);
+    const alias = join(f.root, 'runtime-alias');
+    symlinkSync(
+      f.runtime,
+      alias,
+      process.platform === 'win32' ? 'junction' : 'dir',
+    );
+    expect(() => store.loadDevelopment(alias)).toThrow('runtime-link-rejected');
+    const rulesPath = join(f.runtime, f.module.entries.rules);
+    const outside = join(f.root, 'outside-rules.cjs');
+    writeFileSync(outside, 'preserved source');
+    rmSync(rulesPath);
+    let restore = () => {};
+    try {
+      symlinkSync(outside, rulesPath, 'file');
+    } catch (error) {
+      if (
+        process.platform !== 'win32' ||
+        (error as NodeJS.ErrnoException).code !== 'EPERM'
+      )
+        throw error;
+      // Standard Windows accounts can create junctions but require an extra
+      // privilege for file symlinks. Keep the real junction check above and
+      // inject only the unavailable file's OS metadata for this rejection.
+      writeFileSync(rulesPath, 'unread placeholder');
+      const original = fs.lstatSync;
+      const mocked = vi.spyOn(fs, 'lstatSync').mockImplementation(((
+        path: fs.PathLike,
+        options?: unknown,
+      ) => {
+        const info = original(path, options as never);
+        return resolve(String(path)) === rulesPath
+          ? Object.assign(Object.create(info), { isSymbolicLink: () => true })
+          : info;
+      }) as typeof fs.lstatSync);
+      syncBuiltinESMExports();
+      restore = () => {
+        mocked.mockRestore();
+        syncBuiltinESMExports();
+      };
+      console.info(
+        'File symlink creation denied by Windows EPERM; injected lstat symlink metadata for this case.',
+      );
+    }
+    try {
+      expect(() => store.loadDevelopment(f.runtime)).toThrow(
+        'runtime-link-rejected',
+      );
+    } finally {
+      restore();
+    }
+    expect(readFileSync(outside, 'utf8')).toBe('preserved source');
+  });
+
+  it('propagates permission and ENOTDIR failures instead of treating them as absent paths', () => {
+    const original = fs.lstatSync;
+    for (const code of ['EACCES', 'ENOTDIR']) {
+      const f = developmentFixture();
+      const error = Object.assign(new Error('path check ' + code), { code });
+      const mocked = vi.spyOn(fs, 'lstatSync').mockImplementation(((
+        path: fs.PathLike,
+        options?: unknown,
+      ) => {
+        if (resolve(String(path)) === f.options.root) throw error;
+        return original(path, options as never);
+      }) as typeof fs.lstatSync);
+      syncBuiltinESMExports();
+      try {
+        expect(() => new LocalModuleStore(f.options)).toThrow(error);
+      } finally {
+        mocked.mockRestore();
+        syncBuiltinESMExports();
+      }
+    }
+  });
+
+  it('rejects escaping runtime entries before materializing them', () => {
+    const f = developmentFixture();
+    f.module.entries.rules = '../outside.cjs';
+    writeFileSync(join(f.runtime, 'modules.json'), JSON.stringify([f.module]));
+    const store = new LocalModuleStore(f.options);
+    expect(() => store.loadDevelopment(f.runtime)).toThrow(
+      'invalid-legacy-entry',
+    );
+    expect(store.current('uno')).toBeUndefined();
+  });
 });
 function zip(files: [string, Buffer][], mode = 0): Buffer {
   const locals: Buffer[] = [],

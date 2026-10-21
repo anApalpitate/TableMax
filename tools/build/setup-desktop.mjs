@@ -49,6 +49,60 @@ async function exists(file) {
     return false;
   }
 }
+async function runNodeArchiveTask(script, archivePath, runtimePath) {
+  await execute(
+    'powershell.exe',
+    [
+      '-NoProfile',
+      '-NonInteractive',
+      '-EncodedCommand',
+      Buffer.from(
+        '$ErrorActionPreference = "Stop"; Add-Type -AssemblyName System.IO.Compression.FileSystem; ' +
+          '$taskZip = [IO.Compression.ZipFile]::OpenRead($env:TABLEMAX_NODE_ARCHIVE); try { ' +
+          script +
+          ' } finally { $taskZip.Dispose() }',
+        'utf16le',
+      ).toString('base64'),
+    ],
+    {
+      // Development foundation IPC intentionally keeps the parent's stdin open.
+      // Archive work is noninteractive and must never consume that pipe.
+      stdio: ['ignore', 'inherit', 'inherit'],
+      timeout: 60_000,
+      env: {
+        ...process.env,
+        TABLEMAX_NODE_ARCHIVE: resolve(archivePath),
+        TABLEMAX_NODE_RUNTIME: resolve(runtimePath),
+      },
+    },
+  );
+}
+export async function extractNodeRuntimeArchive(archivePath, runtimePath) {
+  await runNodeArchiveTask(
+    'foreach ($taskName in @("node.exe", "LICENSE")) { ' +
+      '$taskEntry = $taskZip.GetEntry("node-v22.14.0-win-x64/" + $taskName); ' +
+      'if ($null -eq $taskEntry) { throw "Missing runtime archive entry: $taskName" }; ' +
+      '[IO.Compression.ZipFileExtensions]::ExtractToFile($taskEntry, (Join-Path $env:TABLEMAX_NODE_RUNTIME $taskName), $true) }',
+    archivePath,
+    runtimePath,
+  );
+}
+export async function verifyNodeRuntimeArchive(archivePath, runtimePath) {
+  await runNodeArchiveTask(
+    'foreach ($taskName in @("node.exe", "LICENSE")) { ' +
+      '$taskEntry = $taskZip.GetEntry("node-v22.14.0-win-x64/" + $taskName); ' +
+      'if ($null -eq $taskEntry) { throw "Missing runtime archive entry: $taskName" }; ' +
+      '$taskEntryStream = $taskEntry.Open(); $taskSha = [Security.Cryptography.SHA256]::Create(); try { ' +
+      '$taskExpected = [BitConverter]::ToString($taskSha.ComputeHash($taskEntryStream)).Replace("-", "").ToLowerInvariant(); ' +
+      '$taskCachedStream = [IO.File]::OpenRead((Join-Path $env:TABLEMAX_NODE_RUNTIME $taskName)); try { ' +
+      '$taskActual = [BitConverter]::ToString($taskSha.ComputeHash($taskCachedStream)).Replace("-", "").ToLowerInvariant() ' +
+      '} finally { $taskCachedStream.Dispose() }; ' +
+      'if ($taskExpected -ne $taskActual) { throw "Cached runtime hash mismatch: $taskName" } ' +
+      '} finally { $taskEntryStream.Dispose(); $taskSha.Dispose() } }',
+    archivePath,
+    runtimePath,
+  );
+}
 export async function prepareDesktop() {
   if (process.platform !== 'win32' || process.arch !== 'x64')
     throw new Error('This project targets Windows x64');
@@ -76,38 +130,10 @@ export async function prepareDesktop() {
     !(await exists(join(nodeRuntime, 'node.exe'))) ||
     !(await exists(join(nodeRuntime, 'LICENSE')))
   ) {
-    await execute(
-      'powershell.exe',
-      [
-        '-NoProfile',
-        '-Command',
-        '$ErrorActionPreference = "Stop"; Add-Type -AssemblyName System.IO.Compression.FileSystem; $zip = [IO.Compression.ZipFile]::OpenRead($env:TABLEMAX_NODE_ARCHIVE); try { foreach ($name in @("node.exe", "LICENSE")) { $entry = $zip.GetEntry("node-v22.14.0-win-x64/" + $name); [IO.Compression.ZipFileExtensions]::ExtractToFile($entry, (Join-Path $env:TABLEMAX_NODE_RUNTIME $name), $true) } } finally { $zip.Dispose() }',
-      ],
-      {
-        env: {
-          ...process.env,
-          TABLEMAX_NODE_ARCHIVE: archive,
-          TABLEMAX_NODE_RUNTIME: nodeRuntime,
-        },
-      },
-    );
+    await extractNodeRuntimeArchive(archive, nodeRuntime);
   }
   // Validate the installed cache against entries in the verified official archive.
-  await execute(
-    'powershell.exe',
-    [
-      '-NoProfile',
-      '-Command',
-      '$ErrorActionPreference = "Stop"; Add-Type -AssemblyName System.IO.Compression.FileSystem; $zip = [IO.Compression.ZipFile]::OpenRead($env:TABLEMAX_NODE_ARCHIVE); try { foreach ($name in @("node.exe", "LICENSE")) { $entry = $zip.GetEntry("node-v22.14.0-win-x64/" + $name); $input = $entry.Open(); $sha = [Security.Cryptography.SHA256]::Create(); try { $expected = [BitConverter]::ToString($sha.ComputeHash($input)).Replace("-", "").ToLowerInvariant(); $cached = [IO.File]::OpenRead((Join-Path $env:TABLEMAX_NODE_RUNTIME $name)); try { $actual = [BitConverter]::ToString($sha.ComputeHash($cached)).Replace("-", "").ToLowerInvariant() } finally { $cached.Dispose() }; if ($expected -ne $actual) { throw "Cached runtime hash mismatch: $name" } } finally { $input.Dispose(); $sha.Dispose() } } } finally { $zip.Dispose() }',
-    ],
-    {
-      env: {
-        ...process.env,
-        TABLEMAX_NODE_ARCHIVE: archive,
-        TABLEMAX_NODE_RUNTIME: nodeRuntime,
-      },
-    },
-  );
+  await verifyNodeRuntimeArchive(archive, nodeRuntime);
   console.log(
     'Verified official Windows x64 Node ' + nodeVersion + ': ' + actual,
   );

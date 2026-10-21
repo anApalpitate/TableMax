@@ -16,16 +16,23 @@ node tools/dev/dev.mjs
 
 每次启动使用本次构建的游戏代码和网页；开发入口不保留跨次对局。要检查存档恢复可用`pnpm start`启动已有桌面构建并明确配置数据目录，该入口沿用原持久化行为。输出为`build/`，进程占用期间维护保持阻塞；需要保留开发诊断日志时须在退出前从本次会话复制。
 
+构建按每个`game-module.json`的ID递归发现`assets/games/<id>/`内现有媒体扩展的资源，合并源码导入和glob依赖；动态`resourceUrl(id, import.meta.url)`也能取得当前发行自己的资源，新游戏无需补中心名单或仅为收录资源而添加glob。普通／扩展资源分别入对应单元，不重复收录；PDF、JSON等原始资料不作为媒体输出，链接和跨游戏资源拒绝。资源新增、删除或内容变化重新绑定对应单元。开发启动始终完成全套开发组装，传给桌面程序的参数不会把它改成局部构建后误开旧目录；退出已运行旧盒子后再重启才能加载本次快照，旧存档继续固定其原发行。
+
 [开发环境](../../docs/reference/development.md)维护具体运行要求；[工具总索引](../README.md)用于按任务定位。下表覆盖本分类文件，内部辅助不作为独立业务命令。
 
-| 工具                                     | 入口／用途                                                                                                                  |
-| ---------------------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
-| [dev.mjs](dev.mjs)                       | `pnpm dev`                                                                                                                  |
-| [launch.mjs](launch.mjs)                 | `pnpm start`                                                                                                                |
-| [session.mjs](session.mjs)               | 开发会话隔离与限于本次目录的清理                                                                                            |
-| [session.test.mjs](session.test.mjs)     | 隔离、旧数据保护与链接替换防护单测                                                                                          |
-| [verify-session.mjs](verify-session.mjs) | 使用相同会话提供器连续启动两次现有原生构建，隐藏静音、仅回环；验证首次数据库、实际WebView2目录及退出清理，不重建运行中的EXE |
+| 工具                                                   | 入口／用途                                                                                                                                     |
+| ------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| [dev.mjs](dev.mjs)                                     | `pnpm dev`                                                                                                                                     |
+| [launch.mjs](launch.mjs)                               | `pnpm start`                                                                                                                                   |
+| [session.mjs](session.mjs)                             | 开发会话隔离与限于本次目录的清理                                                                                                               |
+| [session.test.mjs](session.test.mjs)                   | 隔离、旧数据保护与链接替换防护单测                                                                                                             |
+| [verify-session.mjs](verify-session.mjs)               | 使用相同会话提供器连续启动两次现有原生构建，隐藏静音、仅回环；验证首次数据库、实际WebView2目录及退出清理，不重建运行中的EXE                    |
+| [verify-game-resources.mjs](verify-game-resources.mjs) | 连接独立启动的开发会话：`--cdp-port=<本机测试CDP端口> --evidence=<新名称>`，核对两款实体牌游戏的实际发行资源字节、图像解码及主机／模拟手机渲染 |
 
 两项会话检查归`tooling`范围，通过[范围检查入口](../test/README.md#计划预设与业务入口)的显式计划执行；单测使用version 2与`nodeArgs:["--test"]`，原生检查使用普通Node。后者不等同于完整开发命令的构建／启动验收，也不代表安装器或实体手机证明。
 
-2026-10-21定向回归：四项隔离／数据保护单测通过；使用现有原生构建连续两次启动均为数据库首次启动，实际WebView2目录不同，退出清理完成，旧目录及外部目录内容保留。证据为`artifacts/maintenance/dev-session-h1I7Rv/report.json`。完整开发命令在组装阶段因现有开发盒子占用而停止，原失败记录保留，未关闭原实例或重写其构建目录。
+实体牌资源检查归`tooling,game:cockroach-poker,game:cockroach-salad`。先独立启动实际`node tools/dev/dev.mjs --foundation-test`并为该进程设置隔离数据、`TABLEMAX_TEST_CDP_PORT`、静音及回环地址，待构建和隐藏原生窗口就绪后，再由范围计划运行上述连接检查；工程占用保护继续阻止同一构建树中的其他活动进程，不将等待构建的验收器冒充空闲协调器。验证器只断开自己的CDP连接，原开发进程由启动者正常退出。
+
+2026-10-21实体牌资源回归：[实际开发命令](../../artifacts/maintenance/cockroach-art-integration-20261021/direct-launch-final.json)构建、原生启动及正常退出通过；[资源证明](../../artifacts/maintenance/dev-game-resources/physical-art-final-r4-20261021/report.json)核对德国小强和蟑螂沙拉97个资源，并验证主机与模拟手机显示实体牌图。新增游戏资源自动发现及安全回归见[源码验收](../../docs/reference/acceptance.md#实体牌美术与开发资源加载2026-10-21)。不生成新安装器，不代表实体手机或真实LAN验收。
+
+2026-10-21早期隔离回归：四项隔离／数据保护单测通过；使用现有原生构建连续两次启动均为数据库首次启动，实际WebView2目录不同，退出清理完成，旧目录及外部目录内容保留。证据为`artifacts/maintenance/dev-session-h1I7Rv/report.json`。当时完整开发命令在组装阶段因现有开发盒子占用而停止，原失败记录保留，未关闭原实例或重写其构建目录；后续完整命令证明见上段。
