@@ -1,16 +1,14 @@
 import {
   normalizePlayerName,
   playerNameError,
-  playerNameLength,
-  PLAYER_NAME_LIMIT_HINT,
   PLAYER_NAME_INPUT_LIMIT,
-  PLAYER_NAME_MAX_UNITS,
   type BotDifficulty,
 } from '@tablemax/protocol';
 import { useRef, useState } from 'react';
 import type { RoomSession } from '../session/useRoomSession';
 import { OverlayPanel } from './OverlayPanel';
 import { feedbackText } from '../content/feedback';
+import { useNotifications } from './notifications/context';
 import { avatarFor } from '../assets/avatars';
 import './seat-settings.css';
 
@@ -30,6 +28,8 @@ export function SeatSettings({
   const { view, isHost, canManageSeats, locked, command } = session;
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [operation, setOperation] = useState<'menu' | 'rename'>('menu');
+  const notifications = useNotifications();
+  const [nameRejected, setNameRejected] = useState(false);
   const [draftName, setDraftName] = useState('');
   const [hint, setHint] = useState('');
   const nameInput = useRef<HTMLInputElement>(null);
@@ -41,6 +41,7 @@ export function SeatSettings({
   const close = () => {
     setSelectedId(null);
     setHint('');
+    setNameRejected(false);
   };
   return (
     <>
@@ -188,8 +189,13 @@ export function SeatSettings({
             className="seat-settings-rename-form"
             onSubmit={(event) => {
               event.preventDefault();
+              if (nameError) {
+                setNameRejected(true);
+                notifications?.show(nameError, 'error');
+                return;
+              }
               const name = normalizePlayerName(draftName);
-              if (!locked && name && !nameError) {
+              if (!locked && name) {
                 if (name !== selected.name)
                   command({
                     type: 'set-seat-name',
@@ -208,16 +214,13 @@ export function SeatSettings({
               aria-description={feedbackText('seats.nameNormalization')}
               value={draftName}
               maxLength={PLAYER_NAME_INPUT_LIMIT}
-              aria-invalid={Boolean(draftName.trim() && nameError)}
-              aria-describedby="player-seat-name-length"
+              aria-invalid={nameRejected}
               disabled={locked}
-              onChange={(event) => setDraftName(event.target.value)}
+              onChange={(event) => {
+                setNameRejected(false);
+                setDraftName(event.target.value);
+              }}
             />
-            <p id="player-seat-name-length" className="seat-settings-hint">
-              {draftName.trim() && nameError
-                ? nameError
-                : `${PLAYER_NAME_LIMIT_HINT} · ${playerNameLength(draftName)}/${PLAYER_NAME_MAX_UNITS}`}
-            </p>
             <div className="dialog-actions">
               <button type="button" className="secondary" onClick={close}>
                 取消
@@ -226,7 +229,6 @@ export function SeatSettings({
                 disabled={
                   locked ||
                   !draftName.trim() ||
-                  Boolean(nameError) ||
                   draftName.trim() === selected.name
                 }
               >

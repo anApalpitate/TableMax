@@ -3,10 +3,7 @@ import { useState } from 'react';
 import {
   AVATAR_PRESETS,
   playerNameError,
-  playerNameLength,
-  PLAYER_NAME_LIMIT_HINT,
   PLAYER_NAME_INPUT_LIMIT,
-  PLAYER_NAME_MAX_UNITS,
   type AvatarId,
   type BotDifficulty,
 } from '@tablemax/protocol';
@@ -42,6 +39,7 @@ import { DeviceTransfer } from '../components/DeviceTransfer';
 import { RepositoryLink } from '../components/RepositoryLink';
 import { ApplicationUpdate } from '../components/ApplicationUpdate';
 import { feedbackText } from '../content/feedback';
+import { useNotifications } from '../components/notifications/context';
 import { navigate } from '../navigation';
 import { useSeatRemoval } from '../components/useSeatRemoval';
 import './box-refinements.css';
@@ -72,6 +70,8 @@ export function BoxScreen({ session }: { session: RoomSession }) {
 }
 
 function BoxScreenContent({ session }: { session: RoomSession }) {
+  const notifications = useNotifications();
+  const [nameRejected, setNameRejected] = useState(false);
   const removal = useSeatRemoval(session);
   const [difficulty, setDifficulty] = useState<BotDifficulty>('default');
   const [panel, setPanel] = useState<BoxPanel>(null);
@@ -347,11 +347,15 @@ function BoxScreenContent({ session }: { session: RoomSession }) {
                 className="join-table"
                 onSubmit={(event) => {
                   event.preventDefault();
+                  if (nameError) {
+                    setNameRejected(true);
+                    notifications?.show(nameError, 'error');
+                    return;
+                  }
                   if (
                     !locked &&
                     !transfer.pending &&
                     name.trim() &&
-                    !nameError &&
                     avatarAvailable
                   )
                     void join(
@@ -396,10 +400,12 @@ function BoxScreenContent({ session }: { session: RoomSession }) {
                         )}
                         value={name}
                         maxLength={PLAYER_NAME_INPUT_LIMIT}
-                        aria-invalid={Boolean(name.trim() && nameError)}
-                        aria-describedby="nickname-length-hint"
+                        aria-invalid={nameRejected}
                         disabled={busy || session.admissionPending}
-                        onChange={(event) => setName(event.target.value)}
+                        onChange={(event) => {
+                          setNameRejected(false);
+                          setName(event.target.value);
+                        }}
                       />
                       <button
                         disabled={
@@ -407,18 +413,12 @@ function BoxScreenContent({ session }: { session: RoomSession }) {
                           session.admissionPending ||
                           transfer.pending ||
                           !name.trim() ||
-                          Boolean(nameError) ||
                           !avatarAvailable
                         }
                       >
                         加入
                       </button>
                     </div>
-                    <p id="nickname-length-hint">
-                      {name.trim() && nameError
-                        ? nameError
-                        : `${PLAYER_NAME_LIMIT_HINT} · ${playerNameLength(name)}/${PLAYER_NAME_MAX_UNITS}`}
-                    </p>
                   </div>
                 </div>
                 {!avatarAvailable && (
