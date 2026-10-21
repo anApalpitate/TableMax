@@ -10,6 +10,15 @@ node tools/dev/dev.mjs
 
 开发启动会对刚构建且有`.tablemax-development.json`标记的`build/desktop/TableMax.exe`执行单文件Low→Medium完整性标签修正，防止从沙箱构建继承Low后系统浏览器激活无响应；原字节、属主、DACL、附加流及签名状态须完全保留，异常标签／下载标记仍拒绝。回执为`build/desktop/.tablemax-development-security.json`。不修改目录、源Node或正式交付EXE。默认回环模式只显示本机加入地址，供本机浏览器使用，不能用于手机扫码。
 
+手机局域网联机时，在当前PowerShell会话显式指定监听地址后启动：
+
+```powershell
+$env:TABLEMAX_HOST = '0.0.0.0'
+node tools/dev/dev.mjs
+```
+
+手机与电脑连接同一局域网，在手机使用盒子中可达的电脑IPv4地址，例如`http://192.168.1.10:38473/player`；不要在手机使用`127.0.0.1`。更改监听地址须先退出原开发盒子，再重新启动上述命令；启动脚本不会重配置已运行的服务。恢复本机模式可执行`Remove-Item Env:TABLEMAX_HOST -ErrorAction SilentlyContinue`后再启动。本入口不自动修改Windows防火墙规则。
+
 2026-10-20本机回归：原路径开发EXE实际为非提权Medium，可信外链与拒绝用例通过；隐藏浏览器访问实际回环加入网址并显示玩家盒子。证据为`artifacts/maintenance/dev-join-20261020/`。默认浏览器激活仅捕获已批准的系统启动目标，不把此结果写成真人默认浏览器关联或实体手机证明。旧程序须关闭后重启，本次未导出安装器。
 
 开发启动每次创建全新会话，配置、对局、身份及WebView2浏览器状态使用`.cache/development/sessions/session-*`，退出后只清理本次会话。`TABLEMAX_BOX_DIRECTORY`可指定会话父目录；继承的`TABLEMAX_DATA_DIR`不用于这个入口，避免意外恢复或清空正式存档。原`.cache/development/`中的历史资料及配置指向的其他目录保持原样，不自动载入；异常退出残留的会话也不会被下次启动复用。外部手机／系统浏览器自己的本地偏好不会被删除，但服务端房间与身份为新会话。

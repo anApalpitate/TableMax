@@ -37,7 +37,7 @@ try {
       windowsHide: true,
       env: {
         ...session.env,
-        TABLEMAX_HOST: '127.0.0.1',
+        TABLEMAX_HOST: process.env.TABLEMAX_HOST ?? '127.0.0.1',
         TABLEMAX_WEB_DEV_URL: undefined,
         TABLEMAX_PACKAGED: '0',
       },

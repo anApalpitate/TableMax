@@ -6,13 +6,30 @@
     },
   ],
   "extensions": {
-    "recommendations": ["esbenp.prettier-vscode", "dbaeumer.vscode-eslint"],
+    "recommendations": [
+      "esbenp.prettier-vscode",
+      "dbaeumer.vscode-eslint"
+    ],
   },
   "settings": {
     "editor.formatOnSave": true,
     "editor.defaultFormatter": "esbenp.prettier-vscode",
     "explorer.excludeGitIgnore": false,
     "files.exclude": {
+      ".editorconfig": true,
+      ".gitattributes": true,
+      ".gitignore": true,
+      ".node-version": true,
+      ".npmrc": true,
+      ".prettierignore": true,
+      ".prettierrc.json": true,
+      "build-version.json": true,
+      "eslint.config.mjs": true,
+      "global.json": true,
+      "pnpm-lock.yaml": true,
+      "pnpm-workspace.yaml": true,
+      "tsconfig.json": true,
+      "vitest.config.ts": true,
       "**/.git": true,
       "**/node_modules": true,
       "**/.pnpm-store": true,

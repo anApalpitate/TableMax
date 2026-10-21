@@ -19,6 +19,8 @@ Node／Python 工具从项目根目录运行，Node 子进程显式使用项目�
 
 正式执行与只读证据封存分别承担业务执行和原件核验，参数见[测试工具](test/README.md#正式执行记录与证明封存)；工具盘点不替代runner既有范围与方法指纹。
 
+不构建安装器的源码视觉回归流程见[专门说明](../docs/reference/source-visual-verification.md)，脚本入口和安装验收边界均列在其中。
+
 新增工具放入已有职责分类；工具自身回归与实现同目录，产品验证按真实依赖分组。`package.json` 保留命令别名，测试范围以 runner/scopes 为权威，统计以测试历史实现为权威；不再建设重复注册表。迁移映射只维护路径与历史兼容。
 
 文档定位、版本绑定读取和按任务变化审计分别使用 `pnpm docs:find`、`pnpm docs:read`、`pnpm docs:audit`；参数、Node等价入口和写报告边界见[维护工具](maintenance/README.md#定向markdown读取与迁移审计)。构建并发与内容复用见[构建工具](build/README.md)，version 2检查预设及任务SHA清单见[验证工具](test/README.md)，显式运行分段测量见[运行基线](analysis/runtime/README.md)。命令由对应工具README维护，环境边界从[开发环境](../docs/reference/development.md)路由，源码与产物归属见[目录职责](../docs/reference/project-structure.md)。

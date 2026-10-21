@@ -36,6 +36,14 @@
 
 **未达6GB目标。**已审安全候选用尽；保留未知数据库、未完成冻结候选及其他保护内容，不追加第二轮删除。当前EXE仍38,077,047字节，SHA `838a7a1ecd82670a6040baf568521498b50b6b19b06fe10bfc3377627db873b5`；[安装证明清理后只读复核](../../artifacts/maintenance/v1.0.7/box-manila-polish-20261017/finalized-installation-22-after-maintenance.json)与原封存SHA完全相同，不新增业务测试统计。完整任务证据与设备边界见[归档](../archive/box-manila-ui-polish-2026-10-17.md)。
 
+## 本地安装器只留最新修订（2026-10-17）
+
+按用户最新授权，核对已验收current 1.0.7.18与正式证明后，单次精确退役1.0.7.2至1.0.7.17共16个旧installer EXE，回收594,679,341字节。1.0.7.1目录原已为空。本次只删除EXE，不触及配套manifest、内部payload、存档、原素材、验收报告或其他任务文件；公开版本与线上附件未改。当前1.0.7.18仍为37,904,603字节，SHA保持原值。
+
+[预览清单](../../artifacts/maintenance/installer-retention/preview-20261017.json)保留原路径、大小、mtime与SHA；[执行结果](../../artifacts/maintenance/installer-retention/result-20261017.json)链接精确逐文件退役报告。旧验收文档的本地EXE链接已改为原manifest，表示身份记录仍在、原安装器本地已退役；不将清单误写成可启动程序。
+
+工具接入候选封包和验收推广，后续不再累积已被替代的同版安装器。候选阶段保留已验收current作为失败退路，通过推广后只留最新交付；详细边界见[维护规则](workspace-maintenance.md#本地安装器只保留最新修订2026-10-17)。11项退役／推广隔离回归通过，覆盖数值修订排序、只读预览、精确删除、清单／证据保留、过期预览／篡改／越界拒绝、保留current及新候选；[日志](../../artifacts/maintenance/installer-retention/tool-tests-20261017.log)。此次为用户明确指定的安装包窄范围退役，不追加其他工作区清理。
+
 ## 马尼拉安装与体验阶段维护（2026-10-16）
 
 本轮用户继续安装验收与体验优化，执行维护时账户授权尚待确认；已完成的工程进程退出后，先审12个超过30分钟的`tmp/game-review-*`旧隔离验证副本，再执行本轮唯一一次实际维护。绝对路径均在工作区tmp内；当前候选、安装验收双PE、原素材、正式数据、历史模块、依赖和工具缓存保留。[执行结果](../../artifacts/maintenance/v1.0.7/manila-installation-20261016/round-01/maintenance-apply.json)为`candidates-exhausted`，实际退役325,019,280字节、12目录；[逐文件SHA及保护](../../artifacts/maintenance/local-cleanup-20261016-073457-116-maintenance/cleanup.json)保留，删除错误0。
