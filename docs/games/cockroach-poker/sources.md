@@ -13,3 +13,7 @@
 ## 资源
 
 原文只作规则研究，未推定PDF、封面或插画可再分发。运行资源为原创代码SVG与程序合成WAV，来源、用途见[资源清单](../../../assets/games/cockroach-poker/manifest.json)。研究原件不随程序打包。
+
+2026-10-21按用户要求重新搜集实体牌美术，官方40829产品／组件图作为版次对照，公开图集中的64张普通牌作为候选；Royal牌、特殊牌和蓝色Royal牌背单独排除。原件、逐文件来源／尺寸／SHA256、牌背核验及使用边界见[搜集记录](../../../../TMP/TableMaxMaterial/work/cockroach-poker-physical-art/README.md)，浏览[实体牌候选预览](../../../../TMP/TableMaxMaterial/exports/cockroach-poker-physical-art/index.html)。这是外部素材候选，尚未替换运行资源；公开图集不构成发行方美术再分发许可。
+
+普通牌候选均为450×720，八类各8张，已按物种抽样与官方图对照；没有逐张同印次实体认证。经典灰底八动物牌背仅取得官方照片参照，仍缺独立、平整、清晰的牌背原件，不以Royal背面或重绘图补缺。

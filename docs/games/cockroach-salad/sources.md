@@ -11,3 +11,5 @@
 ## 资源
 
 发行方图像仅参考，不从可访问推定再分发权。运行时使用原创SVG与本游戏内的程序合成提示音，见[资源清单](../../../assets/games/cockroach-salad/manifest.json)。原PDF不进入运行包。
+
+2026-10-21按用户要求重新搜集实体牌美术，保存官方40839产品／组件图，并取得4种普通蔬菜、4种禁忌牌及绿色厨师剪影牌背的原始图片。公开模组来源采用旧版120普通／8禁忌的牌组配置，不能据此改写本项目现行112普通／16禁忌的规则，也未认定与现行版同一印次。原件、逐文件来源／尺寸／SHA256、对照与剩余版次缺口见[搜集记录](../../../../TMP/TableMaxMaterial/work/cockroach-salad-physical-art/README.md)，浏览[实体牌候选预览](../../../../TMP/TableMaxMaterial/exports/cockroach-salad-physical-art/index.html)。候选尚未替换运行资源；公开模组不构成发行方美术再分发许可。
