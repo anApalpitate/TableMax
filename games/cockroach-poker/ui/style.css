@@ -88,6 +88,19 @@
   height: 130px;
   transform: rotate(-7deg);
 }
+.cp-back-reference {
+  margin: 0;
+}
+.cp-back-reference figcaption {
+  font-size: 16px;
+}
+.cp-face {
+  display: block;
+  width: 72px;
+  aspect-ratio: 5 / 8;
+  object-fit: contain;
+  border-radius: 6px;
+}
 .cp-critter {
   width: 56px;
   height: 56px;
@@ -143,6 +156,21 @@
 .cp-collection > div span {
   display: grid;
 }
+.cp-collection .cp-pile-faces {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px;
+}
+.cp-pile-faces img {
+  width: 28px;
+  aspect-ratio: 5 / 8;
+  object-fit: contain;
+  border-radius: 3px;
+}
+.cp-collection > div {
+  gap: 5px;
+  flex-wrap: wrap;
+}
 .cp-last {
   display: flex;
   align-items: center;
@@ -174,6 +202,21 @@
   font-size: 20px;
   margin: 0 0 12px;
 }
+.cp-hand-heading {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+.cp-hand-heading h2 {
+  margin-bottom: 0;
+}
+.cp-hand-hint {
+  font-size: 16px;
+  color: #57407d;
+}
 .cp-game .cp-controls button {
   font-size: 18px;
 }
@@ -196,10 +239,14 @@
   overflow-x: auto;
   gap: 7px;
   padding: 5px 2px 12px;
+  scroll-snap-type: x mandatory;
+  scroll-padding-inline: 2px;
 }
 .cp-hand > button {
   flex: 0 0 86px;
   padding: 6px;
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
 }
 .cp-controls fieldset {
   border: 0;
@@ -277,11 +324,18 @@
     text-align: left;
   }
   .cp-player .cp-stage > .cp-critter,
-  .cp-player .cp-stage > .cp-back {
+  .cp-player .cp-stage > .cp-back-reference {
     grid-column: 1;
     grid-row: 1 / span 3;
     width: 56px;
     height: 72px;
+  }
+  .cp-player .cp-back-reference .cp-back {
+    height: 54px;
+    width: 49px;
+  }
+  .cp-player .cp-back-reference figcaption {
+    display: none;
   }
   .cp-player .cp-stage > h2,
   .cp-player .cp-stage > p,

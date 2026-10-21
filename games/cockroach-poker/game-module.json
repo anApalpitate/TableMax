@@ -33,7 +33,7 @@
     "bot": "games/cockroach-poker/bot/index.ts",
     "web": "games/cockroach-poker/web/index.tsx"
   },
-  "cover": "assets/games/cockroach-poker/cover.svg",
+  "cover": "assets/games/cockroach-poker/library-cover.png",
   "details": "web/details.json",
   "introduction": {
     "tagline": "相信它，还是把麻烦传下去？",
@@ -53,7 +53,7 @@
       },
       {
         "icon": "pair",
-        "illustration": "assets/games/cockroach-poker/cockroach.svg",
+        "illustration": "assets/games/cockroach-poker/card-reference.svg",
         "title": "收牌，再开始下一轮",
         "text": "判断正确由最近传牌者收牌，判断错误由接收者收牌。收下的牌公开放在面前，由收牌者出下一张。"
       }

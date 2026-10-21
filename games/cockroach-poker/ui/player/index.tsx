@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { Action } from '../../rules';
 import type { PokerView } from '../view';
 import { kinds, names as labels, type Kind } from '../../rules/cards';
@@ -19,6 +19,25 @@ export function PlayerControls({
   const [card, setCard] = useState<number | null>(null);
   const [target, setTarget] = useState('');
   const [claim, setClaim] = useState<Kind | null>(null);
+  const hand = useRef<HTMLDivElement>(null);
+  const [overflow, setOverflow] = useState(false);
+  useEffect(() => {
+    const element = hand.current;
+    if (!element) return;
+    const measure = () =>
+      setOverflow(element.scrollWidth > element.clientWidth + 1);
+    measure();
+    const observer =
+      typeof ResizeObserver === 'undefined'
+        ? null
+        : new ResizeObserver(measure);
+    observer?.observe(element);
+    window.addEventListener('resize', measure);
+    return () => {
+      observer?.disconnect();
+      window.removeEventListener('resize', measure);
+    };
+  }, [game.ownHand.length]);
   const selecting = actions.some(
     (a) => a.type === 'offer' || a.type === 'pass',
   );
@@ -47,7 +66,10 @@ export function PlayerControls({
   ];
   return (
     <section className="cp-controls" aria-label="本人操作">
-      <h2>{actions.length ? '轮到你' : '你的手牌'}</h2>
+      <div className="cp-hand-heading">
+        <h2>{actions.length ? '轮到你' : '你的手牌'}</h2>
+        {overflow && <span className="cp-hand-hint">↔ 左右滑动看牌</span>}
+      </div>
       {game.offer?.knownCard !== null &&
         game.offer?.knownCard !== undefined && (
           <p className="cp-known">
@@ -55,7 +77,7 @@ export function PlayerControls({
             <Card card={game.offer.knownCard} />
           </p>
         )}
-      <div className="cp-hand">
+      <div className="cp-hand" ref={hand}>
         {game.ownHand.map((c) => (
           <button
             type="button"

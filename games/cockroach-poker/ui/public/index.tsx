@@ -1,7 +1,7 @@
 import type { PokerView } from '../view';
 import type { ReactNode } from 'react';
 import { kinds, kindOf, names } from '../../rules/cards';
-import { Card, Critter, asset } from '../Theme';
+import { asset, Back, Card, cardAssetFile, Critter } from '../Theme';
 export function Table({
   game,
   names: players,
@@ -59,7 +59,7 @@ export function Table({
           </>
         ) : (
           <>
-            <img className="cp-back" src={asset('back.svg')} alt="虫虫牌背" />
+            <Back />
             <h2>{players[game.turn]} 出牌</h2>
             <p>选择一张牌、一名对手与一种声明</p>
           </>
@@ -82,7 +82,17 @@ export function Table({
                 const n = game.piles[s]!.filter((c) => kindOf(c) === k).length;
                 return n ? (
                   <div key={k}>
-                    <Critter kind={k} />
+                    <span className="cp-pile-faces">
+                      {game.piles[s]!.filter((card) => kindOf(card) === k).map(
+                        (card) => (
+                          <img
+                            key={card}
+                            src={asset(cardAssetFile(card))}
+                            alt={`${names[k]}第${(card % 8) + 1}种实体插画`}
+                          />
+                        ),
+                      )}
+                    </span>
                     <span>
                       {names[k]}{' '}
                       <strong>

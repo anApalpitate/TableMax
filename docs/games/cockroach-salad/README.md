@@ -34,12 +34,16 @@
 
 发行方40839原文、原件SHA、核验范围和数字改编边界统一见[CS-S1来源](sources.md)，不推断外部插画授权。
 
-运行资源均为本项目原创SVG几何蔬菜、原创规则图及合成短提示音，无发行方插画／商标或PDF页面作为产品资源。见 [资源来源](../../../assets/games/cockroach-salad/manifest.json)。明亮奶油绿桌面，牌面与固定回答优先；五个答案使用颜色加名称，字号至少16，主要动作18。短屏重排、4K放大、减少动态；动效只由保存后的反馈触发，不阻挡或延迟回答。
+2026-10-21按用户最新明确要求，运行牌面替换为真实商业桌游美术：四普通菜面、四禁忌面、绿色厨师剪影牌背均使用已核验PNG原字节，封面使用官方40839包装图。所用牌面来源关联旧120＋8配置，规则仍为当前112＋16；具体印次、可见纹理差异和未逐128张认证边界见[版次与采用](sources.md#版次差异与本次采用)。没有将本地替换授权写成出版方再分发许可。完整原件、派生关系、尺寸、字节数、SHA与用途见[资源清单](../../../assets/games/cockroach-salad/manifest.json)。
+
+牌面保持完整边框和原始比例，不仿画、不增强或篡改图案；图片外另排中文名称／禁忌状态。固定按钮及图文规则同步使用实体牌图，席位未翻牌堆用真实牌背；旧原创SVG仅保留历史，不再作为当前UI或介绍配图。明亮奶油绿桌面、字号、短屏重排、4K及减少动态要求保持；原有保存后合成提示音不变。
 
 ## 验证证据与边界
+
+2026-10-21实体美术替换后的[源码57项检查](../../../artifacts/maintenance/cockroach-source/physical-art-r4-20261021/report.json)通过，含八种牌面及牌背解码、手机回答缩图实际可见尺寸、320px至4K三端、125%／150%模拟密度和生产按钮。所用旧美术与现行112＋16规则的采用边界见[版次核对](sources.md#版次差异与本次采用)。下述1.0.8.8安装器保留原抽象资源，未随本轮重封。
 
 准确测试 [rules.test.ts](../../../games/cockroach-salad/rules/rules.test.ts) 当前14项通过：128张分区与秘密、枚举回答／禁忌、发行方完整例子、漏抓、共同质疑、余数分牌、拖延／无人操作、最后一张、非法与过期动作、不可变／交换顺序、三档策略参数与各1000次失误／漏抓统计、共同组决策稳定性、2–6人种子整局每个保存边界JSON回读校验。证据 [44551bea](../../../artifacts/maintenance/test-history/runs/44551bea-54b4-4159-904c-5aa49dc12198/results.json)。
 
 保留首轮fixture分牌错误导致官方例子失败（d2de0ff4）及新增整局发现连续禁忌牌暂存三个禁忌导致严格校验拒绝（89e6cab6）；后者改为禁忌牌仅保留新可见禁忌、普通覆盖牌保留首回合旧禁忌。修复后开新预算轮定向复验通过。
 
-后续[真实Socket与SQLite](../../../artifacts/maintenance/test-history/runs/19d37975-46ee-4077-a47c-419349609daf/results.json)、[源码53项界面矩阵](../../../artifacts/maintenance/cockroach-source/final-freeze-20261021/report.json)及[最终冻结游戏](../../../artifacts/maintenance/cockroach-delivery-20261021/installed-r2/results.json)均通过，含生产作答／质疑保存、共同窗口、无人操作处罚、资源解码及保存重启。规则示例采用18px响应式图文，320px蔬菜示例两列；实际资源由显式glob冻结。正式安装与本地current为1.0.8.8，统一见[验收](../../reference/acceptance.md#德国小强与蟑螂沙拉完整交付2026-10-21)。实体手机、真实网络、多物理DPI与真人声音试听未实测，不用源码／机器证据冒称通过。
+后续[真实Socket与SQLite](../../../artifacts/maintenance/test-history/runs/19d37975-46ee-4077-a47c-419349609daf/results.json)、[源码53项界面矩阵](../../../artifacts/maintenance/cockroach-source/final-freeze-20261021/report.json)及[最终冻结游戏](../../../artifacts/maintenance/cockroach-delivery-20261021/installed-r2/results.json)均通过，含生产作答／质疑保存、共同窗口、无人操作处罚、资源解码及保存重启。规则示例采用18px响应式图文，320px蔬菜示例两列；实际资源由显式glob冻结。上述为替换美术前的交付证据，不能复用于本次PNG实际渲染。替换后的资源映射／类型检查按本轮证据记录，完整浏览器及安装验收由主任务另行执行；正式安装与本地current曾为1.0.8.8，交付历史统一见[验收](../../reference/acceptance.md#德国小强与蟑螂沙拉完整交付2026-10-21)。实体手机、真实网络、多物理DPI与真人声音试听未实测，不用源码／机器证据冒称通过。

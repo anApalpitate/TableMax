@@ -13,11 +13,75 @@ import { PlayerControls } from './player';
 import { Table } from './public';
 import { PokerRules } from './RulesGuide';
 import { SavedFeedback } from './Effects';
+import { asset, cardAssetFile, Card, Back } from './Theme';
+import { readFileSync } from 'node:fs';
+import { createHash } from 'node:crypto';
 import type { GameHost } from '@tablemax/web-host';
 const context = { seats: ['a', 'b', 'c'], random: { next: () => 0.4 } };
 const names = { a: '玩家甲', b: '玩家乙', c: '玩家丙' };
 const cast = (v: unknown) => v as PokerView;
 describe('cockroach poker authorized UI', () => {
+  it('maps every stable card ID to a distinct preserved physical illustration', () => {
+    const sources = [
+      'cockroach',
+      'stink-bug',
+      'bat',
+      'spider',
+      'fly',
+      'toad',
+      'rat',
+      'scorpion',
+    ];
+    const manifest = JSON.parse(
+      readFileSync(
+        new URL(
+          '../../../assets/games/cockroach-poker/manifest.json',
+          import.meta.url,
+        ),
+        'utf8',
+      ),
+    ) as {
+      assets: {
+        file: string;
+        cardId?: number;
+        sha256: string;
+        originalSha256?: string;
+      }[];
+    };
+    const paths = new Set<string>(),
+      hashes = new Set<string>();
+    for (let card = 0; card < 64; card++) {
+      const file = cardAssetFile(card);
+      expect(file).toBe(
+        `cards/${sources[Math.floor(card / 8)]}-${(card % 8) + 1}.jpg`,
+      );
+      const record = manifest.assets.find((a) => a.cardId === card)!;
+      expect(record.file).toBe(file);
+      const bytes = readFileSync(
+        new URL(
+          `../../../assets/games/cockroach-poker/${file}`,
+          import.meta.url,
+        ),
+      );
+      const hash = createHash('sha256').update(bytes).digest('hex');
+      expect(hash).toBe(record.sha256);
+      expect(hash).toBe(record.originalSha256);
+      expect(asset(file)).toBeTruthy();
+      paths.add(file);
+      hashes.add(hash);
+      expect(renderToStaticMarkup(createElement(Card, { card }))).toContain(
+        `${(card % 8) + 1}种实体插画`,
+      );
+    }
+    expect(paths.size).toBe(64);
+    expect(hashes.size).toBe(64);
+    expect(() => cardAssetFile(-1)).toThrow();
+    expect(() => cardAssetFile(64)).toThrow();
+    const back = renderToStaticMarkup(createElement(Back));
+    expect(back).toContain('back-photo.jpg');
+    expect(back).toContain('非平整扫描');
+    expect(back).not.toContain('card-back.jpg');
+  });
   it('offers explicit target, animal and combined confirmation with accessible selected-state controls', () => {
     const s = rules.initialize(context) as State;
     const html = renderToStaticMarkup(

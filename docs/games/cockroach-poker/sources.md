@@ -10,10 +10,24 @@
 
 第一席起手是平台不收集年龄时的项目裁定。两步“查看并承诺转传→选择目标与声明”将经典口头动作按钮化，不允许先查看再反悔判断；这属于实现表达，不能据此修改原规则的目标资格或处罚。
 
-## 资源
+## CP-A1 实体牌面与官方对照
 
-原文只作规则研究，未推定PDF、封面或插画可再分发。运行资源为原创代码SVG与程序合成WAV，来源、用途见[资源清单](../../../assets/games/cockroach-poker/manifest.json)。研究原件不随程序打包。
+2026-10-21按用户要求把此前搜集的实体牌美术替换到本地源码。该采用状态与出版方许可分别记录；规则PDF仍不随程序打包。
 
-2026-10-21按用户要求重新搜集实体牌美术，官方40829产品／组件图作为版次对照，公开图集中的64张普通牌作为候选；Royal牌、特殊牌和蓝色Royal牌背单独排除。原件、逐文件来源／尺寸／SHA256、牌背核验及使用边界见[搜集记录](../../../../TMP/TableMaxMaterial/work/cockroach-poker-physical-art/README.md)，浏览[实体牌候选预览](../../../../TMP/TableMaxMaterial/exports/cockroach-poker-physical-art/index.html)。这是外部素材候选，尚未替换运行资源；公开图集不构成发行方美术再分发许可。
+64张普通牌来自[richardcrng/cockroach-poker](https://github.com/richardcrng/cockroach-poker)，固定commit `40df590ccce0e57bca886cb34ab6aa617c2cf1a1`，路径 `client/public/assets/card-fronts/<species>-1..8.jpg`，八类各8张、450×720、64个独立SHA。已按物种抽样与[官方40829商品组件图](https://www.schmidtspiele.de/detail/product/cockroach-poker.html)和[官方商店同货号](https://www.schmidtspiele-shop.de/drei-magier-kakerlaken-poker)对照；第三方普通牌样式与实物一致，但没有所有64张的同印次实体逐一认证。原JPG按字节导入，无裁边、调色、增强或重绘。
 
-普通牌候选均为450×720，八类各8张，已按物种抽样与官方图对照；没有逐张同印次实体认证。经典灰底八动物牌背仅取得官方照片参照，仍缺独立、平整、清晰的牌背原件，不以Royal背面或重绘图补缺。
+游戏原有cardId0–63不变，物种顺序为cockroach、stinkbug、bat、spider、fly、toad、rat、scorpion；每组8个ID依次映射源编号1–8，stinkbug文件前缀为stink-bug。实际映射入口为 `ui/Theme.tsx` 的cardAssetFile；资源manifest逐张记录cardId、原图URL、固定commit、尺寸、字节及导入前后相同SHA。Royal7张、special2张及蓝色Royal背面均排除，不因同仓库而混入。
+
+官方包装原图按字节用于库封面；官方组件图与一张普通牌原图只通过SVG data URI包装提供规则／介绍插图，不改变图像像素。此前原创八虫与牌背资产保留但不用于运行卡牌／库封面，通用流程箭头图及3个程序合成WAV继续使用。
+
+## CP-A2 经典灰背实拍
+
+[公开图片原件](https://cdn-ak.f.st-hatena.com/images/fotolife/b/bg4kids/20160619/20160619070202.jpg)，来自[Boardgamepark文章](https://www.boardgamepark.com/entry/Kakerlakenpoker)，1024×768。实际查看，与官方组件图一致为灰底八动物背面，无Royal皇冠/X/眼睛；有桌面背景、反光和透视，不是平整扫描。该文章部分规则叙述与CP-S1冲突，仅作图像出处，不采用其规则。
+
+原字节导入back-photo.jpg；React内联SVG通过viewBox `225 16 640 704`和polygon `333,23 747,28 860,710 234,709`取景，不新增位图，不透视校正、不调色、不补画像素。asset('back-photo.jpg')由标准资源glob冻结，不在外部SVG隐藏相对路径。界面明确“经典牌背实拍”，剩余缺口是官方无透视扫描母版。
+
+## 原件与使用边界
+
+[外部搜集说明](../../../../TMP/TableMaxMaterial/work/cockroach-poker-physical-art/README.md)、[逐文件manifest](../../../../TMP/TableMaxMaterial/work/cockroach-poker-physical-art/manifest.json)及[原图预览](../../../../TMP/TableMaxMaterial/exports/cockroach-poker-physical-art/index.html)保留来源、版次排除、原件和实际观看范围。[运行清单](../../../assets/games/cockroach-poker/manifest.json)记录本地采用映射及字节SHA。
+
+官方页标明保留权利，第三方公开仓库未提供可核实的出版美术许可；公开可访问不等于可以再分发。本轮依据用户明确授权替换其本地项目，不将此授权描述成出版方许可。未获官方全64牌母版或同印次逐张认证，不作此类声明。

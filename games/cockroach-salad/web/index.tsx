@@ -24,24 +24,31 @@ import {
 } from '../types';
 import { SavedFeedback, SoundControl } from '../ui/SavedFeedback';
 import '../ui/style.css';
-const svgResources = import.meta.glob<string>(
-  '../../../assets/games/cockroach-salad/*.svg',
+const imageResources = import.meta.glob<string>(
+  '../../../assets/games/cockroach-salad/*.png',
   { eager: true, query: '?url', import: 'default' },
 );
 function resourceUrl(id: string): string {
-  if (!/^cockroach-salad\/[a-z0-9-]+\.svg$/.test(id))
+  if (!/^cockroach-salad\/[a-z0-9-]+\.png$/.test(id))
     throw new Error('Invalid salad resource ID');
-  const url = svgResources[`../../../assets/games/${id}`];
+  const url = imageResources[`../../../assets/games/${id}`];
   if (typeof url !== 'string') throw new Error('Missing salad resource: ' + id);
   return url;
 }
 function Face({ value }: { value: Card | null }) {
   return value ? (
-    <div className={`salad-card ${value.taboo ? 'salad-taboo' : ''}`}>
-      <img src={resourceUrl(`cockroach-salad/${value.vegetable}.svg`)} alt="" />
-      <strong>{names[value.vegetable]}</strong>
-      {value.taboo && <span>🪳 禁忌牌</span>}
-    </div>
+    <figure className={`salad-card ${value.taboo ? 'salad-taboo' : ''}`}>
+      <img
+        src={resourceUrl(
+          `cockroach-salad/${value.taboo ? 'taboo' : 'normal'}-${value.vegetable}.png`,
+        )}
+        alt={`${names[value.vegetable]}${value.taboo ? '禁忌牌' : '普通牌'}`}
+      />
+      <figcaption>
+        {names[value.vegetable]}
+        {value.taboo && <span>禁忌牌</span>}
+      </figcaption>
+    </figure>
   ) : (
     <div className="salad-card salad-empty">空牌堆</div>
   );
@@ -119,7 +126,7 @@ function Rulebook() {
               <span>{label}</span>
               <div className="salad-rule-flow-vegetable">
                 <img
-                  src={resourceUrl(`cockroach-salad/${vegetable}.svg`)}
+                  src={resourceUrl(`cockroach-salad/normal-${vegetable}.png`)}
                   alt=""
                 />
                 <strong>{names[vegetable]}</strong>
@@ -255,14 +262,14 @@ function Screen({ session }: { session: GameHost }) {
                         }
                         onClick={() => choose({ type: 'answer', answer })}
                       >
-                        {answer === 'cockroach' ? (
-                          '🪳'
-                        ) : (
-                          <img
-                            src={resourceUrl(`cockroach-salad/${answer}.svg`)}
-                            alt=""
-                          />
-                        )}
+                        <img
+                          src={resourceUrl(
+                            answer === 'cockroach'
+                              ? 'cockroach-salad/back.png'
+                              : `cockroach-salad/normal-${answer}.png`,
+                          )}
+                          alt=""
+                        />
                         {names[answer]}
                       </button>
                     ))}
@@ -300,7 +307,13 @@ function Screen({ session }: { session: GameHost }) {
                   className={id === game.actor ? 'salad-seat-active' : ''}
                 >
                   <strong>{name(id)}</strong>
-                  <span>{game.counts[id]} 张</span>
+                  <div className="salad-seat-deck">
+                    <img
+                      src={resourceUrl('cockroach-salad/back.png')}
+                      alt="未翻开的个人牌堆"
+                    />
+                    <span>{game.counts[id]} 张</span>
+                  </div>
                   {role === 'player' && id === session.self?.id && (
                     <small>你</small>
                   )}
