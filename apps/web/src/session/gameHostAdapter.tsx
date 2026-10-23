@@ -14,7 +14,10 @@ import type { RoomSession } from './useRoomSession';
 configureGameHost({
   ScreenLink,
   FullscreenControl,
-  DisplaySettings,
+  // webHost 1 keeps its legacy public role ABI for frozen releases, but the
+  // current platform no longer provides a public-screen settings surface.
+  DisplaySettings: ({ role }) =>
+    role === 'public' ? null : <DisplaySettings {...(role ? { role } : {})} />,
   useAudioOutput,
   avatarFor,
   avatarChoices,

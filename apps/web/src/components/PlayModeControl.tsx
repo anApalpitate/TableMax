@@ -37,7 +37,7 @@ export function PlayModeControl({ session }: { session: RoomSession }) {
         >
           <strong>游玩模式</strong>
           <span>
-            正常聚会游玩，显示已保存操作的动效，并允许公共屏播放声音。
+            正常聚会游玩，显示已保存操作的动效，并允许管理兼展示端播放声音。
           </span>
         </button>
         <button

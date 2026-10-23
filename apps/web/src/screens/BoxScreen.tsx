@@ -219,16 +219,11 @@ function BoxScreenContent({ session }: { session: RoomSession }) {
             </svg>
           </button>
         )}
-        {Boolean(view?.gameView) &&
-          view &&
-          (role !== 'player' || credential) && (
-            <ScreenLink
-              className="button box-enter-game"
-              href={`/${role}/game`}
-            >
-              进入牌桌
-            </ScreenLink>
-          )}
+        {Boolean(view?.gameView) && view && view.self.role === role && (
+          <ScreenLink className="button box-enter-game" href={`/${role}/game`}>
+            进入牌桌
+          </ScreenLink>
+        )}
       </section>
       <div className="box-feedback" data-submitting={compactProgress}>
         <BoxFeedback session={session} />

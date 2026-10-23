@@ -7,7 +7,6 @@ import { SessionFeedback } from './SessionFeedback';
 import { OwnerControl } from './OwnerControl';
 import { DeviceTransferRequests } from './DeviceTransfer';
 import { feedbackText } from '../content/feedback';
-import { SettingHelp } from '@tablemax/web-host';
 import './room-management.css';
 import './settings-panel.css';
 
@@ -115,21 +114,6 @@ export function RoomManagement({
         )}
       {showDetails && isHost && view.status !== 'lobby' && (
         <RollbackHistory key={view.instanceId} session={session} />
-      )}
-      {showDetails && isHost && (
-        <div className="room-management-row">
-          <SettingHelp
-            label="公共屏"
-            hint="只显示公开信息；玩家手牌和其他秘密信息仍按游戏权限隐藏。"
-          />
-          <a
-            className="button secondary"
-            aria-label="打开公共屏"
-            href={view.gameView ? '/public/game' : '/public'}
-          >
-            打开
-          </a>
-        </div>
       )}
       {confirmation && isHost && (
         <ConfirmationDialog

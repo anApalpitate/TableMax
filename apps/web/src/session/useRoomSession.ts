@@ -37,9 +37,8 @@ import {
   ROOM_SYNC_TIMEOUT,
   ACTION_CONFIRM_DELAY,
 } from './reliableRoomSync';
-function credentialFor(role: string) {
+function credentialFor(role: ScreenRole) {
   if (role === 'player') return localStorage.getItem('tablemax-player') ?? '';
-  if (role === 'public') return '';
   const value = new URLSearchParams(location.hash.slice(1)).get('host');
   if (value) {
     sessionStorage.setItem('tablemax-host', value);
@@ -227,7 +226,11 @@ export function useRoomSession(role: ScreenRole) {
         if (restoring || source === 'sync')
           lastFeedback.current = `${next.instanceId}:${next.branch}:${next.revision}`;
       }
-      if (previous?.status === 'lobby' && next.gameView)
+      if (
+        previous?.status === 'lobby' &&
+        next.gameView &&
+        next.self.role === role
+      )
         navigate(`/${role}/game`);
       if (next.status === 'lobby' && location.pathname.endsWith('/game'))
         navigate(`/${role}`, true);

@@ -1,6 +1,23 @@
 import { useSyncExternalStore } from 'react';
 
-export type ScreenRole = 'host' | 'public' | 'player';
+export type ScreenRole = 'host' | 'player';
+
+export function screenRoute(path: string) {
+  const normalized = path === '/' ? path : path.replace(/\/$/, '');
+  switch (normalized) {
+    case '/':
+    case '/player':
+      return { role: 'player' as const, inGame: false };
+    case '/player/game':
+      return { role: 'player' as const, inGame: true };
+    case '/host':
+      return { role: 'host' as const, inGame: false };
+    case '/host/game':
+      return { role: 'host' as const, inGame: true };
+    default:
+      return null;
+  }
+}
 
 export function navigate(path: string, replace = false) {
   if (location.pathname === path) return;
@@ -15,11 +32,5 @@ function subscribe(listener: () => void) {
 
 export function useScreenRoute() {
   const path = useSyncExternalStore(subscribe, () => location.pathname);
-  const role: ScreenRole =
-    path === '/' || path.startsWith('/player')
-      ? 'player'
-      : path.startsWith('/public')
-        ? 'public'
-        : 'host';
-  return { role, inGame: path.endsWith('/game') };
+  return screenRoute(path);
 }

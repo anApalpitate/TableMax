@@ -24,11 +24,7 @@ const resolutions = [
 ] as const;
 
 export function DisplaySettings({
-  role = location.pathname.startsWith('/host')
-    ? 'host'
-    : location.pathname.startsWith('/public')
-      ? 'public'
-      : 'player',
+  role = location.pathname.startsWith('/host') ? 'host' : 'player',
 }: {
   role?: ScreenRole;
 }) {
@@ -216,7 +212,7 @@ export function DisplaySettings({
                 <SettingHelp
                   id="display-interface-scale-label"
                   label="界面大小"
-                  hint="调整当前窗口的界面大小，主机与公共屏分别保存。"
+                  hint="调整管理兼展示窗口的界面大小，保存后在本机沿用。"
                 />
                 <select
                   id="display-interface-scale"
