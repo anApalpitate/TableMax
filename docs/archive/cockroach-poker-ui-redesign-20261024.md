@@ -8,18 +8,26 @@
 
 开工前检查上游交付说明、提交及实际代码：独立公共屏退出当前入口，服务端管理兼展示的权限／窗口／布局约定已落地，三类布局选择及适用验证入口明确，相关检查通过。对话空闲、计划输出、单次构建完成均不自动满足条件。若上游只完成规划，继续保持待实施。
 
-本聊天的原生heartbeat自动跟进`ui`每10分钟接续；仅在开始、实质阻塞／失败需关注或完成时通知，完成后结束跟进。实施已开始，每次接续先读取下面进度及Git状态，不重复创建素材任务或重做已有检查。
+本聊天的原生heartbeat自动跟进`ui`每10分钟接续；仅在开始、实质阻塞／失败需关注或完成时通知，完成后结束跟进。本轮已完成，自动跟进结束；不再重复创建素材任务或重做已有检查。
 
 当前实施仅限本游戏及对应资源、文档和验证脚本，不重新导出安装器。上游平台改造归原任务，发现共享接口缺口先定位职责，不在本任务另建一套角色或布局识别。
 
-### 实施接续（未完成）
+## 完成交付（2026-10-24）
 
-- 核心UI第一阶段：已重写公共牌桌、头像传递／声明气泡、公开收牌、玩家目标／声明／确认、判断及查看后转传、三类布局与规则浮窗外壳。原搜集运行图暂占位，精修资源尚未导入；最终视觉和全部状态仍待收尾，不能称全任务完成。
-- 最新源码浏览器证据：[r6报告](../../artifacts/maintenance/cockroach-source/ui-redesign-r6-20261024/report.json)48项通过：除卡牌解码、管理公开投影不渲染暗牌、本人查看的精确卡图、44px热区、旋转草稿和短横屏确认可达外，已补2／6人合法推进的出牌、接牌、查看转传、密集收牌和终局，27张起手及暂停／断线／未确认／锁定不派发动作。双人单赢家正确标“获胜”，多人共同赢家才标“共同获胜”；选中目标长名完整显示，短横屏16字符目标名不超过两行。旧轮与修复理由见[独立轮记录](../../artifacts/maintenance/cockroach-ui-redesign-20261024/rounds.txt)。美术导入后仍须冻结最终输入复验。
-- UI静态6项：[定向复验](../../artifacts/maintenance/test-history/runs/b2523a7e-73e3-45c2-88b3-b7f642c472ba/results.json)通过；真实Socket／SQLite保存与重连及UI前轮见[服务回归](../../artifacts/maintenance/test-history/runs/5419e7a6-6dc5-4c38-9564-6240fd760fbb/results.json)。已纠正新增徽章的严格可选类型错误，类型检查通过；当前工程检查不替代最终全部输入冻结。
-- imagegen子agent：`/root/poker_imagegen`，已授权继续全部64张，**不要重新派发或重复生成**。已完成40／64张（八类各1–5号）及统一牌背候选；主agent已查看八类1号及牌背样板，其余逐张身份QA由子agent记录，最终导入前复核。原件与候选在外部素材工作区；[批次01](../../../TMP/TableMaxMaterial/work/cockroach-poker-polish-20261024/batch-01.json)至[批次05](../../../TMP/TableMaxMaterial/work/cockroach-poker-polish-20261024/batch-05.json)保存完整提示词、原件映射与QA，[候选目录](../../../TMP/TableMaxMaterial/exports/cockroach-poker-polish-20261024)保存输出。以各批次`candidate`为准（部分返修为v2），不能按文件通配选v1。主agent负责后续正式导入和共享资源manifest，子agent不修改UI／正式清单。
-- 临时目录唯一入口：`tmp/cockroach-ui-redesign-20261024/`。证据留`artifacts/maintenance/cockroach-ui-redesign-20261024/`及各独立范围测试目录。收尾清理按该目录内入口先预览；不删除活动imagegen成果或证据。
-- 下一步：接续现有imagegen子agent的逐批交付并审核64张独立身份；按清晰度和实际字节预算生成运行派生，导入后更新Theme映射及清单／来源说明。资源记录必须区分原搜集JPG、AI生成母版、实际编码运行图的SHA与来源关系，不能沿用“无重绘／仅原图编码”的旧声明；更新UI资源映射测试以验证完整链，避免让源码测试依赖外部素材目录可用。完整状态检查已补齐，待最终美术接入后冻结输入复验，制作实际前后变化HTML，最后收尾并归档。
+已完成采用计划的游戏UI、64张逐牌精修和统一牌背、三布局、弱文字动作与规则浮窗，并通过最终输入冻结检查。长期现状归[游戏主题](../games/cockroach-poker/README.md)及[素材来源](../games/cockroach-poker/sources.md#cp-a3-用户授权的ai精修衍生)；本页从任务归档，后文保留原采用设计及完成标准的历史依据，不再作为待实施清单。未重新导出installer、未发布。
+
+- [实际前后变化HTML](../../artifacts/maintenance/cockroach-ui-redesign-20261024/review/index.html)：三布局并排／切换、23张真实前后及完整状态截图，附来源报告和逐图SHA。旧第三图为原公开展示，新图为管理兼展示，两者均只投影公开游戏信息。
+- [最终源码48项](../../artifacts/maintenance/cockroach-source/ui-redesign-final-r8-20261024/report.json)、[UI静态6项](../../artifacts/maintenance/test-history/runs/0cbba61b-7d45-4a26-bc06-a77e91e3a803/results.json)、[最终真实服务保存与重连三项](../../artifacts/maintenance/test-history/runs/f2e4f103-d135-44db-a642-7bc0ab851b6f/results.json)。已覆盖2／6人合法推进、27张起手、密集收牌、转传、双人单赢家／多人共同赢家、旋转及状态阻止重复动作；规则、服务与存档格式未改。旧服务运行缺完整输入绑定，保留历史；最终重新运行三项并绑定源码／依赖／运行时／临时环境。测试夹具新增任务临时根参数，生产实现未改。
+- 64张原JPG保留，精修运行65张共1,382,930字节；[采用映射与母版SHA](../../artifacts/maintenance/cockroach-ui-redesign-20261024/art-delivery.json)、[导入记录](../../artifacts/maintenance/cockroach-ui-redesign-20261024/art-import.json)、[返修提示](../../artifacts/maintenance/cockroach-ui-redesign-20261024/art-provenance-supplement.json)及正式manifest完整区分原件、AI母版与有损运行图。
+- 类型、ESLint、Prettier及单游戏模块构建通过，[构建日志](../../artifacts/maintenance/cockroach-ui-redesign-20261024/build-final-r2.log)与[模块资源统计](../../artifacts/maintenance/cockroach-ui-redesign-20261024/scoped-build.json)留存。模块资源含原件及介绍151项共6,211,655字节，不把运行图字节数冒充全包体积。未构建全平台安装器。
+- 所有实质失败、环境原因与修复轮保留在[轮记录](../../artifacts/maintenance/cockroach-ui-redesign-20261024/rounds.txt)：含旧断言／类型修复、Vite逻辑名与URL比较纠正、目标长名与短横屏换行、沙箱realpath构建失败；变化展示复核修正了offscreen lazy图片等待。没有清旧账或放宽权限。
+- 以源码隐藏静音浏览器覆盖320px至4K、125%／150%模拟密度；没有实体手机、物理DPI、新EXE安全标记／安装或真人听感证明。原安装器及历史通过不改标为此次UI版本。
+
+收尾完整逻辑容量约7.90GB，低于日常10GiB与深度15GB触发线；扫描遇到一处并发已消失路径，原始记录见[容量实测](../../artifacts/maintenance/cockroach-ui-redesign-20261024/capacity-final.json)。临时夹具、测试库及审阅副本保留在唯一任务根，[一键清理](../../artifacts/maintenance/cockroach-ui-redesign-20261024/cleanup.cmd)先核对精确清单及30分钟保护，再要求确认；正式变化展示、当前交付、证据和外部素材不在删除范围。
+
+本轮唯一自动维护尝试被活动工程审计进程的空闲保护阻止，未追加第二轮；[维护结果](../../artifacts/maintenance/cockroach-ui-redesign-20261024/final-maintenance/result.json)保留原由及未执行范围。任务临时目录不自动删除，清理入口继续保留近期文件与活动保护。
+
+## 原采用设计（历史）
 
 ## 设计依据与当前问题
 
@@ -77,7 +85,7 @@
 
 ## imagegen卡牌精修
 
-实际制作由[imagegen子agent](../subagent/imagegen.md)负责，按[素材工作区入口](../../../TMP/TableMaxMaterial/AGENTS.md)交接。本轮只有加工计划。
+实际制作由[imagegen子agent](../subagent/imagegen.md)负责，按[素材工作区入口](../../../TMP/TableMaxMaterial/AGENTS.md)交接。下列为原采用加工要求；本轮已完成64张及统一背面，实际状态见完成交付。
 
 - 从64张搜集原图精修，逐牌维持cardId、物种、姿态、构图、八张差异与经典牌框辨识；修整锯齿、压缩噪点、边缘、明暗与局部层次。原JPG保留，AI衍生另存，不称官方扫描或原图恢复。
 - 先加工约三张代表牌：深色细线、明亮大片色、复杂肢体各一张，另试统一牌背；用小尺寸手牌、中央大牌和4K截图比较。样板达到身份与清晰度门槛后再扩展64张，不先批量做完再发现风格漂移。
@@ -106,4 +114,4 @@
 - 重复点击、未确认、保存失败、断线、暂停、旧decisionId、旋转草稿、回退／重连均正确；声画只播新保存结果，不回放旧事件。
 - 旧实现残留清理、主题内聚、离线资源、实际预算、适用检查和变化展示闭合；未测设备与未导出的安装器如实列出。
 
-尚未完成：全部精修资源及导入、完整状态与最终输入验收、变化展示HTML、长期规格收尾。本次未授权安装包导出。本页完成后将采用的长期设计归入游戏主题，过程归档并移除待办入口。
+全部采用范围已完成，长期设计归游戏主题，证据和过程留本归档；本次未授权安装包导出。

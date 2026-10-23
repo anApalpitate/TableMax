@@ -21,7 +21,7 @@ const context = { seats: ['a', 'b', 'c'], random: { next: () => 0.4 } };
 const names = { a: '玩家甲', b: '玩家乙', c: '玩家丙' };
 const cast = (v: unknown) => v as PokerView;
 describe('cockroach poker authorized UI', () => {
-  it('maps every stable card ID to a distinct preserved physical illustration', () => {
+  it('binds all 64 stable IDs to original, polished master and actual runtime bytes', () => {
     const sources = [
       'cockroach',
       'stink-bug',
@@ -53,10 +53,25 @@ describe('cockroach poker authorized UI', () => {
         sha256: string;
         sourceFile: string;
         sourceSha256: string;
+        originalFile?: string;
+        originalSha256?: string;
+      }[];
+      polishedAssets: {
+        cardId?: number;
+        sourceFile: string;
+        sourceSha256: string;
+        masterFile: string;
+        masterSha256: string;
+        runtimeFile: string;
+        runtimeSha256: string;
+        prompt: string;
       }[];
     };
     const paths = new Set<string>(),
       hashes = new Set<string>();
+    expect(
+      manifest.polishedAssets.filter((a) => a.cardId !== undefined),
+    ).toHaveLength(64);
     for (let card = 0; card < 64; card++) {
       const file = cardAssetFile(card);
       expect(file).toBe(
@@ -64,9 +79,29 @@ describe('cockroach poker authorized UI', () => {
       );
       const record = manifest.runtimeAssets.find((a) => a.cardId === card)!;
       const original = manifest.assets.find((a) => a.cardId === card)!;
+      const polished = manifest.polishedAssets.find((a) => a.cardId === card)!;
       expect(record.file).toBe(file);
-      expect(record.sourceFile).toBe(original.file);
-      expect(record.sourceSha256).toBe(original.sha256);
+      expect(polished.sourceFile).toBe(original.file);
+      expect(polished.sourceSha256).toBe(original.sha256);
+      expect(record.originalFile).toBe(original.file);
+      expect(record.originalSha256).toBe(original.sha256);
+      expect(record.sourceFile).toBe(polished.masterFile);
+      expect(record.sourceSha256).toBe(polished.masterSha256);
+      expect(record.sourceSha256).not.toBe(original.sha256);
+      expect(polished.runtimeFile).toBe(file);
+      expect(polished.prompt.length).toBeGreaterThan(100);
+      expect(
+        createHash('sha256')
+          .update(
+            readFileSync(
+              new URL(
+                `../../../assets/games/cockroach-poker/${original.file}`,
+                import.meta.url,
+              ),
+            ),
+          )
+          .digest('hex'),
+      ).toBe(original.originalSha256);
       const bytes = readFileSync(
         new URL(
           `../../../assets/games/cockroach-poker/${file}`,
@@ -75,7 +110,7 @@ describe('cockroach poker authorized UI', () => {
       );
       const hash = createHash('sha256').update(bytes).digest('hex');
       expect(hash).toBe(record.sha256);
-      expect(record.sourceSha256).toBe(original.originalSha256);
+      expect(hash).toBe(polished.runtimeSha256);
       expect(asset(file)).toBeTruthy();
       paths.add(file);
       hashes.add(hash);
@@ -88,8 +123,10 @@ describe('cockroach poker authorized UI', () => {
     expect(() => cardAssetFile(-1)).toThrow();
     expect(() => cardAssetFile(64)).toThrow();
     const back = renderToStaticMarkup(createElement(Back));
-    expect(back).toContain('runtime/back-photo.webp');
-    expect(back).toContain('非平整扫描');
+    expect(back).toContain('runtime/back-polished.webp');
+    expect(back).toContain('照片参考的AI精修衍生');
+    expect(back).not.toContain('clipPath');
+    expect(back).not.toContain('runtime/back-photo.webp');
     expect(back).not.toContain('card-back.jpg');
   });
   it('offers explicit target, animal and combined confirmation with accessible selected-state controls', () => {

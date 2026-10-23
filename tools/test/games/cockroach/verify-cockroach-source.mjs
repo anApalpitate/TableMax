@@ -204,9 +204,17 @@ try {
         });
       assert.equal(images.length, 64);
       assert.equal(new Set(images.map((image) => image.src)).size, 64);
-      assert(
-        images.every((image) => image.width === 137 && image.height === 220),
+      const artManifest = JSON.parse(
+        await readFile('assets/games/cockroach-poker/manifest.json', 'utf8'),
       );
+      images.forEach((image, cardId) => {
+        const record = artManifest.runtimeAssets.find(
+          (a) => a.cardId === cardId,
+        );
+        assert.equal(image.width, record.width);
+        assert.equal(image.height, record.height);
+        assert.equal(Math.max(image.width, image.height), 640);
+      });
       report.checks.push({
         id: 'physical-poker-image-details',
         passed: true,

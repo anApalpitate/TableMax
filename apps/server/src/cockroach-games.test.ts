@@ -23,8 +23,9 @@ function envelope(view: RoomView, command: Command['command']): Command {
   };
 }
 async function fixture(baseRules: GameRules, count = 3) {
-  mkdirSync('tmp', { recursive: true });
-  const base = mkdtempSync(resolve('tmp/cockroach-integration-service-'));
+  const taskRoot = process.env.TABLEMAX_TASK_TMP ?? 'tmp';
+  mkdirSync(taskRoot, { recursive: true });
+  const base = mkdtempSync(resolve(taskRoot, 'cockroach-integration-service-'));
   const webDir = join(base, 'web');
   mkdirSync(webDir);
   writeFileSync(join(webDir, 'index.html'), '<html>integration</html>');

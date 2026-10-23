@@ -24,7 +24,17 @@
 
 [公开图片原件](https://cdn-ak.f.st-hatena.com/images/fotolife/b/bg4kids/20160619/20160619070202.jpg)，来自[Boardgamepark文章](https://www.boardgamepark.com/entry/Kakerlakenpoker)，1024×768。实际查看，与官方组件图一致为灰底八动物背面，无Royal皇冠/X/眼睛；有桌面背景、反光和透视，不是平整扫描。该文章部分规则叙述与CP-S1冲突，仅作图像出处，不采用其规则。
 
-原字节导入back-photo.jpg；React内联SVG通过viewBox `225 16 640 704`和polygon `333,23 747,28 860,710 234,709`取景，不新增位图，不透视校正、不调色、不补画像素。asset('back-photo.jpg')由标准资源glob冻结，不在外部SVG隐藏相对路径。界面明确“经典牌背实拍”，剩余缺口是官方无透视扫描母版。
+2026-10-21原字节导入back-photo.jpg；当时React内联SVG通过viewBox `225 16 640 704`和polygon `333,23 747,28 860,710 234,709`取景，不新增位图，不透视校正、不调色、不补画像素。asset('back-photo.jpg')由标准资源glob冻结，不在外部SVG隐藏相对路径。界面明确“经典牌背实拍”，剩余缺口是官方无透视扫描母版。
+
+## CP-A3 用户授权的AI精修衍生
+
+2026-10-24用户明确采用全面UI重做计划，覆盖此前不重绘限制；64张经典原件各自通过内置imagegen编辑，保持物种、姿态、构图、角标及每张独立身份，不增加Royal、文字、能力或数量。八类1号、复杂线条与统一背面先核验，再完成全64张；返修只修白外角或摄影杂影，最终选择以逐项映射为准。
+
+统一灰背以CP-A2实拍作参考，制作平整正视图，保留八动物和黑枝结构，所有暗牌共用同一图。原JPG、实拍和PNG母版保留；AI重描不等于官方扫描、逐像素复原或出版方认证。原件的来源与许可边界继续适用，用户本地加工授权不改写为出版方许可。
+
+[正式manifest](../../../assets/games/cockroach-poker/manifest.json)维护64个cardId以及原件→选中PNG→运行WebP的SHA、输入角色、工具模式、完整提示词、返修和QA；[冻结交付快照](../../../artifacts/maintenance/cockroach-ui-redesign-20261024/art-delivery.json)与[返修补充](../../../artifacts/maintenance/cockroach-ui-redesign-20261024/art-provenance-supplement.json)保存制作证据。母版／对照页在[素材工作区](../../../../TMP/TableMaxMaterial/exports/cockroach-poker-polish-20261024/index.html)，源码与运行测试不要求外部目录存在。
+
+运行图采用锁定Pillow11.1.0／libwebp1.5.0等比Lanczos缩放至400×640、WebP q82／method6／exact，65张共1,382,930字节；逐图解码、不透明及同参重复编码字节核对见[运行素材QA](../../../artifacts/maintenance/cockroach-ui-redesign-20261024/art-runtime-qa.json)。有损编码不称PNG像素一致。实际UI复核及未测边界归[游戏规格](README.md#验证与边界)。
 
 ## 原件与使用边界
 

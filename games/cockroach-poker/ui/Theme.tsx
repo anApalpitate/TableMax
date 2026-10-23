@@ -3,10 +3,11 @@ import { kinds, kindOf, names, type Kind } from '../rules/cards';
 // Freeze the runtime derivatives; retain physical originals outside this glob.
 const files = import.meta.glob<string>(
   [
-    '../../../assets/games/cockroach-poker/**/*.{svg,wav}',
-    '!../../../assets/games/cockroach-poker/cover.svg',
-    '!../../../assets/games/cockroach-poker/card-reference.svg',
-    '../../../assets/games/cockroach-poker/runtime/**/*.webp',
+    '../../../assets/games/cockroach-poker/flow.svg',
+    '../../../assets/games/cockroach-poker/audio/*.wav',
+    '../../../assets/games/cockroach-poker/runtime/cards/*.webp',
+    '../../../assets/games/cockroach-poker/runtime/back-polished.webp',
+    '../../../assets/games/cockroach-poker/runtime/cover-reference.webp',
   ],
   { eager: true, query: '?url', import: 'default' },
 );
@@ -33,24 +34,11 @@ export function Critter({ kind }: { kind: Kind }) {
 export function Back() {
   return (
     <figure className="cp-back-reference">
-      <svg
+      <img
         className="cp-back"
-        viewBox="225 16 640 704"
-        role="img"
-        aria-label="经典灰底八动物牌背实拍取景，非平整扫描"
-      >
-        <defs>
-          <clipPath id="cp-back-photo-clip">
-            <polygon points="333,23 747,28 860,710 234,709" />
-          </clipPath>
-        </defs>
-        <image
-          href={asset('runtime/back-photo.webp')}
-          width="1024"
-          height="768"
-          clipPath="url(#cp-back-photo-clip)"
-        />
-      </svg>
+        src={asset('runtime/back-polished.webp')}
+        alt="经典灰底八动物统一牌背，照片参考的AI精修衍生"
+      />
     </figure>
   );
 }
@@ -60,7 +48,7 @@ export function Card({ card }: { card: number }) {
       <img
         className="cp-face"
         src={asset(cardAssetFile(card))}
-        alt={`${names[kindOf(card)]}第${(card % 8) + 1}种实体插画`}
+        alt={`${names[kindOf(card)]}第${(card % 8) + 1}种实体插画，AI精修衍生`}
       />
     </span>
   );
