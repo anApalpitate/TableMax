@@ -3,10 +3,12 @@ import {
   isDesktopPlayer,
   playerFramePath,
   readPlayerDisplay,
+  readWorkspaceDisplay,
   savePlayerDisplay,
+  saveWorkspaceDisplay,
   type PlayerDisplay,
   workspaceLayout,
-  workspaceDisplayKey,
+  workspaceSpace,
   type WorkspacePreference,
 } from './player-frame';
 import './player-frame.css';
@@ -26,17 +28,15 @@ export function PlayerFrame({ initialUrl }: { initialUrl: string }) {
     }
   });
   const [contract, setContract] = useState(false);
-  const [space, setSpace] = useState(() => ({
-    width: window.innerWidth,
-    height: window.innerHeight - 52,
-  }));
+  const [space, setSpace] = useState(() =>
+    workspaceSpace(window.innerWidth, window.innerHeight),
+  );
   const [workspacePreference, setWorkspacePreference] =
     useState<WorkspacePreference>(() => {
       try {
-        const value = localStorage.getItem(workspaceDisplayKey);
-        return value === 'portrait' || value === 'wide' ? value : 'auto';
+        return readWorkspaceDisplay(window.localStorage);
       } catch {
-        return 'auto';
+        return 'portrait';
       }
     });
   const mode = contract
@@ -44,6 +44,9 @@ export function PlayerFrame({ initialUrl }: { initialUrl: string }) {
     : desktop && large
       ? preferred
       : 'mobile';
+  const canSwitchWorkspace =
+    workspaceLayout(space.width, space.height, 'wide') === 'wide';
+  const displayPreference = contract ? workspacePreference : preferred;
   const frame = useRef<HTMLIFrameElement>(null);
   const disconnect = useRef<(() => void) | null>(null);
   const applyDisplay = useCallback(() => {
@@ -72,7 +75,7 @@ export function PlayerFrame({ initialUrl }: { initialUrl: string }) {
         active?.matches('input,textarea,[contenteditable="true"]')
       )
         return;
-      setSpace({ width: window.innerWidth, height: window.innerHeight - 52 });
+      setSpace(workspaceSpace(window.innerWidth, window.innerHeight));
     };
     window.addEventListener('resize', changed);
     return () => window.removeEventListener('resize', changed);
@@ -134,10 +137,7 @@ export function PlayerFrame({ initialUrl }: { initialUrl: string }) {
             'input,textarea,[contenteditable="true"]',
           )
         )
-          setSpace({
-            width: window.innerWidth,
-            height: window.innerHeight - 52,
-          });
+          setSpace(workspaceSpace(window.innerWidth, window.innerHeight));
       });
     };
     child.addEventListener('focusout', focusChanged);
@@ -157,49 +157,28 @@ export function PlayerFrame({ initialUrl }: { initialUrl: string }) {
       data-player-display={mode}
       data-workspace-layout={contract ? mode : undefined}
     >
-      {contract && (
-        <label className="player-frame__workspace-select">
-          布局
-          <select
-            aria-label="玩家布局"
-            value={workspacePreference}
-            onChange={(event) => {
-              const value = event.target.value as WorkspacePreference;
-              setWorkspacePreference(value);
-              try {
-                localStorage.setItem(workspaceDisplayKey, value);
-              } catch {
-                /* Memory choice remains available. */
-              }
-            }}
-          >
-            <option value="auto">自动</option>
-            <option value="portrait">竖屏</option>
-            <option value="wide">横屏</option>
-          </select>
-          {workspacePreference === 'wide' && mode !== 'wide' && (
-            <span role="status">空间不足，暂用竖屏</span>
-          )}
-        </label>
-      )}
       <div className="player-frame__scene" aria-hidden="true">
         <span className="player-frame__cards player-frame__cards--left" />
         <span className="player-frame__cards player-frame__cards--right" />
         <span className="player-frame__chip player-frame__chip--left" />
         <span className="player-frame__chip player-frame__chip--right" />
       </div>
-      {!contract && desktop && large && (
+      {(contract ? canSwitchWorkspace : desktop && large) && (
         <button
           type="button"
           className="player-frame__display"
-          aria-label={preferred === 'wide' ? '返回竖屏显示' : '切换横屏显示'}
-          title={preferred === 'wide' ? '返回竖屏显示' : '切换横屏显示'}
-          aria-pressed={preferred === 'wide'}
+          aria-label={
+            displayPreference === 'wide' ? '返回竖屏显示' : '切换横屏显示'
+          }
+          title={displayPreference === 'wide' ? '返回竖屏显示' : '切换横屏显示'}
+          aria-pressed={displayPreference === 'wide'}
           onClick={() => {
-            const next = preferred === 'wide' ? 'portrait' : 'wide';
-            setPreferred(next);
+            const next = displayPreference === 'wide' ? 'portrait' : 'wide';
+            if (contract) setWorkspacePreference(next);
+            else setPreferred(next);
             try {
-              savePlayerDisplay(window.localStorage, next);
+              if (contract) saveWorkspaceDisplay(window.localStorage, next);
+              else savePlayerDisplay(window.localStorage, next);
             } catch {
               /* Memory preference remains usable. */
             }
@@ -212,7 +191,7 @@ export function PlayerFrame({ initialUrl }: { initialUrl: string }) {
             fill="none"
             aria-hidden="true"
           >
-            {preferred === 'wide' ? (
+            {displayPreference === 'wide' ? (
               <rect
                 x="7"
                 y="3"
@@ -234,7 +213,7 @@ export function PlayerFrame({ initialUrl }: { initialUrl: string }) {
               />
             )}
             <path
-              d={preferred === 'wide' ? 'M12 21h4' : 'M22 12v4'}
+              d={displayPreference === 'wide' ? 'M12 21h4' : 'M22 12v4'}
               stroke="currentColor"
               strokeWidth="2"
               strokeLinecap="round"

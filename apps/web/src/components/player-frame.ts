@@ -8,19 +8,42 @@ export function playerFramePath(url: URL, origin: string): string | null {
 export type PlayerDisplay = 'portrait' | 'wide';
 export const playerDisplayKey = 'tablemax-player-display-mode';
 
-export type WorkspacePreference = 'auto' | PlayerDisplay;
-export const workspaceDisplayKey = 'tablemax-workspace-display-mode-v1';
+export type WorkspacePreference = PlayerDisplay;
+// The button-based workspace starts in portrait instead of inheriting v1 auto/wide.
+export const workspaceDisplayKey = 'tablemax-workspace-display-mode-v2';
+export function workspaceSpace(width: number, height: number) {
+  return { width: Math.max(0, width - 72), height: Math.max(0, height - 16) };
+}
 export function workspaceLayout(
   width: number,
   height: number,
   preference: WorkspacePreference,
 ): PlayerDisplay {
   const fits = width >= 640 && height >= 320;
-  return preference === 'portrait'
-    ? 'portrait'
-    : fits && (preference === 'wide' || width / height >= 1.2)
+  return preference === 'wide' && fits ? 'wide' : 'portrait';
+}
+
+export function readWorkspaceDisplay(
+  storage: Pick<Storage, 'getItem'> | null,
+): PlayerDisplay {
+  try {
+    return storage?.getItem(workspaceDisplayKey) === 'wide'
       ? 'wide'
       : 'portrait';
+  } catch {
+    return 'portrait';
+  }
+}
+
+export function saveWorkspaceDisplay(
+  storage: Pick<Storage, 'setItem'> | null,
+  mode: PlayerDisplay,
+) {
+  try {
+    storage?.setItem(workspaceDisplayKey, mode);
+  } catch {
+    // The current button choice still works when storage is unavailable.
+  }
 }
 
 /** Presentation only; never infer a room role from hardware or viewport size. */

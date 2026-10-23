@@ -4,23 +4,80 @@ import {
   playerDisplayKey,
   playerFramePath,
   readPlayerDisplay,
+  readWorkspaceDisplay,
   savePlayerDisplay,
+  saveWorkspaceDisplay,
+  workspaceDisplayKey,
   workspaceLayout,
+  workspaceSpace,
 } from './player-frame';
 
 describe('opt-in game workspace layout', () => {
-  it('uses actual available space rather than the device identity', () => {
-    expect(workspaceLayout(844, 338, 'auto')).toBe('wide');
-    expect(workspaceLayout(390, 792, 'auto')).toBe('portrait');
-    expect(workspaceLayout(639, 390, 'auto')).toBe('portrait');
-    expect(workspaceLayout(640, 320, 'auto')).toBe('wide');
-    expect(workspaceLayout(960, 1000, 'auto')).toBe('portrait');
+  it('keeps portrait until the player chooses wide, even on a landscape display', () => {
+    expect(workspaceLayout(1280, 720, 'portrait')).toBe('portrait');
+    expect(workspaceLayout(844, 390, 'portrait')).toBe('portrait');
+    expect(workspaceLayout(390, 844, 'portrait')).toBe('portrait');
+  });
+  it('reserves the side button rail before deciding whether wide can fit', () => {
+    expect(workspaceSpace(844, 390)).toEqual({ width: 772, height: 374 });
+    expect(workspaceSpace(1280, 720)).toEqual({ width: 1208, height: 704 });
+    expect(workspaceSpace(0, 0)).toEqual({ width: 0, height: 0 });
+    const minimum = workspaceSpace(712, 336);
+    expect(workspaceLayout(minimum.width, minimum.height, 'wide')).toBe('wide');
+    const narrow = workspaceSpace(711, 336);
+    expect(workspaceLayout(narrow.width, narrow.height, 'wide')).toBe(
+      'portrait',
+    );
+    const short = workspaceSpace(712, 335);
+    expect(workspaceLayout(short.width, short.height, 'wide')).toBe('portrait');
   });
   it('honours a portrait override and safely falls back without changing the preference', () => {
     expect(workspaceLayout(1280, 668, 'portrait')).toBe('portrait');
     expect(workspaceLayout(640, 319, 'wide')).toBe('portrait');
     expect(workspaceLayout(959, 700, 'wide')).toBe('wide');
     expect(workspaceLayout(1280, 668, 'wide')).toBe('wide');
+  });
+  it('starts the new button preference in portrait without migrating old auto or wide choices', () => {
+    const values = new Map<string, string>([
+      ['tablemax-workspace-display-mode-v1', 'wide'],
+      [playerDisplayKey, 'wide'],
+    ]);
+    const storage = {
+      getItem: (key: string) => values.get(key) ?? null,
+      setItem: (key: string, value: string) => {
+        values.set(key, value);
+      },
+    };
+    expect(readWorkspaceDisplay(storage)).toBe('portrait');
+    values.set(workspaceDisplayKey, 'auto');
+    expect(readWorkspaceDisplay(storage)).toBe('portrait');
+    saveWorkspaceDisplay(storage, 'wide');
+    expect(readWorkspaceDisplay(storage)).toBe('wide');
+    expect(readPlayerDisplay(storage)).toBe('wide');
+    saveWorkspaceDisplay(storage, 'portrait');
+    expect(readWorkspaceDisplay(storage)).toBe('portrait');
+    expect(values.get('tablemax-workspace-display-mode-v1')).toBe('wide');
+    expect(values.get(playerDisplayKey)).toBe('wide');
+  });
+  it('keeps the default and current button choice usable with unavailable storage', () => {
+    expect(readWorkspaceDisplay(null)).toBe('portrait');
+    expect(
+      readWorkspaceDisplay({
+        getItem: () => {
+          throw new Error('blocked');
+        },
+      }),
+    ).toBe('portrait');
+    expect(() =>
+      saveWorkspaceDisplay(
+        {
+          setItem: () => {
+            throw new Error('blocked');
+          },
+        },
+        'wide',
+      ),
+    ).not.toThrow();
   });
 });
 
