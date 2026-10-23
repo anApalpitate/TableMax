@@ -220,7 +220,7 @@ try {
             (asset) =>
               gameId === 'cockroach-poker' &&
               /\.(svg|wav)$/i.test(asset.file) &&
-              !['cover.svg', 'card-reference.svg'].includes(asset.file),
+              asset.file !== 'cover.svg',
           ),
         ]
       : originals;

@@ -42,7 +42,7 @@
 
 经典灰底八动物背面使用真实照片原字节，通过React原生SVG viewBox与clipPath取景，保留实拍透视，标注“经典牌背实拍”；未用Royal背面改色、AI重绘或补画。库封面改用官方40829包装原图，规则组件图与单牌示意用原图data URI包装SVG，未改像素。旧抽象资产保留但不再承担运行牌面／封面。3个WAV仍为原创合成短音。原件、来源、SHA、派生方式与使用边界见[来源](sources.md)及[资源清单](../../../assets/games/cockroach-poker/manifest.json)。已依用户授权本地接入，不声称已取得发行方再分发权。
 
-2026-10-23安装器容量修复：运行牌面、牌背、封面及组件参考图改用`runtime/`中的等比WebP派生，保留全部原件、来源和64张稳定牌号对应；牌背仍用既有SVG取景，不重新绘制。缩放／编码参数、原件与派生SHA及画面核验记录见资源清单的`runtimeAssets`与`runtimeProcessing`。生产构建不再装入未引用原图和旧的内嵌位图SVG，实际安装验收见[当前交付](../../reference/acceptance.md#当前源码与本地交付)。
+2026-10-23安装器容量修复：运行牌面、牌背、封面及组件参考图改用`runtime/`中的等比WebP派生，保留全部原件、来源和64张稳定牌号对应；牌背仍用既有SVG取景，不重新绘制。缩放／编码参数、原件与派生SHA及画面核验记录见资源清单的`runtimeAssets`与`runtimeProcessing`。生产构建不再装入未引用原图和已替换的内嵌位图SVG；介绍仍声明的单牌参考图保留，实际安装验收见[当前交付](../../reference/acceptance.md#当前源码与本地交付)。
 
 视觉以G01/G02/G04/G05/G07/G08/G17为依据：明亮浅黄与薄荷底、紫色行动边框，牌面和声明为主体，字体信息16px、主要动作18px、电脑标题24px；窄手机横向手牌、短屏重排、4K增大主体，减少动态禁用演出。只有保存成功的新feedback触发450ms动作／揭晓／共同胜利演出及对应声音；初始同步不播放，实例/分支/修订去重，静音、隐藏、暂停、测试模式及卸载停播，音频输出复用平台偏好与声源归属。声画不含未知牌型，声音未作真人试听认可。
 
@@ -54,6 +54,6 @@
 
 授权UI静态渲染4项通过：选择目标／声明、查看后只可转传、public无手牌、规则说明、保存反馈去重；证据 `artifacts/maintenance/test-history/runs/93601dcd-bcfc-49c9-ad4c-49b55a33219e/results.json`。首轮UI收集失败（`a97d0c80-a39b-46ae-bf57-c859e08846fb`）：游戏包不直接依赖react-dom，已修为复用web-host锁定renderer后独立新轮通过。首次 `.test.tsx` 被范围工具拒绝且未执行测试；已使用项目支持的 `.test.ts`与createElement。
 
-上述规则／静态证据不替代运行验证。后续[真实Socket与SQLite](../../../artifacts/maintenance/test-history/runs/19d37975-46ee-4077-a47c-419349609daf/results.json)、[源码53项界面矩阵](../../../artifacts/maintenance/cockroach-source/final-freeze-20261021/report.json)及[最终冻结游戏](../../../artifacts/maintenance/cockroach-delivery-20261021/installed-r2/results.json)均通过，含三端、生产按钮、全部资源解码和保存重启。正式安装与current为本地1.0.8.8，统一见[验收](../../reference/acceptance.md#德国小强与蟑螂沙拉完整交付2026-10-21)。实体手机、真实网络、多物理DPI与真人试听未实测；浏览器模拟和机器解码不升级为这些证据。
+上述规则／静态证据不替代运行验证。后续[真实Socket与SQLite](../../../artifacts/maintenance/test-history/runs/19d37975-46ee-4077-a47c-419349609daf/results.json)、[源码53项界面矩阵](../../../artifacts/maintenance/cockroach-source/final-freeze-20261021/report.json)及[最终冻结游戏](../../../artifacts/maintenance/cockroach-delivery-20261021/installed-r2/results.json)均通过，含三端、生产按钮、全部资源解码和保存重启。2026-10-21正式安装与当时current为本地1.0.8.8，其历史统一见[验收](../../reference/acceptance.md#德国小强与蟑螂沙拉完整交付2026-10-21)。实体手机、真实网络、多物理DPI与真人试听未实测；浏览器模拟和机器解码不升级为这些证据。
 
 本轮实体牌替换的源码三端与实际开发命令、97个资源HTTP／解码及原生主机／模拟手机检查均通过，见[当前源码验收](../../reference/acceptance.md#实体牌美术与开发资源加载2026-10-21)；上列1.0.8.8验收对应替换之前的交付，不能替代本轮资源证据。无透视的官方牌背扫描母版仍未取得，当前背面为真实照片取景。

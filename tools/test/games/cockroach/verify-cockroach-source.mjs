@@ -192,7 +192,7 @@ try {
       assert.equal(images.length, 64);
       assert.equal(new Set(images.map((image) => image.src)).size, 64);
       assert(
-        images.every((image) => image.width === 300 && image.height === 480),
+        images.every((image) => image.width === 137 && image.height === 220),
       );
       report.checks.push({
         id: 'physical-poker-image-details',
@@ -230,8 +230,8 @@ try {
         results.every(
           (result) =>
             result.status === 200 &&
-            result.width === 253 &&
-            result.height === 480,
+            result.width === 116 &&
+            result.height === 220,
         ),
         JSON.stringify(results),
       );

@@ -238,125 +238,131 @@
       "file": "runtime/normal-cauliflower.webp",
       "sourceFile": "normal-cauliflower.png",
       "sourceSha256": "6d38b1f13a23f092a088abc464215db0fcb5c34346c10068cab36b6f8fc10616",
-      "sha256": "99d225ee1a8ba4260664587b6084617fa18ec5c72da8ac741fc01f72bd98c608",
-      "bytes": 8550,
-      "width": 253,
-      "height": 480,
-      "alpha": true
+      "sha256": "89645f318ad0bdae04da849baa2c1f30e98a0449a2abf9211a9da0cbc4c47f51",
+      "bytes": 2904,
+      "width": 116,
+      "height": 220,
+      "alpha": true,
+      "processing": "Round3: original source decoded; proportional Lanczos maximum edge220; WebP q45 method6 exact=True; no crop/repaint/content editing, source alpha retained"
     },
     {
       "file": "runtime/normal-lettuce.webp",
       "sourceFile": "normal-lettuce.png",
       "sourceSha256": "599d34e9828fb16773e4ef90f1af2bb6da3d06ed19a3bf71b6fac62bdf9a79a3",
-      "sha256": "4242dad0b32bba882cb87ba149a05bd747a909af75f61cc24fa8caa0e26555f2",
-      "bytes": 12336,
-      "width": 253,
-      "height": 480,
-      "alpha": true
+      "sha256": "c63e60d86fec980e2af93e283781fb4f7a4ab08bdc1824acbe328a8cde791652",
+      "bytes": 3926,
+      "width": 116,
+      "height": 220,
+      "alpha": true,
+      "processing": "Round3: original source decoded; proportional Lanczos maximum edge220; WebP q45 method6 exact=True; no crop/repaint/content editing, source alpha retained"
     },
     {
       "file": "runtime/normal-pepper.webp",
       "sourceFile": "normal-pepper.png",
       "sourceSha256": "1c4dcde49ccb90b66ebba199c6dc66a26152230349d06613b2a741d08687c800",
-      "sha256": "c9274c60cd73af15e3bc117075a265da9b6042a69721f54aa2a0076595833984",
-      "bytes": 6934,
-      "width": 253,
-      "height": 480,
-      "alpha": true
+      "sha256": "9d1f868f3ea7f2642ffbd9c88ee1a19b2cb632d85845dba940c29cb2720d7dbe",
+      "bytes": 2356,
+      "width": 116,
+      "height": 220,
+      "alpha": true,
+      "processing": "Round3: original source decoded; proportional Lanczos maximum edge220; WebP q45 method6 exact=True; no crop/repaint/content editing, source alpha retained"
     },
     {
       "file": "runtime/normal-tomato.webp",
       "sourceFile": "normal-tomato.png",
       "sourceSha256": "09ba25a035a4bebe08f5bb6cf95e6a10ad33ee3506d8262f59d9cb2355371938",
-      "sha256": "bce283aef7c2bff811f4ed16b62b474c6a51b3bed628b74394f9dd74877541d3",
-      "bytes": 7020,
-      "width": 253,
-      "height": 480,
-      "alpha": true
+      "sha256": "b56897213d654e4b4746939cf607e8558e13555f3daef3d386ce4a3b53f8e6f5",
+      "bytes": 2308,
+      "width": 116,
+      "height": 220,
+      "alpha": true,
+      "processing": "Round3: original source decoded; proportional Lanczos maximum edge220; WebP q45 method6 exact=True; no crop/repaint/content editing, source alpha retained"
     },
     {
       "file": "runtime/taboo-cauliflower.webp",
       "sourceFile": "taboo-cauliflower.png",
       "sourceSha256": "28969f1c0f5fcf2e76b0fe6712895e7db97c0efd5874e4d441ee48a1bffedab6",
-      "sha256": "7bb1565bdb0f97e437fbe13f98c19e111088119db2d5bb2fcbb9d306656bfcf6",
-      "bytes": 9550,
-      "width": 253,
-      "height": 480,
-      "alpha": true
+      "sha256": "a7483714db59728f433c91fc8ee0f29d507708c819d9bebd23f74b6d2ef3ecfc",
+      "bytes": 3330,
+      "width": 116,
+      "height": 220,
+      "alpha": true,
+      "processing": "Round3: original source decoded; proportional Lanczos maximum edge220; WebP q45 method6 exact=True; no crop/repaint/content editing, source alpha retained"
     },
     {
       "file": "runtime/taboo-lettuce.webp",
       "sourceFile": "taboo-lettuce.png",
       "sourceSha256": "7201756aa6925638af76ff19b933e2324bafede537c32104ed384c048e188100",
-      "sha256": "9438665365c6c672a34aa7dd4e6bd452db28938559e44108d6954ddace2170f5",
-      "bytes": 10624,
-      "width": 253,
-      "height": 480,
-      "alpha": true
+      "sha256": "93b7abfdb9e793e4bfbee4e0c9a72af0c8e607912fc055c36fdd072ff02afb13",
+      "bytes": 3742,
+      "width": 116,
+      "height": 220,
+      "alpha": true,
+      "processing": "Round3: original source decoded; proportional Lanczos maximum edge220; WebP q45 method6 exact=True; no crop/repaint/content editing, source alpha retained"
     },
     {
       "file": "runtime/taboo-pepper.webp",
       "sourceFile": "taboo-pepper.png",
       "sourceSha256": "8c4ae3fb10aa5ac445a29cc1a098a12bab3c40cd4f6c4fa44264d04a2735ccf2",
-      "sha256": "ef83d6da36ed9e8adeca401abd10c82b51b4498c3524344cf9d9f45ce5195109",
-      "bytes": 10140,
-      "width": 253,
-      "height": 480,
-      "alpha": true
+      "sha256": "5ba2f75858c7baad3c1b08ba2a29b74ed0e977f1ee9c3e89e30cf29bf1d34684",
+      "bytes": 3598,
+      "width": 116,
+      "height": 220,
+      "alpha": true,
+      "processing": "Round3: original source decoded; proportional Lanczos maximum edge220; WebP q45 method6 exact=True; no crop/repaint/content editing, source alpha retained"
     },
     {
       "file": "runtime/taboo-tomato.webp",
       "sourceFile": "taboo-tomato.png",
       "sourceSha256": "fe5a3a786efbcdf5f5d97535335222e224131bb14a0c54934ff6adad45d22243",
-      "sha256": "25fef23a6ceff424566b08c2fc798e8d2323209714f274800ddf4af2aa144365",
-      "bytes": 8874,
-      "width": 253,
-      "height": 480,
-      "alpha": true
+      "sha256": "9c9825afd750e57f306c52f5b6d555d80690289b8a56003fb82f44fd248dda49",
+      "bytes": 3160,
+      "width": 116,
+      "height": 220,
+      "alpha": true,
+      "processing": "Round3: original source decoded; proportional Lanczos maximum edge220; WebP q45 method6 exact=True; no crop/repaint/content editing, source alpha retained"
     },
     {
       "file": "runtime/back.webp",
       "sourceFile": "back.png",
       "sourceSha256": "f6955dd1bed89d71f0a5d9669bafcb39873b874e9025b24441e711a301534606",
-      "sha256": "4630fcafa0dc450e21896c1b146117386fdfa263231c70037e5a38ce5c731ef2",
-      "bytes": 7240,
-      "width": 253,
-      "height": 480,
-      "alpha": true
+      "sha256": "58dacfaddb3e63606d4baa07842d87646c692b4a54fc7511437e2ed40f2e795c",
+      "bytes": 2530,
+      "width": 116,
+      "height": 220,
+      "alpha": true,
+      "processing": "Round3: original source decoded; proportional Lanczos maximum edge220; WebP q45 method6 exact=True; no crop/repaint/content editing, source alpha retained"
     },
     {
       "file": "runtime/cover-physical.webp",
       "sourceFile": "cover-physical.png",
       "sourceSha256": "9c8eb9431b267df695e7a8182cb036f7bddd036b8dd9195157b9b1fbdb038d5f",
-      "sha256": "94771a6ae831c8be8eb809ba9c09df01d691d7eb4517cd4f76b6a67d2207b1f7",
-      "bytes": 21232,
-      "width": 294,
-      "height": 320,
+      "sha256": "76e6297654f02b2878937fa1f944191981dcc7cbade03651fdc74b47cd4d637e",
+      "bytes": 10458,
+      "width": 202,
+      "height": 220,
       "alpha": true,
-      "processing": "Round2 narrow capacity optimization: source pixels decoded; Lanczos maximum edge320; WebP q62 method6 exact=True; no content edits; alpha retained"
+      "processing": "Round3: original source decoded; proportional Lanczos maximum edge220; WebP q45 method6 exact=True; no crop/repaint/content editing, source alpha retained"
     }
   ],
   "runtimeProcessing": {
-    "version": 1,
+    "version": 3,
     "date": "2026-10-23",
     "tool": "Pillow11.1.0 / libwebp1.5.0",
     "format": "WebP",
-    "quality": 72,
+    "quality": 45,
     "method": 6,
     "exact": true,
-    "maxEdge": 480,
+    "maxEdge": 220,
     "resample": "Lanczos",
     "upscale": false,
     "contentEdits": false,
-    "alpha": "Preserved; WebP alpha encoded losslessly",
-    "sourceMetadata": "Decoded pixel content only; source EXIF and trailing bytes not copied",
+    "alpha": "Preserved; lossless WebP alpha",
+    "sourceMetadata": "Original decoded source pixels only; EXIF/trailing data not copied",
     "originalPolicy": "All original files and original manifest records retained unchanged",
-    "bytes": 102500,
-    "qa": "All64 poker faces, eight salad faces and both backs visually reviewed on contact sheets; covers and representative original/derivative comparisons reviewed at encoded dimensions. Shapes, color families, corner identities, taboo crosses and cover titles remain legible. Slight lossy texture smoothing accepted within task budget. UI integration and installer acceptance are separate.",
-    "evidence": "E:\\Proj\\TMP\\TableMaxMaterial\\exports\\installer-art-20261023-r2\\qa.json",
-    "exceptions": {
-      "runtime/cover-physical.webp": "Round2 narrow capacity optimization: source pixels decoded; Lanczos maximum edge320; WebP q62 method6 exact=True; no content edits; alpha retained"
-    },
-    "round2": "First-start capacity measured only5716 bytes above ceiling. Narrow optimization changes only three covers/reference images; all74 remaining runtime files retain round1 exact SHA. Comparison previews reviewed; primary package titles, animal/vegetable identity, montage composition and alpha retained. Fine print and textures are softer at reduced cover size."
+    "bytes": 38312,
+    "exceptions": {},
+    "qa": "All64 animal faces at160 CSS pixel wide contact sheets plus representative source comparisons reviewed; eight vegetable normal/taboo faces, both backs and covers reviewed. Eight animal identities and distinct per-card illustration poses retained; vegetable identity and white taboo crosses remain clear. Fine grain and subtle shadows show smoothing and minor block artifacts; source-resolution detail is reduced. Complete compositions, no crop/repaint or merged variants. HTML labels are separate. Runtime three-end/installer validation belongs to main agent.",
+    "evidence": "E:\\Proj\\TMP\\TableMaxMaterial\\exports\\installer-art-20261023-r3\\qa.json"
   }
 }

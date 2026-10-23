@@ -4,7 +4,7 @@
 
 ## 当前源码与本地交付
 
-公开版本保持 **1.0.8**，线上附件仍为已发布的 **1.0.8.7**，见[替换记录](#v108附件替换2026-10-21)。本地current已推广为 **1.0.8.8**，新增德国小强与蟑螂沙拉，预装9款游戏／10个玩法，见[本轮完整交付](#德国小强与蟑螂沙拉完整交付2026-10-21)。本轮不发布、不改标签或线上附件；首次1.0.8.6验证保留于[历史记录](#v108发行验收2026-10-19)。
+公开版本保持 **1.0.8**，线上附件仍为已发布的 **1.0.8.7**，见[替换记录](#v108附件替换2026-10-21)。本地current已推广为 **1.0.8.9**，预装9款游戏／10个玩法，含德国小强与蟑螂沙拉实体牌运行美术，见[本轮完整交付](#实体牌运行资源与安装器更新2026-10-23)。本轮不发布、不改标签或线上附件；1.0.8.8与1.0.8.6的原交付证明保留于下方历史记录。
 
 上一轮主工作树本地current已核验恢复为[1.0.7.22](#盒子与马尼拉界面优化2026-10-17)，含七款游戏／八个玩法；33原指针和修复回执保留于[恢复记录](../archive/current-pointer-repair-2026-10-18.md)。本轮发布前的线上附件对应[1.0.7.2原字节](#1072安装进度与版本交付2026-10-16)。旧1.0.6/current、内部载荷和原证明按历史身份保留；对应本地旧EXE／sidecar已退役，原路径不能再作为现存安装器或迁移复验输入，见[退役记录](../archive/local-release-retirement-2026-10-16.md)。
 
@@ -13,6 +13,16 @@
 [GitHub v1.0.7](https://github.com/anApalpitate/TableMax/releases/tag/v1.0.7)为上一公开发行，非草稿、非预发布；本轮线上状态见1.0.8记录。附件仅[installer](https://github.com/anApalpitate/TableMax/releases/download/v1.0.7/TableMax-1.0.7-installer-win-x64.exe)与[source ZIP](https://github.com/anApalpitate/TableMax/releases/download/v1.0.7/TableMax-1.0.7-source.zip)；公开installer与本地1.0.7.2完全同字节。source ZIP为86,438,358字节，SHA `83d9080b3a0d54b8d01269710dd3a9bec7c417413e4d18429e9d4fc0c5660963`，由标签源码提交 `c1207fd0be68b05b2fa88e2989a2c7444ca3527b`导出；标签对象 `14e0eef4272aeaea5648f9bc08fb43de998e09d7`。[发布审计](../../artifacts/maintenance/v1.0.7/windows-editions/91e13f6af698a964df479b8233ecf5e2f063d9579f09f9e1f7f2d652542e7ca5/github-publication.json)核对两附件远端摘要、源码映射及RSA签名正文。历史附件保留，不部署Pages；失败和操作方法差异见[发布归档](../archive/installer-progress-v107-release-2026-10-16.md)。
 
 工作区占用及逐文件退役见[项目瘦身](project-slimming.md)；1.0.7.2发布任务未追加清理，马尼拉任务的单次维护单独记录。旧运行ZIP唯一迁移输入见[整理归档](../archive/tooling-delivery-organization-2026-10-15.md#旧运行zip的迁移输入)；下方旧标题保留历史导航。
+
+## 实体牌运行资源与安装器更新（2026-10-23）
+
+本轮按用户要求更新本地完整安装器，公开版本保持1.0.8，不发布、不改标签或线上附件。[完整安装器1.0.8.9](../../artifacts/releases/v1.0.8/1.0.8.9/TableMax-1.0.8.9-installer-win-x64.exe)及[清单](../../artifacts/releases/v1.0.8/1.0.8.9/TableMax-1.0.8.9-installer-win-x64-manifest.json)预装9款游戏／10个玩法；EXE38,552,763字节，SHA256 `76c828598990b166e45cbdf24f09d55d2c40e454f79961128c48829b6d63b409`；内部ZIP46,808,447字节，实际提取99,790,309字节，三项均低于120,000,000。冻结快照 `809678d5ba3586d0bf6fe7b5fa77d14d3f79f77aa7e4c18c88eef3f471797281`。
+
+生产资源范围已修复为导入、媒体glob及模块规则插图的闭包；开发构建继续自动发现媒体目录。两款实体牌美术使用77张WebP运行派生，总239,312字节，保留原图及64张稳定牌号对应，尺寸／处理参数／原图与派生SHA见各游戏清单。两组资源工具回归、牌号映射UI测试及[源码57项视觉检查](../../artifacts/maintenance/cockroach-source/runtime-webp-r3-20261023/report.json)通过；定向ESLint与Prettier通过。原超64MB玩法资源失败、日志捕获纠正及首次启动容量超限预判保留于[轮次记录](../../artifacts/maintenance/installer-update-20261023/rounds.json)，未放宽容量断言，失败构建未额外占号。
+
+[第三轮正式安装证明](../../artifacts/maintenance/installer-update-20261023/finalized-installation-r3.json)已封存：原路径Medium启动／取消、三条更新与框架恢复链各8步通过，正式产品首装、同包复装、保存、默认卸载、同根重装读回及再次卸载12项通过。首装实测118,984,447字节，同包复装119,822,186字节，均严格低于120,000,000，触发110,000,000工程预警；不作为整个安装过程的绝对峰值。[账户终态](../../artifacts/maintenance/installer-update-20261023/production-r3/isolated-account.json)确认账户与profile删除、errors为空。
+
+首轮首装容量失败，第二轮首装容量通过但同包复装因追加卸载日志增长而超限；均已精确清理临时账户与profile。保留原日志追加策略，进一步等比压缩运行资源，并将首装／复装框架分别纳入容量预检。[安装后两游戏复核](../../artifacts/maintenance/installer-update-20261023/installed-r4/results.json)通过，核对91个资源的实际冻结成员／SHA／解码、原生主机／公共屏与模拟手机、合法操作及保存重启；核验清单遗漏介绍参考图的失败与修正保留于轮次记录，未改安装器字节或放宽精确成员断言。[推广回执](../../artifacts/maintenance/installer-update-20261023/promotion-receipt.json)确认本地current为1.0.8.9并完成本会话修订确认，旧1.0.8.8本地EXE按保留规则退役，原清单、载荷及证明保持。源码／模拟界面检查不代替实体手机、真实LAN、物理DPI或真人试听，这些项目本轮未重测。
 
 ## 实体牌美术与开发资源加载（2026-10-21）
 
@@ -26,7 +36,7 @@
 
 ## 德国小强与蟑螂沙拉完整交付（2026-10-21）
 
-[完整安装器1.0.8.8](../../artifacts/releases/v1.0.8/1.0.8.8/TableMax-1.0.8.8-installer-win-x64.exe)38,251,047字节，SHA256 `6f3bf19bfa4c83a2bd9a6ff499b97e1e75e3efd3bacbd003ff79cfb8c48cc67c`；内部ZIP46,501,132字节，SHA256 `22d88bf48d7ca877f985fd08e763c74e2299cad94a8e161712f62dc3995c9403`；实际提取99,456,031字节，均低于120,000,000。冻结快照 `ebb0ce7cc3410f0deb413e5a2d49f7cb26bd156312050ff82c7416a33540f5a5`。两款规则、数字改编、来源与三档人机分别见[德国小强](../games/cockroach-poker/README.md)和[蟑螂沙拉](../games/cockroach-salad/README.md)。
+[1.0.8.8原交付清单](../../artifacts/releases/v1.0.8/1.0.8.8/TableMax-1.0.8.8-installer-win-x64-manifest.json)38,251,047字节，SHA256 `6f3bf19bfa4c83a2bd9a6ff499b97e1e75e3efd3bacbd003ff79cfb8c48cc67c`；内部ZIP46,501,132字节，SHA256 `22d88bf48d7ca877f985fd08e763c74e2299cad94a8e161712f62dc3995c9403`；实际提取99,456,031字节，均低于120,000,000。冻结快照 `ebb0ce7cc3410f0deb413e5a2d49f7cb26bd156312050ff82c7416a33540f5a5`。两款规则、数字改编、来源与三档人机分别见[德国小强](../games/cockroach-poker/README.md)和[蟑螂沙拉](../games/cockroach-salad/README.md)。
 
 [正式安装证明](../../artifacts/maintenance/cockroach-delivery-20261021/finalized-installation-r2.json)通过：原路径标准账户Medium启动、中文向导、默认目录／长路径外置数据／旧框架失败恢复三条8步更新链，以及正式产品首装、复装、保存、默认卸载、同根重装读回和再次卸载12项检查。临时账户及profile删除、errors为空，见[隔离终态](../../artifacts/maintenance/cockroach-delivery-20261021/production-r2/isolated-account.json)。首次健康启动同次采样118,305,209字节，低于硬限、触发110,000,000工程预警；不称整个安装过程绝对峰值。
 
