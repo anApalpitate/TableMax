@@ -37,8 +37,8 @@ let options={};
 window.renderBox=(patch={})=>{options={...options,...patch};const o=options;
 const seats=Array.from({length:o.joining?0:(o.count??3)},(_,i)=>({id:'seat-'+i,name:o.long?(i%2?'Abcdefghijklmnop':'大家一起开心玩耍'):i===0?'小明':'朋友'+i,avatarId:AVATAR_PRESETS[i%AVATAR_PRESETS.length].id,ready:i===0?!!o.ready:true,online:i!==1,controller:i===2?'bot':'human',botDifficulty:'default'}));
 const role=o.role??'player';
-const view={id:'fixture',name:'聚会牌桌',status:o.status??'lobby',joinOpen:!o.closed,playMode:'play',seats,ownerSeatId:null,paused:!!o.paused,lifecycleActions:o.status==='playing'?[{type:'next'}]:[],botError:null,gameView:o.status==='playing'||o.status==='ended'?{}:null,capabilities:{manage:false,manageSeats:false},game:{id:o.game??'cockroach-salad',name:o.game==='cockroach-poker'?'德国小强':'蟑螂沙拉',min:2,max:o.capacity??6}};
-const session={role,view,self:role!=='player'||o.joining?null:seats[0],isHost:role==='host',canControl:role==='host',canManageSeats:role==='host',locked:!!o.closed,busy:!!o.busy,connected:o.connected!==false,credential:o.joining?null:'fixture',name:'小明',message:o.message??'',messageKind:o.kind??'saved',errorId:'',admissionPending:!!o.pending,awaitingConfirmation:!!o.awaiting,admissionAvatarId:null,admissionAvatarImage:null,addresses:[],adapters:[],address:'',port:38473,networkMessage:'',externalJoinUrl:null,setAddress(){},refreshNetwork(){},async saveExternalJoinUrl(){return true},setName(){},join(){window.commands.push({type:'join'})},retry(){window.commands.push({type:'retry'})},retryAdmission(){window.commands.push({type:'retryAdmission'})},setPlayerCredential(){},command(c){window.commands.push(c)}};
+const view={id:'fixture',name:'聚会牌桌',status:o.status??'lobby',joinOpen:!o.closed,playMode:'play',seats,ownerSeatId:o.owner?'seat-0':null,paused:!!o.paused,lifecycleActions:o.status==='playing'?[{type:'next'}]:[],botError:null,gameView:o.status==='playing'||o.status==='ended'?{}:null,capabilities:{manage:false,manageSeats:false},game:{id:o.game??'cockroach-salad',name:o.game==='cockroach-poker'?'德国小强':'蟑螂沙拉',min:2,max:o.capacity??6}};
+const session={role,view,self:role!=='player'||o.joining?null:seats[0],isHost:role==='host',canControl:role==='host'||!!o.owner,canManageSeats:role==='host'||!!o.owner,locked:!!o.closed,busy:!!o.busy,connected:o.connected!==false,credential:o.joining?null:'fixture',name:'小明',message:o.message??'',messageKind:o.kind??'saved',errorId:'',admissionPending:!!o.pending,awaitingConfirmation:!!o.awaiting,admissionAvatarId:null,admissionAvatarImage:null,addresses:[],adapters:[],address:'',port:38473,networkMessage:'',externalJoinUrl:null,setAddress(){},refreshNetwork(){},async saveExternalJoinUrl(){return true},setName(){},join(){window.commands.push({type:'join'})},retry(){window.commands.push({type:'retry'})},retryAdmission(){window.commands.push({type:'retryAdmission'})},setPlayerCredential(){},command(c){window.commands.push(c)}};
 flushSync(()=>root.render(<BoxScreen session={session}/>));};window.renderBox();
 `,
 );
@@ -199,7 +199,71 @@ try {
   report.checks.push(
     'host lifecycle/pause/resume commands and end confirmation cancel',
   );
-  await render({ role: 'player', status: 'lobby', paused: false });
+  // Returning from a running/ended game must not reserve a missing ready row.
+  for (const [w, h] of [
+    [320, 568],
+    [390, 844],
+    [844, 390],
+    [1280, 720],
+  ]) {
+    await page.setViewportSize({ width: w, height: h });
+    for (const status of ['playing', 'ended']) {
+      await render({
+        role: 'player',
+        owner: true,
+        status,
+        count: 4,
+        capacity: 5,
+        joining: false,
+        paused: false,
+      });
+      const path = join(output, `return-${status}-${w}.png`);
+      await page.screenshot({ path, fullPage: true });
+      report.screenshots.push(path);
+      const profile = await page.evaluate(() => {
+        const card = document.querySelector('.player-actions');
+        const content = [...card.children].map((e) =>
+          e.getBoundingClientRect(),
+        );
+        const r = card.getBoundingClientRect();
+        const style = getComputedStyle(card);
+        return {
+          height: r.height,
+          unused:
+            r.bottom -
+            Math.max(...content.map((c) => c.bottom)) -
+            parseFloat(style.paddingBottom) -
+            parseFloat(style.borderBottomWidth),
+          overflow: document.documentElement.scrollWidth > innerWidth + 1,
+        };
+      });
+      assert(!profile.overflow, `returned player overflow ${w} ${status}`);
+      assert(
+        profile.unused <= 2,
+        `unused ready row ${w} ${status}: ${JSON.stringify(profile)}`,
+      );
+      assert.equal(await page.locator('.player-ready').count(), 0);
+      assert(
+        await page
+          .getByRole('link', { name: '进入牌桌', exact: true })
+          .isVisible(),
+      );
+      assert(
+        await page
+          .getByRole('button', { name: '座位设置', exact: true })
+          .isVisible(),
+      );
+      report.checks.push(
+        `returned player owner compact profile ${w}x${h} ${status}`,
+      );
+    }
+  }
+  await render({
+    role: 'player',
+    owner: false,
+    status: 'lobby',
+    paused: false,
+  });
   for (const [w, h] of [
     [320, 568],
     [390, 844],

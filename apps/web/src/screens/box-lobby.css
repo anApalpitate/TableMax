@@ -345,6 +345,10 @@
 .box-screen .stage .player-actions > button:last-child:not(.profile-avatar) {
   grid-row: 2;
 }
+.box-screen .stage .player-actions--identity-only {
+  min-height: 0;
+  grid-template-rows: minmax(56px, auto);
+}
 @media (max-height: 850px) and (min-width: 960px) {
   .box-screen .stage .room-table {
     --seat-height: 156px;
@@ -500,6 +504,9 @@
 @media (max-width: 959px) {
   .box-screen .stage > .room-heading {
     gap: 8px;
+  }
+  .box-screen .room-heading .room-heading__meta {
+    order: 0;
   }
 }
 

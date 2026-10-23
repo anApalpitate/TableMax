@@ -303,7 +303,9 @@ function BoxScreenContent({ session }: { session: RoomSession }) {
           </div>
           <div className="box-player-dock">
             {self && game && (
-              <div className="player-actions">
+              <div
+                className={`player-actions${lobby ? '' : ' player-actions--identity-only'}`}
+              >
                 <button
                   type="button"
                   className="profile-avatar secondary"
