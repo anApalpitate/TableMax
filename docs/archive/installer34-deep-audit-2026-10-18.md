@@ -19,6 +19,6 @@ installer-retention只读预览实际因缺失原证明拒绝；首次另起系�
 
 完整前采样27422357103逻辑字节，含两个嵌套仓库；主快照唯一ENOENT经独立检查确认是断开的Junction，不跟随、不计普通文件字节。原始错误保留，见[补计与链接记录](../../artifacts/maintenance/build-and-deep-slimming-1792301636386/inventory-completion.json)。
 
-只读草案：临时安装器／fixture构建根176个，快照估计9027426379字节；旧载荷派生副本与被最终轮覆盖的中间图78个根，快照估计3578171697字节。两者总预算12605598076字节，仅表示待进一步复核的潜在候选，未冻结为可执行逐文件清单，也不够据此承诺6GB目标。见[临时副本审查](../../artifacts/maintenance/build-and-deep-slimming-1792301636386/audit-tmp.json)及[载荷与截图审查](../../artifacts/maintenance/build-and-deep-slimming-1792301636386/audit-artifacts.json)。
+只读草案：临时安装器／fixture构建根176个，快照估计9027426379字节；旧载荷派生副本与被最终轮覆盖的中间图78个根，快照估计3578171697字节。两者总预算12605598076字节，仅表示待进一步复核的潜在候选，未冻结为可执行逐文件清单，也不够据此承诺6GB目标。见[临时副本审查](../../artifacts/maintenance/build-and-deep-slimming-1792301636386/audit-tmp.json)及[载荷与截图审查（原件已退役）](history-deep-review-20261024.md)。
 
 保护33与34全树、原资料、正式与旧Electron存档、历史签名模块、ZIP／manifest、原证明／日志／源码、最新及仍需审查截图、三个verified-runtime、依赖／工具缓存、嵌套仓库、链接与目标、近期变化及其他任务修改。删除0文件、0字节，未消费Apply；严格低于6GB目标未达成。最终采样及文件保护核对留在本轮证据目录，统计不使用NTFS物理节省。

@@ -20,11 +20,11 @@
 
 本次仅改马尼拉展示与交互，未修改规则、存档结构、共享协议、公开版本或安装器。岸上岗位费用去负号、收益去图标并居中；海盗／领航单行及完整棋子居中。保存提示仅一份，按实际字形及控件边界定位在状态区既有空白；锚点与提示不占布局。删除操作列表后保留具体棋盘操作及放弃入口，股票只读与融资分开，零额度赎回和强制付款抵押保留。
 
-- [玩家布局矩阵](../../../artifacts/maintenance/manila-harbor-rebuild-20261017/mobile/clarity-mobile-final-r04-20261021/report.json)：9组、45次交互通过，覆盖320×568、360／361×780、390×844、430×932、620／621×900、844×390和1280×720；每组覆盖九个合法阶段、岗位／完整棋子居中、完整回执字形无碰撞及出现前后组件矩形不变。
-- [主机／公共屏](../../../artifacts/maintenance/manila-harbor-rebuild-20261017/mobile/clarity-display-final-r04-20261021/report.json)：720p、1080p、4K三组双角色、30次交互通过，覆盖相同九阶段。
-- [引导、股票与融资](../../../artifacts/maintenance/manila-harbor-rebuild-20261017/mobile/clarity-actions-final-r04-20261021/report.json)：320、390、844横屏共6组、75次交互通过；包含全部行动阶段、进入视野停动、重绘／旋转不重复提醒、减少动态、暂停／断线／提交锁／他人行动、只读图卡与公开端秘密隔离，以及真实规则验证的抵押／赎回和强制付款。
-- [原有回归](../../../artifacts/maintenance/manila-harbor-rebuild-20261017/mobile/clarity-regression-final-r04-20261021/report.json)：28组中26组通过；两组entries停止于旧“分红池”可见文案断言。当前正文使用“整船／船员＋金额”；该断言及旧棋子下行槽假设改为实际投影金额、完整aria语义和岗位内头身边界后定向复验，原失败保留。其余覆盖文字流、滚动与草稿定位、旋转、边界、权限、付款及普通／最终结算。
-- [入口定向复验](../../../artifacts/maintenance/manila-harbor-rebuild-20261017/mobile/clarity-entries-repair-r05-20261021/report.json)：两视口、48次交互通过；逐一覆盖12种局面，实际分红、完整棋子及船员读数正确，海盗详情可读、关闭回焦且不提交动作。仅更新测量方法，未再修改产品；前一轮其他26组结论仍绑定其原输入与方法，不重复计数。
+- [玩家布局矩阵（原件已退役）](../../archive/history-deep-review-20261024.md)：9组、45次交互通过，覆盖320×568、360／361×780、390×844、430×932、620／621×900、844×390和1280×720；每组覆盖九个合法阶段、岗位／完整棋子居中、完整回执字形无碰撞及出现前后组件矩形不变。
+- [主机／公共屏（原件已退役）](../../archive/history-deep-review-20261024.md)：720p、1080p、4K三组双角色、30次交互通过，覆盖相同九阶段。
+- [引导、股票与融资（原件已退役）](../../archive/history-deep-review-20261024.md)：320、390、844横屏共6组、75次交互通过；包含全部行动阶段、进入视野停动、重绘／旋转不重复提醒、减少动态、暂停／断线／提交锁／他人行动、只读图卡与公开端秘密隔离，以及真实规则验证的抵押／赎回和强制付款。
+- [原有回归（原件已退役）](../../archive/history-deep-review-20261024.md)：28组中26组通过；两组entries停止于旧“分红池”可见文案断言。当前正文使用“整船／船员＋金额”；该断言及旧棋子下行槽假设改为实际投影金额、完整aria语义和岗位内头身边界后定向复验，原失败保留。其余覆盖文字流、滚动与草稿定位、旋转、边界、权限、付款及普通／最终结算。
+- [入口定向复验（原件已退役）](../../archive/history-deep-review-20261024.md)：两视口、48次交互通过；逐一覆盖12种局面，实际分红、完整棋子及船员读数正确，海盗详情可读、关闭回焦且不提交动作。仅更新测量方法，未再修改产品；前一轮其他26组结论仍绑定其原输入与方法，不重复计数。
 - [设计守卫](../../../artifacts/manila/validation/clarity-design-final-r01-20261021/results.json)：5组相关玩家／主机／公共屏布局、10种详情及金融入口通过。
 - [组件单测](../../../artifacts/maintenance/test-history/runs/df8908b4-1b8a-49fb-bad6-49493923a57d/results.json)：14项通过，包含零分项隐藏、非零分项／汇总及原账不变。随后自动维护因查找不存在的result.json记为blocked；它不改变14项测试结果，本次未扩大范围修改工具收尾。产品入口TypeScript、ESLint与本次文件Prettier检查通过。
 
@@ -36,10 +36,10 @@
 
 手机布局由`games/manila/ui/player-layout.css`统一负责；旧玩家样式的重复覆盖已移除或隔离，岸上岗位及祖先设施使用自然高度与自动行轨道，金额和币种保持同行。文字至少16px、主要操作18px、触控至少44px；以换行、减少列数和纵向滚动适配，不以缩字或隐藏溢出解决。声音采用共享设备偏好，玩家也可进入视频设置。
 
-- [最终文字矩阵](../../../artifacts/maintenance/manila-board-composition-20261017/mobile/text-flow-current-final-r01/report.json)12组与[最终横屏复验](../../../artifacts/maintenance/manila-board-composition-20261017/mobile/text-flow-anchor-final-r01/report.json)两组均绑定最终源码通过：320×568、360×800、361×800、375×812、390×844、412×915、430×932、568×320、620×900、621×900、844×390、932×430、1024×768及1123×800。两组较大横屏还验证旋转保留草稿。
+- [最终文字矩阵（原件已退役）](../../archive/history-deep-review-20261024.md)12组与[最终横屏复验（原件已退役）](../../archive/history-deep-review-20261024.md)两组均绑定最终源码通过：320×568、360×800、361×800、375×812、390×844、412×915、430×932、568×320、620×900、621×900、844×390、932×430、1024×768及1123×800。两组较大横屏还验证旋转保留草稿。
 - 各尺寸覆盖14个合法阶段，包含竞拍、购股、装货、派遣、领航、付款本人／等待及结算；普通昵称与当时使用的24字符长中文／无空格昵称分别检查（后者是超过现行上限的历史压力输入，不代表当前可正常注册）。金额来自自然规则局面中可提交的最大竞价83、融资54，不声称是全局任意历史状态的金额上限。逐字形检查所属卡片、裁切祖先及文字／图标／控件碰撞，既有主滚动区离屏内容按可见区域判断；检查保存标签显示前后几何不变，保留草稿与展开操作。
-- [最终草稿定位](../../../artifacts/maintenance/manila-board-composition-20261017/mobile/draft-anchor-final-r01/report.json)320×568、390×844、844×390、932×430四组通过，实际点击箭头、岗位、取消后棋盘坐标保持；短横屏补偿79／100px实际缺口，真实滚轮操作后补偿清零。旧失败由确认区收缩导致滚动上限钳位，修复既有定位机制，未增加固定占位或放宽坐标断言。
-- [电脑回归](../../../artifacts/manila/validation/settings-current-source-final-r01/results.json)主机／公共屏720p、1080p、4K六组布局、10详情和2靠港场景通过；后续修改仅作用玩家端。[通用设置／保存定向](../../../artifacts/maintenance/settings-and-save-20261020/manila-anchor-settings-final-r01/report.json)九组通过；共享入口、声音同步和手机全屏支持／拒绝／不支持另见[通用视觉](../../reference/visual-design.md)。
+- [最终草稿定位（原件已退役）](../../archive/history-deep-review-20261024.md)320×568、390×844、844×390、932×430四组通过，实际点击箭头、岗位、取消后棋盘坐标保持；短横屏补偿79／100px实际缺口，真实滚轮操作后补偿清零。旧失败由确认区收缩导致滚动上限钳位，修复既有定位机制，未增加固定占位或放宽坐标断言。
+- [电脑回归](../../../artifacts/manila/validation/settings-current-source-final-r01/results.json)主机／公共屏720p、1080p、4K六组布局、10详情和2靠港场景通过；后续修改仅作用玩家端。[通用设置／保存定向（原件已退役）](../../archive/history-deep-review-20261024.md)九组通过；共享入口、声音同步和手机全屏支持／拒绝／不支持另见[通用视觉](../../reference/visual-design.md)。
 
 证据均绑定源码、脚本与实际截图；原失败和实质修复保留在[轮次记录](../../../artifacts/maintenance/settings-and-save-20261020/verification-rounds.json)，独立预算定向复验，不清旧失败、不放宽字形和位置断言。本次为隐藏、静音、127.0.0.1的合法投影源码组件与Edge模拟视口检查；未执行实体手机、真实LAN、原生系统窗口或安装器验收，不代表旧发行或已运行对局已更新。未调整公开版本。
 
@@ -48,7 +48,7 @@
 用户截图中的“靠…”对应电脑船只状态栏。只读检查发现本地开发游戏选择仍引用缺少上一轮纸牌标识样式的资源，记录见`artifacts/maintenance/manila-destination-labels-20261019/runtime-diagnosis.json`。本次移除基础状态样式中的ellipsis和隐藏溢出，按完整文字保留最小宽度，状态与分红允许换行。未迁移旧存档或覆盖旧发行；开发预览须重新运行开发命令并新建马尼拉对局。
 
 - [设计回归](../../../artifacts/manila/validation/destination-design-all-ports-20261019/results.json)15视口、10详情及2个主机／公共屏全靠港场景通过，实际规则推进得到靠港A／B／C，核验完整字形与无ellipsis。
-- [结算定向回归](../../../artifacts/maintenance/manila-harbor-rebuild-20261017/mobile/destination-result-r2-20261019/report.json)3组、108次交互通过；320／390／430玩家与1280×720主机／公共屏覆盖普通及最终结算，检查三船状态的完整字形，实际包含进坞和靠港A／B。原3次失败来自手机内联文字行框测量，修正为其实际44px状态牌边界后独立预算复验，原账保留。
+- [结算定向回归（原件已退役）](../../archive/history-deep-review-20261024.md)3组、108次交互通过；320／390／430玩家与1280×720主机／公共屏覆盖普通及最终结算，检查三船状态的完整字形，实际包含进坞和靠港A／B。原3次失败来自手机内联文字行框测量，修正为其实际44px状态牌边界后独立预算复验，原账保留。
 - 仅马尼拉Web单元构建通过，ESLint、Prettier通过。主机全靠港、公共屏港口／修船坞混合结算图分别由独立新实例审查通过，结论与图片哈希见[记录](../../../artifacts/maintenance/manila-destination-labels-20261019/visual-reviews.json)。
 
 本轮只验证源码、模拟视口与游戏Web单元，没有组装完整桌面运行目录、构建安装器、调整公开版本或发布。源码证据不代表当前已运行开发盒子的旧对局已升级。
@@ -58,8 +58,8 @@
 本次只调整马尼拉样式与对应源码守卫：纸牌标识保留完整文字，主机／公共屏顶部阶段去除独立白底，岸线设施统一行卡，岗位名与费用同排、收益独立一行。手机货物牌将货名、分红与骰子分区，保持关键金额18px。未修改规则、存档、动作协议或公开版本，未构建安装器。
 
 - [设计检查](../../../artifacts/manila/validation/label-redesign-final5-20261018/results.json)15视口／10详情通过，覆盖320至620竖屏、621边界、844／932横屏、1024×768、1123×1428及主机／公共屏720p至4K；新增实际字形不被截断、骰子不遮文字和顶部背景守卫，保留4.5:1对比度与船字8px间距。
-- [触控检查](../../../artifacts/maintenance/manila-touch-layout-20261017/touch/label-touch-final5-20261018/report.json)63项通过；[港湾定向回归](../../../artifacts/maintenance/manila-harbor-rebuild-20261017/mobile/label-harbor-final5-20261018/report.json)15项／134次交互通过，覆盖结构、持续挂载、旋转、尾部入口以及普通／最终航次结算卡生命周期和权限。
-- [界面单测](../../../artifacts/maintenance/manila-label-redesign-20261018/final5-unit/runs/2afc12e1-8838-4ffb-bcac-591f611e31fc/results.json)11项通过；本任务入口与验证脚本ESLint、相关源码Prettier通过。主机1280×720、玩家320×568和932×430最终截图逐图由独立新实例审查通过，图片哈希与结论见[审查记录](../../../artifacts/maintenance/manila-label-redesign-20261018/final5/visual-reviews.json)。
+- [触控检查（原件已退役）](../../archive/history-deep-review-20261024.md)63项通过；[港湾定向回归（原件已退役）](../../archive/history-deep-review-20261024.md)15项／134次交互通过，覆盖结构、持续挂载、旋转、尾部入口以及普通／最终航次结算卡生命周期和权限。
+- [界面单测（原件已退役）](../../archive/history-deep-review-20261024.md)11项通过；本任务入口与验证脚本ESLint、相关源码Prettier通过。主机1280×720、玩家320×568和932×430最终截图逐图由独立新实例审查通过，图片哈希与结论见[审查记录](../../../artifacts/maintenance/manila-label-redesign-20261018/final5/visual-reviews.json)。
 
 原失败及实质修复保留在`artifacts/maintenance/manila-label-redesign-20261018/`各轮，包含旧样式优先级引起的结算设施挤压、骰子flex尺寸冲突，以及窄屏分红文字与骰子重叠；分别修复后使用独立10失败预算定向复验，没有放宽裁切、字号或对比度断言。所有结果仅证明当前源码和本机模拟视口，不代替实际手机、物理DPI、真实LAN或新导出包安装验收。
 
@@ -67,9 +67,9 @@
 
 完整航次分类记账、公开金额投影、页内收支卡及横竖屏调位已实现；公开版本与stateVersion不变，缺账旧形状不补造历史账，正式旧局继续固定原发行。此次未构建、安装或发布新导出包。
 
-- 规则50项与真实Socket／SQLite3项通过，覆盖全部现金写点、融资分离、账目守恒、旧形状、保存失败、幂等、回退重演及重启恢复。记录：[规则](../../../artifacts/maintenance/manila-voyage-finance-20261018/round-01/runs/ba059e5e-516a-4a2e-a53b-88185413408a/results.json)、[服务](../../../artifacts/maintenance/manila-voyage-finance-20261018/round-02/runs/fd9a423c-8e9e-4298-9f72-4bb833c8b74b/results.json)。[UI、保存事件与真实Worker](../../../artifacts/maintenance/manila-voyage-ui-20261018/remaining-units/runs/9c459f75-e263-4a01-bf30-2e18a6fb6f88/results.json)另24项通过；重复复验不累计为新增通过。
-- [设计夹具](../../../artifacts/manila/validation/voyage-design-final2-20261018/results.json)15视口／10详情通过，包含620／621边界、手机至4K、横向船字8px间距与照片文字对比；[触控夹具](../../../artifacts/maintenance/manila-touch-layout-20261017/touch/voyage-touch-final-20261018/report.json)63项通过，覆盖方向、合法格、草稿、锁定、确认及下一航次权限。
-- [最终港湾回归](../../../artifacts/maintenance/manila-harbor-rebuild-20261017/mobile/voyage-harbor-final-20261018/report.json)42项通过，涵盖滚动、付款、身份权限、旋转、尾部和结算；结算组对320／390／430玩家及1280×720主机／公共屏核验普通／最终航次、同结果折叠保留、分支重建、回退移除和旧记录降级。
+- 规则50项与真实Socket／SQLite3项通过，覆盖全部现金写点、融资分离、账目守恒、旧形状、保存失败、幂等、回退重演及重启恢复。记录：[规则（原件已退役）](../../archive/history-deep-review-20261024.md)、[服务（原件已退役）](../../archive/history-deep-review-20261024.md)。[UI、保存事件与真实Worker（原件已退役）](../../archive/history-deep-review-20261024.md)另24项通过；重复复验不累计为新增通过。
+- [设计夹具](../../../artifacts/manila/validation/voyage-design-final2-20261018/results.json)15视口／10详情通过，包含620／621边界、手机至4K、横向船字8px间距与照片文字对比；[触控夹具（原件已退役）](../../archive/history-deep-review-20261024.md)63项通过，覆盖方向、合法格、草稿、锁定、确认及下一航次权限。
+- [最终港湾回归（原件已退役）](../../archive/history-deep-review-20261024.md)42项通过，涵盖滚动、付款、身份权限、旋转、尾部和结算；结算组对320／390／430玩家及1280×720主机／公共屏核验普通／最终航次、同结果折叠保留、分支重建、回退移除和旧记录降级。
 - 最终代表图逐图独立审查：主机1280×720、手机390×844结算和844×390触控横屏通过。手机数字粘连经复审修正：保留0／5／10／13刻度与最小高度，精确在航船位单列，合法调位用金色格标，新增可见标牌8px间距守卫。
 
 原失败及每次实质修复／环境纠正保留在`artifacts/maintenance/manila-voyage-ui-20261018/`和财务轮次。包括浏览器沙箱启动、SSR临时目录、受控夹具账目一致性、窄横屏轨道、4K尺寸覆盖、禁用按钮失焦、旧标签测量、结算棋盘挤压与display:contents测量；未放宽游戏规则、字号或原裁切断言。浏览器最终在普通桌面环境隐藏静音运行，回环监听；仅证明源码和模拟视口，不代表安装器、真实手机或物理DPI。

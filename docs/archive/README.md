@@ -1,5 +1,7 @@
 # 归档索引
 
+[历史占用深度复审](history-deep-review-20261024.md)：继续审查旧临时与旧验收证据，保留当前构建与唯一模块；记录单次逐文件退役及完整容量实测。
+
 [历史临时内容与旧验收证据退役](history-cleanup-20261024.md)：按最新授权清理未集中管理的旧临时内容及非最新版本证据，保留逐文件SHA与单次执行记录；被退役原件不能再用于验收复用。
 
 [验收整理前原文](acceptance-before-consolidation-2026-10-23.md)与[验证整理前原文](validation-before-consolidation-2026-10-23.md)：2026-10-23第三轮将当前状态、验证政策与操作命令职责分开；完整保留原日期、候选、结果、失败及证明边界。现行答案见[当前验收](../reference/acceptance.md)与[验证政策](../reference/validation.md)。

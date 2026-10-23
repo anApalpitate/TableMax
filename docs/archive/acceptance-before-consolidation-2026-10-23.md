@@ -56,7 +56,7 @@ TypeScript、改动TSX／验证器ESLint、定向Prettier与`git diff --check`�
 
 当前源码已采用两款游戏的实体卡牌美术：德国小强64张牌面按实际卡ID对应，补入经典灰色八动物牌背实拍；蟑螂沙拉采用实体蔬菜、禁说牌和厨师牌背。灰背仍为实拍透视图，并非平面扫描。沙拉2007版规则为120张普通牌＋8张禁说牌，当前项目规则保持112＋16；素材对应旧构成，确切印次及新版全部图案尚未证实，来源与采用边界见沙拉来源（当前内容已于2026-10-24移除）。
 
-[源码界面57项检查](../../artifacts/maintenance/cockroach-source/physical-art-r4-20261021/report.json)通过，覆盖320px至4K、125%／150%像素密度及实体牌显示。[实际开发命令记录](../../artifacts/maintenance/cockroach-art-integration-20261021/direct-launch-final.json)确认独立运行`node tools/dev/dev.mjs --foundation-test`，构建后启动隐藏原生盒子并正常退出；[原生开发资源检查](../../artifacts/maintenance/dev-game-resources/physical-art-final-r4-20261021/report.json)通过两款游戏97个资源的HTTP、MIME、SHA、图像解码及主机／模拟手机显示。冻结开发快照为`f756883c78bfef9d72df123529d86006670790a988c78c4b4d8976f902e9d1c8`。这些结果不代表实体手机、真实LAN或安装验收。
+[源码界面57项检查](../../artifacts/maintenance/cockroach-source/physical-art-r4-20261021/report.json)通过，覆盖320px至4K、125%／150%像素密度及实体牌显示。[实际开发命令记录](../../artifacts/maintenance/cockroach-art-integration-20261021/direct-launch-final.json)确认独立运行`node tools/dev/dev.mjs --foundation-test`，构建后启动隐藏原生盒子并正常退出；[原生开发资源检查（原件已退役）](history-deep-review-20261024.md)通过两款游戏97个资源的HTTP、MIME、SHA、图像解码及主机／模拟手机显示。冻结开发快照为`f756883c78bfef9d72df123529d86006670790a988c78c4b4d8976f902e9d1c8`。这些结果不代表实体手机、真实LAN或安装验收。
 
 开发构建按游戏清单ID自动发现同名资源目录，新增游戏无需补中央资源名单；新增／删除资源、旧发行隔离、跨命名空间和链接防护的[工具回归](../../artifacts/maintenance/test-history/runs/fbc29781-1918-4b40-bb65-130ddfb0b881/results.json)、[真实服务回归](../../artifacts/maintenance/test-history/runs/71a51afa-f249-464d-8106-30f3dc1bf971/results.json)及[存储安全15项](../../artifacts/maintenance/test-history/runs/6da03587-6dcb-4cd0-b777-d68ba0ca9d83/results.json)通过。修复开发启动的Node压缩包校验等待问题，[真实ZIP校验与篡改拒绝两项](../../artifacts/maintenance/test-history/runs/2c3eb2b4-9f3e-417e-967d-7728beefc272/results.json)通过；资源目录检查消除重复查询后，实际启动通过原20秒时限，权限、哈希和链接检查保持。入口约定见[开发工具](../../tools/dev/README.md)。
 
@@ -78,7 +78,7 @@ TypeScript、改动TSX／验证器ESLint、定向Prettier与`git diff --check`�
 
 当时的完整安装器1.0.8.7（本地原件已按上述推广保留策略退役，线上附件保持同字节）预装七款游戏／八玩法，38,168,090字节，SHA256 `1e310d2fe9204ac60b0d12e74208da7db84f014823aa6124c25aa160535b1ede`；内部ZIP46,411,577字节，实际提取99,348,196字节，三项均小于120,000,000字节。冻结快照 `0172cd536654f78c9ec47540edefd13f92e5cfc5ea05c08e5a5c67b244b768ce`；原路径EXE单文件安全标记归一化保留SHA、owner、DACL与数据流，见[回执](../../artifacts/maintenance/v1.0.8/replacement-20261021/original-security-normalization.json)。
 
-源码TypeScript、112个改动TS／TSX文件ESLint、145个生产文件Prettier通过；名称与长度115用例、其余定向规则及平台232用例通过，设置与计时等116用例及UNO界面8项通过，见[定向报告](../../artifacts/maintenance/release-1-0-8-validation-guidance-20261021/report.json)。版本预留、推广、保留与附件替换守卫分别定向通过；保留原失败账，不将复用证据重复计数。源码模拟视口不代表实体手机、Safari、真实LAN或物理4K设备，本轮没有新增这些设备证明。
+源码TypeScript、112个改动TS／TSX文件ESLint、145个生产文件Prettier通过；名称与长度115用例、其余定向规则及平台232用例通过，设置与计时等116用例及UNO界面8项通过，见[定向报告（原件已退役）](history-deep-review-20261024.md)。版本预留、推广、保留与附件替换守卫分别定向通过；保留原失败账，不将复用证据重复计数。源码模拟视口不代表实体手机、Safari、真实LAN或物理4K设备，本轮没有新增这些设备证明。
 
 正式安装验收[第二轮原始证明](../../artifacts/maintenance/v1.0.8/replacement-20261021/production-r2/shipping-executable-checks-full.json)12项通过：原路径标准账户Medium启动及中文向导、默认D／长I与外置D／旧框架失败恢复三条8步更新链通过，实际首装、同包复装、保存、默认卸载、同根重装读回和再次卸载通过；已安装更新设置页16布局通过。[隔离终态](../../artifacts/maintenance/v1.0.8/replacement-20261021/production-r2/isolated-account.json)退出0、账户与profile删除、errors为空。[封存证明](../../artifacts/maintenance/v1.0.8/replacement-20261021/finalized-installation-r2.json)2,118,240字节，SHA256 `6bc9f95ccd71ec417ab0f43c7a37fc1234b7533bbaeb3b51cb732634f7be8eff`；[推广回执](../../artifacts/maintenance/v1.0.8/replacement-20261021/promotion-r2.json)确认本地v1.0.8/current为1.0.8.7、修订预留已确认，保留检查通过且未删除原件。
 

@@ -46,7 +46,7 @@
 
 简介保留宝可梦原版及现代艺术原内容和图解；重做宝可梦扩展、电力公司、UNO、拉密、阿瓦隆、马尼拉的短内容与18张主题SVG。可选图解字段随对应游戏资源冻结，旧发行按原release读取；真实404回退原图标。详情投影与秘密权限未改。
 
-[座位验证](../../artifacts/maintenance/seat-intro-audit-20261017/seats-round06/report.json)通过22组／10布局／32截图，覆盖320×568、390×844、430×932、844×390、1280×720及主机／房主／普通玩家／公共权限，核验等级、排序、改名、游戏中保护、焦点、字体、触控与祖先裁切。[简介验证](../../artifacts/maintenance/seat-intro-audit-20261017/introduction-round02/summary.json)通过八玩法×三端×九视口共216布局，并完成40图独立视觉审查；[资源边界](../../artifacts/maintenance/seat-intro-audit-20261017/introduction-resource-cases/summary.json)验证开发预览、固定发行和真实404三项。类型、局部ESLint／Prettier、SDK四项、图解收集四项及平台／受影响元数据和资源的增量构建通过，明细见[本轮清单](../../artifacts/maintenance/seat-intro-audit-20261017/delivery-index.json)。
+[座位验证（原件已退役）](history-deep-review-20261024.md)通过22组／10布局／32截图，覆盖320×568、390×844、430×932、844×390、1280×720及主机／房主／普通玩家／公共权限，核验等级、排序、改名、游戏中保护、焦点、字体、触控与祖先裁切。[简介验证](../../artifacts/maintenance/seat-intro-audit-20261017/introduction-round02/summary.json)通过八玩法×三端×九视口共216布局，并完成40图独立视觉审查；[资源边界](../../artifacts/maintenance/seat-intro-audit-20261017/introduction-resource-cases/summary.json)验证开发预览、固定发行和真实404三项。类型、局部ESLint／Prettier、SDK四项、图解收集四项及平台／受影响元数据和资源的增量构建通过，明细见[本轮清单](../../artifacts/maintenance/seat-intro-audit-20261017/delivery-index.json)。
 
 上述为实际源码组件与模拟视口；座位动作只核对发出的既有命令，不替代真实服务保存、实体手机、真实LAN、Windows DPI或安装验收。原环境失败、320px标题孤字及长名挤压的发现与修复记录保留，最终证据按各自实际影响范围复验。
 

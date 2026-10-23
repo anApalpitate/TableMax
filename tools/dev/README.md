@@ -44,6 +44,6 @@ node tools/dev/dev.mjs
 
 实体牌资源检查归`tooling,game:cockroach-poker`。先独立启动实际`node tools/dev/dev.mjs --foundation-test`并为该进程设置隔离数据、`TABLEMAX_TEST_CDP_PORT`、静音及回环地址，待构建和隐藏原生窗口就绪后，再由范围计划运行上述连接检查；工程占用保护继续阻止同一构建树中的其他活动进程，不将等待构建的验收器冒充空闲协调器。验证器只断开自己的CDP连接，原开发进程由启动者正常退出。
 
-2026-10-21实体牌资源回归：[实际开发命令](../../artifacts/maintenance/cockroach-art-integration-20261021/direct-launch-final.json)构建、原生启动及正常退出通过；[资源证明](../../artifacts/maintenance/dev-game-resources/physical-art-final-r4-20261021/report.json)核对德国小强和蟑螂沙拉97个资源，并验证主机与模拟手机显示实体牌图。新增游戏资源自动发现及安全回归见[源码验收](../../docs/reference/acceptance.md#实体牌美术与开发资源加载2026-10-21)。不生成新安装器，不代表实体手机或真实LAN验收。
+2026-10-21实体牌资源回归：[实际开发命令](../../artifacts/maintenance/cockroach-art-integration-20261021/direct-launch-final.json)构建、原生启动及正常退出通过；[资源证明（原件已退役）](../../docs/archive/history-deep-review-20261024.md)核对德国小强和蟑螂沙拉97个资源，并验证主机与模拟手机显示实体牌图。新增游戏资源自动发现及安全回归见[源码验收](../../docs/reference/acceptance.md#实体牌美术与开发资源加载2026-10-21)。不生成新安装器，不代表实体手机或真实LAN验收。
 
 2026-10-21早期隔离回归：四项隔离／数据保护单测通过；使用现有原生构建连续两次启动均为数据库首次启动，实际WebView2目录不同，退出清理完成，旧目录及外部目录内容保留。证据为`artifacts/maintenance/dev-session-h1I7Rv/report.json`。当时完整开发命令在组装阶段因现有开发盒子占用而停止，原失败记录保留，未关闭原实例或重写其构建目录；后续完整命令证明见上段。

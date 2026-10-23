@@ -16,7 +16,7 @@
 
 ## 历史查证与待续任务恢复
 
-[归档索引](../../artifacts/maintenance/deep-slimming-restore-current-1792303313464/archive-retention-index.json)保存原路径、完整字节、逐成员SHA、归档SHA及方法参数。[保全汇总](../../artifacts/maintenance/deep-slimming-restore-current-1792303313464/preservation-storage-summary.json)共9归档、318,999,891字节，覆盖9,425,536,992源字节；部分源文件仍因直接入链或链接目标保护保留，且本轮未退役任何原位副本，不能据此宣布净节省。普通ZIP与`ustar-xz-v1`均已逐成员流式核验；不以摘要替代机器证据，不执行归档成员。原安装器及其原路径安全身份保持原位。
+[归档索引（原件已退役）](history-deep-review-20261024.md)保存原路径、完整字节、逐成员SHA、归档SHA及方法参数。[保全汇总](../../artifacts/maintenance/deep-slimming-restore-current-1792303313464/preservation-storage-summary.json)共9归档、318,999,891字节，覆盖9,425,536,992源字节；部分源文件仍因直接入链或链接目标保护保留，且本轮未退役任何原位副本，不能据此宣布净节省。普通ZIP与`ustar-xz-v1`均已逐成员流式核验；不以摘要替代机器证据，不执行归档成员。原安装器及其原路径安全身份保持原位。
 
 未来若执行精确退役，接续受影响的隔离任务或复查历史记录前，先确认索引中归档自身SHA，再仅恢复所需原路径，禁止覆盖现有文件或穿过链接，复核原成员长度和SHA；恢复程序副本不代表重新获得安装／系统验收通过。当前所有原位副本仍存在，无需现在恢复。solid归档可先通过`node tools/maintenance/verify-preserved-tar.mjs ustar-xz-v1 <归档绝对路径> <归档SHA> <固定系统tar SHA>`核对完整成员，参数详见[维护工具](../../tools/maintenance/README.md#人工深度瘦身)。
 

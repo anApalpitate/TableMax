@@ -10,7 +10,7 @@
 
 构建支持jobs=1／2／4，共享准备串行、独立单元有界并行，冻结／组装独占；失败排空后拒绝冻结。内容读取仅在同一核验阶段去重，跨阶段重新SHA。内部code/resource逐blob核验签名／闭包／归档／成员后复用原字节，损坏、缺失、链接及资产重名拒绝；缓存历史编译与本次核验分别记录，完整包装总耗时包含最终EXE。11项不同工具回归通过。初期签名夹具与沙箱realpath失败保留，达到3失败停止，修正后仅重跑受影响项，详见[构建交接](../../artifacts/maintenance/development-efficiency/build/build-handoff.json)。
 
-最终两游戏实际esbuild／Vite夹具中jobs2相对jobs1：冷构建1504.84→1354.35ms（快10.00%）、暖构建658.13→626.93ms（快4.74%）、单游戏变化1159.74→1069.35ms（快7.79%）；产物逐文件一致，暖6／6命中、变化3／6命中。重复测量曾出现反向收益，且每路径单样本、RSS只覆盖父Node，默认继续1，未达到稳定提速／全进程内存门槛；[最终输入基准](../../artifacts/maintenance/development-efficiency/build/2026-10-13T03-16-09-412Z/results.json)不证明全项目25%打包收益。read／hash／parse分段明确为累计活动时间，不作为并行阶段墙钟之和。
+最终两游戏实际esbuild／Vite夹具中jobs2相对jobs1：冷构建1504.84→1354.35ms（快10.00%）、暖构建658.13→626.93ms（快4.74%）、单游戏变化1159.74→1069.35ms（快7.79%）；产物逐文件一致，暖6／6命中、变化3／6命中。重复测量曾出现反向收益，且每路径单样本、RSS只覆盖父Node，默认继续1，未达到稳定提速／全进程内存门槛；[最终输入基准（原件已退役）](history-deep-review-20261024.md)不证明全项目25%打包收益。read／hash／parse分段明确为累计活动时间，不作为并行阶段墙钟之和。
 
 验证预设复用现有scopes与version 2计划，按任务SHA、范围与rules／ui／resources／tooling分类选择；依赖未审查完整时照常执行且禁止复用。旧version 1／直接入口保留兼容，子项关闭自动维护、父轮一次收尾，仍串行按低通过率排序、累计默认3失败停派、不自动重试。锁定TypeScript的incremental仅显式选用，不改变程序覆盖、诊断或编译器失败退出语义。完整子项日志留文件，父轮结论2KiB／失败8KiB预算并显式提示截断；preset列表也保留完整理由的证据文件。工具回归及实际预设轮见[验证证据目录](../../artifacts/maintenance/development-efficiency/verification/)；最终[固定夹具基准](../../artifacts/maintenance/development-efficiency/verification/benchmark-kMouF4.json)指纹阶段1162.94→589.15ms（快49.34%）、读取62→28次、环境查询4→1次，类型检查普通1064.22ms／incremental暖1049.94ms且诊断一致。这些夹具收益不能推广为全项目收益。
 
