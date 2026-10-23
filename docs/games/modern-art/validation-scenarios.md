@@ -1,6 +1,18 @@
 # 现代艺术状态与验证场景
 
-本页保留规则／策略检查范围及其原构建的历史证明。以下历史运行包、便携ZIP和资源预算不代表当前installer重新通过；当前交付身份、安装与真实设备缺口统一查[验收](../../reference/acceptance.md#当前源码与本地交付)。
+本页维护当前源码布局检查、规则／策略范围及其原构建的历史证明。以下源码结果、历史运行包、便携ZIP和资源预算不代表当前installer重新通过；当前交付身份、安装与真实设备缺口统一查[验收](../../reference/acceptance.md#当前源码与本地交付)。
+
+## 玩家工作区与拍卖布局源码检查（2026-10-23）
+
+本轮直接构建真实现代艺术生产组件与PlayerFrame，使用合法五人RoomCoordinator状态及按角色投影、受控本地夹具传输和冻结时钟。改前`before-final-r07`保留28组基线；安全区域修复后的[核心报告](../../../artifacts/maintenance/modern-art-player-layout-20261023-b1/after-final-r12/report.json)为31项通过、0失败／待项，含28张主要截图，覆盖九阶段／子状态、已有收藏、已配双画、主机／公共屏、紧凑横屏和规则浮窗，以及布局切换／旋转时同iframe与草稿保留、旧外框契约不变、输入聚焦冻结／失焦恢复、已提交暗标和双画权限投影。
+
+[补充报告](../../../artifacts/maintenance/modern-art-player-layout-20261023-b1/after-extra-r12/report.json)四项通过：320px报价和上拍允许正常页面滚动，核对44px热区及实际动作回调；639／640、959／960和可用高度319／320边界保留同iframe及金额草稿；合法恢复暂停与受控`connected=false`核对提示、锁控及未产生动作。受控断线只证明界面呈现与锁定，不证明真实Socket断线或服务器保存。两份最终报告的8项运行源码与1项状态快照SHA在检查前后及当前输入一致。安全区域证据核对四侧源码声明和普通computed的10／8／16px，不证明实体设备非零安全区域。
+
+绑定同一安全区域修复后源码的服务端报告为：[五人主组34／34](../../../artifacts/maintenance/modern-art-player-layout-20261023-b1/server-geometry-final-r13/report.json)、[独立三／四人长昵称组36／36](../../../artifacts/maintenance/modern-art-player-layout-20261023-b1/server-geometry-extra-final-r13/report.json)、[非活动状态8／8](../../../artifacts/maintenance/modern-art-player-layout-20261023-b1/server-inactive-final-r13/report.json)。主组覆盖空收藏暗标、已有收藏公开／双画、双拍征集和一口价单幅的1280×720、1920×1080、960×540，并增加3840×2160公开单幅／双幅的主机与公共屏；长昵称组真实准备合法3／4人状态及8中文／16ASCII昵称，覆盖单幅、双幅和合法定价30后的询价。非活动组只检查合法暂停与受控连接状态的布局／活动提示。另有[固定价四组对照](../../../artifacts/maintenance/modern-art-player-layout-20261023-b1/server-fixed-comparison-r13/report.json)：同一四人、定价30、单幅／双幅、主机／公共屏的before／after共8张PNG，before只记录旧布局。准备器、快照、证明及SHA保留在各轮证据内；r13重记不重复累计此前同一独立场景，旧失败和旧通过的原输入边界继续保留。
+
+共享外框单测、定向lint、TypeScript和产品格式检查按[根检查记录](../../../artifacts/maintenance/modern-art-player-layout-20261023-b1/root-checks.json)各自范围判断；单测所附自动维护为`blocked`，不作为维护通过。旧浏览器环境阻断、布局失败、选择器方法错误和未执行项均保留原轮记录；实质修复或方法纠正后以新轮定向复验，不把旧失败改写为通过。入口参数、临时文件与报告写入边界统一见[测试工具](../../../tools/test/README.md#现代艺术玩家布局与服务端拍卖几何)。
+
+这些结果属于源码浏览器证据，不证明真实网络通信、自然整局、物理手机／Windows DPI、声音试听或完整EXE安装验收。审阅HTML和任务副本可按用户确认范围退役，必要报告、来源SHA和清理journal独立保留；临时基线的依赖副本不作为正式验证证据。
 
 ## 状态与验证
 

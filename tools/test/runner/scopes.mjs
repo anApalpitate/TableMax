@@ -333,6 +333,13 @@ const verificationScopes = {
   'tools/test/games/modern-art/verify-modern-art-empty-gallery.mjs': [
     'game:modern-art',
   ],
+  'tools/test/games/modern-art/verify-modern-art-workspace.mjs': [
+    'game:modern-art',
+    'shared',
+  ],
+  'tools/test/games/modern-art/verify-modern-art-auction-layout.mjs': [
+    'game:modern-art',
+  ],
   'tools/test/box/verify-game-library.mjs': ['box'],
   'tools/test/box/verify-box-repository.mjs': ['box'],
   'tools/test/box/verify-box-seats.mjs': ['box'],

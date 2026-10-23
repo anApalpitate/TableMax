@@ -97,6 +97,7 @@ version 1、version 2 和准确文件 Vitest 入口均关闭子项自动维护�
 | [fixtures/pokemon-polish-layout.tsx](fixtures/pokemon-polish-layout.tsx)                                                                 | 内部辅助／声明／夹具；由对应入口调用                                                 |
 | [fixtures/pokemon-ui-redesign.tsx](fixtures/pokemon-ui-redesign.tsx)                                                                     | 内部辅助／声明／夹具；由对应入口调用                                                 |
 | [fixtures/prepare-modern-art-polish.ts](fixtures/prepare-modern-art-polish.ts)                                                           | 内部辅助／声明／夹具；由对应入口调用                                                 |
+| [fixtures/prepare-modern-art-workspace.ts](fixtures/prepare-modern-art-workspace.ts)                                                     | 内部合法五人状态与投影准备器；由现代艺术工作区入口调用                               |
 | [fixtures/prepare-module-fixture.ts](fixtures/prepare-module-fixture.ts)                                                                 | 内部辅助／声明／夹具；由对应入口调用                                                 |
 | [fixtures/prepare-pokemon.ts](fixtures/prepare-pokemon.ts)                                                                               | 内部辅助／声明／夹具；由对应入口调用                                                 |
 | [fixtures/prepare-rules-guides.ts](fixtures/prepare-rules-guides.ts)                                                                     | 内部辅助／声明／夹具；由对应入口调用                                                 |
@@ -104,6 +105,9 @@ version 1、version 2 和准确文件 Vitest 入口均关闭子项自动维护�
 | [fixtures/safe-http-port.ts](fixtures/safe-http-port.ts)                                                                                 | 内部辅助／声明／夹具；由对应入口调用                                                 |
 | [games/avalon/verify-avalon.mjs](games/avalon/verify-avalon.mjs)                                                                         | `node tools/test/games/avalon/verify-avalon.mjs`                                     |
 | [games/modern-art/verify-modern-art-audio.mjs](games/modern-art/verify-modern-art-audio.mjs)                                             | `node tools/test/games/modern-art/verify-modern-art-audio.mjs`                       |
+| [games/modern-art/verify-modern-art-auction-layout.mjs](games/modern-art/verify-modern-art-auction-layout.mjs)                           | 现代艺术主机／公共屏拍卖几何；按下文version 1计划执行                                |
+| [games/modern-art/prepare-auction-layout.ts](games/modern-art/prepare-auction-layout.ts)                                                 | 内部合法3／4人场景准备器；由拍卖几何入口调用，非独立CLI                              |
+| [games/modern-art/verify-modern-art-workspace.mjs](games/modern-art/verify-modern-art-workspace.mjs)                                     | 现代艺术实际玩家外框、阶段、收藏、浮窗与交互；按下文version 1计划执行                |
 | [games/modern-art/verify-modern-art-debug.mjs](games/modern-art/verify-modern-art-debug.mjs)                                             | `node tools/test/games/modern-art/verify-modern-art-debug.mjs`                       |
 | [games/modern-art/verify-modern-art-empty-gallery.mjs](games/modern-art/verify-modern-art-empty-gallery.mjs)                             | `node tools/test/games/modern-art/verify-modern-art-empty-gallery.mjs`               |
 | [games/modern-art/verify-modern-art-polish-v2.mjs](games/modern-art/verify-modern-art-polish-v2.mjs)                                     | `node tools/test/games/modern-art/verify-modern-art-polish-v2.mjs`                   |
@@ -365,6 +369,30 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File tools/test/installation/
 此模式与迁移、fixture-only、HandoffPreparedReport及IncludeWizardAcceptance互斥；完整生产链默认先执行同一原EXE检查。它在新标准账户／真实profile中以CreateProcess直接启动冻结交付路径的原EXE，不复制EXE、不向源目录写入夹具；核真实原bootstrap及向导子进程的映像、SID、Medium、非提权令牌，实际中文向导、默认路径、返回及正常取消。只有原进程返回Inno正常取消码2、自有Job自然归零、登记及目标目录未改、原EXE逐SHA及安全标记未变、源目录内容未变，并删除测试账户／profile后，才写`original-executable-evidence.json`。这补充原完整系统证明，不将取消操作算作安装通过，也不重跑未受影响安装链。
 
 完整生产链把该补充记录绑定到execution-receipt，独立封存保留引用；本地current切换及发布预检读取其原始报告、截图、账户清理记录并重新读取原EXE安全标记，缺失、路径为副本、内容或元数据改变均拒绝。对既有已验收current补证使用`node tools/release/original-executable-acceptance.mjs --current=<当前current.json> --proof=<补充证明>`，仅原子附加证明引用，不改原系统证明、候选、EXE、版本或公开附件。
+
+## 现代艺术玩家布局与服务端拍卖几何
+
+[工作区入口](games/modern-art/verify-modern-art-workspace.mjs)同样登记为`game:modern-art`，由version 1独立计划经下述范围runner执行。参数为`--phase=before|after --task=tmp/<任务唯一ID> --output=artifacts/maintenance/<任务唯一ID>/<新轮名>`；before使用事先准备的`tmp/<任务唯一ID>/baseline`源码快照，after直接构建当前生产现代艺术组件及PlayerFrame。构建目录为任务下`fixture-<输出目录末级名>/bundle`，源码输入在构建／检查前后核对SHA；合法五人状态与投影由[内部准备器](fixtures/prepare-modern-art-workspace.ts)生成到任务下`legal-fixtures/`，before还会复制本地现代艺术资源到基线副本。
+
+默认覆盖九阶段／子状态的390×844竖屏和1280×720宽屏、已有收藏／已配双画、主机／公共屏及844×390紧凑横屏和规则浮窗。after另检查新外框切换／旋转时草稿与iframe保留、旧契约不变、输入聚焦时空间冻结与失焦恢复、已提交暗标与双画投影。`--only=<检查ID,...>`只接受脚本列出的唯一真实检查ID，被排除项单列；例如`--only=auction-pair-portrait,compact-landscape`仅复验对应场景。`--smoke`只检查公开拍卖的1280×720玩家与主机，不代表完整矩阵；`--build-only`只生成bundle及`result: built`报告，不启动渲染或证明界面通过。该入口会写临时Vite／esbuild输出、合法状态数据、报告、失败现场和截图，浏览器`TEMP`／`TMP`位于任务下`browser-temp/`；默认隐藏、静音、回环监听，关闭子检查自动维护。
+
+`--phase=after --extra`独立选择四项补充检查：320px报价、320px上拍、639／640与959／960及可用高度319／320边界的同iframe草稿保留、合法暂停与受控断线。可再用`--only=paused-and-controlled-disconnected`仅复验最后一项，或选择脚本列出的其他extra ID；extra ID要求同时传`--extra`。320px允许正常页面纵向滚动，核对44px操作热区及实际动作回调；断线仅控制夹具`connected=false`与锁定状态，不证明真实Socket断线或服务器保存。
+
+[拍卖几何入口](games/modern-art/verify-modern-art-auction-layout.mjs)登记为`game:modern-art`，通过version 1独立计划交给`node tools/test/runner/test-scoped.mjs --scope=game:modern-art --plan=<计划.json>`执行。计划项使用`runner: node`、`script: tools/test/games/modern-art/verify-modern-art-auction-layout.mjs`；常规改后检查的参数数组包含：
+
+```text
+--after-only
+--task=tmp/<任务唯一ID>
+--after-bundle=tmp/<任务唯一ID>/fixture-<最终轮名>/bundle
+--source-report=artifacts/maintenance/<任务唯一ID>/<最终轮名>/report.json
+--output=artifacts/maintenance/<任务唯一ID>/server-geometry-<新轮名>
+```
+
+入口消费已经构建的真实组件夹具，核对其bundle成员SHA，并依据`--source-report`复核现代艺术生产源码输入没有过期。常规场景覆盖五人空／有收藏、单／双画、一口价单幅和无进度条的双拍征集，在主机与公共屏的1280×720、1920×1080和960×540下核对原左右构图、16–24px内容间隔、区域／字形容纳、无重叠及无私有操作；3840×2160追加公开单幅／双幅检查。可用`--before-bundle`与`--after-bundle`明确指定任务内的已构建束；默认分别使用`fixture-before/bundle`与`fixture-after/bundle`。
+
+独立补充模式每次选择一种，均保留相同任务、输出和最新after源码报告绑定：`--extra-only`替换`--after-only`时，由[内部准备器](games/modern-art/prepare-auction-layout.ts)分别初始化合法3／4人单画、双画及一口价单幅状态，真实加入8中文／16半角字符长昵称，通过规则校验；一口价经合法定价30进入询价，不删座位或拼接手牌。`--inactive-only`检查合法暂停和受控`connected=false`时活动布局／行动提示停用，只表示夹具连接状态，不证明真实网络断线。`--fixed-comparison-only`为同一四人一口价30的单幅／双幅，在主机与公共屏1280×720生成before／after四组对照，此模式需同时提供两份bundle，且不再追加`--after-only`。默认不传这些单独模式或`--after-only`时会额外记录before；before仅作旧布局基线，不按新布局标准断言。
+
+检查启动隐藏静音Edge与`127.0.0.1`夹具服务，写指定全新报告目录、截图索引及验证器源码副本；浏览器`TEMP`／`TMP`集中到任务下`server-browser-temp/`，额外合法场景的编译／数据放在`server-extra-fixtures/`，准备后的快照及证明另以`extra-snapshots.json`和`extra-preparation-proof.json`留在本轮报告目录并记录SHA，子检查关闭自动维护。它证明真实生产组件在合法RoomCoordinator投影、受控本地夹具和冻结时钟下的源码渲染；不证明真实网络、自然整局、物理设备／Windows DPI、声音试听或安装器。失败轮和未执行项原位保留，实质修复后仅定向复验；游戏当前结果与边界见[现代艺术验证](../../docs/games/modern-art/validation-scenarios.md)。
 
 ## 德国小强与蟑螂沙拉验证
 
