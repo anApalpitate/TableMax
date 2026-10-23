@@ -225,7 +225,6 @@ export function GameLibrary({
                   <span key={value}>{value}</span>
                 ))}
               </div>
-              <p className="game-library__tagline">{game.tagline}</p>
               <span className="game-library__players">
                 <svg
                   viewBox="0 0 24 24"

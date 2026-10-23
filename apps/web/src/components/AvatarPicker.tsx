@@ -2,6 +2,7 @@ import type { AvatarId, RoomView } from '@tablemax/protocol';
 import { avatarChoices } from '../assets/avatars';
 import { feedbackText } from '../content/feedback';
 import './box-overlays.css';
+import './avatar-picker.css';
 
 export function AvatarPicker({
   seats,
@@ -20,9 +21,10 @@ export function AvatarPicker({
 }) {
   return (
     <section className="avatar-picker">
-      <p className="avatar-picker__intro">
-        {feedbackText('avatar.pickerHint')}
-      </p>
+      <div className="avatar-picker__heading">
+        <h3>预设头像</h3>
+        <p>每个头像限一人使用</p>
+      </div>
       {message && (
         <p className="avatar-picker__message" role="status">
           {message}
@@ -33,14 +35,15 @@ export function AvatarPicker({
           const owner = seats.find((seat) => seat.avatarId === avatar.id);
           const occupied = Boolean(owner && owner.id !== selfId);
           const current = Boolean(owner && owner.id === selfId);
+          const selected = selectedId === avatar.id;
           return (
             <button
               type="button"
-              className="avatar-choice"
+              className="avatar-choice avatar-option"
               key={avatar.id}
               data-avatar-id={avatar.id}
               data-occupied={occupied}
-              aria-pressed={selectedId === avatar.id}
+              aria-pressed={selected}
               aria-label={
                 occupied
                   ? feedbackText('avatar.occupiedDescription', {
@@ -56,30 +59,43 @@ export function AvatarPicker({
               disabled={disabled || occupied || !avatar.src}
               onClick={() => onSelect(avatar.id)}
             >
-              <img
-                src={avatar.src || undefined}
-                alt=""
-                width="88"
-                height="88"
-              />
-              <strong>{avatar.name}</strong>
+              <span className="avatar-option__portrait">
+                <img
+                  src={avatar.src || undefined}
+                  alt=""
+                  width="112"
+                  height="112"
+                />
+                {(occupied || current || selected) && (
+                  <span className="avatar-option__mark" aria-hidden="true">
+                    {occupied ? (
+                      <svg viewBox="0 0 24 24" fill="none">
+                        <rect x="5" y="10" width="14" height="10" rx="3" />
+                        <path d="M8 10V7a4 4 0 0 1 8 0v3M12 14v2" />
+                      </svg>
+                    ) : (
+                      <svg viewBox="0 0 24 24" fill="none">
+                        <path d="m6 12 4 4 8-8" />
+                      </svg>
+                    )}
+                  </span>
+                )}
+              </span>
+              <strong className="avatar-option__name">{avatar.name}</strong>
               {occupied ? (
-                <span className="avatar-choice__claimed">
-                  {feedbackText('avatar.claimed')}
+                <span className="avatar-choice__claimed avatar-option__status">
+                  <span>{owner!.name}</span>
+                  <span>在用</span>
                 </span>
               ) : current ? (
-                <span className="avatar-choice__current">
+                <span className="avatar-choice__current avatar-option__status">
                   {feedbackText('avatar.current')}
                 </span>
-              ) : selectedId === avatar.id ? (
-                <span className="avatar-choice__current">
+              ) : selected ? (
+                <span className="avatar-choice__current avatar-option__status">
                   {feedbackText('avatar.selected')}
                 </span>
-              ) : (
-                <span className="avatar-choice__available">
-                  {feedbackText('avatar.available')}
-                </span>
-              )}
+              ) : null}
             </button>
           );
         })}

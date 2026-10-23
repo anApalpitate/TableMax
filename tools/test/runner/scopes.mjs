@@ -336,6 +336,7 @@ const verificationScopes = {
   'tools/test/box/verify-game-library.mjs': ['box'],
   'tools/test/box/verify-box-repository.mjs': ['box'],
   'tools/test/box/verify-box-seats.mjs': ['box'],
+  'tools/test/box/verify-box-redesign.mjs': ['box'],
   'tools/test/box/verify-box-lobby.mjs': [
     'box',
     'game:cockroach-poker',

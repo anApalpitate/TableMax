@@ -233,20 +233,6 @@ function BoxScreenContent({ session }: { session: RoomSession }) {
       <div className="box-feedback" data-submitting={compactProgress}>
         <BoxFeedback session={session} />
       </div>
-      {canControl && (isHost || view?.status !== 'lobby') && (
-        <div className="box-table-actions">
-          <RoomManagement session={session} display="actions" />
-          {isHost && (
-            <button
-              type="button"
-              className="secondary"
-              onClick={() => setPanel('management')}
-            >
-              管理设置
-            </button>
-          )}
-        </div>
-      )}
       <div className="grid">
         <section className="card stage">
           <div className="room-heading">
@@ -273,6 +259,21 @@ function BoxScreenContent({ session }: { session: RoomSession }) {
               )}
             </div>
             <div className="room-heading__actions">
+              {canControl && (isHost || view?.status !== 'lobby') && (
+                <div className="box-table-actions">
+                  <RoomManagement session={session} display="actions" />
+                  {isHost && (
+                    <button
+                      type="button"
+                      className="secondary"
+                      onClick={() => setPanel('management')}
+                    >
+                      管理设置
+                    </button>
+                  )}
+                </div>
+              )}
+
               {canManageSeats && (
                 <button
                   type="button"

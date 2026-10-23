@@ -1,31 +1,86 @@
 .avatar-upload {
-  padding: 0 0 20px;
-  margin-bottom: 20px;
-  border-bottom: 1px solid #dce3cf;
+  padding: 12px 14px;
+  margin-bottom: 18px;
+  border: 1px solid #d9e3cb;
+  border-radius: 18px;
+  background: #f0f5e7;
 }
 .avatar-upload__choose {
+  position: relative;
   display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
+  gap: 10px;
   align-items: center;
+  min-width: 0;
+  min-height: 48px;
   font-size: 18px;
   font-weight: 650;
+  color: #284c3f;
+  cursor: pointer;
+}
+.avatar-upload__choose strong {
+  flex: 1;
+  min-width: 0;
+  font-size: 20px;
+  line-height: 1.4;
+}
+.avatar-upload__icon {
+  display: grid;
+  place-items: center;
+  flex: 0 0 44px;
+  width: 44px;
+  height: 44px;
+  border: 1px solid #d3dec4;
+  border-radius: 13px;
+  background: #fffef7;
+  color: #608353;
+}
+.avatar-upload__icon svg {
+  display: block;
+  width: 31px;
+  height: 31px;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.avatar-upload__button {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  min-height: 44px;
+  padding: 8px 14px;
+  border: 1px solid #a5bd94;
+  border-radius: 12px;
+  background: #fffef7;
+  color: #315c3f;
+  font-size: 18px;
+  line-height: 1.35;
 }
 .avatar-upload__choose input {
-  max-width: 100%;
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
   min-height: 44px;
   font-size: 16px;
-}
-.avatar-upload__choose input::file-selector-button {
-  min-height: 44px;
-  border: 1px solid #9bbfb0;
-  border-radius: 12px;
-  background: #e0efe7;
-  color: #173b32;
-  font: inherit;
-  padding: 8px 14px;
-  margin-right: 10px;
+  opacity: 0;
   cursor: pointer;
+}
+.avatar-upload__choose:focus-within .avatar-upload__button {
+  outline: 3px solid #bd7b30;
+  outline-offset: 3px;
+}
+.avatar-upload__choose:not([data-disabled='true']):hover
+  .avatar-upload__button {
+  background: #e2edcf;
+  border-color: #7c9f69;
+}
+.avatar-upload__choose[data-disabled='true'],
+.avatar-upload__choose input:disabled {
+  cursor: default;
+}
+.avatar-upload__choose[data-disabled='true'] .avatar-upload__button {
+  opacity: 0.55;
 }
 .avatar-upload__editor {
   display: grid;
@@ -82,6 +137,7 @@
   margin: 0;
   padding: 0;
   border: 0;
+  background: transparent;
 }
 .dialog-surface .avatar-upload__editor .dialog-actions {
   width: min(100%, 360px);
@@ -90,4 +146,28 @@
   bottom: 0;
   background: #fffdf3;
   padding: 4px 0;
+}
+@media (max-width: 600px) {
+  .avatar-upload {
+    padding: 10px;
+    margin-bottom: 14px;
+  }
+  .avatar-upload__choose {
+    gap: 8px;
+  }
+  .avatar-upload__choose strong {
+    font-size: 18px;
+  }
+  .avatar-upload__icon {
+    flex-basis: 36px;
+    width: 36px;
+    height: 40px;
+  }
+  .avatar-upload__icon svg {
+    width: 28px;
+    height: 28px;
+  }
+  .avatar-upload__button {
+    padding-inline: 10px;
+  }
 }

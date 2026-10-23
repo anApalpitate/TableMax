@@ -135,12 +135,6 @@
   overflow-wrap: anywhere;
 }
 
-.game-library .game-library__tagline {
-  font-size: 16px;
-  line-height: 1.5;
-  margin: 10px 0;
-}
-
 .game-library__details {
   min-width: 0;
 }
@@ -159,6 +153,10 @@
   color: #365645;
   font-size: 16px;
   line-height: 1.4;
+}
+
+.game-library .game-library__players {
+  margin-top: 10px;
 }
 
 .game-library .game-library__item > button {
@@ -400,11 +398,6 @@
     border-radius: 20px;
     background: #edf1e7;
     color: #4b6658;
-  }
-  .game-library .game-library__tagline {
-    margin: 10px 0;
-    color: #52645a;
-    text-wrap: pretty;
   }
   .game-library .game-library__players {
     display: flex;

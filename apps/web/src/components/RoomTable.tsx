@@ -39,7 +39,7 @@ export function RoomTable({
     return (
       <article
         className={`room-table__seat room-table__seat--${index + 1} ${seat ? 'room-table__seat--occupied' : 'room-table__seat--empty'} ${isSelf ? 'room-table__seat--self' : ''}`}
-        key={seat?.id ?? `empty-${index}`}
+        key={`position-${index}`}
         data-seat-id={seat?.id}
         data-position={index + 1}
         data-self={isSelf}

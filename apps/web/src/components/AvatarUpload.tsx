@@ -59,9 +59,22 @@ export function AvatarUpload({
   }
   return (
     <section className="avatar-upload" aria-label="上传头像">
-      <label className="avatar-upload__choose" hidden={Boolean(source)}>
-        <span>上传图片</span>
+      <label
+        className="avatar-upload__choose"
+        hidden={Boolean(source)}
+        data-disabled={disabled || loading}
+      >
+        <span className="avatar-upload__icon" aria-hidden="true">
+          <svg viewBox="0 0 32 32" fill="none">
+            <rect x="5" y="5" width="22" height="22" rx="6" />
+            <circle cx="12" cy="12" r="2" />
+            <path d="m7 24 6-7 4 4 4-5 4 5" />
+          </svg>
+        </span>
+        <strong>自定义头像</strong>
+        <span className="avatar-upload__button">上传图片</span>
         <input
+          aria-label="上传头像图片"
           type="file"
           accept="image/jpeg,image/png,image/webp"
           disabled={disabled || loading}
