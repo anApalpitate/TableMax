@@ -420,7 +420,7 @@ try {
     assert.equal(await page.locator('.continue-game').count(), 0);
     report.checks.push(`${status} entry in hero`);
   }
-  for (const role of ['host', 'public', 'player']) {
+  for (const role of ['host', 'player']) {
     for (const id of ['cockroach-poker']) {
       for (const [w, h] of [
         [320, 568],

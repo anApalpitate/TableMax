@@ -74,11 +74,10 @@ const sizes = [
   [1920, 1080],
   [3840, 2160],
 ];
-const roles = ['host', 'public', 'player'];
+const roles = ['host', 'player'];
 const compareIds = new Set([
   'host-10-5-1280x720',
   'host-10-5-1920x1080',
-  'public-10-5-1280x720',
   'player-10-5-390x844',
   'host-10-10-1920x1080',
   'player-10-10-844x390',

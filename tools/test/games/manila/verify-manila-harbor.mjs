@@ -541,7 +541,7 @@ try {
       context,
     });
     await run('visual-semantics', async () => {
-      for (const role of ['player', 'host', 'public']) {
+      for (const role of ['player', 'host']) {
         const actualSize =
           role === 'player'
             ? { width, height }
@@ -813,8 +813,8 @@ try {
         });
         tightLabels.push(...labels.map((label) => ({ role, phase, ...label })));
       };
-      for (const role of ['player', 'host', 'public']) {
-        // Host and public are desktop surfaces. Keep their audit at a desktop
+      for (const role of ['player', 'host']) {
+        // Management is the desktop surface. Keep their audit at a desktop
         // viewport rather than treating a 390px phone as a supported host.
         await page.setViewportSize(
           role !== 'player' && width < 1280
@@ -1861,7 +1861,7 @@ try {
           `${role}/${phase}: every visible fee and payout stays readable inside its space`,
         );
       };
-      for (const role of ['player', 'host', 'public']) {
+      for (const role of ['player', 'host']) {
         await page.setViewportSize(
           role === 'player' ? { width, height } : { width: 1280, height: 720 },
         );
@@ -2193,7 +2193,6 @@ try {
         { role: 'player', owner: true },
         { role: 'player', owner: false },
         { role: 'player', owner: false, waiting: true },
-        { role: 'public' },
         { role: 'host' },
       ]) {
         const { role, owner: ownerFlag = false, waiting = false } = scenario;

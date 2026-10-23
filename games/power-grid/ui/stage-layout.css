@@ -63,8 +63,7 @@
 .pg-screen .pg-plant-market-summary > div:nth-child(2) b {
   background: #716545;
 }
-.pg-screen.pg-screen--host .pg-desktop-table,
-.pg-screen.pg-screen--public .pg-desktop-table {
+.pg-screen.pg-screen--host .pg-desktop-table {
   grid-template-rows: minmax(0, 1fr) auto;
 }
 .pg-screen[data-phase='building'] .pg-desktop-table {
@@ -197,8 +196,7 @@
   font-weight: 700;
 }
 @media (max-height: 610px) and (min-width: 650px) {
-  .pg-screen.pg-screen--host .pg-desktop-table,
-  .pg-screen.pg-screen--public .pg-desktop-table {
+  .pg-screen.pg-screen--host .pg-desktop-table {
     grid-template-rows: minmax(0, 1fr);
   }
   .pg-screen[data-phase='building'] .pg-desktop-table {

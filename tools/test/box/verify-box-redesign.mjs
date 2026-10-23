@@ -140,7 +140,7 @@ try {
         return { x: r.x, y: r.y, width: r.width, height: r.height };
       }),
     );
-  for (const role of ['host', 'public', 'player']) {
+  for (const role of ['host', 'player']) {
     for (const [w, h] of [
       [320, 568],
       [390, 844],

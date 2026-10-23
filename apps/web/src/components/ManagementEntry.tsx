@@ -1,6 +1,8 @@
+import './management-entry.css';
+
 export function ManagementEntry({ waiting }: { waiting: boolean }) {
   return (
-    <main className="shell game-loading">
+    <main className="shell game-loading management-entry">
       <h1>TableMax 管理兼展示端</h1>
       <p role="status">
         {waiting

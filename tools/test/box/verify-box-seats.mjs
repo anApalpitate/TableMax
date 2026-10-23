@@ -26,7 +26,7 @@ assert.match(run, /^[A-Za-z0-9_-]+$/);
 const section = argument('section') ?? 'all';
 assert.ok(['all', 'layout', 'controls', 'settings'].includes(section));
 const roleFilter = argument('role');
-assert.ok(!roleFilter || ['host', 'public', 'player'].includes(roleFilter));
+assert.ok(!roleFilter || ['host', 'player'].includes(roleFilter));
 const capacityFilter = argument('capacity');
 assert.ok(
   !capacityFilter || ['1', '6', '7', '9', '12'].includes(capacityFilter),
@@ -116,7 +116,7 @@ function App(){
  const game=options.normalCatalog?uno:{...uno,min:Math.min(2,capacity),max:capacity};
  const catalog=options.normalCatalog?normalCatalog:options.wideCatalog?[...normalCatalog.map(item=>item.id==='uno'?{...item,max:12}:item),{...uno,id:'fixture-twelve',name:'仅用于布局验证的十二席目录项',min:7,max:12}]:normalCatalog;
  const isHost=role==='host',canControl=isHost||Boolean(options.owner);
- const view={revision:12,instanceId:'seat-fixture',branch:0,status:options.status??'lobby',game,catalog,seats,ownerSeatId:options.owner?self?.id:null,joinOpen:options.status==='ended'?false:true,gameView:null,history:[],lifecycleActions:[],playMode:'play',decisionClock:null,self:{role:isHost?'host':role==='public'?'public':'player',seatId:self?.id??null},capabilities:{manage:isHost,manageSeats:canControl,control:canControl}};
+ const view={revision:12,instanceId:'seat-fixture',branch:0,status:options.status??'lobby',game,catalog,seats,ownerSeatId:options.owner?self?.id:null,joinOpen:options.status==='ended'?false:true,gameView:null,history:[],lifecycleActions:[],playMode:'play',decisionClock:null,self:{role:isHost?'host':'player',seatId:self?.id??null},capabilities:{manage:isHost,manageSeats:canControl,control:canControl}};
  window.fixtureCase={role,capacity,occupied,seats,selfId:self?.id??null};
  const session={role,view,self,isHost,canControl,canManageSeats:canControl,locked:false,busy:false,connected:true,credential:'fixture',name,setName,message:'',messageKind:'saved',errorId:'',admissionPending:false,admissionAvatarId:null,admissionAvatarImage:null,awaitingConfirmation:false,join(){},retry(){},retryAdmission(){},setPlayerCredential(){},command(command){window.commands.push(command)},addresses:[],adapters:[],address:'',port:38473,networkMessage:'',externalJoinUrl:null,setAddress(){},refreshNetwork(){},async saveExternalJoinUrl(){return true}};
  return <BoxScreen session={session}/>;
@@ -364,7 +364,6 @@ const screenshotCases = new Set([
   'host/1/1280x720',
   'host/6/1280x720',
   'host/12/1920x1080',
-  'public/12/3840x2160',
   'player/12/320x568',
   'player/12/390x844',
   'player/12/844x390',
@@ -401,7 +400,6 @@ async function verifySettings() {
     ['host', false],
     ['player', true],
     ['player', false],
-    ['public', false],
   ]) {
     for (const size of settingsSizes) {
       const label = `${role}${owner ? '-owner' : ''}-${size.join('x')}`;
@@ -418,7 +416,7 @@ async function verifySettings() {
         label + ' permission',
       );
       if (!authorized) {
-        checked(label + ': ordinary/public cannot open seat settings');
+        checked(label + ': ordinary player cannot open seat settings');
         continue;
       }
       assert.equal(await entry.locator('svg').count(), 1);
@@ -854,7 +852,7 @@ try {
   await page.locator('.room-table').waitFor();
   if (section === 'settings') await verifySettings();
   if (section === 'all' || section === 'layout') {
-    for (const role of ['host', 'public', 'player'].filter(
+    for (const role of ['host', 'player'].filter(
       (value) => !roleFilter || value === roleFilter,
     )) {
       for (const capacity of [1, 6, 7, 9, 12].filter(
@@ -888,7 +886,7 @@ try {
       `${report.layouts.length} role/capacity/viewport layouts: readable complete seat cards, no overlap/horizontal overflow, all seats scroll into view, actual online/ready/bot/self labels`,
     );
     if (!capacityFilter || capacityFilter === '12') {
-      for (const role of ['host', 'public', 'player'].filter(
+      for (const role of ['host', 'player'].filter(
         (value) => !roleFilter || value === roleFilter,
       )) {
         const options = { role, capacity: 12, occupied: 0 };
@@ -910,7 +908,7 @@ try {
     );
   }
   if (section === 'all' || section === 'controls') {
-    for (const role of ['host', 'public', 'player']) {
+    for (const role of ['host', 'player']) {
       await configure(
         { role, capacity: 6, occupied: 5, status: 'ended' },
         [1280, 720],
@@ -958,7 +956,6 @@ try {
       ['host', false],
       ['player', true],
       ['player', false],
-      ['public', false],
     ]) {
       await configure(
         { role, owner, capacity: 6, occupied: 6, status: 'lobby' },
@@ -997,7 +994,7 @@ try {
       'Quick removal is restricted to administrator/owner and bot/offline seats; bot submits once, human confirms, playing refuses.',
     );
     checked(
-      'Ended action is 恢复加入 and emits one existing replay intent for host/authorized human owner; public and ordinary player have no control',
+      'Ended action is 恢复加入 and emits one existing replay intent for host/authorized human owner; ordinary players have no control',
     );
     await configure(
       { role: 'host', capacity: 6, occupied: 5, normalCatalog: true },

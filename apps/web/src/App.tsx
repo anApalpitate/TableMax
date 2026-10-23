@@ -49,7 +49,7 @@ export function App() {
   const route = useScreenRoute();
   if (!route)
     return (
-      <main className="shell game-loading">
+      <main className="shell game-loading management-entry">
         <h1>页面不可用</h1>
         <p>此网址已停用或不存在。</p>
         <a className="button" href="/">

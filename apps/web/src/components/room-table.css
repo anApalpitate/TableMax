@@ -273,31 +273,6 @@
   left: 8px;
   top: 22px;
 }
-@media (min-width: 1500px) {
-  .public .room-table {
-    --seat-width: 180px;
-    min-height: 590px;
-  }
-  .public .room-table__felt {
-    top: 155px;
-    height: 306px;
-  }
-  .public .room-table__seat {
-    height: 176px;
-    padding: 10px 14px;
-  }
-  .public .room-table__avatar {
-    width: 52px;
-    height: 52px;
-  }
-  .public .room-table__name {
-    font-size: 18px;
-  }
-  .public .room-table__identity,
-  .public .room-table__ready {
-    font-size: 13px;
-  }
-}
 @media (max-width: 1100px) and (min-width: 861px) {
   .room-table {
     --seat-width: 134px;
@@ -308,19 +283,16 @@
   }
 }
 @media (min-width: 861px) and (max-height: 850px) {
-  .room-table,
-  .public .room-table {
+  .room-table {
     --seat-width: 144px;
     min-height: clamp(360px, calc(100dvh - 400px), 430px);
   }
-  .room-table__felt,
-  .public .room-table__felt {
+  .room-table__felt {
     top: 107px;
     height: 235px;
     border-width: 12px;
   }
-  .room-table__seat,
-  .public .room-table__seat {
+  .room-table__seat {
     height: 140px;
     padding: 6px 10px;
     border-radius: 17px;
@@ -335,21 +307,17 @@
   .room-table__seat--6 {
     bottom: 12px;
   }
-  .room-table__avatar,
-  .public .room-table__avatar {
+  .room-table__avatar {
     width: 32px;
     height: 32px;
   }
-  .room-table__name,
-  .public .room-table__name {
+  .room-table__name {
     font-size: 16px;
     line-height: 1.25;
     margin: 3px 0;
   }
   .room-table__identity,
-  .room-table__ready,
-  .public .room-table__identity,
-  .public .room-table__ready {
+  .room-table__ready {
     font-size: 12px;
   }
 }

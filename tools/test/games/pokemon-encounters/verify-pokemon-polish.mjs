@@ -612,7 +612,7 @@ try {
     'Disconnected player cannot use the peek control',
   );
   assert.equal(await page.evaluate(() => window.pokemonCommands.length), 0);
-  for (const role of ['host', 'public']) {
+  for (const role of ['host']) {
     await reset({ scene: 'peek', role });
     assert.equal(
       await page.locator('.private-peek, .close-peek-action').count(),

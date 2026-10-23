@@ -12,7 +12,6 @@ import './styles.css';
 
 const roles: Record<Role, string> = {
   host: '房主管理',
-  public: '公共屏',
   player: '手机玩家',
 };
 const screens: Record<Screen, string> = {
@@ -131,7 +130,7 @@ export function Prototype() {
     }
   }
   function previewSound() {
-    if (!sound || state.role !== 'public' || !audio.current) return;
+    if (!sound || state.role !== 'host' || !audio.current) return;
     try {
       const context = audio.current;
       const oscillator = context.createOscillator();
@@ -328,7 +327,7 @@ export function Prototype() {
                   卡位；具体操作见游戏原型，正式规则引擎尚未实现。
                 </p>
                 <p>
-                  关闭公共屏保留服务；退出整个程序停止服务。地址变化后需重新生成真实加入二维码。
+                  管理窗口兼作展示；退出整个程序停止服务。地址变化后需重新生成真实加入二维码。
                 </p>
               </details>
             </aside>
@@ -718,67 +717,64 @@ export function Prototype() {
               </section>
               {state.role !== 'player' && (
                 <section className="control-sheet session-controls">
-                  <h2>{state.role === 'host' ? '房主管理' : '桌面状态'}</h2>
+                  <h2>管理兼展示</h2>
                   <div className="session-status">
                     <Icon name={state.paused ? 'pause' : 'people'} />
                     {state.paused ? '暂停' : '等待玩家'}
                   </div>
-                  {state.role === 'host' ? (
-                    <div className="stack">
-                      <IconButton
-                        icon={state.paused ? 'play' : 'pause'}
-                        onClick={() => dispatch({ type: 'pause' })}
-                      >
-                        {state.paused ? '恢复对局' : '暂停对局'}
-                      </IconButton>
-                      <IconButton
-                        icon="back"
-                        onClick={() => openDialog('rollback')}
-                      >
-                        选择决策点回退
-                      </IconButton>
-                      <IconButton
-                        icon="phone"
-                        onClick={() => openDialog('rebind')}
-                      >
-                        确认换手机绑定
-                      </IconButton>
-                      <IconButton
-                        icon="close"
-                        className="danger"
-                        onClick={() => openDialog('end')}
-                      >
-                        结束当前对局
-                      </IconButton>
-                    </div>
-                  ) : (
-                    <div className="sound-controls">
-                      <IconButton
-                        icon={sound ? 'mute' : 'sound'}
-                        onClick={() => {
-                          if (sound) {
-                            setSound(false);
-                            setSoundNotice('提示音已静音');
-                          } else {
-                            void enableSound();
-                          }
-                        }}
-                      >
-                        {sound ? '静音' : '启用提示音'}
-                      </IconButton>
-                      <IconButton
-                        icon="sound"
-                        disabled={!sound}
-                        onClick={previewSound}
-                      >
-                        试听示例音
-                      </IconButton>
-                      <p className="muted" role="status">
-                        {soundNotice}
-                      </p>
-                      <small>同步与回退不重播历史声音</small>
-                    </div>
-                  )}
+                  <div className="stack">
+                    <IconButton
+                      icon={state.paused ? 'play' : 'pause'}
+                      onClick={() => dispatch({ type: 'pause' })}
+                    >
+                      {state.paused ? '恢复对局' : '暂停对局'}
+                    </IconButton>
+                    <IconButton
+                      icon="back"
+                      onClick={() => openDialog('rollback')}
+                    >
+                      选择决策点回退
+                    </IconButton>
+                    <IconButton
+                      icon="phone"
+                      onClick={() => openDialog('rebind')}
+                    >
+                      确认换手机绑定
+                    </IconButton>
+                    <IconButton
+                      icon="close"
+                      className="danger"
+                      onClick={() => openDialog('end')}
+                    >
+                      结束当前对局
+                    </IconButton>
+                  </div>
+                  <div className="sound-controls">
+                    <IconButton
+                      icon={sound ? 'mute' : 'sound'}
+                      onClick={() => {
+                        if (sound) {
+                          setSound(false);
+                          setSoundNotice('提示音已静音');
+                        } else {
+                          void enableSound();
+                        }
+                      }}
+                    >
+                      {sound ? '静音' : '启用提示音'}
+                    </IconButton>
+                    <IconButton
+                      icon="sound"
+                      disabled={!sound}
+                      onClick={previewSound}
+                    >
+                      试听示例音
+                    </IconButton>
+                    <p className="muted" role="status">
+                      {soundNotice}
+                    </p>
+                    <small>同步与回退不重播历史声音</small>
+                  </div>
                   <img className="control-decoration" src={art.chips} alt="" />
                 </section>
               )}

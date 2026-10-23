@@ -107,13 +107,13 @@
   font-size: 16px;
   line-height: 24px;
 }
-:is(.mn-screen--host, .mn-screen--public) .mn-toolbar > .mn-status {
+:is(.mn-screen--host) .mn-toolbar > .mn-status {
   flex: 1 1 auto;
 }
-:is(.mn-screen--host, .mn-screen--public) .mn-current-turn {
+:is(.mn-screen--host) .mn-current-turn {
   flex: 1 1 auto;
 }
-:is(.mn-screen--host, .mn-screen--public) .mn-current-turn-copy {
+:is(.mn-screen--host) .mn-current-turn-copy {
   flex: 1 1 auto;
 }
 .mn-screen--player

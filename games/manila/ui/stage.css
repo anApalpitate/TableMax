@@ -1,34 +1,31 @@
 /* 2026-10-17 physical stage: sea + shore + black market on one board; merchant rack below. */
-:is(.mn-screen--host, .mn-screen--public, .mn-screen--player.mn-wide)
-  .mn-layout {
+:is(.mn-screen--host, .mn-screen--player.mn-wide) .mn-layout {
   grid-template-columns: minmax(0, 1fr);
   gap: 6px;
 }
-:is(.mn-screen--host, .mn-screen--public, .mn-screen--player.mn-wide)
+:is(.mn-screen--host, .mn-screen--player.mn-wide)
   .mn-layout:not(:where(.mn-screen--player, .mn-screen--player *)) {
   grid-template-rows: minmax(0, 1fr) auto;
 }
-:is(.mn-screen--host, .mn-screen--public, .mn-screen--player.mn-wide)
-  .mn-layout
-  > .mn-main {
+:is(.mn-screen--host, .mn-screen--player.mn-wide) .mn-layout > .mn-main {
   display: block;
   grid-column: 1;
   grid-row: 1;
   min-width: 0;
 }
-:is(.mn-screen--host, .mn-screen--public, .mn-screen--player.mn-wide)
+:is(.mn-screen--host, .mn-screen--player.mn-wide)
   .mn-layout
   > .mn-main:not(:where(.mn-screen--player, .mn-screen--player *)) {
   min-height: 0;
 }
-:is(.mn-screen--host, .mn-screen--public, .mn-screen--player.mn-wide)
+:is(.mn-screen--host, .mn-screen--player.mn-wide)
   .mn-layout
   > .mn-main
   .mn-board-scroll:not(:where(.mn-screen--player, .mn-screen--player *)) {
   height: 100%;
   min-height: 0;
 }
-:is(.mn-screen--host, .mn-screen--public, .mn-screen--player.mn-wide)
+:is(.mn-screen--host, .mn-screen--player.mn-wide)
   .mn-layout
   > .mn-main
   .mn-board-scroll
@@ -39,7 +36,7 @@
   gap: 6px;
   padding: 6px;
 }
-:is(.mn-screen--host, .mn-screen--public, .mn-screen--player.mn-wide)
+:is(.mn-screen--host, .mn-screen--player.mn-wide)
   .mn-layout
   > .mn-main
   .mn-board-scroll
@@ -49,7 +46,7 @@
   min-height: 0;
   overflow: hidden;
 } /* Right column: five shore rows on top, black market underneath. */
-:is(.mn-screen--host, .mn-screen--public, .mn-screen--player.mn-wide)
+:is(.mn-screen--host, .mn-screen--player.mn-wide)
   .mn-layout
   > .mn-main
   .mn-harbor
@@ -62,14 +59,14 @@
 
   gap: 4px;
 }
-:is(.mn-screen--host, .mn-screen--public, .mn-screen--player.mn-wide)
+:is(.mn-screen--host, .mn-screen--player.mn-wide)
   .mn-layout
   > .mn-main
   .mn-harbor
   > .mn-shore:not(:where(.mn-screen--player, .mn-screen--player *)) {
   align-content: stretch;
 }
-:is(.mn-screen--host, .mn-screen--public, .mn-screen--player.mn-wide)
+:is(.mn-screen--host, .mn-screen--player.mn-wide)
   .mn-layout
   > .mn-main
   .mn-harbor
@@ -77,7 +74,7 @@
   :is(.mn-docks, .mn-specialists) {
   display: contents;
 }
-:is(.mn-screen--host, .mn-screen--public, .mn-screen--player.mn-wide)
+:is(.mn-screen--host, .mn-screen--player.mn-wide)
   .mn-layout
   > .mn-main
   .mn-harbor
@@ -87,7 +84,7 @@
   ):not(:where(.mn-screen--player, .mn-screen--player *)) {
   align-items: stretch;
 }
-:is(.mn-screen--host, .mn-screen--public, .mn-screen--player.mn-wide)
+:is(.mn-screen--host, .mn-screen--player.mn-wide)
   .mn-layout
   > .mn-main
   .mn-harbor
@@ -97,7 +94,7 @@
   ):not(:where(.mn-screen--player, .mn-screen--player *)) {
   align-content: stretch;
 } /* Black market block, sitting under the shore rows. */
-:is(.mn-screen--host, .mn-screen--public, .mn-screen--player.mn-wide)
+:is(.mn-screen--host, .mn-screen--player.mn-wide)
   .mn-layout
   > .mn-main
   .mn-harbor
@@ -105,14 +102,14 @@
   grid-area: market;
   min-width: 0;
 }
-:is(.mn-screen--host, .mn-screen--public, .mn-screen--player.mn-wide)
+:is(.mn-screen--host, .mn-screen--player.mn-wide)
   .mn-layout
   > .mn-main
   .mn-harbor
   > .mn-board-market:not(:where(.mn-screen--player, .mn-screen--player *)) {
   min-height: 0;
 }
-:is(.mn-screen--host, .mn-screen--public, .mn-screen--player.mn-wide)
+:is(.mn-screen--host, .mn-screen--player.mn-wide)
   .mn-layout
   > .mn-main
   .mn-harbor
@@ -128,7 +125,7 @@
     inset 0 0 0 1px #fff9,
     0 1px 3px #3e2b1722;
 }
-:is(.mn-screen--host, .mn-screen--public, .mn-screen--player.mn-wide)
+:is(.mn-screen--host, .mn-screen--player.mn-wide)
   .mn-layout
   > .mn-main
   .mn-harbor
@@ -138,7 +135,7 @@
   height: 100%;
   min-height: 0;
 }
-:is(.mn-screen--host, .mn-screen--public, .mn-screen--player.mn-wide)
+:is(.mn-screen--host, .mn-screen--player.mn-wide)
   .mn-layout
   > .mn-main
   .mn-harbor
@@ -159,7 +156,7 @@
   letter-spacing: 0.04em;
   white-space: nowrap;
 }
-:is(.mn-screen--host, .mn-screen--public, .mn-screen--player.mn-wide)
+:is(.mn-screen--host, .mn-screen--player.mn-wide)
   .mn-layout
   > .mn-main
   .mn-harbor
@@ -169,7 +166,7 @@
   grid-template-columns: minmax(0, 1fr);
   gap: 0;
 }
-:is(.mn-screen--host, .mn-screen--public, .mn-screen--player.mn-wide)
+:is(.mn-screen--host, .mn-screen--player.mn-wide)
   .mn-layout
   > .mn-main
   .mn-harbor
@@ -179,7 +176,7 @@
   height: 100%;
   min-height: 0;
 }
-:is(.mn-screen--host, .mn-screen--public, .mn-screen--player.mn-wide)
+:is(.mn-screen--host, .mn-screen--player.mn-wide)
   .mn-layout
   > .mn-main
   .mn-harbor
@@ -193,7 +190,7 @@
   border-right: 0;
   border-bottom: 1px dotted #b39a6a;
 }
-:is(.mn-screen--host, .mn-screen--public, .mn-screen--player.mn-wide)
+:is(.mn-screen--host, .mn-screen--player.mn-wide)
   .mn-layout
   > .mn-main
   .mn-harbor
@@ -204,7 +201,7 @@
   align-content: center;
   gap: 0;
 }
-:is(.mn-screen--host, .mn-screen--public, .mn-screen--player.mn-wide)
+:is(.mn-screen--host, .mn-screen--player.mn-wide)
   .mn-layout
   > .mn-main
   .mn-harbor
@@ -212,7 +209,7 @@
   .mn-market-row:last-child {
   border-bottom: 0;
 }
-:is(.mn-screen--host, .mn-screen--public, .mn-screen--player.mn-wide)
+:is(.mn-screen--host, .mn-screen--player.mn-wide)
   .mn-layout
   > .mn-main
   .mn-harbor
@@ -225,7 +222,7 @@
   gap: 4px;
   font-size: 16px;
 }
-:is(.mn-screen--host, .mn-screen--public, .mn-screen--player.mn-wide)
+:is(.mn-screen--host, .mn-screen--player.mn-wide)
   .mn-layout
   > .mn-main
   .mn-harbor
@@ -233,7 +230,7 @@
   .mn-market-title:not(:where(.mn-screen--player, .mn-screen--player *)) {
   line-height: 18px;
 }
-:is(.mn-screen--host, .mn-screen--public, .mn-screen--player.mn-wide)
+:is(.mn-screen--host, .mn-screen--player.mn-wide)
   .mn-layout
   > .mn-main
   .mn-harbor
@@ -243,7 +240,7 @@
   gap: 3px;
   white-space: nowrap;
 }
-:is(.mn-screen--host, .mn-screen--public, .mn-screen--player.mn-wide)
+:is(.mn-screen--host, .mn-screen--player.mn-wide)
   .mn-layout
   > .mn-main
   .mn-harbor
@@ -253,7 +250,7 @@
   width: 20px;
   height: 20px;
 }
-:is(.mn-screen--host, .mn-screen--public, .mn-screen--player.mn-wide)
+:is(.mn-screen--host, .mn-screen--player.mn-wide)
   .mn-layout
   > .mn-main
   .mn-harbor
@@ -263,7 +260,7 @@
   white-space: nowrap;
   font-size: 16px;
 }
-:is(.mn-screen--host, .mn-screen--public, .mn-screen--player.mn-wide)
+:is(.mn-screen--host, .mn-screen--player.mn-wide)
   .mn-layout
   > .mn-main
   .mn-harbor
@@ -277,7 +274,7 @@
   font-size: 16px;
   text-align: center;
 }
-:is(.mn-screen--host, .mn-screen--public, .mn-screen--player.mn-wide)
+:is(.mn-screen--host, .mn-screen--player.mn-wide)
   .mn-layout
   > .mn-main
   .mn-harbor
@@ -287,7 +284,7 @@
   min-height: 0;
   line-height: 18px;
 } /* Lanes stretch to fill the whole board height so the sea has no dead slab. */
-:is(.mn-screen--host, .mn-screen--public, .mn-screen--player.mn-wide)
+:is(.mn-screen--host, .mn-screen--player.mn-wide)
   .mn-layout
   > .mn-main
   .mn-harbor
@@ -297,7 +294,7 @@
   grid-template-columns: minmax(0, 1fr);
   gap: 6px;
 }
-:is(.mn-screen--host, .mn-screen--public, .mn-screen--player.mn-wide)
+:is(.mn-screen--host, .mn-screen--player.mn-wide)
   .mn-layout
   > .mn-main
   .mn-harbor
@@ -306,7 +303,7 @@
   height: 100%;
   min-height: 0;
 }
-:is(.mn-screen--host, .mn-screen--public, .mn-screen--player.mn-wide)
+:is(.mn-screen--host, .mn-screen--player.mn-wide)
   .mn-layout
   > .mn-main
   .mn-harbor
@@ -315,7 +312,7 @@
   align-content: center;
   align-items: center;
 }
-:is(.mn-screen--host, .mn-screen--public, .mn-screen--player.mn-wide)
+:is(.mn-screen--host, .mn-screen--player.mn-wide)
   .mn-layout
   > .mn-main
   .mn-harbor
@@ -324,7 +321,7 @@
   grid-template-rows: minmax(0, 1fr);
   height: 100%;
 }
-:is(.mn-screen--host, .mn-screen--public, .mn-screen--player.mn-wide)
+:is(.mn-screen--host, .mn-screen--player.mn-wide)
   .mn-layout
   > .mn-main
   .mn-harbor
@@ -333,7 +330,7 @@
   .mn-track {
   height: clamp(55px, 5.4dvh, 118px);
 }
-:is(.mn-screen--host, .mn-screen--public, .mn-screen--player.mn-wide)
+:is(.mn-screen--host, .mn-screen--player.mn-wide)
   .mn-layout
   > .mn-main
   .mn-harbor
@@ -558,7 +555,7 @@
   font-size: 16px;
   font-weight: 700;
 } /* Facility cards fill their rows: wider label column, fee/income/occupant lines. */
-:is(.mn-screen--host, .mn-screen--public, .mn-screen--player.mn-wide)
+:is(.mn-screen--host, .mn-screen--player.mn-wide)
   .mn-layout
   > .mn-main
   .mn-harbor
@@ -574,7 +571,7 @@
   line-height: 16px;
   white-space: nowrap;
 } /* Let the harbor photo read through the lane glass instead of a milky wash. */
-:is(.mn-screen--host, .mn-screen--public, .mn-screen--player.mn-wide)
+:is(.mn-screen--host, .mn-screen--player.mn-wide)
   .mn-layout
   > .mn-main
   .mn-harbor
@@ -584,7 +581,7 @@
   border-color: #ffffff66;
   box-shadow: inset 0 0 0 1px #ffffff22;
 }
-:is(.mn-screen--host, .mn-screen--public, .mn-screen--player.mn-wide)
+:is(.mn-screen--host, .mn-screen--player.mn-wide)
   .mn-layout
   > .mn-main
   .mn-harbor::after {

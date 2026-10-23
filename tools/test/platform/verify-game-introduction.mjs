@@ -158,7 +158,7 @@ try {
     ),
   });
   await page.waitForFunction(() => typeof window.renderBox === 'function');
-  for (const role of resourceOnly ? [] : ['host', 'public', 'player']) {
+  for (const role of resourceOnly ? [] : ['host', 'player']) {
     for (const index of [0, 1, 2, 3, 4, 5, 6, 7]) {
       for (const [width, height] of [
         [320, 640],

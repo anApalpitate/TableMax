@@ -446,22 +446,6 @@ footer {
   padding: 12px;
   border-radius: 8px;
 }
-.public .grid {
-  grid-template-columns: minmax(0, 3fr) minmax(260px, 1fr);
-}
-.public .intro {
-  padding-top: 100px;
-}
-.public h1 {
-  font-size: clamp(40px, 5vw, 70px);
-}
-.public .checks {
-  display: flex;
-  gap: 32px;
-}
-.public .checks li {
-  flex: 1;
-}
 .player {
   max-width: 620px;
 }
@@ -482,12 +466,10 @@ footer {
   .connection {
     font-size: 11px;
   }
-  .intro,
-  .public .intro {
+  .intro {
     padding-top: 44px;
   }
-  .grid,
-  .public .grid {
+  .grid {
     grid-template-columns: 1fr;
   }
   .hero {
@@ -545,9 +527,6 @@ footer {
   }
   .echo-row {
     flex-direction: column;
-  }
-  .public .checks {
-    display: block;
   }
   footer {
     display: block;

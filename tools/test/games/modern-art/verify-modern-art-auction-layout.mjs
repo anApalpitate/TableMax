@@ -39,12 +39,12 @@ const hash = (value) => createHash('sha256').update(value).digest('hex');
 const report = {
   arguments: process.argv.slice(2),
   scope: fixedComparisonOnly
-    ? 'The identical legally prepared four-player fixed-price single/paired lots after an authorized set-price 30 command, rendered by frozen before and current after production host/public components at 1280x720. Baseline geometry is recorded, not judged against the current layout contract. Source viewport evidence, not physical DPI, network, or installer proof.'
+    ? 'The identical legally prepared four-player fixed-price single/paired lots after an authorized set-price 30 command, rendered by frozen before and current after production management components at 1280x720. Baseline geometry is recorded, not judged against the current layout contract. Source viewport evidence, not physical DPI, network, or installer proof.'
     : inactiveOnly
-      ? 'Production host/public components with legally paused three/four-player RoomCoordinator auctions and separately controlled disconnected transport. Only inactive layout hooks and acting indicators are checked. Frozen-clock component evidence does not certify real network disconnect or recovery.'
+      ? 'Production management components with legally paused three/four-player RoomCoordinator auctions and separately controlled disconnected transport. Only inactive layout hooks and acting indicators are checked. Frozen-clock component evidence does not certify real network disconnect or recovery.'
       : extraOnly
-        ? 'Production host/public components with separately initialized and legally played three/four-player RoomCoordinator projections. Single/paired lots and empty galleries with frozen clocks. Source rendering evidence, not live network, physical DPI, natural full match, or installer proof. No state splicing or CSS mutation.'
-        : 'Production host/public components in the already-built before/after fixture. Five-player legal RoomCoordinator projections, frozen clocks, empty and occupied galleries, single and paired lots, and double collection without a progress bar. Source rendering evidence, not live network, physical DPI, natural full match, or installer proof. No state or CSS mutation.',
+        ? 'Production management components with separately initialized and legally played three/four-player RoomCoordinator projections. Single/paired lots and empty galleries with frozen clocks. Source rendering evidence, not live network, physical DPI, natural full match, or installer proof. No state splicing or CSS mutation.'
+        : 'Production management components in the already-built before/after fixture. Five-player legal RoomCoordinator projections, frozen clocks, empty and occupied galleries, single and paired lots, and double collection without a progress bar. Source rendering evidence, not live network, physical DPI, natural full match, or installer proof. No state or CSS mutation.',
   result: 'running',
   inputs: [],
   layouts: [],
@@ -214,7 +214,7 @@ try {
     try {
       const page = await browser.newPage();
       page.on('pageerror', (error) => report.pageErrors.push(error.message));
-      for (const role of ['host', 'public'])
+      for (const role of ['host'])
         for (const scene of scenes)
           for (const [width, height] of sizes) {
             if (

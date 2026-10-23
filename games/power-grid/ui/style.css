@@ -224,8 +224,7 @@
   font-size: 22px;
   color: #574318;
 }
-.pg-screen.pg-screen--host,
-.pg-screen.pg-screen--public {
+.pg-screen.pg-screen--host {
   height: 100dvh;
   display: flex;
   flex-direction: column;
@@ -1500,12 +1499,10 @@
   }
 }
 @media (max-height: 610px) and (min-width: 650px) {
-  .pg-screen.pg-screen--host,
-  .pg-screen.pg-screen--public {
+  .pg-screen.pg-screen--host {
     padding: 5px;
   }
-  .pg-screen.pg-screen--host > .pg-turn-order,
-  .pg-screen.pg-screen--public > .pg-turn-order {
+  .pg-screen.pg-screen--host > .pg-turn-order {
     display: none;
   }
   .pg-screen .pg-order-entry {

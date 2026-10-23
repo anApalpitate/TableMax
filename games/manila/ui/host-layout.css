@@ -1,5 +1,5 @@
 /* Host/public pages use a single harbor composition; dialogs keep their own layout. */
-:is(.mn-screen--host, .mn-screen--public) {
+:is(.mn-screen--host) {
   display: grid;
   grid-template-rows: auto minmax(0, 1fr);
   height: 100dvh;
@@ -9,7 +9,7 @@
   box-sizing: border-box;
 }
 
-:is(.mn-screen--host, .mn-screen--public) .mn-toolbar {
+:is(.mn-screen--host) .mn-toolbar {
   grid-row: 1;
   display: flex;
   flex-wrap: nowrap;
@@ -20,39 +20,39 @@
   margin: 0;
 }
 
-:is(.mn-screen--host, .mn-screen--public) .mn-toolbar > .button {
+:is(.mn-screen--host) .mn-toolbar > .button {
   flex: none;
   min-width: 44px;
   width: 44px;
   padding: 6px 10px;
 }
 
-:is(.mn-screen--host, .mn-screen--public) .mn-box-label,
-:is(.mn-screen--host, .mn-screen--public) .mn-brand > span {
+:is(.mn-screen--host) .mn-box-label,
+:is(.mn-screen--host) .mn-brand > span {
   display: none;
 }
 
-:is(.mn-screen--host, .mn-screen--public) .mn-brand {
+:is(.mn-screen--host) .mn-brand {
   flex: none;
   min-width: 100px;
   height: 44px;
   align-content: start;
 }
 
-:is(.mn-screen--host, .mn-screen--public) .mn-brand strong {
+:is(.mn-screen--host) .mn-brand strong {
   font-size: 24px;
   line-height: 1;
 }
 
-:is(.mn-screen--host, .mn-screen--public) .mn-display-content {
+:is(.mn-screen--host) .mn-display-content {
   display: contents;
 }
 
-:is(.mn-screen--host, .mn-screen--public) .mn-mobile-voyage {
+:is(.mn-screen--host) .mn-mobile-voyage {
   display: inline;
 }
 
-:is(.mn-screen--host, .mn-screen--public) .mn-toolbar > .mn-status {
+:is(.mn-screen--host) .mn-toolbar > .mn-status {
   display: flex;
   flex: 0 1 auto;
   align-items: center;
@@ -69,17 +69,17 @@
   gap: 6px;
 }
 
-:is(.mn-screen--host, .mn-screen--public) .mn-current-turn {
+:is(.mn-screen--host) .mn-current-turn {
   min-width: 0;
   gap: 6px;
 }
 
-:is(.mn-screen--host, .mn-screen--public) .mn-actor-avatar {
+:is(.mn-screen--host) .mn-actor-avatar {
   width: 32px;
   height: 32px;
 }
 
-:is(.mn-screen--host, .mn-screen--public) .mn-current-turn-copy {
+:is(.mn-screen--host) .mn-current-turn-copy {
   display: grid;
   grid-template-columns: max-content max-content;
   position: relative;
@@ -89,22 +89,20 @@
   line-height: 1.2;
 }
 
-:is(.mn-screen--host, .mn-screen--public)
-  .mn-current-turn-copy
-  > .mn-mobile-voyage {
+:is(.mn-screen--host) .mn-current-turn-copy > .mn-mobile-voyage {
   grid-column: 1;
   grid-row: 1;
   margin: 0;
 }
 
-:is(.mn-screen--host, .mn-screen--public) .mn-phase-name {
+:is(.mn-screen--host) .mn-phase-name {
   grid-column: 2;
   grid-row: 1;
   font-size: 20px;
   line-height: 26px;
 }
 
-:is(.mn-screen--host, .mn-screen--public) .mn-status .mn-status-detail {
+:is(.mn-screen--host) .mn-status .mn-status-detail {
   grid-column: 1 / -1;
   grid-row: 2;
   margin: 0;
@@ -113,18 +111,17 @@
   line-height: 24px;
 }
 
-:is(.mn-screen--host, .mn-screen--public) .mn-status .mn-auction-standing {
+:is(.mn-screen--host) .mn-status .mn-auction-standing {
   margin: 0;
   font-size: 18px;
   line-height: 1.2;
 }
 
-:is(.mn-screen--host, .mn-screen--public)
-  .mn-current-turn-copy:has(> .mn-auction-standing) {
+:is(.mn-screen--host) .mn-current-turn-copy:has(> .mn-auction-standing) {
   padding-right: 0;
 }
 
-:is(.mn-screen--host, .mn-screen--public) .mn-status .mn-auction-standing {
+:is(.mn-screen--host) .mn-status .mn-auction-standing {
   position: static;
   display: flex;
   flex-wrap: wrap;
@@ -135,35 +132,33 @@
   width: auto;
 }
 
-:is(.mn-screen--host, .mn-screen--public) .mn-auction-standing > span {
+:is(.mn-screen--host) .mn-auction-standing > span {
   display: inline;
 }
 
-:is(.mn-screen--host, .mn-screen--public)
-  .mn-auction-standing
-  > span:last-child {
+:is(.mn-screen--host) .mn-auction-standing > span:last-child {
   font-size: 16px;
 }
 
-:is(.mn-screen--host, .mn-screen--public) .decision-countdown {
+:is(.mn-screen--host) .decision-countdown {
   min-height: 44px;
   gap: 4px;
   padding: 3px 6px;
   font-size: 16px;
 }
 
-:is(.mn-screen--host, .mn-screen--public) .decision-countdown > strong {
+:is(.mn-screen--host) .decision-countdown > strong {
   font-size: 18px;
 }
 
-:is(.mn-screen--host, .mn-screen--public) .mn-toolbar-tools {
+:is(.mn-screen--host) .mn-toolbar-tools {
   flex: none;
   flex-wrap: nowrap;
   margin-left: auto;
   gap: 4px;
 }
 
-:is(.mn-screen--host, .mn-screen--public) .mn-stage-action {
+:is(.mn-screen--host) .mn-stage-action {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -174,18 +169,18 @@
   white-space: nowrap;
 }
 
-:is(.mn-screen--host, .mn-screen--public) .mn-stage-action > button {
+:is(.mn-screen--host) .mn-stage-action > button {
   min-height: 44px;
   padding: 4px 8px;
   margin: 0;
   font-size: 18px;
 }
 
-:is(.mn-screen--host, .mn-screen--public) .mn-stage-action:empty {
+:is(.mn-screen--host) .mn-stage-action:empty {
   display: none;
 }
 
-:is(.mn-screen--host, .mn-screen--public) .mn-layout {
+:is(.mn-screen--host) .mn-layout {
   grid-row: 2;
   display: grid;
   grid-template-columns: minmax(0, 1fr);
@@ -200,11 +195,11 @@
   align-items: stretch;
 }
 
-:is(.mn-screen--host, .mn-screen--public) .mn-layout :is(.mn-main, .mn-side) {
+:is(.mn-screen--host) .mn-layout :is(.mn-main, .mn-side) {
   display: contents;
 }
 
-:is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-market-panel {
+:is(.mn-screen--host) .mn-layout .mn-market-panel {
   grid-row: 1;
   grid-column: 1;
   min-width: 0;
@@ -212,10 +207,7 @@
   border-radius: 12px;
 }
 
-:is(.mn-screen--host, .mn-screen--public)
-  .mn-layout
-  :is(.mn-market-panel, .mn-players-panel)
-  > h2 {
+:is(.mn-screen--host) .mn-layout :is(.mn-market-panel, .mn-players-panel) > h2 {
   position: absolute;
   width: 1px;
   height: 1px;
@@ -226,14 +218,14 @@
   white-space: nowrap;
 }
 
-:is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-market {
+:is(.mn-screen--host) .mn-layout .mn-market {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   height: 100%;
   gap: 8px;
 }
 
-:is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-market-row {
+:is(.mn-screen--host) .mn-layout .mn-market-row {
   display: grid;
   grid-template-rows: 22px 18px;
   align-content: center;
@@ -243,11 +235,11 @@
   border-right: 1px solid #b4a07366;
 }
 
-:is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-market-row:last-child {
+:is(.mn-screen--host) .mn-layout .mn-market-row:last-child {
   border-right: 0;
 }
 
-:is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-market-title {
+:is(.mn-screen--host) .mn-layout .mn-market-title {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -256,37 +248,25 @@
   line-height: 1.2;
 }
 
-:is(.mn-screen--host, .mn-screen--public)
-  .mn-layout
-  .mn-market-title
-  .mn-cargo {
+:is(.mn-screen--host) .mn-layout .mn-market-title .mn-cargo {
   gap: 4px;
   white-space: nowrap;
 }
 
-:is(.mn-screen--host, .mn-screen--public)
-  .mn-layout
-  .mn-market-title
-  .mn-cargo::before {
+:is(.mn-screen--host) .mn-layout .mn-market-title .mn-cargo::before {
   content: none;
 }
 
-:is(.mn-screen--host, .mn-screen--public)
-  .mn-layout
-  .mn-market-title
-  .mn-cargo-art {
+:is(.mn-screen--host) .mn-layout .mn-market-title .mn-cargo-art {
   width: 22px;
   height: 22px;
 }
 
-:is(.mn-screen--host, .mn-screen--public)
-  .mn-layout
-  .mn-market-title
-  > span:last-child {
+:is(.mn-screen--host) .mn-layout .mn-market-title > span:last-child {
   white-space: nowrap;
 }
 
-:is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-market-track {
+:is(.mn-screen--host) .mn-layout .mn-market-track {
   display: grid;
   grid-template-columns: repeat(6, minmax(20px, 1fr));
   gap: 2px;
@@ -294,7 +274,7 @@
   line-height: 18px;
 }
 
-:is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-board-scroll {
+:is(.mn-screen--host) .mn-layout .mn-board-scroll {
   grid-column: 1;
   grid-row: 2;
   min-width: 0;
@@ -303,7 +283,7 @@
   overflow: visible;
 }
 
-:is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-harbor {
+:is(.mn-screen--host) .mn-layout .mn-harbor {
   display: grid;
   grid-template-columns: minmax(0, 1fr) clamp(280px, 25vw, 320px);
   grid-template-rows: minmax(0, 1fr);
@@ -319,12 +299,12 @@
   background-image: none;
 }
 
-:is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-harbor::before {
+:is(.mn-screen--host) .mn-layout .mn-harbor::before {
   background-image: var(--harbor-image);
   border-radius: inherit;
 }
 
-:is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-lanes {
+:is(.mn-screen--host) .mn-layout .mn-lanes {
   grid-area: lanes;
   display: grid;
   grid-template-columns: minmax(0, 1fr);
@@ -336,7 +316,7 @@
   gap: 4px;
 }
 
-:is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-lane {
+:is(.mn-screen--host) .mn-layout .mn-lane {
   display: grid;
   grid-template-columns: 140px minmax(0, 1fr) 226px;
   grid-template-areas: 'cargo track crew';
@@ -347,7 +327,7 @@
   gap: 4px;
 }
 
-:is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-lane-heading {
+:is(.mn-screen--host) .mn-layout .mn-lane-heading {
   grid-area: cargo;
   display: grid;
   grid-template-columns: minmax(0, 1fr) 44px;
@@ -360,10 +340,7 @@
   gap: 4px;
 }
 
-:is(.mn-screen--host, .mn-screen--public)
-  .mn-layout
-  .mn-lane-heading
-  > .mn-detail-button {
+:is(.mn-screen--host) .mn-layout .mn-lane-heading > .mn-detail-button {
   min-width: 0;
   min-height: 44px;
   width: 100%;
@@ -371,15 +348,12 @@
   gap: 4px;
 }
 
-:is(.mn-screen--host, .mn-screen--public)
-  .mn-layout
-  .mn-lane-heading
-  .mn-cargo-art {
+:is(.mn-screen--host) .mn-layout .mn-lane-heading .mn-cargo-art {
   width: 28px;
   height: 28px;
 }
 
-:is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-dice {
+:is(.mn-screen--host) .mn-layout .mn-dice {
   position: static;
   left: auto;
   top: auto;
@@ -387,7 +361,7 @@
   z-index: auto;
 }
 
-:is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-die {
+:is(.mn-screen--host) .mn-layout .mn-die {
   width: 44px;
   height: 44px;
   min-width: 44px;
@@ -395,7 +369,7 @@
   flex: 0 0 44px;
 }
 
-:is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-track {
+:is(.mn-screen--host) .mn-layout .mn-track {
   grid-area: track;
   --mn-vertical: 0;
   width: auto;
@@ -405,11 +379,11 @@
   background: none;
 }
 
-:is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-track::before {
+:is(.mn-screen--host) .mn-layout .mn-track::before {
   content: none;
 }
 
-:is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-track-cells {
+:is(.mn-screen--host) .mn-layout .mn-track-cells {
   display: grid;
   grid-template-columns: repeat(14, minmax(0, 1fr));
   grid-template-rows: none;
@@ -419,7 +393,7 @@
   transform: translateX(-3.5714286%);
 }
 
-:is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-track-cells span {
+:is(.mn-screen--host) .mn-layout .mn-track-cells span {
   position: static;
   left: auto;
   bottom: auto;
@@ -433,7 +407,7 @@
   line-height: 1.2;
 }
 
-:is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-boat {
+:is(.mn-screen--host) .mn-layout .mn-boat {
   width: 80px;
   height: 40px;
   left: var(--boat-position);
@@ -442,16 +416,16 @@
   transform: translate(-50%, 0);
 }
 
-:is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-lane-position {
+:is(.mn-screen--host) .mn-layout .mn-lane-position {
   /* The saved destination is displayed in the dedicated crew readout. */
   display: none;
 }
 
-:is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-lane-control {
+:is(.mn-screen--host) .mn-layout .mn-lane-control {
   grid-area: crew;
   min-width: 0;
 }
-:is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-crew {
+:is(.mn-screen--host) .mn-layout .mn-crew {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   grid-template-rows: auto 48px;
@@ -461,7 +435,7 @@
   gap: 2px 0;
   align-content: center;
 }
-:is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-lane-meta {
+:is(.mn-screen--host) .mn-layout .mn-lane-meta {
   display: flex;
   flex-wrap: nowrap;
   align-items: center;
@@ -469,7 +443,7 @@
   min-width: 0;
   gap: 2px 4px;
 }
-:is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-position-readout {
+:is(.mn-screen--host) .mn-layout .mn-position-readout {
   min-width: max-content;
   overflow: visible;
   font-size: 18px;
@@ -477,7 +451,7 @@
   line-height: 20px;
   white-space: normal;
 }
-:is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-payout-label {
+:is(.mn-screen--host) .mn-layout .mn-payout-label {
   flex: none;
   padding-left: 4px;
   border-left: 1px solid #b99b5f66;
@@ -486,7 +460,7 @@
   line-height: 20px;
   white-space: nowrap;
 }
-:is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-crew-slots {
+:is(.mn-screen--host) .mn-layout .mn-crew-slots {
   grid-column: 1/-1;
   grid-row: 2;
   display: grid;
@@ -494,13 +468,13 @@
   gap: 2px;
   min-width: 0;
 }
-:is(.mn-screen--host, .mn-screen--public)
+:is(.mn-screen--host)
   .mn-layout
   .mn-crew-slots:has(> :nth-child(3):last-child) {
   grid-template-columns: repeat(3, minmax(44px, 1fr));
 }
 
-:is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-shore {
+:is(.mn-screen--host) .mn-layout .mn-shore {
   grid-area: shore;
   display: grid;
   grid-template-columns: minmax(0, 1fr);
@@ -512,16 +486,11 @@
   gap: 3px;
 }
 
-:is(.mn-screen--host, .mn-screen--public)
-  .mn-layout
-  .mn-shore
-  :is(.mn-docks, .mn-specialists) {
+:is(.mn-screen--host) .mn-layout .mn-shore :is(.mn-docks, .mn-specialists) {
   display: contents;
 }
 
-:is(.mn-screen--host, .mn-screen--public)
-  .mn-layout
-  :is(.mn-dock-group, .mn-specialist-group) {
+:is(.mn-screen--host) .mn-layout :is(.mn-dock-group, .mn-specialist-group) {
   display: grid;
   grid-template-columns: 104px minmax(0, 1fr);
   grid-template-rows: 48px;
@@ -536,7 +505,7 @@
   gap: 4px;
 }
 
-:is(.mn-screen--host, .mn-screen--public)
+:is(.mn-screen--host)
   .mn-layout
   :is(.mn-dock-group, .mn-specialist-group)
   > .mn-detail-button {
@@ -554,7 +523,7 @@
   background: linear-gradient(135deg, #fff9e9, #dfc896);
 }
 
-:is(.mn-screen--host, .mn-screen--public)
+:is(.mn-screen--host)
   .mn-layout
   :is(.mn-dock-group, .mn-specialist-group)
   .mn-site-art {
@@ -563,9 +532,7 @@
   height: 32px;
 }
 
-:is(.mn-screen--host, .mn-screen--public)
-  .mn-layout
-  :is(.mn-dock-slots, .mn-specialist-slots) {
+:is(.mn-screen--host) .mn-layout :is(.mn-dock-slots, .mn-specialist-slots) {
   display: grid;
   grid-template-columns: repeat(3, minmax(44px, 1fr));
   grid-template-rows: minmax(44px, 1fr);
@@ -575,29 +542,23 @@
   gap: 4px;
 }
 
-:is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-specialist-slots {
+:is(.mn-screen--host) .mn-layout .mn-specialist-slots {
   grid-template-columns: repeat(2, minmax(44px, 1fr));
 }
 
-:is(.mn-screen--host, .mn-screen--public)
+:is(.mn-screen--host)
   .mn-layout
   .mn-specialist-group--insurance
   .mn-specialist-slots {
   grid-template-columns: minmax(44px, 1fr);
 }
 
-:is(.mn-screen--host, .mn-screen--public)
-  .mn-layout
-  :is(.mn-shore, .mn-crew-slots)
-  .mn-space-wrap {
+:is(.mn-screen--host) .mn-layout :is(.mn-shore, .mn-crew-slots) .mn-space-wrap {
   display: grid;
   min-width: 0;
 }
 
-:is(.mn-screen--host, .mn-screen--public)
-  .mn-layout
-  :is(.mn-shore, .mn-crew-slots)
-  .mn-space {
+:is(.mn-screen--host) .mn-layout :is(.mn-shore, .mn-crew-slots) .mn-space {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   grid-template-rows: 18px 26px;
@@ -612,11 +573,8 @@
   line-height: 18px;
 }
 
-:is(.mn-screen--host, .mn-screen--public)
-  .mn-layout
-  :is(.mn-shore, .mn-crew-slots)
-  .mn-space-name,
-:is(.mn-screen--host, .mn-screen--public)
+:is(.mn-screen--host) .mn-layout :is(.mn-shore, .mn-crew-slots) .mn-space-name,
+:is(.mn-screen--host)
   .mn-layout
   :is(.mn-shore, .mn-crew-slots)
   .mn-space-price {
@@ -625,7 +583,7 @@
   line-height: 18px;
 }
 
-:is(.mn-screen--host, .mn-screen--public)
+:is(.mn-screen--host)
   .mn-layout
   :is(.mn-shore, .mn-crew-slots)
   .mn-space-value {
@@ -638,10 +596,7 @@
   padding: 0;
 }
 
-:is(.mn-screen--host, .mn-screen--public)
-  .mn-layout
-  :is(.mn-shore, .mn-crew-slots)
-  .mn-worker {
+:is(.mn-screen--host) .mn-layout :is(.mn-shore, .mn-crew-slots) .mn-worker {
   flex: none;
   width: 20px;
   height: 20px;
@@ -650,7 +605,7 @@
   line-height: 20px;
 }
 
-:is(.mn-screen--host, .mn-screen--public)
+:is(.mn-screen--host)
   .mn-layout
   :is(.mn-shore, .mn-crew-slots)
   .mn-worker-head {
@@ -660,7 +615,7 @@
   left: 4px;
 }
 
-:is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-players-panel {
+:is(.mn-screen--host) .mn-layout .mn-players-panel {
   grid-column: 1;
   grid-row: 3;
   min-width: 0;
@@ -669,30 +624,28 @@
   border-radius: 12px;
 }
 
-:is(.mn-screen--host, .mn-screen--public)
-  .mn-layout
-  .mn-players-panel:has(> .mn-ledger-legend) {
+:is(.mn-screen--host) .mn-layout .mn-players-panel:has(> .mn-ledger-legend) {
   grid-template-rows: auto minmax(0, 1fr) auto;
 }
 
-:is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-players-panel {
+:is(.mn-screen--host) .mn-layout .mn-players-panel {
   background:
     repeating-linear-gradient(90deg, transparent 0 28px, #d9b77912 28px 29px),
     linear-gradient(145deg, #7a5631, #5c3d22);
   border-color: #4b341d;
 }
 
-:is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-players-panel > h2 {
+:is(.mn-screen--host) .mn-layout .mn-players-panel > h2 {
   color: #f8e8c6;
   text-shadow: 0 1px 0 #2f1f10;
 }
 
-:is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-ledger-legend {
+:is(.mn-screen--host) .mn-layout .mn-ledger-legend {
   border-top-color: #d5b06f66;
   color: #f7e6c6;
 }
 
-:is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-seat {
+:is(.mn-screen--host) .mn-layout .mn-seat {
   display: grid;
   grid-template-columns: 28px minmax(0, 1fr);
   grid-template-rows: minmax(36px, auto) auto auto;
@@ -705,7 +658,7 @@
   gap: 0 2px;
 }
 
-:is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-seat-portrait {
+:is(.mn-screen--host) .mn-layout .mn-seat-portrait {
   grid-column: 1;
   grid-row: 1;
   align-self: center;
@@ -713,16 +666,16 @@
   height: 28px;
 }
 
-:is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-seat img {
+:is(.mn-screen--host) .mn-layout .mn-seat img {
   width: 28px;
   height: 28px;
 }
 
-:is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-seat-body {
+:is(.mn-screen--host) .mn-layout .mn-seat-body {
   display: contents;
 }
 
-:is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-seat-identity {
+:is(.mn-screen--host) .mn-layout .mn-seat-identity {
   grid-column: 2;
   grid-row: 1;
   display: flex;
@@ -736,7 +689,7 @@
   line-height: 18px;
 }
 
-:is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-seat-number {
+:is(.mn-screen--host) .mn-layout .mn-seat-number {
   position: static;
   flex: 0 0 16px;
   width: 16px;
@@ -746,9 +699,7 @@
   line-height: 18px;
 }
 
-:is(.mn-screen--host, .mn-screen--public)
-  .mn-layout
-  :is(.mn-seat-role, .mn-seat-active) {
+:is(.mn-screen--host) .mn-layout :is(.mn-seat-role, .mn-seat-active) {
   display: inline-block;
   margin: 0;
   padding: 0 2px;
@@ -757,7 +708,7 @@
   white-space: nowrap;
 }
 
-:is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-seat-assets {
+:is(.mn-screen--host) .mn-layout .mn-seat-assets {
   grid-column: 1 / -1;
   grid-row: 2;
   display: flex;
@@ -770,11 +721,11 @@
   line-height: 18px;
 }
 
-:is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-seat-assets > span {
+:is(.mn-screen--host) .mn-layout .mn-seat-assets > span {
   white-space: nowrap;
 }
 
-:is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-seat-result {
+:is(.mn-screen--host) .mn-layout .mn-seat-result {
   grid-column: 1 / -1;
   grid-row: 3;
   display: flex;
@@ -787,17 +738,17 @@
   line-height: 20px;
 }
 
-:is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-seat-result strong {
+:is(.mn-screen--host) .mn-layout .mn-seat-result strong {
   font-size: 18px;
 }
 
-:is(.mn-screen--host, .mn-screen--public) > .mn-empty {
+:is(.mn-screen--host) > .mn-empty {
   grid-row: 2;
   align-self: center;
   padding: 24px;
 }
 
-:is(.mn-screen--host, .mn-screen--public) .mn-screen-feedback {
+:is(.mn-screen--host) .mn-screen-feedback {
   position: fixed;
   inset-inline: 8px;
   top: 58px;
@@ -807,9 +758,7 @@
   pointer-events: none;
 }
 
-:is(.mn-screen--host, .mn-screen--public)
-  .mn-screen-feedback
-  :is(.mn-notice, .session-feedback) {
+:is(.mn-screen--host) .mn-screen-feedback :is(.mn-notice, .session-feedback) {
   margin: 0;
   min-height: 44px;
   padding: 6px 8px;
@@ -821,137 +770,128 @@
 }
 
 @media (max-width: 1100px) {
-  :is(.mn-screen--host, .mn-screen--public) .mn-brand strong {
+  :is(.mn-screen--host) .mn-brand strong {
     font-size: 20px;
     letter-spacing: 0.04em;
   }
-  :is(.mn-screen--host, .mn-screen--public) .mn-toolbar {
+  :is(.mn-screen--host) .mn-toolbar {
     gap: 4px;
   }
-  :is(.mn-screen--host, .mn-screen--public) .mn-toolbar-tools {
+  :is(.mn-screen--host) .mn-toolbar-tools {
     gap: 3px;
   }
-  :is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-harbor {
+  :is(.mn-screen--host) .mn-layout .mn-harbor {
     gap: 4px;
   }
-  :is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-lane {
+  :is(.mn-screen--host) .mn-layout .mn-lane {
     grid-template-columns: 136px minmax(0, 1fr) 226px;
     padding: 2px;
     gap: 2px;
   }
-  :is(.mn-screen--host, .mn-screen--public)
-    .mn-layout
-    .mn-lane-heading
-    .mn-cargo-art {
+  :is(.mn-screen--host) .mn-layout .mn-lane-heading .mn-cargo-art {
     width: 24px;
     height: 24px;
   }
-  :is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-track {
+  :is(.mn-screen--host) .mn-layout .mn-track {
     height: 44px;
     margin-inline: 32px;
   }
-  :is(.mn-screen--host, .mn-screen--public)
+  :is(.mn-screen--host)
     .mn-layout
     .mn-track-cells
     span:not(:first-child):not(:last-child):not(.mn-cell-current) {
     color: transparent;
     text-shadow: none;
   }
-  :is(.mn-screen--host, .mn-screen--public)
-    .mn-layout
-    .mn-track-cells
-    .mn-cell-current {
+  :is(.mn-screen--host) .mn-layout .mn-track-cells .mn-cell-current {
     color: #fff;
     visibility: visible;
     font-weight: 700;
   }
-  :is(.mn-screen--host, .mn-screen--public)
+  :is(.mn-screen--host)
     .mn-layout
     .mn-track-cells:has(> :nth-child(2).mn-cell-current)
     > :first-child,
-  :is(.mn-screen--host, .mn-screen--public)
+  :is(.mn-screen--host)
     .mn-layout
     .mn-track-cells:has(> :nth-child(13).mn-cell-current)
     > :last-child {
     color: transparent;
     text-shadow: none;
   }
-  :is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-boat {
+  :is(.mn-screen--host) .mn-layout .mn-boat {
     width: 64px;
     height: 36px;
     bottom: 12px;
   }
-  :is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-market {
+  :is(.mn-screen--host) .mn-layout .mn-market {
     gap: 4px;
   }
-  :is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-market-row {
+  :is(.mn-screen--host) .mn-layout .mn-market-row {
     padding-inline: 2px;
   }
 }
 @media (min-width: 1101px) {
-  :is(.mn-screen--host, .mn-screen--public) .mn-layout {
+  :is(.mn-screen--host) .mn-layout {
     grid-template-rows: 48px minmax(264px, 1fr) auto;
   }
-  :is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-lanes {
+  :is(.mn-screen--host) .mn-layout .mn-lanes {
     grid-template-rows: repeat(3, minmax(0, 1fr));
     height: 100%;
     align-self: stretch;
   }
-  :is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-players-panel {
+  :is(.mn-screen--host) .mn-layout .mn-players-panel {
     min-height: 64px;
   }
-  :is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-seat {
+  :is(.mn-screen--host) .mn-layout .mn-seat {
     grid-template-rows: minmax(28px, auto) auto auto;
     padding: 4px;
   }
-  :is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-seat-identity {
+  :is(.mn-screen--host) .mn-layout .mn-seat-identity {
     min-height: 28px;
   }
 }
 @media (min-width: 1400px) and (min-height: 800px) {
-  :is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-lane {
+  :is(.mn-screen--host) .mn-layout .mn-lane {
     grid-template-columns: 192px minmax(0, 1fr);
     grid-template-rows: minmax(100px, 180px) 70px;
     grid-template-areas: 'cargo track' 'cargo crew';
     align-content: center;
     row-gap: 6px;
   }
-  :is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-lane-heading {
+  :is(.mn-screen--host) .mn-layout .mn-lane-heading {
     grid-template-columns: minmax(0, 1fr) 64px;
   }
-  :is(.mn-screen--host, .mn-screen--public)
-    .mn-layout
-    .mn-lane-heading
-    .mn-cargo-art {
+  :is(.mn-screen--host) .mn-layout .mn-lane-heading .mn-cargo-art {
     width: 48px;
     height: 48px;
   }
-  :is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-die {
+  :is(.mn-screen--host) .mn-layout .mn-die {
     width: 64px;
     height: 64px;
     min-width: 64px;
     flex-basis: 64px;
   }
-  :is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-track {
+  :is(.mn-screen--host) .mn-layout .mn-track {
     height: 152px;
     margin-inline: 160px;
   }
-  :is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-boat {
+  :is(.mn-screen--host) .mn-layout .mn-boat {
     width: clamp(280px, 16vw, 320px);
     height: 96px;
     bottom: 22px;
   }
-  :is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-lane-control {
+  :is(.mn-screen--host) .mn-layout .mn-lane-control {
     display: grid;
     justify-items: center;
     padding-inline: 40px;
   }
-  :is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-crew {
+  :is(.mn-screen--host) .mn-layout .mn-crew {
     width: 100%;
     max-width: 600px;
   }
 }
-:is(.mn-screen--host, .mn-screen--public)
+:is(.mn-screen--host)
   .mn-layout
   :is(.mn-dock-group, .mn-specialist-group)
   > .mn-detail-button
@@ -959,23 +899,19 @@
   font-size: 20px;
   font-weight: 700;
 }
-:is(.mn-screen--host, .mn-screen--public)
-  .mn-layout
-  .mn-lane-heading
-  > .mn-detail-button
-  > strong {
+:is(.mn-screen--host) .mn-layout .mn-lane-heading > .mn-detail-button > strong {
   white-space: nowrap;
 }
 
 /* 2026-10-17 physical-board composition: sea and shore on the left, ledger rail on the right. */
-:is(.mn-screen--host, .mn-screen--public) .mn-layout {
+:is(.mn-screen--host) .mn-layout {
   grid-template-columns: minmax(0, 1fr) clamp(280px, 21vw, 620px);
   grid-template-rows: minmax(0, 1fr);
   gap: 6px;
   align-items: stretch;
 }
 
-:is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-main {
+:is(.mn-screen--host) .mn-layout .mn-main {
   display: block;
   grid-column: 1;
   grid-row: 1;
@@ -983,12 +919,12 @@
   min-height: 0;
 }
 
-:is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-board-scroll {
+:is(.mn-screen--host) .mn-layout .mn-board-scroll {
   height: 100%;
   min-height: 0;
 }
 
-:is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-side {
+:is(.mn-screen--host) .mn-layout .mn-side {
   display: grid;
   grid-column: 2;
   grid-row: 1;
@@ -1005,8 +941,8 @@
     0 4px 12px #37241133;
 }
 
-:is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-market-panel,
-:is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-players-panel {
+:is(.mn-screen--host) .mn-layout .mn-market-panel,
+:is(.mn-screen--host) .mn-layout .mn-players-panel {
   grid-column: auto;
   grid-row: auto;
   min-width: 0;
@@ -1020,16 +956,13 @@
     0 1px 3px #3e2b1722;
 }
 
-:is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-players-panel {
+:is(.mn-screen--host) .mn-layout .mn-players-panel {
   display: grid;
   grid-template-rows: auto minmax(0, 1fr);
   overflow: hidden;
 }
 
-:is(.mn-screen--host, .mn-screen--public)
-  .mn-layout
-  :is(.mn-market-panel, .mn-players-panel)
-  > h2 {
+:is(.mn-screen--host) .mn-layout :is(.mn-market-panel, .mn-players-panel) > h2 {
   position: static;
   width: auto;
   height: auto;
@@ -1045,14 +978,14 @@
   white-space: nowrap;
 }
 
-:is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-market {
+:is(.mn-screen--host) .mn-layout .mn-market {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   height: auto;
   gap: 1px;
 }
 
-:is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-market-row {
+:is(.mn-screen--host) .mn-layout .mn-market-row {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   grid-template-rows:
@@ -1066,40 +999,31 @@
   border-bottom: 1px dotted #b39a6a;
 }
 
-:is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-market-row:last-child {
+:is(.mn-screen--host) .mn-layout .mn-market-row:last-child {
   border-bottom: 0;
 }
 
-:is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-market-title {
+:is(.mn-screen--host) .mn-layout .mn-market-title {
   min-width: 0;
   gap: 4px;
   font-size: clamp(16px, 0.92vw, 22px);
   line-height: 1.2;
 }
 
-:is(.mn-screen--host, .mn-screen--public)
-  .mn-layout
-  .mn-market-title
-  .mn-cargo {
+:is(.mn-screen--host) .mn-layout .mn-market-title .mn-cargo {
   gap: 4px;
 }
 
-:is(.mn-screen--host, .mn-screen--public)
-  .mn-layout
-  .mn-market-title
-  .mn-cargo-art {
+:is(.mn-screen--host) .mn-layout .mn-market-title .mn-cargo-art {
   width: clamp(20px, 1.25vw, 30px);
   height: clamp(20px, 1.25vw, 30px);
 }
 
-:is(.mn-screen--host, .mn-screen--public)
-  .mn-layout
-  .mn-market-title
-  > span:last-child {
+:is(.mn-screen--host) .mn-layout .mn-market-title > span:last-child {
   font-size: clamp(16px, 0.9vw, 20px);
 }
 
-:is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-market-track {
+:is(.mn-screen--host) .mn-layout .mn-market-track {
   display: grid;
   grid-template-columns: repeat(6, minmax(18px, 1fr));
   gap: 1px;
@@ -1108,12 +1032,12 @@
   line-height: clamp(18px, 1.55dvh, 30px);
 }
 
-:is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-market-track span {
+:is(.mn-screen--host) .mn-layout .mn-market-track span {
   min-width: 0;
   padding: 0 1px;
 }
 
-:is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-seats {
+:is(.mn-screen--host) .mn-layout .mn-seats {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   grid-auto-rows: minmax(84px, max-content);
@@ -1123,7 +1047,7 @@
   gap: 2px;
 }
 
-:is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-ledger-legend {
+:is(.mn-screen--host) .mn-layout .mn-ledger-legend {
   display: flex;
   flex-wrap: wrap;
   gap: 2px 8px;
@@ -1135,7 +1059,7 @@
   line-height: 20px;
 }
 
-:is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-ledger-legend-seat {
+:is(.mn-screen--host) .mn-layout .mn-ledger-legend-seat {
   display: inline-flex;
   align-items: center;
   min-width: 0;
@@ -1143,10 +1067,7 @@
   white-space: nowrap;
 }
 
-:is(.mn-screen--host, .mn-screen--public)
-  .mn-layout
-  .mn-ledger-legend-seat
-  > i {
+:is(.mn-screen--host) .mn-layout .mn-ledger-legend-seat > i {
   display: inline-grid;
   place-items: center;
   width: 18px;
@@ -1159,7 +1080,7 @@
   line-height: 1;
 }
 
-:is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-seat {
+:is(.mn-screen--host) .mn-layout .mn-seat {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr);
   grid-template-rows: auto auto auto;
@@ -1178,7 +1099,7 @@
     linear-gradient(100deg, #fffdf5, #f1e5ca);
 }
 
-:is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-seat::after {
+:is(.mn-screen--host) .mn-layout .mn-seat::after {
   content: attr(data-mn-seat-number);
   position: absolute;
   right: 7px;
@@ -1191,17 +1112,17 @@
     serif;
   pointer-events: none;
 }
-:is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-seat > * {
+:is(.mn-screen--host) .mn-layout .mn-seat > * {
   position: relative;
   z-index: 1;
 }
 
-:is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-seat--current {
+:is(.mn-screen--host) .mn-layout .mn-seat--current {
   border-color: #2c7c6d;
   background: linear-gradient(100deg, #f4f9e8, #deebd1);
 }
 
-:is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-seat-portrait {
+:is(.mn-screen--host) .mn-layout .mn-seat-portrait {
   grid-column: 1;
   grid-row: 1 / span 3;
   align-self: center;
@@ -1209,16 +1130,16 @@
   height: clamp(28px, 2.2vw, 52px);
 }
 
-:is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-seat img {
+:is(.mn-screen--host) .mn-layout .mn-seat img {
   width: 100%;
   height: 100%;
 }
 
-:is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-seat-body {
+:is(.mn-screen--host) .mn-layout .mn-seat-body {
   display: contents;
 }
 
-:is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-seat-identity {
+:is(.mn-screen--host) .mn-layout .mn-seat-identity {
   grid-column: 2;
   grid-row: 1;
   display: flex;
@@ -1232,7 +1153,7 @@
   line-height: 1.2;
 }
 
-:is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-seat-number {
+:is(.mn-screen--host) .mn-layout .mn-seat-number {
   width: clamp(18px, 1.1vw, 24px);
   height: clamp(18px, 1.1vw, 24px);
   flex-basis: clamp(18px, 1.1vw, 24px);
@@ -1240,15 +1161,13 @@
   line-height: 1;
 }
 
-:is(.mn-screen--host, .mn-screen--public)
-  .mn-layout
-  :is(.mn-seat-role, .mn-seat-active) {
+:is(.mn-screen--host) .mn-layout :is(.mn-seat-role, .mn-seat-active) {
   padding: 0 3px;
   font-size: 16px;
   line-height: 18px;
 }
 
-:is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-seat-assets {
+:is(.mn-screen--host) .mn-layout .mn-seat-assets {
   grid-column: 1 / -1;
   grid-row: 2;
   display: grid;
@@ -1262,7 +1181,7 @@
   line-height: 1.2;
 }
 
-:is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-seat-assets > span {
+:is(.mn-screen--host) .mn-layout .mn-seat-assets > span {
   display: grid;
   grid-template-rows: 16px 20px;
   place-items: center;
@@ -1278,25 +1197,17 @@
   line-height: 1;
 }
 
-:is(.mn-screen--host, .mn-screen--public)
-  .mn-layout
-  .mn-seat-assets
-  > span
-  > span {
+:is(.mn-screen--host) .mn-layout .mn-seat-assets > span > span {
   font-size: 16px;
   line-height: 16px;
 }
 
-:is(.mn-screen--host, .mn-screen--public)
-  .mn-layout
-  .mn-seat-assets
-  > span
-  > strong {
+:is(.mn-screen--host) .mn-layout .mn-seat-assets > span > strong {
   font-size: 18px;
   line-height: 20px;
 }
 
-:is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-seat-result {
+:is(.mn-screen--host) .mn-layout .mn-seat-result {
   grid-column: 1 / -1;
   grid-row: 3;
   align-self: end;
@@ -1305,18 +1216,18 @@
   line-height: 1.15;
 }
 
-:is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-seat-result strong {
+:is(.mn-screen--host) .mn-layout .mn-seat-result strong {
   font-size: inherit;
 }
 
-:is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-harbor {
+:is(.mn-screen--host) .mn-layout .mn-harbor {
   grid-template-columns: minmax(0, 1fr) clamp(220px, 18vw, 400px);
   grid-template-rows: minmax(0, 1fr);
   height: 100%;
   min-height: 0;
 }
 
-:is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-lanes {
+:is(.mn-screen--host) .mn-layout .mn-lanes {
   grid-template-columns: minmax(0, 1fr);
   grid-template-rows: repeat(3, minmax(0, 1fr));
   align-self: stretch;
@@ -1325,7 +1236,7 @@
   gap: 4px;
 }
 
-:is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-lane {
+:is(.mn-screen--host) .mn-layout .mn-lane {
   grid-template-columns:
     clamp(120px, 10vw, 220px) minmax(0, 1fr)
     clamp(190px, 13vw, 300px);
@@ -1336,92 +1247,87 @@
   padding: 3px 4px;
 }
 
-:is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-track {
+:is(.mn-screen--host) .mn-layout .mn-track {
   width: auto;
   height: clamp(52px, 10dvh, 156px);
   margin-inline: clamp(24px, 4vw, 80px);
 }
 
-:is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-boat {
+:is(.mn-screen--host) .mn-layout .mn-boat {
   width: clamp(84px, 9vw, 220px);
   height: clamp(36px, 3.7vw, 88px);
   bottom: clamp(8px, 1.2dvh, 22px);
 }
 
-:is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-crew {
+:is(.mn-screen--host) .mn-layout .mn-crew {
   grid-template-rows: 20px minmax(44px, 1fr);
 }
 
-:is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-shore {
+:is(.mn-screen--host) .mn-layout .mn-shore {
   grid-template-rows: repeat(5, clamp(44px, 6dvh, 88px));
   gap: 3px;
 }
 
-:is(.mn-screen--host, .mn-screen--public)
-  .mn-layout
-  :is(.mn-dock-group, .mn-specialist-group) {
+:is(.mn-screen--host) .mn-layout :is(.mn-dock-group, .mn-specialist-group) {
   grid-template-columns: clamp(86px, 6.8vw, 150px) minmax(0, 1fr);
   grid-template-rows: minmax(44px, 1fr);
 }
 
-:is(.mn-screen--host, .mn-screen--public)
+:is(.mn-screen--host)
   .mn-layout
   :is(.mn-dock-slots, .mn-specialist-slots)
   .mn-space,
-:is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-crew-slots .mn-space {
+:is(.mn-screen--host) .mn-layout .mn-crew-slots .mn-space {
   height: 100%;
   min-height: 44px;
 }
 
 @media (max-width: 1100px) {
-  :is(.mn-screen--host, .mn-screen--public) .mn-layout {
+  :is(.mn-screen--host) .mn-layout {
     grid-template-columns: minmax(0, 1fr) clamp(240px, 26vw, 288px);
     gap: 4px;
   }
 
-  :is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-side {
+  :is(.mn-screen--host) .mn-layout .mn-side {
     padding: 3px;
     gap: 3px;
   }
 
-  :is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-market-panel,
-  :is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-players-panel {
+  :is(.mn-screen--host) .mn-layout .mn-market-panel,
+  :is(.mn-screen--host) .mn-layout .mn-players-panel {
     padding-inline: 4px;
   }
 
-  :is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-harbor {
+  :is(.mn-screen--host) .mn-layout .mn-harbor {
     grid-template-columns: minmax(0, 1fr) clamp(205px, 27vw, 240px);
     gap: 4px;
   }
 
-  :is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-lane {
+  :is(.mn-screen--host) .mn-layout .mn-lane {
     grid-template-columns:
       clamp(96px, 12vw, 120px) minmax(0, 1fr)
       clamp(145px, 19vw, 180px);
     gap: 2px;
   }
 
-  :is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-track {
+  :is(.mn-screen--host) .mn-layout .mn-track {
     margin-inline: clamp(16px, 2.5vw, 28px);
   }
 
-  :is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-market-title {
+  :is(.mn-screen--host) .mn-layout .mn-market-title {
     gap: 2px;
   }
 
-  :is(.mn-screen--host, .mn-screen--public)
-    .mn-layout
-    .mn-market-title
-    .mn-cargo-art {
+  :is(.mn-screen--host) .mn-layout .mn-market-title .mn-cargo-art {
     width: 20px;
     height: 20px;
   }
 
-  :is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-market-track {
+  :is(.mn-screen--host) .mn-layout .mn-market-track {
     grid-template-columns: repeat(6, minmax(16px, 1fr));
   }
 
-  :is(.mn-screen--host, .mn-screen--public)
+  :is(.mn-screen--host)
     .mn-layout
     :is(.mn-dock-group, .mn-specialist-group)
     > .mn-detail-button {
@@ -1430,7 +1336,7 @@
     font-size: 18px;
   }
 
-  :is(.mn-screen--host, .mn-screen--public)
+  :is(.mn-screen--host)
     .mn-layout
     :is(.mn-dock-group, .mn-specialist-group)
     .mn-site-art {
@@ -1440,26 +1346,23 @@
 }
 
 @media (max-height: 800px) {
-  :is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-market-row {
+  :is(.mn-screen--host) .mn-layout .mn-market-row {
     grid-template-rows: 16px 16px;
     padding: 1px 3px;
   }
 
-  :is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-market-title,
-  :is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-market-track {
+  :is(.mn-screen--host) .mn-layout .mn-market-title,
+  :is(.mn-screen--host) .mn-layout .mn-market-track {
     font-size: 16px;
     line-height: 16px;
   }
 
-  :is(.mn-screen--host, .mn-screen--public)
-    .mn-layout
-    .mn-market-title
-    .mn-cargo-art {
+  :is(.mn-screen--host) .mn-layout .mn-market-title .mn-cargo-art {
     width: 20px;
     height: 20px;
   }
 
-  :is(.mn-screen--host, .mn-screen--public)
+  :is(.mn-screen--host)
     .mn-layout
     :is(.mn-market-panel, .mn-players-panel)
     > h2 {
@@ -1469,43 +1372,43 @@
     padding-bottom: 1px;
   }
 
-  :is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-seat {
+  :is(.mn-screen--host) .mn-layout .mn-seat {
     padding: 2px 4px;
     gap: 1px 4px;
   }
 
-  :is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-seat-identity {
+  :is(.mn-screen--host) .mn-layout .mn-seat-identity {
     font-size: 16px;
     line-height: 18px;
   }
 
-  :is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-seat-assets > span {
+  :is(.mn-screen--host) .mn-layout .mn-seat-assets > span {
     grid-template-rows: 16px 18px;
     min-height: 36px;
   }
 
-  :is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-seat-result {
+  :is(.mn-screen--host) .mn-layout .mn-seat-result {
     font-size: 18px;
     line-height: 18px;
   }
 }
 
 @media (max-height: 620px) {
-  :is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-market-panel,
-  :is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-players-panel {
+  :is(.mn-screen--host) .mn-layout .mn-market-panel,
+  :is(.mn-screen--host) .mn-layout .mn-players-panel {
     padding: 1px 4px 2px;
   }
 
-  :is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-market-row {
+  :is(.mn-screen--host) .mn-layout .mn-market-row {
     grid-template-rows: 16px 16px;
     padding: 0 3px;
   }
 
-  :is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-market-track {
+  :is(.mn-screen--host) .mn-layout .mn-market-track {
     line-height: 16px;
   }
 
-  :is(.mn-screen--host, .mn-screen--public)
+  :is(.mn-screen--host)
     .mn-layout
     :is(.mn-market-panel, .mn-players-panel)
     > h2 {
@@ -1515,39 +1418,39 @@
     padding-bottom: 1px;
   }
 
-  :is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-seats {
+  :is(.mn-screen--host) .mn-layout .mn-seats {
     grid-template-columns: repeat(2, minmax(0, 1fr));
     grid-auto-rows: minmax(0, 1fr);
     gap: 1px;
   }
 
-  :is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-seat {
+  :is(.mn-screen--host) .mn-layout .mn-seat {
     padding: 1px 3px;
     gap: 0 3px;
   }
 
-  :is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-seat::after {
+  :is(.mn-screen--host) .mn-layout .mn-seat::after {
     display: none;
   }
 
-  :is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-seat-portrait {
+  :is(.mn-screen--host) .mn-layout .mn-seat-portrait {
     width: 24px;
     height: 24px;
   }
 
-  :is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-seat-identity {
+  :is(.mn-screen--host) .mn-layout .mn-seat-identity {
     font-size: 16px;
     line-height: 16px;
   }
 
-  :is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-seat-assets {
+  :is(.mn-screen--host) .mn-layout .mn-seat-assets {
     grid-template-columns: minmax(0, 1fr);
     gap: 0;
     font-size: 16px;
     line-height: 16px;
   }
 
-  :is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-seat-assets > span {
+  :is(.mn-screen--host) .mn-layout .mn-seat-assets > span {
     display: flex;
     align-items: baseline;
     justify-content: space-between;
@@ -1558,55 +1461,47 @@
     background: transparent;
   }
 
-  :is(.mn-screen--host, .mn-screen--public)
-    .mn-layout
-    .mn-seat-assets
-    > span
-    > span,
-  :is(.mn-screen--host, .mn-screen--public)
-    .mn-layout
-    .mn-seat-assets
-    > span
-    > strong {
+  :is(.mn-screen--host) .mn-layout .mn-seat-assets > span > span,
+  :is(.mn-screen--host) .mn-layout .mn-seat-assets > span > strong {
     font-size: 16px;
     line-height: 16px;
   }
 
-  :is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-seat-result {
+  :is(.mn-screen--host) .mn-layout .mn-seat-result {
     font-size: 16px;
     line-height: 16px;
   }
 }
 
 @media (min-height: 900px) {
-  :is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-seat {
+  :is(.mn-screen--host) .mn-layout .mn-seat {
     grid-template-rows: auto minmax(0, 1fr) auto;
     align-content: stretch;
   }
 
-  :is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-seat-assets {
+  :is(.mn-screen--host) .mn-layout .mn-seat-assets {
     align-self: center;
   }
 
-  :is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-seat-result {
+  :is(.mn-screen--host) .mn-layout .mn-seat-result {
     align-self: end;
   }
 }
 
 /* The merchant rail is a wooden ledger tray; paper cards sit on it instead of filling it. */
-:is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-players-panel {
+:is(.mn-screen--host) .mn-layout .mn-players-panel {
   background:
     repeating-linear-gradient(90deg, transparent 0 28px, #d9b77912 28px 29px),
     linear-gradient(145deg, #7a5631, #5c3d22);
   border-color: #4b341d;
 }
 
-:is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-players-panel > h2 {
+:is(.mn-screen--host) .mn-layout .mn-players-panel > h2 {
   color: #f8e8c6;
   text-shadow: 0 1px 0 #2f1f10;
 }
 
-:is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-ledger-legend {
+:is(.mn-screen--host) .mn-layout .mn-ledger-legend {
   border-top-color: #d5b06f66;
   color: #f7e6c6;
 }

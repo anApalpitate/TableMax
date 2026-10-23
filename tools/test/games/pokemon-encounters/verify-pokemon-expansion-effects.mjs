@@ -438,7 +438,7 @@ try {
       'snow',
       'trick-room',
     ]) {
-      for (const role of ['host', 'public', 'player']) {
+      for (const role of ['host', 'player']) {
         await page.setViewportSize(
           role === 'player'
             ? { width: 390, height: 844 }
@@ -714,7 +714,7 @@ try {
       'Every ordinary theme needs its own visible geometry',
     );
     await page.evaluate(() =>
-      window.expansionShow({ creature: 'charizard', role: 'public' }),
+      window.expansionShow({ creature: 'charizard', role: 'host' }),
     );
     assert.equal(await page.locator('.ex-private-peek').count(), 0);
     await page.evaluate(() =>
@@ -746,7 +746,7 @@ try {
     assert.equal(await page.locator('.anime-entrance').isVisible(), false);
     assert.equal(await page.locator('.ex-static-hero').isVisible(), true);
     report.cancellation.push(
-      'public private-peek isolation',
+      'management public-projection private-peek isolation',
       'pause',
       'disconnect',
       'restored branch without new saved events',
@@ -805,10 +805,10 @@ try {
     });
     for (const [role, width, height, scale] of [
       ['host', 1280, 720, 1],
-      ['public', 1920, 1080, 1],
+      ['host', 1920, 1080, 1],
       ['host', 3840, 2160, 1],
       ['host', 1024, 576, 1.25],
-      ['public', 854, 480, 1.5],
+      ['host', 854, 480, 1.5],
       ['player', 320, 568, 1],
       ['player', 360, 640, 1],
       ['player', 390, 844, 1],

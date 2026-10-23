@@ -616,56 +616,6 @@ main:has(> .notice) .columns {
   height: calc(100svh - 172px);
   min-height: 500px;
 }
-.public .columns {
-  grid-template-columns: minmax(0, 2.8fr) minmax(300px, 1fr);
-}
-.public .lobby-stage {
-  padding: 40px;
-}
-.public .game-heading > img {
-  width: 144px;
-  height: 144px;
-}
-.public .game-heading h1 {
-  font-size: 48px;
-}
-.public .seat-list {
-  gap: 24px;
-}
-.public .avatar-disc {
-  width: 180px;
-  max-width: 100%;
-  height: 180px;
-}
-.public .seat-tile {
-  padding: 24px 12px;
-}
-.public .seat-tile strong {
-  font-size: 28px;
-}
-.public .seat-tile small,
-.public .seat-status {
-  font-size: 18px;
-}
-.public .qr-placeholder {
-  width: 240px;
-  min-height: 240px;
-  margin: 24px auto;
-}
-.public .qr-placeholder > .icon {
-  width: 88px;
-  height: 88px;
-}
-.public .join-panel {
-  justify-content: center;
-}
-.public .join-panel h2 {
-  font-size: 30px;
-}
-.public .join-status,
-.public .address {
-  font-size: 16px;
-}
 .personal-seat {
   display: flex;
   align-items: center;
@@ -943,15 +893,6 @@ legend {
     width: 88px;
     height: 88px;
   }
-  .public .game-heading h1 {
-    font-size: 32px;
-  }
-  .public .lobby-stage {
-    padding: 24px;
-  }
-  .public .avatar-disc {
-    height: 120px;
-  }
 }
 @media (max-width: 700px) {
   .prototype {
@@ -1010,7 +951,6 @@ legend {
       max(16px, env(safe-area-inset-left));
   }
   .columns,
-  .public .columns,
   main:has(> .notice) .columns {
     grid-template-columns: minmax(0, 1fr);
     height: auto;
@@ -1042,8 +982,7 @@ legend {
   .sheet-decoration {
     display: none;
   }
-  .lobby-stage,
-  .public .lobby-stage {
+  .lobby-stage {
     padding: 16px;
   }
   .game-heading,
@@ -1052,14 +991,12 @@ legend {
     margin-bottom: 20px;
   }
   .game-heading > img,
-  .player .game-heading > img,
-  .public .game-heading > img {
+  .player .game-heading > img {
     width: 76px;
     height: 76px;
   }
   .game-heading h1,
-  .player .game-heading h1,
-  .public .game-heading h1 {
+  .player .game-heading h1 {
     font-size: 24px;
   }
   .game-heading .eyebrow {
@@ -1079,23 +1016,16 @@ legend {
     gap: 8px;
     grid-template-columns: repeat(auto-fit, minmax(88px, 1fr));
   }
-  .seat-tile,
-  .public .seat-tile {
+  .seat-tile {
     padding: 12px 6px;
     border-radius: 18px;
   }
-  .avatar-disc,
-  .public .avatar-disc {
+  .avatar-disc {
     height: 86px;
     width: 86px;
   }
-  .seat-tile strong,
-  .public .seat-tile strong {
+  .seat-tile strong {
     font-size: 16px;
-  }
-  .public .seat-tile small,
-  .public .seat-status {
-    font-size: 12px;
   }
   .table-decor {
     gap: 12px;
@@ -1105,18 +1035,6 @@ legend {
   .table-decor img {
     width: 72px;
     height: 72px;
-  }
-  .public .qr-placeholder {
-    width: 160px;
-    min-height: 160px;
-    margin: 0 auto;
-  }
-  .public .join-panel h2 {
-    font-size: 23px;
-  }
-  .public .join-status,
-  .public .address {
-    font-size: 12px;
   }
   .personal-seat {
     gap: 12px;
@@ -1252,19 +1170,9 @@ legend {
 .control-sheet {
   background: var(--paper);
 }
-.public .session-layout {
-  height: calc(100svh - 240px);
-}
-.public main:has(> .notice) .session-layout {
-  height: calc(100svh - 292px);
-}
 @media (max-width: 700px) {
   .review-drawer > summary {
     width: 44px;
-  }
-  .public .session-layout,
-  .public main:has(> .notice) .session-layout {
-    height: auto;
   }
 }
 .bot-lobby-actions {

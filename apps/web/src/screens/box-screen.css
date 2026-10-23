@@ -77,8 +77,7 @@
   font-size: 15px;
   padding: 8px 12px;
 }
-.box-screen .grid,
-.box-screen.public .grid {
+.box-screen .grid {
   grid-template-columns: minmax(0, 1fr) 286px;
   align-items: start;
   gap: 20px;
@@ -340,21 +339,6 @@
 .box-screen.player .grid {
   grid-template-columns: 1fr;
 }
-@media (min-width: 1500px) {
-  .box-screen.public .hero h1 {
-    font-size: 34px;
-  }
-  .box-screen.public .grid {
-    grid-template-columns: minmax(0, 1fr) 326px;
-  }
-  .box-screen.public .controls {
-    padding: 26px;
-  }
-  .box-screen.public .qr {
-    width: 232px;
-    height: 232px;
-  }
-}
 @media (min-width: 861px) and (max-height: 850px) {
   .box-screen {
     padding: 14px 22px;
@@ -508,8 +492,7 @@
   }
 }
 @media (max-width: 860px) {
-  .box-screen .grid,
-  .box-screen.public .grid {
+  .box-screen .grid {
     grid-template-columns: 1fr;
   }
   .box-screen .controls {

@@ -35,7 +35,7 @@ export async function registerClarityChecks({
   const roles = process.argv
     .find((argument) => argument.startsWith('--roles='))
     ?.slice('--roles='.length)
-    .split(',') ?? ['player', 'host', 'public'];
+    .split(',') ?? ['player', 'host'];
   const commands = () => page.evaluate(() => window.commands);
   const update = async (patch) => {
     const value = await page.evaluate(
@@ -157,8 +157,7 @@ export async function registerClarityChecks({
 
   await run('clarity-layout', async () => {
     assert(
-      roles.length &&
-        roles.every((role) => ['player', 'host', 'public'].includes(role)),
+      roles.length && roles.every((role) => ['player', 'host'].includes(role)),
     );
     await page.setViewportSize({ width, height });
     for (const role of roles) {
@@ -829,7 +828,7 @@ export async function registerClarityChecks({
       await page.locator('.mn-credit').isDisabled(),
       'Another merchant cannot execute the current actor’s finance actions',
     );
-    for (const role of ['host', 'public']) {
+    for (const role of ['host']) {
       await load({ phase: 'auction', role });
       assert.equal(
         await page

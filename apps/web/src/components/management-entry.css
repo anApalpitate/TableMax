@@ -1,0 +1,17 @@
+.management-entry {
+  display: grid;
+  align-content: start;
+  justify-items: start;
+  gap: 16px;
+}
+.management-entry > h1,
+.management-entry > p {
+  margin: 0;
+}
+.management-entry > .button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  min-height: 44px;
+}

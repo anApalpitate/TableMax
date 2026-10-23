@@ -168,7 +168,7 @@ window.renderDiscard=key=>{
   const actor=state.turnSeat,draw=entry.rules.legalActions(state,actor).find(a=>a.type==='draw'&&a.source==='deck');if(!draw)continue;
   const held=entry.rules.apply(state,draw,actor,context).state;
   const discard=entry.rules.legalActions(held,actor).find(a=>a.type==='discard-held');if(!discard)continue;
-  const result=entry.rules.apply(held,discard,actor,context),session=sessionFor(key,'public');
+  const result=entry.rules.apply(held,discard,actor,context),session=sessionFor(key,'host');
   const before=entry.rules.project(held,{role:'public'}),after=entry.rules.project(result.state,{role:'public'});
   session.fixtureKey='discard-'+key+'-'+(++discardSequence);session.view={...session.view,instanceId:session.fixtureKey,revision:100,gameView:before};
   current={key,session};paint();
@@ -471,7 +471,7 @@ try {
     [390, 844],
     [1280, 900],
   ])
-    for (const role of ['host', 'public']) {
+    for (const role of ['host']) {
       await check(`box:${role}:${width}:connection-layout`, async () => {
         const connectionContext = await browser.newContext({
           viewport: { width, height },
@@ -627,37 +627,6 @@ try {
               'test',
             ].join('.') +
             ':12345';
-          if (role === 'public') {
-            assert.equal(
-              await panel.locator('input[name="external-entry"]').count(),
-              0,
-              'Public screen has no external-entry form',
-            );
-            assert.equal(
-              await panel
-                .getByRole('button', { name: '网址前缀', exact: true })
-                .count(),
-              0,
-            );
-            await connectionPage.keyboard.press('Escape');
-            await connectionPage.evaluate(
-              (value) => window.setConnectionExternal(value),
-              longUrl,
-            );
-            await open();
-            assert.equal(
-              await panel.locator('.connection-help__url').textContent(),
-              longUrl,
-            );
-            await geometry();
-            await help();
-            await screenshot('long-url');
-            assert.deepEqual(
-              await connectionPage.evaluate(() => window.connectionCalls),
-              [],
-            );
-            return;
-          }
           const prefix = panel.getByRole('button', {
               name: '网址前缀',
               exact: true,
@@ -930,15 +899,12 @@ try {
             panel.locator('.device-transfer-requests__empty'),
           );
           await assertSettingRowsAndHelp(managementPage, { touch: true });
-          const publicLink = panel.getByRole('link', {
-            name: '打开公共屏',
-            exact: true,
-          });
-          await row(
-            publicLink.locator('..').getByText('公共屏', { exact: true }),
-            publicLink,
+          assert.equal(
+            await panel
+              .getByRole('link', { name: '打开公共屏', exact: true })
+              .count(),
+            0,
           );
-          assert.equal(await publicLink.getAttribute('href'), '/public');
           if (status === 'playing') {
             const rollback = panel.getByRole('button', {
               name: '决策点回退（2）',
@@ -1148,7 +1114,6 @@ try {
       ['host', false],
       ['player', true],
       ['player', false],
-      ['public', false],
     ])
       for (const status of ['lobby', 'playing']) {
         await check(
@@ -1184,7 +1149,7 @@ try {
               assert.equal(
                 await manager.count(),
                 0,
-                'Ordinary players and public displays have no seat management entry',
+                'Ordinary players have no seat management entry',
               );
               assert.equal(
                 await page.locator('.seat-settings-menu').count(),
@@ -1448,7 +1413,7 @@ try {
         );
       }
   for (const key of ['box', ...games])
-    for (const role of ['host', 'public', 'player']) {
+    for (const role of ['host', 'player']) {
       await check(`${key}:${role}:settings`, async () => {
         await page.setViewportSize(
           role === 'player'
@@ -1492,7 +1457,6 @@ try {
     }
   for (const [key, role, native] of [
     ['box', 'host', true],
-    ['box', 'public', true],
     ['uno', 'player', false],
   ])
     for (const [width, height] of [

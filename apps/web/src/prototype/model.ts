@@ -1,5 +1,5 @@
 // Synthetic UI state only: no game state, checkpoints, identities or secrets.
-export type Role = 'host' | 'public' | 'player';
+export type Role = 'host' | 'player';
 export type Screen =
   'setup' | 'lobby' | 'session' | 'result' | 'recovery' | 'error';
 export type Connection = 'online' | 'offline' | 'syncing';

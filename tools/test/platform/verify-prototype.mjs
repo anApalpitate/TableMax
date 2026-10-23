@@ -283,16 +283,10 @@ try {
     'Disconnect/sync, pause/resume views, rollback warning and monotonic synthetic branch, stale-action feedback, rebind confirmation',
   );
 
-  await role.selectOption('public');
+  await role.selectOption('host');
   assert.equal(
     await page
       .getByRole('button', { name: '提交示例选择', exact: true })
-      .count(),
-    0,
-  );
-  assert.equal(
-    await page
-      .getByRole('button', { name: '选择决策点回退', exact: true })
       .count(),
     0,
   );
@@ -311,14 +305,14 @@ try {
       .isEnabled(),
     false,
   );
-  await capture('public-session-1920', 1920, 1080);
+  await capture('host-session-1920', 1920, 1080);
   await role.selectOption('player');
   assert.equal(
     await page.getByRole('button', { name: '启用提示音', exact: true }).count(),
     0,
   );
   evidence.checks.push(
-    'Product-view role controls separated, public-only sound enable/mute; real authorization not tested',
+    'Product-view role controls separated, management sound enable/mute; real authorization not tested',
   );
 
   await role.selectOption('host');
@@ -368,7 +362,7 @@ try {
 
   for (const width of [360, 390]) {
     await resize(width, 844);
-    for (const viewer of ['host', 'public', 'player']) {
+    for (const viewer of ['host', 'player']) {
       await role.selectOption(viewer);
       for (const view of [
         'setup',
@@ -402,13 +396,13 @@ try {
     }
   }
   evidence.checks.push(
-    'All 6 pages × 3 roles at 360/390px, no horizontal overflow, 44px touch target height',
+    'All 6 pages × 2 roles at 360/390px, no horizontal overflow, 44px touch target height',
   );
   // Art reset: common desktop views fit the viewport with review tools closed.
   for (const [viewer, width, height] of [
     ['host', 1080, 800],
     ['host', 1280, 900],
-    ['public', 1920, 1080],
+    ['host', 1920, 1080],
   ]) {
     await resize(width, height);
     await role.selectOption(viewer);
@@ -418,7 +412,7 @@ try {
         assert.equal(
           await page.locator('.seat-list .own-seat').count(),
           0,
-          'Host and public lobby do not inherit the phone identity marker',
+          'Management lobby do not inherit the phone identity marker',
         );
       }
       const metrics = await page.evaluate(() => ({

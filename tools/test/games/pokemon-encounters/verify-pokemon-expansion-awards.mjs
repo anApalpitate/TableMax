@@ -252,7 +252,7 @@ try {
   const fixtureViews = {};
   for (const [name, state] of Object.entries({ bonus, two, zero })) {
     const views = {};
-    for (const role of ['host', 'public', 'player']) {
+    for (const role of ['host', 'player']) {
       const projection = rules.project(
         state,
         role === 'player' ? { role, seatId: 's0' } : { role },
@@ -468,7 +468,6 @@ try {
         ['player', 320, 568],
         ['player', 390, 844],
         ['host', 1280, 720],
-        ['public', 1280, 720],
       ]) {
         await page.setViewportSize({ width, height });
         await page.evaluate(({ name, role }) => window.awardsShow(name, role), {
