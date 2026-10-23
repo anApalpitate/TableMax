@@ -2,6 +2,14 @@
 
 本页维护当前构建、运行、安装与恢复方法；精确CLI全文只在对应[工具README](../../tools/README.md)维护，证明要求见[验证](validation.md)，当前交付及未测边界见[验收](acceptance.md#当前源码与本地交付)。原入口及历史标题保留为导航。
 
+## 服务载荷无损压缩
+
+构建辅助`tools/build/service-brotli.mjs`以Brotli质量11编码生产CJS，只有精确还原且净节省时才接受；小型CommonJS入口与`.cjs.br`载荷共同进入缓存、冻结、组装及封包。启动先核载荷SHA，再按限定输出长度解压并核原源码长度／SHA，最后在当前模块内`_compile`；缺失、损坏或哈希不符直接失败，不在存档、缓存或程序目录落盘还原源码。
+
+该步骤应用于platform-server与宝可梦人机单元，helper纳入相应指纹；白名单和游戏预算同时计入入口及载荷。官方Node PE不压缩、裁剪或升级，其它游戏策略、规则、Worker和媒体不因该步骤改变。回归要覆盖原字节、CommonJS路径／exports／require.main、依赖、无落盘、缺失、压缩损坏及合法压缩但源码哈希不符；宝可梦实际生产Worker仍须满足32MiB与原2秒取消边界。命令归[构建工具](../../tools/build/README.md)。
+
+历史隔离收益、缓存命中、同包运行和失败按[原验证记录](../archive/validation-before-consolidation-2026-10-23.md#服务载荷无损压缩2026-10-06)阅读，不以估算字节代替当前包大小，不把历史运行通过追认为新包通过。
+
 ## 唯一完整 EXE 交付（2026-10-12）
 
 完整程序由冻结载荷直接封装为installer，不把旧自解压EXE再套入安装器。旧便携原件按自身字节及历史证明保留；改造过程见[安装归档](../archive/windows-installation-update-2026-10-15.md)。

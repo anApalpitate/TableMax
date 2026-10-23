@@ -25,7 +25,7 @@
 
 ## 安装与交付
 
-最终交付为[唯一完整安装器1.0.7.22](../../artifacts/releases/v1.0.7/1.0.7.22/TableMax-1.0.7.22-installer-win-x64.exe)及[清单](../../artifacts/releases/v1.0.7/1.0.7.22/TableMax-1.0.7.22-installer-win-x64-manifest.json)，含全部七款游戏／八个玩法。EXE38,077,047字节，SHA `838a7a1ecd82670a6040baf568521498b50b6b19b06fe10bfc3377627db873b5`；内部ZIP46,319,673字节、实际提取99,225,894字节，均严格低于120,000,000字节。签名闭包、成员SHA和运行前后原载荷核验通过。
+最终交付为[唯一完整安装器1.0.7.22（原件现状）](historical-evidence-audit-2026-10-23.md#h12tablemax-10722-installer-win-x64exe)（历史原路径 `../../artifacts/releases/v1.0.7/1.0.7.22/TableMax-1.0.7.22-installer-win-x64.exe`）及[清单（原件现状）](historical-evidence-audit-2026-10-23.md#h13tablemax-10722-installer-win-x64-manifestjson)（历史原路径 `../../artifacts/releases/v1.0.7/1.0.7.22/TableMax-1.0.7.22-installer-win-x64-manifest.json`），含全部七款游戏／八个玩法。EXE38,077,047字节，SHA `838a7a1ecd82670a6040baf568521498b50b6b19b06fe10bfc3377627db873b5`；内部ZIP46,319,673字节、实际提取99,225,894字节，均严格低于120,000,000字节。签名闭包、成员SHA和运行前后原载荷核验通过。
 
 [原文件安全修正](../../artifacts/maintenance/v1.0.7/box-manila-polish-20261017/executable-security-22.json)只把可信本地EXE继承Low改为Medium，核字节、SHA、owner、DACL与数据流不变。[原路径Medium启动](../../artifacts/maintenance/v1.0.7/box-manila-polish-20261017/production-account-22-01/original-executable/report.json)及[中文安装向导](../../artifacts/maintenance/v1.0.7/box-manila-polish-20261017/production-account-22-01/installer-wizard/report.json)通过，同SHA副本不替代原文件。
 

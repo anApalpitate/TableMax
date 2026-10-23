@@ -4,7 +4,7 @@
 
 ## 马尼拉完整港湾安装候选（2026-10-17，待验收）
 
-完整安装器1.0.7.26（原EXE路径现缺失，仅供身份追溯：`../../artifacts/releases/v1.0.7/1.0.7.26/TableMax-1.0.7.26-installer-win-x64.exe`；不可作为现存安装器使用）及[清单](../../artifacts/releases/v1.0.7/1.0.7.26/TableMax-1.0.7.26-installer-win-x64-manifest.json)包含源码a93e674的完整岸线、行情横带、内嵌行动位、持续挂载与手机滚动稳定化；预装七款游戏／八玩法，公开版本1.0.7。EXE 38101365字节，SHA 973a5849d250ccfb8e9f006006f8e8b2809cab6136e4b05e6b9217c93ac17d75；内部ZIP 46351685字节、实际提取 99277194字节／120成员，三项均严格小于120,000,000字节。
+完整安装器1.0.7.26（原EXE路径现缺失，仅供身份追溯：`../../artifacts/releases/v1.0.7/1.0.7.26/TableMax-1.0.7.26-installer-win-x64.exe`；不可作为现存安装器使用）及[清单（原件现状）](historical-evidence-audit-2026-10-23.md#h01tablemax-10726-installer-win-x64-manifestjson)（历史原路径 `../../artifacts/releases/v1.0.7/1.0.7.26/TableMax-1.0.7.26-installer-win-x64-manifest.json`）包含源码a93e674的完整岸线、行情横带、内嵌行动位、持续挂载与手机滚动稳定化；预装七款游戏／八玩法，公开版本1.0.7。EXE 38101365字节，SHA 973a5849d250ccfb8e9f006006f8e8b2809cab6136e4b05e6b9217c93ac17d75；内部ZIP 46351685字节、实际提取 99277194字节／120成员，三项均严格小于120,000,000字节。
 
 [改动汇总](manila-harbor-rebuild-2026-10-17.md)、[源码验证](../../artifacts/maintenance/manila-harbor-rebuild-20261017/verified-source.json)与[最终独立图审](../../artifacts/maintenance/manila-harbor-rebuild-20261017/visual-review.json)记录实测、失败和替换复验。主机／公共屏234组唯一组合、手机四宽定向检查及受影响静态检查通过；规则、存档、秘密投影和通信协议保持原边界。模拟测试不当作真实设备证明。
 
@@ -14,7 +14,7 @@
 
 此候选已由1.0.7.26替代，原EXE按原SHA退役；原manifest、载荷与证明保留。
 
-[完整安装器1.0.7.25](../../artifacts/releases/v1.0.7/1.0.7.25/TableMax-1.0.7.25-installer-win-x64-manifest.json)及[清单](../../artifacts/releases/v1.0.7/1.0.7.25/TableMax-1.0.7.25-installer-win-x64-manifest.json)包含源码7e0c983的盒子入座状态合组、手机箭头调位、操作／结算对齐、64px出价框与主机视口布局，预装七款游戏／八玩法，公开版本仍1.0.7。EXE 38101577字节，SHA 183ffe626af8776bf938872b3dc1f73b12a9807df70ec8e4349dcd3b721a7999；内部ZIP 46348241字节、实际提取 99273756字节／120成员，均严格小于120,000,000字节。
+[完整安装器1.0.7.25（原件现状）](historical-evidence-audit-2026-10-23.md#h02tablemax-10725-installer-win-x64-manifestjson)（历史原路径 `../../artifacts/releases/v1.0.7/1.0.7.25/TableMax-1.0.7.25-installer-win-x64-manifest.json`）及[清单（原件现状）](historical-evidence-audit-2026-10-23.md#h03tablemax-10725-installer-win-x64-manifestjson)（历史原路径 `../../artifacts/releases/v1.0.7/1.0.7.25/TableMax-1.0.7.25-installer-win-x64-manifest.json`）包含源码7e0c983的盒子入座状态合组、手机箭头调位、操作／结算对齐、64px出价框与主机视口布局，预装七款游戏／八玩法，公开版本仍1.0.7。EXE 38101577字节，SHA 183ffe626af8776bf938872b3dc1f73b12a9807df70ec8e4349dcd3b721a7999；内部ZIP 46348241字节、实际提取 99273756字节／120成员，均严格小于120,000,000字节。
 
 [改动汇总](manila-touch-layout-2026-10-17.md)及[源码验证](../../artifacts/maintenance/manila-touch-layout-20261017/verified-source.json)记录36组盒子、20项手机交互、12项标签、4项房主下一航次、216组主机／公共布局、终局18项替换复验和38组保存回归；最终手机、结算、终局[独立图审](../../artifacts/maintenance/manila-touch-layout-20261017/visual-review.json)通过。规则、秘密投影与既有动作管道不变；模拟设备不冒充真实手机、LAN或原生DPI。
 
@@ -24,7 +24,7 @@
 
 此候选已由1.0.7.25替代，原EXE按原SHA退役；以下保留原准备范围与身份。
 
-[完整安装器1.0.7.24](../../artifacts/releases/v1.0.7/1.0.7.24/TableMax-1.0.7.24-installer-win-x64-manifest.json)及[清单](../../artifacts/releases/v1.0.7/1.0.7.24/TableMax-1.0.7.24-installer-win-x64-manifest.json)预装七款游戏／八个玩法，包含源码5b0374c的竞拍三行布局、三按钮同高居中和普通保存回执图层修复；公开版本仍为1.0.7。EXE38,101,198字节，SHA 5eadf29dbd92cd6f4eee1d998ce46b7bacbc96716a7bd05d9cd1f8572689af10；内部ZIP46,345,583字节、实际提取99,270,824字节／120成员，三项均严格小于120,000,000字节。
+[完整安装器1.0.7.24（原件现状）](historical-evidence-audit-2026-10-23.md#h04tablemax-10724-installer-win-x64-manifestjson)（历史原路径 `../../artifacts/releases/v1.0.7/1.0.7.24/TableMax-1.0.7.24-installer-win-x64-manifest.json`）及[清单（原件现状）](historical-evidence-audit-2026-10-23.md#h05tablemax-10724-installer-win-x64-manifestjson)（历史原路径 `../../artifacts/releases/v1.0.7/1.0.7.24/TableMax-1.0.7.24-installer-win-x64-manifest.json`）预装七款游戏／八个玩法，包含源码5b0374c的竞拍三行布局、三按钮同高居中和普通保存回执图层修复；公开版本仍为1.0.7。EXE38,101,198字节，SHA 5eadf29dbd92cd6f4eee1d998ce46b7bacbc96716a7bd05d9cd1f8572689af10；内部ZIP46,345,583字节、实际提取99,270,824字节／120成员，三项均严格小于120,000,000字节。
 
 [源码验证](../../artifacts/maintenance/save-overlay-auction-20261017/verified-source.json)记录171组唯一布局、七组竞拍操作与21项反馈／浮窗检查，以及独立最终截图审查；旧失败与修复轮次保留。模拟视口／DPR不代表真实手机、LAN、原生DPI或安装后验证。[冻结输入](../../artifacts/maintenance/save-overlay-auction-20261017/frozen-inputs.json)与[输入检查](../../artifacts/maintenance/save-overlay-auction-20261017/delivery-input-check.json)核对42单元、812个唯一输入及本任务产品源码；原路径EXE的Low→Medium[规范化回执](../../artifacts/maintenance/save-overlay-auction-20261017/original-executable-security-normalization.json)保全字节／SHA、所有者、DACL和其他流。
 
@@ -34,7 +34,7 @@
 
 此候选已由[1.0.7.24](../reference/acceptance.md#马尼拉竞拍与保存反馈安装候选2026-10-17待验收)替代，原EXE已退役；以下保留当时准备范围与原身份。
 
-已生成[完整安装器1.0.7.23](../../artifacts/releases/v1.0.7/1.0.7.23/TableMax-1.0.7.23-installer-win-x64-manifest.json)及[清单](../../artifacts/releases/v1.0.7/1.0.7.23/TableMax-1.0.7.23-installer-win-x64-manifest.json)，预装全部七款游戏／八个玩法，纳入最新座位、玩法简介和[22项偏好改造](ui-preference-changes-2026-10-17.md)。公开版本保持1.0.7。EXE为38,098,219字节，SHA `2ed06867b534bbb26148a670c9e28ab3557e0219122554637d4eca10793205a2`；内部ZIP46,344,944字节、实际提取99,269,709字节／120成员，三项均严格小于120,000,000字节。
+已生成[完整安装器1.0.7.23（原件现状）](historical-evidence-audit-2026-10-23.md#h06tablemax-10723-installer-win-x64-manifestjson)（历史原路径 `../../artifacts/releases/v1.0.7/1.0.7.23/TableMax-1.0.7.23-installer-win-x64-manifest.json`）及[清单（原件现状）](historical-evidence-audit-2026-10-23.md#h07tablemax-10723-installer-win-x64-manifestjson)（历史原路径 `../../artifacts/releases/v1.0.7/1.0.7.23/TableMax-1.0.7.23-installer-win-x64-manifest.json`），预装全部七款游戏／八个玩法，纳入最新座位、玩法简介和[22项偏好改造](ui-preference-changes-2026-10-17.md)。公开版本保持1.0.7。EXE为38,098,219字节，SHA `2ed06867b534bbb26148a670c9e28ab3557e0219122554637d4eca10793205a2`；内部ZIP46,344,944字节、实际提取99,269,709字节／120成员，三项均严格小于120,000,000字节。
 
 [冻结输入](../../artifacts/maintenance/v1.0.7/ui-preference-installer-20261017/frozen-inputs.json)绑定候选、独立pointer与实际载荷；新EXE原路径的继承Low标签经[单文件规范化](../../artifacts/maintenance/v1.0.7/ui-preference-installer-20261017/original-executable-security-normalization.json)调整为Medium，字节／SHA、所有者、DACL及其他流保持。[双PE材料](../../artifacts/maintenance/v1.0.7/ui-preference-installer-20261017/handoff-prepared/report.json)及[精确复验](../../artifacts/maintenance/v1.0.7/ui-preference-installer-20261017/handoff-reverified/report.json)均为准备完成、未执行，failures为0；不代表安装或更新成功。
 
@@ -52,7 +52,7 @@
 
 ## 设置与马尼拉体验深化（2026-10-16）
 
-当时本地交付为[完整安装器1.0.7.18](../../artifacts/releases/v1.0.7/1.0.7.18/TableMax-1.0.7.18-installer-win-x64-manifest.json)及[清单](../../artifacts/releases/v1.0.7/1.0.7.18/TableMax-1.0.7.18-installer-win-x64-manifest.json)，预装全部七款游戏／八个玩法。EXE37,904,603字节，SHA `5446f87b5cdd8c469a194858a19442559e937621b94a354663a2e8d07153c5ee`；内部ZIP46,148,138字节、实际提取99,048,483字节，98成员运行前后逐SHA核验，均严格小于120,000,000字节。公开版本仍为1.0.7，未发布、部署或生成发布source ZIP。
+当时本地交付为[完整安装器1.0.7.18（原件现状）](historical-evidence-audit-2026-10-23.md#h08tablemax-10718-installer-win-x64-manifestjson)（历史原路径 `../../artifacts/releases/v1.0.7/1.0.7.18/TableMax-1.0.7.18-installer-win-x64-manifest.json`）及[清单（原件现状）](historical-evidence-audit-2026-10-23.md#h09tablemax-10718-installer-win-x64-manifestjson)（历史原路径 `../../artifacts/releases/v1.0.7/1.0.7.18/TableMax-1.0.7.18-installer-win-x64-manifest.json`），预装全部七款游戏／八个玩法。EXE37,904,603字节，SHA `5446f87b5cdd8c469a194858a19442559e937621b94a354663a2e8d07153c5ee`；内部ZIP46,148,138字节、实际提取99,048,483字节，98成员运行前后逐SHA核验，均严格小于120,000,000字节。公开版本仍为1.0.7，未发布、部署或生成发布source ZIP。
 
 三个设置页完成防溢出及顶栏圆角入口；马尼拉完成独立手机竖港、图形草稿／确认、按需详情、四货物及岗位图像、七类流程图解、原创短音效及保存后演出。候选17通过26布局、三／四／五人自然整局与各一条完整真实UI航次、设置80项；候选18仅修图解CSS后定向复验手机6布局／图框边界。规则、服务、策略、Worker、资源和盒子按[字节等价](../../artifacts/manila/validation/runtime-equivalence-17-18.json)复用，不增加执行统计；具体检查与设备边界见[游戏验证](../games/manila/validation-scenarios.md#当前结果)。
 
@@ -66,7 +66,7 @@
 
 ## 马尼拉本地候选（2026-10-16）
 
-以下为深化前的历史验收，当时本地交付为[完整安装器1.0.7.9](../../artifacts/releases/v1.0.7/1.0.7.9/TableMax-1.0.7.9-installer-win-x64-manifest.json)：七款游戏、八个玩法；EXE36,616,557字节，SHA `7b1c6e470552f0b5a16ce591f017ba69b492bac76855a2a96b93a522eb16d8b1`；内部ZIP44,861,683字节、提取97,752,749字节，运行前后98成员逐SHA一致。[封包记录](../../artifacts/maintenance/v1.0.7/manila-installation-20261016/round-01/package-09.json)绑定实际交付。
+以下为深化前的历史验收，当时本地交付为[完整安装器1.0.7.9（原件现状）](historical-evidence-audit-2026-10-23.md#h10tablemax-1079-installer-win-x64-manifestjson)（历史原路径 `../../artifacts/releases/v1.0.7/1.0.7.9/TableMax-1.0.7.9-installer-win-x64-manifest.json`）：七款游戏、八个玩法；EXE36,616,557字节，SHA `7b1c6e470552f0b5a16ce591f017ba69b492bac76855a2a96b93a522eb16d8b1`；内部ZIP44,861,683字节、提取97,752,749字节，运行前后98成员逐SHA一致。[封包记录](../../artifacts/maintenance/v1.0.7/manila-installation-20261016/round-01/package-09.json)绑定实际交付。
 
 已修复公开最高竞价／领先者缺失、非付款玩家错误融资提示、同分名次差异，并补领航草稿结果／清空。最新3项UI回归通过；候选8通过三端26布局、保存动态及6航次136动作；候选9专门复验融资首屏可见完整抵押按钮，6布局及5航次137动作通过。未受影响的规则／策略／服务／Worker原检查按[执行字节等价](../../artifacts/maintenance/v1.0.7/manila-installation-20261016/round-01/runtime-equivalence-07-09.json)复用，不增加统计。
 
@@ -90,7 +90,7 @@
 
 ### 首轮开发候选1.0.7.7
 
-[完整安装候选1.0.7.7](../../artifacts/releases/v1.0.7/1.0.7.7/TableMax-1.0.7.7-installer-win-x64-manifest.json)包含七款游戏、八个玩法，新增2005经典《马尼拉》3–5人、三档本地策略和写实动态沙盘。EXE为36,616,229字节，SHA `f986705422062dcfae0cda86ebaff1842eab31aee8e84f5a12bca4c0010931ec`；内部ZIP44,861,285字节、实际提取97,752,337字节，运行前后98成员逐SHA一致。[封包记录](../../artifacts/manila/validation/package-candidate07.json)绑定候选及安装清单。
+[完整安装候选1.0.7.7（原件现状）](historical-evidence-audit-2026-10-23.md#h11tablemax-1077-installer-win-x64-manifestjson)（历史原路径 `../../artifacts/releases/v1.0.7/1.0.7.7/TableMax-1.0.7.7-installer-win-x64-manifest.json`）包含七款游戏、八个玩法，新增2005经典《马尼拉》3–5人、三档本地策略和写实动态沙盘。EXE为36,616,229字节，SHA `f986705422062dcfae0cda86ebaff1842eab31aee8e84f5a12bca4c0010931ec`；内部ZIP44,861,285字节、实际提取97,752,337字节，运行前后98成员逐SHA一致。[封包记录](../../artifacts/manila/validation/package-candidate07.json)绑定候选及安装清单。
 
 本游戏37项规则／策略、2项真实Socket／SQLite、4项实际Worker检查通过；最终三端20项布局与保存动态、手机6项定向布局／真实操作、5人自然整局均有对应证据。主机／公共实际CSS视口达3840×2160，缩放读回平台125%／150%独立偏好并断言对应视口。后续候选的权威执行字节相同，复用范围、失败返修及实际版次见[马尼拉验证](../games/manila/validation-scenarios.md)。
 

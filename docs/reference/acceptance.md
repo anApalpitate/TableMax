@@ -1,140 +1,85 @@
 # 当前交付与验收
 
-性质：实际记录的源码、候选、本地current及公开发行证明；四者分别认定。本文档重组不执行安装、推广或发布，也不重新认证历史结果。
+本页只维护当前状态及进入原证明的索引，不维护验证政策或可复制操作命令。政策与复用条件见[验证范围与证据](validation.md)，安装必须证明什么见[安装验收要求](installation-validation.md)，具体CLI见[测试工具](../../tools/test/README.md)。历史原文、失败、候选与旧SHA见[整理前记录](../archive/acceptance-before-consolidation-2026-10-23.md)，24处历史地址的可用性见[逐项核查](../archive/historical-evidence-audit-2026-10-23.md)。
 
 ## 当前源码与本地交付
 
-公开版本保持 **1.0.8**，线上附件仍为已发布的 **1.0.8.7**，见[替换记录](#v108附件替换2026-10-21)。本地current已推广为 **1.0.8.9**，预装9款游戏／10个玩法，含德国小强与蟑螂沙拉实体牌运行美术，见[本轮完整交付](#实体牌运行资源与安装器更新2026-10-23)。本轮不发布、不改标签或线上附件；1.0.8.8与1.0.8.6的原交付证明保留于下方历史记录。
+2026-10-23本轮只读核对：package.json公开版本1.0.8；本地current为1.0.8.9。源码、候选、本地current及线上发行分别认定，工作区后续代码不因同一公开版本自动进入原EXE，也不继承其通过结论。
 
-上一轮主工作树本地current已核验恢复为[1.0.7.22](#盒子与马尼拉界面优化2026-10-17)，含七款游戏／八个玩法；33原指针和修复回执保留于[恢复记录](../archive/current-pointer-repair-2026-10-18.md)。本轮发布前的线上附件对应[1.0.7.2原字节](#1072安装进度与版本交付2026-10-16)。旧1.0.6/current、内部载荷和原证明按历史身份保留；对应本地旧EXE／sidecar已退役，原路径不能再作为现存安装器或迁移复验输入，见[退役记录](../archive/local-release-retirement-2026-10-16.md)。
+| 对象         | 当前记录与权威入口                                                                                                                             | 证明边界                                                                            |
+| ------------ | ---------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- |
+| 工作区源码   | 以Git HEAD、本任务diff及实际文件SHA确定；已有盒子与玩家布局等后续改动                                                                          | 源码专项报告只对应其冻结输入，不保证当前所有源码、游戏或设备通过                    |
+| 本地完整交付 | [current指针](../../artifacts/package-payloads/v1.0.8/current.json)，1.0.8.9，预装9游戏／10玩法                                                | 指针选中的原EXE、内部payload、安装清单与原passed证明逐SHA相符；本轮未重新启动或安装 |
+| 待验候选     | 由本任务明确指定的candidate及其状态确定                                                                                                        | 不从current或历史候选标题推定已完成，不默认推广任何候选                             |
+| 线上发行     | 上次确认于2026-10-21，公开v1.0.8附件为1.0.8.7，见[原发布核查](../archive/acceptance-before-consolidation-2026-10-23.md#v108附件替换2026-10-21) | 本轮未联网复核，不把本地1.0.8.9称作已发布或线上latest的实时证明                     |
 
-源码与本地完整交付已包含经典马尼拉、德国小强与蟑螂沙拉；本地current切换不覆盖线上附件、标签或原发行SHA映射。
+本地原EXE为[TableMax-1.0.8.9-installer-win-x64.exe](../../artifacts/releases/v1.0.8/1.0.8.9/TableMax-1.0.8.9-installer-win-x64.exe)，38,552,763字节，SHA `76c828598990b166e45cbdf24f09d55d2c40e454f79961128c48829b6d63b409`；冻结快照`809678d5ba3586d0bf6fe7b5fa77d14d3f79f77aa7e4c18c88eef3f471797281`。内部payload SHA `8e5fcd9ee5e302e88c6ddb7636523c238e47d0847b55b83f2070d13aa2604a80`，安装清单SHA `6449729ac85e60c83240fd5affa0f57ce301cb204107fb4b3ce2735d27038b54`。具体程序、全部成员与安装身份从指针及其清单读取，不在任务页复制“当前版本”。
 
-[GitHub v1.0.7](https://github.com/anApalpitate/TableMax/releases/tag/v1.0.7)为上一公开发行，非草稿、非预发布；本轮线上状态见1.0.8记录。附件仅[installer](https://github.com/anApalpitate/TableMax/releases/download/v1.0.7/TableMax-1.0.7-installer-win-x64.exe)与[source ZIP](https://github.com/anApalpitate/TableMax/releases/download/v1.0.7/TableMax-1.0.7-source.zip)；公开installer与本地1.0.7.2完全同字节。source ZIP为86,438,358字节，SHA `83d9080b3a0d54b8d01269710dd3a9bec7c417413e4d18429e9d4fc0c5660963`，由标签源码提交 `c1207fd0be68b05b2fa88e2989a2c7444ca3527b`导出；标签对象 `14e0eef4272aeaea5648f9bc08fb43de998e09d7`。[发布审计](../../artifacts/maintenance/v1.0.7/windows-editions/91e13f6af698a964df479b8233ecf5e2f063d9579f09f9e1f7f2d652542e7ca5/github-publication.json)核对两附件远端摘要、源码映射及RSA签名正文。历史附件保留，不部署Pages；失败和操作方法差异见[发布归档](../archive/installer-progress-v107-release-2026-10-16.md)。
+[原正式完整安装证明](../../artifacts/maintenance/v1.0.8/windows-editions/809678d5ba3586d0bf6fe7b5fa77d14d3f79f77aa7e4c18c88eef3f471797281/shipping-executable-checks-full.json)记录结果passed、同一EXE与payload、干净标准账户／实际安装与卸载等原检查；首次健康启动118,984,447字节，低于120,000,000硬限并触发110,000,000预警，不表示安装过程绝对峰值。该证明、[安装器更新原记录](../archive/acceptance-before-consolidation-2026-10-23.md#实体牌运行资源与安装器更新2026-10-23)与本轮只读身份核对各保留原范围，不计为本轮再次安装通过。
 
-工作区占用及逐文件退役见[项目瘦身](project-slimming.md)；1.0.7.2发布任务未追加清理，马尼拉任务的单次维护单独记录。旧运行ZIP唯一迁移输入见[整理归档](../archive/tooling-delivery-organization-2026-10-15.md#旧运行zip的迁移输入)；下方旧标题保留历史导航。
+## 源码与设备状态
 
-## 本人操作卡紧凑化（2026-10-23）
+盒子卡槽、游戏库、头像、本人准备卡以及两款游戏简介有各自源码专项记录，见[盒子重设计](../archive/acceptance-before-consolidation-2026-10-23.md#盒子稳定卡槽桌面与头像重设计2026-10-23)、[本人卡](../archive/acceptance-before-consolidation-2026-10-23.md#本人操作卡紧凑化2026-10-23)及[简介](../archive/acceptance-before-consolidation-2026-10-23.md#盒子大厅与两新游戏简介源码2026-10-23)。只有输入、方法与证据仍匹配的项可按原范围复用；新增共享布局、主题、规则或资源须按实际依赖补验。
 
-按用户继续提供的现代艺术截图，移除本人信息和按钮间的弹性大留白，加入与本人卡共同下限由280缩至156 CSS px；头像56px，身份与座号紧凑排列，准备按钮48px，已准备采用浅色样式并保留取消语义。昵称表单的可访问标签保留，输入／加入同排；座位卡尺寸与预留连接区域不变。
+实体手机、Safari、真实LAN／Wi-Fi、物理DPI／4K电视及真人听感按各任务实际证据单独认定；隐藏Chromium视口、请求的显示倍率、源码夹具、同SHA副本或历史发行不自动补齐这些证明。当前待验事项从[任务索引](../tasks/README.md)接续。
 
-通过`box`范围`verify-box-redesign.mjs --profile-only`的[22组源码检查](../../artifacts/maintenance/box-redesign-20261023/profile-round-2/report.json)：三角色六视口的空座／入座／最长昵称几何稳定，以及320／390／844／1280下现代艺术四人、本人4号位的紧凑卡片、准备及取消命令与座位位置稳定。报告冻结的源码哈希与结束状态一致；局部实测截图为同目录`ticket-390.png`。类型、定向ESLint／Prettier和diff检查通过；头像画廊、游戏库及两游戏简介未改，不重复其旧证明。本轮不构建或替换安装器，不证明真实服务保存、实体手机或Windows DPI。
+## 历史证明与缺口
 
-## 盒子稳定卡槽、桌面与头像重设计（2026-10-23）
+原有24处失效引用已逐项核查：2处指向已确认退役的1.0.7.34 EXE，1处找到同字节1.0.8.6附件备份，16处旧原件及5处初次发行报告仍缺失。它们涉及17个不同原路径；具体原地址、可用材料、SHA及复用限制见[核查记录](../archive/historical-evidence-audit-2026-10-23.md)。**入口修复不等于原件恢复；未取得该项所需原证明时不得复用该项或替代原路径启动。**不因此否定未依赖缺失文件且完整绑定的其它独立证据。没有凭空补写原sidecar、重算未知原件SHA、修改原报告或重新封旧包。
 
-按用户对首轮结果的修正要求，空座与已入座改为稳定卡槽，普通与最长合法昵称不改变尺寸；管理员操作并入牌桌标题且预留清桌操作槽，加入／本人卡共用高度，处理了操作出现导致的换行跳动。主机、公共屏与宽屏玩家采用恢复比例的椭圆桌和围桌头像名片，常用窗口利用剩余高度，4K按1160 CSS px上限居中。游戏库移除正式及待开发卡片的简介渲染，保留搜索、筛选、状态和权限；头像页重做大图／占用／选择状态和上传入口，保留原校验与裁剪。扫码区下方的未来玩家输入区域按用户指示保留空白，未实现功能。
-
-`box`范围通过[最终源码报告](../../artifacts/maintenance/box-redesign-20261023/round-10/report.json)29组检查，构建前13项源码SHA与结束及交付文件一致。覆盖三角色×320／390竖屏、844×390、1280×720、1080p、4K的空座→入座→最长昵称几何稳定／无溢出与布局利用；26头像占用禁用／当前态、入座前草稿及已入座选择、实际图片裁剪；正式／待开发游戏库无简介、搜索和关闭；扫码区下方预留及无玩家输入；十／十二席兼容截图。二维码图形和session均为合成夹具，只证明界面及命令意图，不证明扫码、真实服务端头像保存或物理设备。TypeScript、定向ESLint／Prettier及新增链接／diff检查通过。
-
-失败及纠正见[轮次记录](../../artifacts/maintenance/box-redesign-20261023/rounds.md)：固定按钮与槽位、压缩独立管理横栏、显式网格伸展、统一操作卡下限，以及修正既有玩家头像确认的夹具误判；保留首轮异步假设被截图否定的记录，未放宽断言。本轮未构建或替换安装器，既有current及原发行字节不变；前轮源码证明只保留下方历史身份。
-
-## 盒子大厅与两新游戏简介源码（2026-10-23）
-
-用户手写问题单与后续确认方案已落实到源码：围桌名片／空座与加入卡重排，宽屏六席首屏可见，进入牌桌并入游戏条，玩法说明采用书页图标；保存回执从连接状态移出，独立短暂浮现，失败和未确认重试保留。德国小强、蟑螂沙拉六张简介SVG复用原牌面并修复白名单路径，新增81,176字节，原素材保留。设计及维护边界见[通用视觉](visual-design.md#盒子大厅重排与新游戏简介2026-10-23)。
-
-通过统一范围批次`box,game:cockroach-poker,game:cockroach-salad`执行源码夹具，最终[报告](../../artifacts/maintenance/box-lobby-20261023/round-10/report.json)64项通过、无页面异常，源码SHA与交付工作树相符。覆盖320／390竖屏、844×390横屏、1280×720、1080p、4K；入座／已入座、十／十二席长昵称、准备及取消、关闭加入、入座与保存未确认、失败／重连清除、成功续时及消退、进行中／终局入口、两游戏三端真实三图解码与浮窗关闭。检查保留无关游戏范围，合成session只证明界面及命令意图，不证明真实服务端保存或实体设备；实际Windows DPI、实体手机与完整安装器未在本轮验收。
-
-TypeScript、改动TSX／验证器ESLint、定向Prettier与`git diff --check`通过。前轮夹具解析、Edge沙箱crashpad及保存锚点失败、实质修正与复验范围保留在[轮次记录](../../artifacts/maintenance/box-lobby-20261023/rounds.md)，素材子agent的沙箱预览失败另留[环境账](../../artifacts/maintenance/cockroach-introductions-20261023/environment-failures.json)。不以较早通过或中途修改过的验证器哈希代替最终冻结输入。本轮未构建安装器，本地current仍为此前1.0.8.9，原字节及证明不变，未发布或部署。
-
-## 实体牌运行资源与安装器更新（2026-10-23）
-
-本轮按用户要求更新本地完整安装器，公开版本保持1.0.8，不发布、不改标签或线上附件。[完整安装器1.0.8.9](../../artifacts/releases/v1.0.8/1.0.8.9/TableMax-1.0.8.9-installer-win-x64.exe)及[清单](../../artifacts/releases/v1.0.8/1.0.8.9/TableMax-1.0.8.9-installer-win-x64-manifest.json)预装9款游戏／10个玩法；EXE38,552,763字节，SHA256 `76c828598990b166e45cbdf24f09d55d2c40e454f79961128c48829b6d63b409`；内部ZIP46,808,447字节，实际提取99,790,309字节，三项均低于120,000,000。冻结快照 `809678d5ba3586d0bf6fe7b5fa77d14d3f79f77aa7e4c18c88eef3f471797281`。
-
-生产资源范围已修复为导入、媒体glob及模块规则插图的闭包；开发构建继续自动发现媒体目录。两款实体牌美术使用77张WebP运行派生，总239,312字节，保留原图及64张稳定牌号对应，尺寸／处理参数／原图与派生SHA见各游戏清单。两组资源工具回归、牌号映射UI测试及[源码57项视觉检查](../../artifacts/maintenance/cockroach-source/runtime-webp-r3-20261023/report.json)通过；定向ESLint与Prettier通过。原超64MB玩法资源失败、日志捕获纠正及首次启动容量超限预判保留于[轮次记录](../../artifacts/maintenance/installer-update-20261023/rounds.json)，未放宽容量断言，失败构建未额外占号。
-
-[第三轮正式安装证明](../../artifacts/maintenance/installer-update-20261023/finalized-installation-r3.json)已封存：原路径Medium启动／取消、三条更新与框架恢复链各8步通过，正式产品首装、同包复装、保存、默认卸载、同根重装读回及再次卸载12项通过。首装实测118,984,447字节，同包复装119,822,186字节，均严格低于120,000,000，触发110,000,000工程预警；不作为整个安装过程的绝对峰值。[账户终态](../../artifacts/maintenance/installer-update-20261023/production-r3/isolated-account.json)确认账户与profile删除、errors为空。
-
-首轮首装容量失败，第二轮首装容量通过但同包复装因追加卸载日志增长而超限；均已精确清理临时账户与profile。保留原日志追加策略，进一步等比压缩运行资源，并将首装／复装框架分别纳入容量预检。[安装后两游戏复核](../../artifacts/maintenance/installer-update-20261023/installed-r4/results.json)通过，核对91个资源的实际冻结成员／SHA／解码、原生主机／公共屏与模拟手机、合法操作及保存重启；核验清单遗漏介绍参考图的失败与修正保留于轮次记录，未改安装器字节或放宽精确成员断言。[推广回执](../../artifacts/maintenance/installer-update-20261023/promotion-receipt.json)确认本地current为1.0.8.9并完成本会话修订确认，旧1.0.8.8本地EXE按保留规则退役，原清单、载荷及证明保持。源码／模拟界面检查不代替实体手机、真实LAN、物理DPI或真人试听，这些项目本轮未重测。
-
-## 实体牌美术与开发资源加载（2026-10-21）
-
-当前源码已采用两款游戏的实体卡牌美术：德国小强64张牌面按实际卡ID对应，补入经典灰色八动物牌背实拍；蟑螂沙拉采用实体蔬菜、禁说牌和厨师牌背。灰背仍为实拍透视图，并非平面扫描。沙拉2007版规则为120张普通牌＋8张禁说牌，当前项目规则保持112＋16；素材对应旧构成，确切印次及新版全部图案尚未证实，来源与采用边界见[沙拉来源](../games/cockroach-salad/sources.md)。
-
-[源码界面57项检查](../../artifacts/maintenance/cockroach-source/physical-art-r4-20261021/report.json)通过，覆盖320px至4K、125%／150%像素密度及实体牌显示。[实际开发命令记录](../../artifacts/maintenance/cockroach-art-integration-20261021/direct-launch-final.json)确认独立运行`node tools/dev/dev.mjs --foundation-test`，构建后启动隐藏原生盒子并正常退出；[原生开发资源检查](../../artifacts/maintenance/dev-game-resources/physical-art-final-r4-20261021/report.json)通过两款游戏97个资源的HTTP、MIME、SHA、图像解码及主机／模拟手机显示。冻结开发快照为`f756883c78bfef9d72df123529d86006670790a988c78c4b4d8976f902e9d1c8`。这些结果不代表实体手机、真实LAN或安装验收。
-
-开发构建按游戏清单ID自动发现同名资源目录，新增游戏无需补中央资源名单；新增／删除资源、旧发行隔离、跨命名空间和链接防护的[工具回归](../../artifacts/maintenance/test-history/runs/fbc29781-1918-4b40-bb65-130ddfb0b881/results.json)、[真实服务回归](../../artifacts/maintenance/test-history/runs/71a51afa-f249-464d-8106-30f3dc1bf971/results.json)及[存储安全15项](../../artifacts/maintenance/test-history/runs/6da03587-6dcb-4cd0-b777-d68ba0ca9d83/results.json)通过。修复开发启动的Node压缩包校验等待问题，[真实ZIP校验与篡改拒绝两项](../../artifacts/maintenance/test-history/runs/2c3eb2b4-9f3e-417e-967d-7728beefc272/results.json)通过；资源目录检查消除重复查询后，实际启动通过原20秒时限，权限、哈希和链接检查保持。入口约定见[开发工具](../../tools/dev/README.md)。
-
-本次只更新源码和开发构建，未导出、推广或发布安装器，版本不变；下方1.0.8.8原安装器仍使用交付时的抽象美术，其原字节与证明保持不变。
-
-## 德国小强与蟑螂沙拉完整交付（2026-10-21）
-
-[1.0.8.8原交付清单](../../artifacts/releases/v1.0.8/1.0.8.8/TableMax-1.0.8.8-installer-win-x64-manifest.json)38,251,047字节，SHA256 `6f3bf19bfa4c83a2bd9a6ff499b97e1e75e3efd3bacbd003ff79cfb8c48cc67c`；内部ZIP46,501,132字节，SHA256 `22d88bf48d7ca877f985fd08e763c74e2299cad94a8e161712f62dc3995c9403`；实际提取99,456,031字节，均低于120,000,000。冻结快照 `ebb0ce7cc3410f0deb413e5a2d49f7cb26bd156312050ff82c7416a33540f5a5`。两款规则、数字改编、来源与三档人机分别见[德国小强](../games/cockroach-poker/README.md)和[蟑螂沙拉](../games/cockroach-salad/README.md)。
-
-[正式安装证明](../../artifacts/maintenance/cockroach-delivery-20261021/finalized-installation-r2.json)通过：原路径标准账户Medium启动、中文向导、默认目录／长路径外置数据／旧框架失败恢复三条8步更新链，以及正式产品首装、复装、保存、默认卸载、同根重装读回和再次卸载12项检查。临时账户及profile删除、errors为空，见[隔离终态](../../artifacts/maintenance/cockroach-delivery-20261021/production-r2/isolated-account.json)。首次健康启动同次采样118,305,209字节，低于硬限、触发110,000,000工程预警；不称整个安装过程绝对峰值。
-
-[冻结游戏实玩](../../artifacts/maintenance/cockroach-delivery-20261021/installed-r2/results.json)通过：真实Native WebView2主机／公共屏与隐藏Edge手机模拟、两款生产动作、沙拉共同窗口与无人操作处罚、资源逐项SHA／图像及WAV解码、真实保存及重启暂停恢复。资源闭包为德国小强11个SVG＋3个WAV、沙拉6个SVG；无页面错误。源码[53项界面检查](../../artifacts/maintenance/cockroach-source/final-freeze-20261021/report.json)另覆盖320px至4K、125%／150%像素密度及减少动态；独立截图复审未见剩余游戏P0/P1/P2。以上不代替实体手机、真实LAN／公网、物理多DPI或真人声音试听；未改通用安装器，既有迁移页次要“浏览”按钮视觉问题仍按下方历史边界保留。
-
-[推广回执](../../artifacts/maintenance/cockroach-delivery-20261021/promotion-r2.json)确认current为1.0.8.8、修订预留确认，仅保留最新已验收本地EXE；公开版本与线上1.0.8.7原附件未变。第一未接受候选虽安装通过，冻结游戏检查发现漏资源，已修复后整包重验，同次交付只计修订8；[首候选退役原因及原SHA](../../artifacts/maintenance/cockroach-delivery-20261021/candidate-r1-retirement.json)与全部失败证据保留。
-
-## v1.0.8附件替换（2026-10-21）
-
-用户明确选择覆盖现有v1.0.8，Release ID `416648428`。替换前原两附件已下载并核对实际字节及远端摘要，[备份核对](../../artifacts/maintenance/v1.0.8/replacement-20261021/original-release/backup-verification.json)通过；旧标签源码提交、标签对象和原字节映射保留，下方首次发布记录不改写为新包证明。
-
-当时的完整安装器1.0.8.7（本地原件已按上述推广保留策略退役，线上附件保持同字节）预装七款游戏／八玩法，38,168,090字节，SHA256 `1e310d2fe9204ac60b0d12e74208da7db84f014823aa6124c25aa160535b1ede`；内部ZIP46,411,577字节，实际提取99,348,196字节，三项均小于120,000,000字节。冻结快照 `0172cd536654f78c9ec47540edefd13f92e5cfc5ea05c08e5a5c67b244b768ce`；原路径EXE单文件安全标记归一化保留SHA、owner、DACL与数据流，见[回执](../../artifacts/maintenance/v1.0.8/replacement-20261021/original-security-normalization.json)。
-
-源码TypeScript、112个改动TS／TSX文件ESLint、145个生产文件Prettier通过；名称与长度115用例、其余定向规则及平台232用例通过，设置与计时等116用例及UNO界面8项通过，见[定向报告](../../artifacts/maintenance/release-1-0-8-validation-guidance-20261021/report.json)。版本预留、推广、保留与附件替换守卫分别定向通过；保留原失败账，不将复用证据重复计数。源码模拟视口不代表实体手机、Safari、真实LAN或物理4K设备，本轮没有新增这些设备证明。
-
-正式安装验收[第二轮原始证明](../../artifacts/maintenance/v1.0.8/replacement-20261021/production-r2/shipping-executable-checks-full.json)12项通过：原路径标准账户Medium启动及中文向导、默认D／长I与外置D／旧框架失败恢复三条8步更新链通过，实际首装、同包复装、保存、默认卸载、同根重装读回和再次卸载通过；已安装更新设置页16布局通过。[隔离终态](../../artifacts/maintenance/v1.0.8/replacement-20261021/production-r2/isolated-account.json)退出0、账户与profile删除、errors为空。[封存证明](../../artifacts/maintenance/v1.0.8/replacement-20261021/finalized-installation-r2.json)2,118,240字节，SHA256 `6bc9f95ccd71ec417ab0f43c7a37fc1234b7533bbaeb3b51cb732634f7be8eff`；[推广回执](../../artifacts/maintenance/v1.0.8/replacement-20261021/promotion-r2.json)确认本地v1.0.8/current为1.0.8.7、修订预留已确认，保留检查通过且未删除原件。
-
-[GitHub v1.0.8](https://github.com/anApalpitate/TableMax/releases/tag/v1.0.8)同一Release已替换成功并保持latest、非草稿、非预发布；附件仅完整installer与发布source ZIP。[发布审计](../../artifacts/maintenance/v1.0.8/published-replacement-1792518939310-397c3161-48fc-4a1c-ac2d-d5f4fc479818/github-publication.json)核对两附件远端摘要、RSA签名说明和原标签身份。installer与上述本地1.0.8.7原件同字节；source ZIP 89,562,012字节、SHA256 `666af972df348b3a1e19e84669965d2b82687077fca5e3baf7048de762293f70`，实际源码提交 `0cb8858715d487ce5017bf3c5ad5f552836ae492`。原v1.0.8标签对象 `2f2c97a6c5abe887b695f21adb2681e54153da97` 及其旧源码提交 `2ea67bea22f7bba7f67a385331d7382452572d97` 未移动；GitHub自动标签源码仍对应旧提交，更新源码使用发布的 `TableMax-1.0.8-source.zip` 附件。原两附件、正文和精确SHA已备份，不部署Pages。
-
-首次健康启动同次采样118,040,123字节＝程序99,963,045＋框架5,273,757＋身份19,683＋当前游戏12,783,638，低于120,000,000硬限，触发110,000,000工程预警；不是整个安装过程绝对峰值。第一轮在正式保存场景遇到验证脚本测试昵称超限，保留[失败及账户清理结果](../../artifacts/maintenance/v1.0.8/replacement-20261021/production-r1/isolated-account.json)。将昵称改为8中文字并定向检查通过后，用同一安装器和修订7、新独立账户执行上述第二轮，未重封或借用首轮成功片段拼接证明。
-
-发布后[独立回下载核对](../../artifacts/maintenance/v1.0.8/replacement-20261021/download-verification/report.json)通过：线上installer实际字节SHA与本地原件一致，同一Release仍为latest，两附件身份及原标签不变。交付文档定向链接复核无新增断链；9处旧本地产物／旧发行工作树历史引用和AGENTS.md既有8,432字节超8KiB仍保留，未将全局文档审计称为通过。
-
-实际向导截图[视觉复核](../../artifacts/maintenance/v1.0.8/replacement-20261021/visual-review.json)记录一项非阻塞旧问题：观测DPI144时迁移页“浏览”次要按钮偏矮，文字底部略裁；主标题、正文、主要导航及取消可读且交互通过。本次未改安装器源码，不宣称所有向导控件视觉无瑕疵。
-
-## v1.0.8发行验收（2026-10-19）
-
-用户明确授权整理并发布为latest。最终[完整安装器1.0.8.6](../../artifacts/releases/v1.0.8/1.0.8.6/TableMax-1.0.8.6-installer-win-x64.exe)预装七款游戏／八玩法，38116181字节，SHA256 `a520c73f0f94291c18960e0b4de19716aa994531670fe5eac8a4dd505e806fc2`；内部ZIP46366190字节，实际提取99291693字节，均低于120,000,000字节。冻结快照 `85bd35415a6a6dab6b2de0c0f59f6cac9feae8d15e9da78ad8aae804c10018ff`，发行工作树current已推广到此包；主工作树原1.0.7/current与历史SHA保留。
-
-[原路径标准账户Medium启动](../../artifacts/maintenance/v1.0.8/release/production-r6/original-executable/report.json)、中文向导取消、默认D、长I／外置D及旧框架失败恢复三条8步更新链均通过。正式产品ID首装、同包复装、快捷方式、真实保存、默认卸载、同根重装读回及再次卸载共12检查通过。[隔离终态](../../artifacts/maintenance/v1.0.8/release/production-r6/isolated-account.json)与外层回执均为passed／退出0，账户/profile删除，errors为空。[封存证明](../../artifacts/maintenance/v1.0.8/release/finalized-installation-r6.json)从原execution receipt核对并绑定原EXE证明；[推广回执](../../artifacts/maintenance/v1.0.8/release/promotion-final-r6.json)仅推广同一原件。首次健康启动117915668字节＝程序99903886＋框架5273757＋身份19681＋当前游戏12718344，低于硬限，触发110,000,000工程预警；不称为整个安装过程的绝对峰值。
-
-马尼拉真实载荷22布局／26检查、源码15布局／10详情、触控63项及结算内部滚动7项通过；规则/保存/投影/Worker等89用例、实际签名预装5用例、夹具4用例通过。最终图逐图独立复核及失败修正见[游戏验证](../games/manila/validation-scenarios.md#v108发行定向复验2026-10-19)。实体手机、Safari、真实LAN、物理DPI/4K电视和真人听感仍待设备验收；未修改防火墙，不部署Pages。
-
-[GitHub v1.0.8](https://github.com/anApalpitate/TableMax/releases/tag/v1.0.8)已正式发布为latest，非草稿、非预发布。附件仅[完整installer](https://github.com/anApalpitate/TableMax/releases/download/v1.0.8/TableMax-1.0.8-installer-win-x64.exe)与[source ZIP](https://github.com/anApalpitate/TableMax/releases/download/v1.0.8/TableMax-1.0.8-source.zip)；installer与本地1.0.8.6原件同字节。source ZIP为89010151字节，SHA256 `510703958cbf25113b31fd895d74601421125d387776d95652219e06e780321b`；标签源码提交 `2ea67bea22f7bba7f67a385331d7382452572d97`，标签对象 `2f2c97a6c5abe887b695f21adb2681e54153da97`。[发布审计](../../artifacts/maintenance/v1.0.8/windows-editions/85bd35415a6a6dab6b2de0c0f59f6cac9feae8d15e9da78ad8aae804c10018ff/github-publication.json)已核对远端两附件摘要、latest、源码映射及应用RSA签名正文。历史v1.0.7附件和SHA保留，不部署Pages。
-
-## 马尼拉实体展板源码视觉验收与候选（2026-10-18）
-
-源码视觉验收按[源码视觉验证](source-visual-verification.md)执行，不依赖安装器：设计夹具 `artifacts/manila/validation/ui-final6-20261018` 13个布局、11个详情通过；港湾夹具 `artifacts/maintenance/manila-harbor-rebuild-20261017/mobile/ui-final-20261018/report.json` 45项检查、296次交互通过；触摸夹具 `artifacts/maintenance/manila-touch-layout-20261017/touch/ui-final-20261018/report.json` 45项检查通过；TypeScript、ESLint、Prettier通过。以上只代表当前源码与模拟浏览器，不证明安装后的EXE、系统登记或真实手机。
-
-完整安装器1.0.7.31：38,110,195字节，SHA256 `18e17e286253281fd67fb1ce477896b0ebcd5a5964c3d4d328064b5854701ee7`；内部ZIP 46,359,452字节、实际提取99,284,993字节，均严格小于120,000,000字节。冻结快照 `42c67f49f0f20371285fd74b932633e46f43eec3c85a4738c947f4908aaab207`，候选记录 `artifacts/package-payloads/v1.0.7/42c67f49f0f2-DkDej0/candidate.json`。
-
-正式安装验收（安装器、系统登记、升级／卸载与数据保全）按本页单独执行，尚未完成；current保持1.0.7.22，候选未推广、未发布。改动与边界见[归档](../archive/manila-board-redesign-2026-10-17.md)。
-
-## 最新完整安装器1.0.7.34与清理门禁（2026-10-18）
-
-[完整安装器1.0.7.34](../../artifacts/releases/v1.0.7/1.0.7.34/TableMax-1.0.7.34-installer-win-x64.exe)：38112431字节，SHA256 15230898d50fbafc52761a7735561d42352d0f24fe564485bed5ee71cce6d32c；内部ZIP 46361026字节、实际提取99286588字节，三项均小于120,000,000字节。七款游戏／八玩法的8个签名发行、15个blob已核验。
-
-原EXE单文件Low→Medium归一化已核原字节、owner、DACL与数据流保全；原路径标准新账户启动／取消及正式安装链未验证。用户明确本轮免除34正式验收，候选保持未推广、未发布。current已按[恢复记录](../archive/current-pointer-repair-2026-10-18.md)恢复有效22并通过清理预览；此前33缺证明导致拒绝及删除0的历史见[构建归档](../archive/installer34-deep-audit-2026-10-18.md)。
-
-## 盒子与马尼拉界面优化（2026-10-17）
-
-当前本地唯一完整交付为[安装器1.0.7.22](../../artifacts/releases/v1.0.7/1.0.7.22/TableMax-1.0.7.22-installer-win-x64.exe)及[清单](../../artifacts/releases/v1.0.7/1.0.7.22/TableMax-1.0.7.22-installer-win-x64-manifest.json)，预装七款游戏／八个玩法。EXE38,077,047字节，SHA `838a7a1ecd82670a6040baf568521498b50b6b19b06fe10bfc3377627db873b5`；内部ZIP46,319,673字节、实际提取99,225,894字节，均严格小于120,000,000字节。公开版本保持1.0.7，未发布或部署。
-
-盒子统一圆角浮窗、内部滚动和手机顶栏；四款待开发游戏使用核对过的发行方封面。马尼拉完成契券／铜牌、行动者头像、现金与抵押可借、图文详情、账本、单目标拖拽强调及方骰。最终载荷真实三端28布局／50项检查、6航次135动作自然整局及盒子80个设置浮窗通过；最终手机、账本、秘密股独立视觉复核通过。源码另覆盖21个游戏库、21个顶栏、4个头像及108个介绍布局；真实设备边界及原失败见[归档](../archive/box-manila-ui-polish-2026-10-17.md)，明细见[游戏验证](../games/manila/validation-scenarios.md#盒子与马尼拉界面优化2026-10-17)。
-
-[原路径Medium启动](../../artifacts/maintenance/v1.0.7/box-manila-polish-20261017/production-account-22-01/original-executable/report.json)、中文向导、默认目录和长根／外置数据的更新交接、旧框架失败恢复均通过；正式ID首装、复装、保存、两次默认卸载与同根重装读回通过。已安装更新设置页16布局通过，未宣称线上正向下载发生。[账户终态](../../artifacts/maintenance/v1.0.7/box-manila-polish-20261017/production-account-22-01/isolated-account.json)确认退出0、账户与profile删除、errors为空；[封存证明](../../artifacts/maintenance/v1.0.7/box-manila-polish-20261017/finalized-installation-22.json)1,991,941字节、SHA `50ac8fbf24cd13344953768f7f611ea77bb933fe124221bd7eeeef6b5c9a2fe7`，经[推广回执](../../artifacts/maintenance/v1.0.7/box-manila-polish-20261017/promotion-receipt-22.json)切换本地current。
-
-首次健康启动同次采样117,663,577字节＝程序99,834,940＋框架5,273,757＋身份／配置16,973＋当前游戏12,537,907，低于硬限并触发110,000,000工程预警。preStartupSampled为false；阶段观测最大183,962,899字节含数据／缓存／暂存，isAbsolutePeak为false。手机与4K／显示缩放为模拟；实体手机／Safari、真实LAN、物理Windows DPI及真人多人长局未在本轮认证。
-
-## 1.0.7.2：安装进度与版本交付（2026-10-16）
-
-[完整安装器](../../artifacts/releases/v1.0.7/1.0.7.2/TableMax-1.0.7.2-installer-win-x64-manifest.json)35,750,777字节，SHA `1eabdd13bdbea2712c731d6a77b00e1bdd2756331318194e685fc71a6cf3aa83`；snapshot `91e13f6af698a964df479b8233ecf5e2f063d9579f09f9e1f7f2d652542e7ca5`，candidate SHA `95e6e3df7a13836cd37e9697e1cc25486ff3dbc27921beabf56e152db51e6cf8`，安装清单SHA `3a53c159cc5f3a33dcf3e3f7a2209fad82411ec649c4c4672b0eee43dcc89886`。[资源复用证明](../../artifacts/maintenance/v1.0.7/installer-progress-release-20261016/round-01/retained-games-proof.json)确认6款正式游戏／7个玩法的31个游戏构建单元、25条原签名发行、24个blob及完整签名目录原字节保留，当前映射SHA `ac917e6a9dd36a7b3dd6f084944b9e2528309eace79a294d11a39539fb844bf9`未变。
-
-[默认D](../../artifacts/maintenance/v1.0.7/installer-progress-release-20261016/round-01/production-account-02-02/application-handoff/report.json)、[I198／外置D](../../artifacts/maintenance/v1.0.7/installer-progress-release-20261016/round-01/production-account-02-02/application-handoff-long-root-external-data/report.json)、[健康失败恢复](../../artifacts/maintenance/v1.0.7/installer-progress-release-20261016/round-01/production-account-02-02/application-framework-recovery/report.json)三条新布局1.0.7.60000→60001实际链各8步通过、0失败，覆盖真实更新入口、下载／验签／Apply、父退出、新持续主机、下一启动清理、旧框架保全及最终卸载。[真实进度窗口](../../artifacts/maintenance/v1.0.7/installer-progress-release-20261016/round-01/production-account-02-02/application-handoff/installer-progress/report.json)在隔离安装夹具上核对同一进度实现的实际中文活动进度、文件计数和Inno原生0–65535控件位置，保留真实PNG；安装进程持句柄退出0，自有Job自然归零、恢复并关闭私有桌面。向导迁移选择等沿用既有实现，本轮没有逐页重跑全部向导交互。
-
-[正式原始证明](../../artifacts/maintenance/v1.0.7/installer-progress-release-20261016/round-01/production-account-02-02/shipping-executable-checks-full.json)12项通过，覆盖实际首装、同根复装、保存、两次卸载、重装读回、登记／快捷方式及精确受管成员。两次资源回执均删除192文件、因存档引用保留56文件，deferred为空；数据库、配置、未知文件和旧局依赖保留。[正式账户终态](../../artifacts/maintenance/v1.0.7/installer-progress-release-20261016/round-01/production-account-02-02/isolated-account.json)及[驱动终态](../../artifacts/maintenance/v1.0.7/installer-progress-release-20261016/round-01/production-account-02-02-completion.json)确认退出0、账户和profile删除、errors为空。[独立封存证明](../../artifacts/maintenance/v1.0.7/installer-progress-release-20261016/round-01/finalized-installation-02.json)1,765,090字节，SHA `a0260b54b0af811aa561ecae57e5c6ce65bc61cb28bb15769624ad0f220c1e92`，绑定同次receipt、完整方法、同账户清理和保留runtime，不重复业务。
-
-[便携10→1.0.7.2同根迁移](../../artifacts/maintenance/v1.0.7/installer-progress-release-20261016/round-01/portable-migration-02-01/portable-migration/report.json)默认／外置D两场景各8项通过、0失败；实际安装根等于原便携配置根，新配置根为I/data，核原件逐文件SHA、存档及玩家恢复、卸载删留。[迁移账户终态](../../artifacts/maintenance/v1.0.7/installer-progress-release-20261016/round-01/portable-migration-02-01/isolated-account.json)及[迁移驱动终态](../../artifacts/maintenance/v1.0.7/installer-progress-release-20261016/round-01/portable-migration-02-01-completion.json)确认独立账户退出0并删除账户／profile，errors为空；不跨账户拼接证明。
-
-首次完成安装并健康启动后同次程序采样113,633,179字节＝程序97,709,380＋框架5,273,757＋身份／配置15,814＋当前G10,634,228，低于120,000,000硬限，触发110,000,000工程预警。preStartupSampled为false；阶段观测最大176,174,176字节包含数据／缓存／暂存，isAbsolutePeak为false。[封包日志](../../artifacts/maintenance/v1.0.7/installer-progress-release-20261016/round-01/package-candidate-02.log)核EXE、ZIP及实际提取内容；[推广回执](../../artifacts/maintenance/v1.0.7/installer-progress-release-20261016/round-01/promotion-receipt.json)绑定严格门禁和新v1.0.7/current，推广时旧v1.0.6/current及原10／18／19／21字节保全；发布后本地旧EXE／sidecar已获授权退役，见[退役记录](../archive/local-release-retirement-2026-10-16.md)。
-
-采用项目免费RSA应用签名，不提供Authenticode或SmartScreen信誉。浏览器下载标记、真实断电、实体手机LAN及线上正向更新UI下载未在本轮重测。原失败与过程见[本轮归档](../archive/installer-progress-v107-release-2026-10-16.md)。
+旧本地1.0.7／1.0.6指针、候选、回退记录和公开附件只按原日期及身份追溯；当前唯一交付以本页指针为准。发布分支、标签、source ZIP及应用签名仍按[Release流程](release.md)管理，普通文档提交／推送不发布、不部署Pages。工作区容量和已执行删除另见[项目瘦身](project-slimming.md)，不能从文件缺失反推删除已获授权。
 
 ## 历史验收入口
 
-以下仅保留旧URL及历史证据定位，不能据其版本标题认定当前产物已通过。
+以下仅兼容旧URL。日期标题和旧“最新／当前”措辞都是当时原记录；现行状态只查本页顶部。完整原文见[整理前记录](../archive/acceptance-before-consolidation-2026-10-23.md)。
+
+<a id="本人操作卡紧凑化2026-10-23"></a>
+
+[本人操作卡紧凑化（2026-10-23）](../archive/acceptance-before-consolidation-2026-10-23.md#本人操作卡紧凑化2026-10-23)。
+
+<a id="盒子稳定卡槽桌面与头像重设计2026-10-23"></a>
+
+[盒子稳定卡槽、桌面与头像重设计（2026-10-23）](../archive/acceptance-before-consolidation-2026-10-23.md#盒子稳定卡槽桌面与头像重设计2026-10-23)。
+
+<a id="盒子大厅与两新游戏简介源码2026-10-23"></a>
+
+[盒子大厅与两新游戏简介源码（2026-10-23）](../archive/acceptance-before-consolidation-2026-10-23.md#盒子大厅与两新游戏简介源码2026-10-23)。
+
+<a id="实体牌运行资源与安装器更新2026-10-23"></a>
+
+[实体牌运行资源与安装器更新（2026-10-23）](../archive/acceptance-before-consolidation-2026-10-23.md#实体牌运行资源与安装器更新2026-10-23)。
+
+<a id="实体牌美术与开发资源加载2026-10-21"></a>
+
+[实体牌美术与开发资源加载（2026-10-21）](../archive/acceptance-before-consolidation-2026-10-23.md#实体牌美术与开发资源加载2026-10-21)。
+
+<a id="德国小强与蟑螂沙拉完整交付2026-10-21"></a>
+
+[德国小强与蟑螂沙拉完整交付（2026-10-21）](../archive/acceptance-before-consolidation-2026-10-23.md#德国小强与蟑螂沙拉完整交付2026-10-21)。
+
+<a id="v108附件替换2026-10-21"></a>
+
+[v1.0.8附件替换（2026-10-21）](../archive/acceptance-before-consolidation-2026-10-23.md#v108附件替换2026-10-21)。
+
+<a id="v108发行验收2026-10-19"></a>
+
+[v1.0.8发行验收（2026-10-19）](../archive/acceptance-before-consolidation-2026-10-23.md#v108发行验收2026-10-19)。
+
+<a id="马尼拉实体展板源码视觉验收与候选2026-10-18"></a>
+
+[马尼拉实体展板源码视觉验收与候选（2026-10-18）](../archive/acceptance-before-consolidation-2026-10-23.md#马尼拉实体展板源码视觉验收与候选2026-10-18)。
+
+<a id="最新完整安装器10734与清理门禁2026-10-18"></a>
+
+[最新完整安装器1.0.7.34与清理门禁（2026-10-18）](../archive/acceptance-before-consolidation-2026-10-23.md#最新完整安装器10734与清理门禁2026-10-18)。
+
+<a id="盒子与马尼拉界面优化2026-10-17"></a>
+
+[盒子与马尼拉界面优化（2026-10-17）](../archive/acceptance-before-consolidation-2026-10-23.md#盒子与马尼拉界面优化2026-10-17)。
+
+<a id="1072安装进度与版本交付2026-10-16"></a>
+
+[1.0.7.2：安装进度与版本交付（2026-10-16）](../archive/acceptance-before-consolidation-2026-10-23.md#1072安装进度与版本交付2026-10-16)。
 
 <a id="马尼拉完整港湾安装候选2026-10-17待验收"></a>
 

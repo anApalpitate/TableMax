@@ -182,6 +182,18 @@ node --test tools/maintenance/maintenance.test.mjs
 
 工具回归沿用已登记的`audit-efficiency-docs.test.mjs`与tooling范围；本任务设置`TABLEMAX_TASK_TMP=tmp/<任务ID>`，将测试夹具集中于该根。已有夹具的自动释放沿用测试生命周期，其余临时夹具纳入任务冻结清单；不把测试夹具或假图像作为产品验收证据。
 
+## 文档格式与审计
+
+文档正文默认被全库Prettier命令忽略；对本任务明确路径使用项目锁定工具，不修改忽略策略或全局环境：
+
+```powershell
+node node_modules/prettier/bin/prettier.cjs --check --ignore-path .gitignore <明确修改的Markdown路径>
+git diff --check
+node tools/maintenance/audit-efficiency-docs.mjs --changes=<本任务路径及SHA清单> --baseline=<修改前审计> --migration=<来源及去向清单> --report=<正式证据路径>
+```
+
+只有确认需要格式化的本任务路径才将`--check`换成`--write`；也可通过同一项目Prettier API显式格式化。审计按变化文件及其入链收敛，同时检查根入口8KiB；必要全库复核仍保留原始基线，不改账来消除失败。历史文件原件缺失时，先逐项核查可用性，再保留原地址、来源／原哈希与复用限制；有效文件仍用可核验链接，未知原件不补造。入口修复只证明导航可用，不等于历史验收重新通过。
+
 ## 定向Markdown读取与迁移审计
 
 文档工具只按需读取源码，不启动产品或维护常驻索引。查找与读取拒绝越界、链接绕行及生成物路径；默认输出8KiB，预算包含定位信息和截断提示。原文按UTF-8读取；包管理器不可用时直接执行下面的Node等价入口，不为阅读修复或升级全局环境。

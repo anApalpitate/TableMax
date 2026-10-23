@@ -1,5 +1,7 @@
 # 完整安装与程序更新验收
 
+职责：本页维护安装／更新必须证明的条件及方法边界，不能作为“已经执行通过”的记录。当前原件、候选与已完成证明从[当前验收](acceptance.md#当前源码与本地交付)进入；具体命令、参数和输出字段唯一维护在[测试工具](../../tools/test/README.md#完整安装与程序更新验证)。仅用户明确要求本次导出新包时按影响执行，本轮文档整理不启动安装或补造证明。
+
 性质：当前验收方法与证据边界；不代表任何候选已通过。范围包括保存关闭隔离、完整程序安装／更新、原EXE直接启动；通过状态与交付身份查[当前验收](acceptance.md#当前源码与本地交付)，范围选择和失败处理查[验证](validation.md)。操作命令只在[测试工具](../../tools/test/README.md#完整安装与程序更新验证)维护。
 
 ## 保存关闭与安装隔离底座（2026-10-15）
@@ -68,4 +70,4 @@
 
 本地生成EXE继承Low是独立交付缺陷；只允许在核原SHA后对该可信最终产物做单文件Low→Medium归一化并记录前后保全，不改源工具标签、DACL、MOTW或系统策略。Windows完整性机制见[Microsoft MIC](https://learn.microsoft.com/en-us/windows/win32/secauthz/mandatory-integrity-control)，单文件标签参数见[icacls](https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/icacls)。项目免费RSA应用签名与Authenticode分别记录，NotSigned不冒充已签名或SmartScreen信誉。
 
-原路径浏览／取消证明作为完整安装／保存／卸载证明的补充，不能互相替代。封包采样原文件安全状态，本地current切换与公开发布预检必须读取原始补证并再次查原文件，缺证、Low、MOTW、实际Low／提权进程、源目录变化、非正常取消或清理失败均停止交付。具体命令与输出字段唯一维护在[测试工具](../../tools/test/README.md#原交付exe的安全标记与原路径启动)，实际结果见[验收](acceptance.md#马尼拉本地候选2026-10-16)。
+原路径浏览／取消证明作为完整安装／保存／卸载证明的补充，不能互相替代。封包采样原文件安全状态，本地current切换与公开发布预检必须读取原始补证并再次查原文件，缺证、Low、MOTW、实际Low／提权进程、源目录变化、非正常取消或清理失败均停止交付。具体命令与输出字段唯一维护在[测试工具](../../tools/test/README.md#原交付exe的安全标记与原路径启动)，实际结果与缺口见[当前验收](acceptance.md#当前源码与本地交付)，旧马尼拉候选仅作[原日期追溯](../archive/acceptance-2026-10-16-to-18.md#马尼拉本地候选2026-10-16)。

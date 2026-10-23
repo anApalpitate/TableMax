@@ -4,7 +4,7 @@
 
 ## 构建与原件
 
-- [完整安装器](../../artifacts/releases/v1.0.7/1.0.7.34/TableMax-1.0.7.34-installer-win-x64.exe)：38112431字节，SHA256 15230898d50fbafc52761a7735561d42352d0f24fe564485bed5ee71cce6d32c；内部ZIP 46361026字节、实际提取99286588字节，三项均严格小于120,000,000字节。公开版本仍为1.0.7，四位修订由33原子分配到34。
+- [完整安装器（原件现状）](historical-evidence-audit-2026-10-23.md#h14tablemax-10734-installer-win-x64exe)（历史原路径 `../../artifacts/releases/v1.0.7/1.0.7.34/TableMax-1.0.7.34-installer-win-x64.exe`）：38112431字节，SHA256 15230898d50fbafc52761a7735561d42352d0f24fe564485bed5ee71cce6d32c；内部ZIP 46361026字节、实际提取99286588字节，三项均严格小于120,000,000字节。公开版本仍为1.0.7，四位修订由33原子分配到34。
 - 冻结快照f89176a10cf652ee2e4e49c2ca4629f18d42d4cf892446d440478df7d23a0c15；42构建单元完成，内部签名目录8个发行／15个blob核验通过，覆盖七款正式游戏／八玩法。实际命令、输出及候选原件身份见[封包记录](../../artifacts/maintenance/build-and-deep-slimming-1792301636386/package-summary.json)。
 - 封包继承Low标签；已核原SHA后仅将这个EXE归一化为Medium，原字节、owner、DACL与数据流保全，见[归一化凭据](../../artifacts/maintenance/build-and-deep-slimming-1792301636386/executable-security-normalization.json)。原路径新标准账户实际启动／取消及完整安装链尚未执行；当前会话为非管理员，无法创建所需隔离账户，不冒称通过。
 - 为防止构建阶段先清理，临时显式延后安装器退役，并设置TABLEMAX_AUTO_MAINTENANCE=0；构建使用的方法源码留在本轮证据，之后按任务前SHA精确恢复工具原件，其他任务的未提交工具修改保留。没有叠加日常维护。

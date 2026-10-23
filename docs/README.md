@@ -41,6 +41,7 @@ pnpm docs:read docs/reference/validation.md --heading="按变更范围选择检�
 - 跨游戏主题总览：[参考索引](reference/README.md)。
 - 原文来源、核验等级和项目解释：对应游戏的来源页；不得由摘要升级认证。
 - 历史过程、旧哈希及旧验收：[归档索引](archive/README.md)。历史通过不升级为当前产物通过。
+- 历史引用失效、原件退役／缺失及同字节备份：[逐项可用性核查](archive/historical-evidence-audit-2026-10-23.md)。入口修复不等于补回原证明；缺失原件不得复用。
 - 剩余工作：[任务索引](tasks/README.md)；完成后归档，长期知识回到对应主题。
 - 资源原件、版本、派生和用途：[资源入口](../assets/README.md)。
 

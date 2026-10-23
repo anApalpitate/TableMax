@@ -22,7 +22,7 @@
 | 开发与维护工具    | [开发环境](development.md)：当前固定工具链、运行／验证、便携、清理、透明压缩；旧阶段与版本操作见 [历史记录](../archive/development-2026-10-01-to-04.md)。                                        |
 | 项目瘦身          | [深度瘦身方法论](deep-slimming-methodology.md)：历史高收益做法；[工作区维护](workspace-maintenance.md#容量触发与深度瘦身2026-10-15)：容量触发与保护；[瘦身记录](project-slimming.md)：实际结果。 |
 | Release发布       | [Release流程与发布约定](release.md)：本地交付、GitHub附件、源码／标签一致性、更新说明格式及发布收尾。                                                                                            |
-| 当前交付          | [验收记录](acceptance.md)：最近同包验证与设备边界；[历史验收](../archive/acceptance-2026-10-01-to-04.md)保留早期 AC、哈希和过程。                                                                |
+| 当前交付          | [验收索引](acceptance.md#当前源码与本地交付)：源码、候选、本地current与上次线上核查分别认定；[历史地址核查](../archive/historical-evidence-audit-2026-10-23.md)明确原件缺失、退役及备份边界。    |
 | 文件归属          | [目录职责](project-structure.md)：源码、资源、原资料、缓存与产物边界。                                                                                                                           |
 | 游戏接入          | [游戏接入与验证](game-development.md)：模块清单、SDK／网页契约、策略、恢复与接入验证。                                                                                                           |
 | 文档维护          | [维护规则](maintenance.md)：唯一正文、定向查询、视觉适用边界、更新、归档与提交。                                                                                                                 |
@@ -32,3 +32,5 @@
 ## 开发正文分工
 
 [构建与运行](build-and-run.md)、[验证](validation.md)、[工作区维护](workspace-maintenance.md)替代开发环境中的长正文；[开发环境](development.md)保留速查和旧锚点。操作命令按[工具索引](../../tools/README.md)进入，禁止回填多个全文副本。
+
+[验证](validation.md)维护范围、证明等级、复用与失败政策，[安装验收](installation-validation.md)维护安装方法的必需条件，[验收索引](acceptance.md)只维护当前状态及进入原证明的导航。各轮通过／失败和旧版本参数归archive，脚本调用与参数示例归tools；旧链接兼容不表示原件仍可用或已经重新通过。
