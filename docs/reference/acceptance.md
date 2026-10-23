@@ -4,7 +4,17 @@
 
 ## 当前源码与本地交付
 
-2026-10-24已确认后续彻底取消独立公共屏，只保留管理兼展示与玩家界面；当前仍处于文档确认阶段，源码及已交付旧包尚保留旧功能。本次未实施路由、原生窗口、显示配置或工具迁移，也未构建、安装或重新验收。待实施要求见[构建与运行](build-and-run.md#管理兼展示与旧入口迁移2026-10-24待实施)，验证边界见[迁移验证](validation.md#管理兼展示的迁移验证2026-10-24待实施)；不改变下述current、旧包字节、SHA或历史结论。
+2026-10-24当前源码已取消独立公共屏，仅保留管理兼展示与玩家。旧`/public`／`/public/game`含单尾斜杠及查询返回HTTP 410与玩家入口；管理页只授予真实管理员，未认证入口显示说明及44px玩家入口。独立公共窗口、菜单及优先音频已从当前源码移除；显示配置读v1的host并写仅host的v2。SDK public投影、匿名wire、旧ABI与原局固定发行继续保留。运行契约见[构建与运行](build-and-run.md#管理兼展示与旧入口迁移2026-10-24)，检查边界见[迁移验证](validation.md#管理兼展示的迁移验证2026-10-24)。本轮为源码和开发程序专项，未导出或安装新installer；下述current、旧包字节、SHA及历史结论不变。
+
+[源码UI汇总](../../artifacts/maintenance/retire-public-screen-20261024-f1/ui-summary.json)为改前52项、改后56项独立场景通过：八游戏九玩法及阿瓦隆十人终局的40个管理／玩家视图，主DOM文字、字体、轨道和几何与同合法投影改前一致；另有原型4、盒子4、管理2及未认证管理入口6。现代艺术经合法双拍、电力公司经合法建设、阿瓦隆经合法讨论／终局推进，不用初始态替代目标。电力地图在标签、SVG视窗／变换和避让边界持续稳定后采样。初轮SVG对象比较、地图过早采样及QR夹具路由错误保留原账；修正方法后仅复验受影响项。根代理目检另发现窄屏入口按钮遮字，作局部CSS修复后，320／390／1280普通与核验中两态均验证字形不交叠、44px入口首屏可达。[六组十二图离线审阅QA](../../artifacts/maintenance/retire-public-screen-20261024-f1/review-r01/report.json)通过解码、筛选、原始像素及375px页面无横向溢出；审阅站及全部回归截图归任务tmp，正式仅保留六张关键新界面证据。
+
+[Web门禁](../../artifacts/maintenance/retire-public-screen-20261024-f1/web-unit-gates-r01.json)、[恢复回归](../../artifacts/maintenance/retire-public-screen-20261024-f1/web-unit-recovery-r01.json)与[服务专项](../../artifacts/maintenance/retire-public-screen-20261024-f1/backend-r03/report.json)分别证明精确路由、iframe／样式、管理员拒绝、可靠同步／入座／声音偏好，以及真实HTTP／Socket／SQLite的匿名与凭证边界。13个旧源码工具只迁移角色循环／菜单断言并做语法、ESLint及格式检查，本轮实际界面证明由新矩阵承担，不宣称旧完整矩阵全跑。
+
+[开发runtime索引补修](../../artifacts/maintenance/retire-public-screen-20261024-f1/runtime-index-r02/report.json)修正本地源runtime超过历史64MB后重启误拒绝；只在精确本地receipt和实际完整成员尺寸／SHA／路径／无链接核验后读回。签名catalog／历史下载包64MB及完整EXE120MB门禁未放宽。[原故障数据独立复验](../../artifacts/maintenance/retire-public-screen-20261024-f1/native-restart-diagnosis-r02/report.json)通过启动、恢复宝可梦大厅和正常关闭；[冻结旧发行恢复](../../artifacts/maintenance/retire-public-screen-20261024-f1/frozen-release-r03/report.json)按性能修复后的实际依赖重新绑定，仅证明真实server／SQLite／HTTP旧web字节投影，不证明浏览器执行旧UI或旧安装器。
+
+[原生最终汇总](../../artifacts/maintenance/retire-public-screen-20261024-f1/native-final/report.json)为13个独立检查通过：r04原11项、r05真实合法UNO／App权限1项、r06显示1项，不重复累计。实际开发装配在标准Medium下检查唯一管理窗口／菜单、v1读取与v2仅host保存、窗口操作、音频归属／去重／静音、桥接拒绝、可见窗口防休眠策略、重启及六个未授权管理路由。显示保留三组CDP原始数据，并交叉核验原生DIP／OS缩放／zoom和CDP视口；PNG按CSS inner×DPR／CDP pageZoom及±2px采样，不是完整原生物理窗口截图，实际OS缩放均为150%，不声称多物理DPI。音频只验证调用与归属，不证明听感。保存关服保留drained及服务exit0日志；桌面进程退出码未单独断言。[进程只读核对](../../artifacts/maintenance/retire-public-screen-20261024-f1/native-final/owned-process-check.json)确认本任务Native、服务与WebView已退出，未强杀其他进程。
+
+原生行为轮使用同SHA实际`server.cjs`经私有管道预备独立开发缓存，就绪后drained／exit0，再用全新v1数据／profile启动Native；保留产品20秒门槛，不证明冷开发缓存首启或安装器。[native-r02](../../artifacts/maintenance/retire-public-screen-20261024-f1/native-r02/report.json)冷缓存约21秒、[native-r03](../../artifacts/maintenance/retire-public-screen-20261024-f1/native-r03/report.json)预备缓存后仍约22秒的0执行／13pending失败保留。[启动重复I/O补修](../../artifacts/maintenance/retire-public-screen-20261024-f1/runtime-performance-r01/report.json)完成store16、development5及真实旧发行恢复1共22项定向回归：同次构造按blob去重、registration仍独立完整校验、源SHA清单只算一次并复用至紧接resolve，构造后篡改仍被发现并隔离重建；新装配随后通过上述原生行为专项。原生旧授权夹具requestKey与PNG公式的方法失败分别保留r04／r05原账，仅定向复验，不修改产品以适应断言。开发装配保留5条既有payload预算预警，不作为零预警或完整容量验收。源码夹具与原生专项均不证明新安装器、实体手机／Safari、物理DPI／外接屏、真人听音或真实公网。
 
 2026-10-24按用户要求，当前源码移除蟑螂沙拉，保留8款游戏／9个玩法；旧完整EXE、current及历史恢复模块未改写，本次未导出新包。旧包仍为下述9游戏／10玩法，不能据源码移除推定旧安装已移除。
 
