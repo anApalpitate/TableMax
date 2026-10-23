@@ -8,12 +8,17 @@ import { launchDesktop } from './desktop-test.mjs';
 
 export async function withDeliverySession({
   root = resolve('.'),
-  edition = 'box',
+  edition = 'full',
+  legacyPublicScreen = false,
   report,
   checks,
   workDirectory,
 }) {
   assert.ok(['box', 'full'].includes(edition));
+  assert.equal(typeof legacyPublicScreen, 'boolean');
+  report.screenContract = legacyPublicScreen
+    ? 'legacy-host-public-player'
+    : 'host-player';
   assert.ok(Array.isArray(checks) && checks.length);
   const { version } = JSON.parse(
     await readFile(join(root, 'package.json'), 'utf8'),
@@ -106,6 +111,7 @@ export async function withDeliverySession({
   try {
     desktop = await launchDesktop({
       executablePath: join(app, 'TableMax.exe'),
+      legacyPublicWindow: legacyPublicScreen,
       soundEnabled: false,
       env: {
         TABLEMAX_BOX_DIRECTORY: work,
@@ -121,14 +127,17 @@ export async function withDeliverySession({
     const origin = new URL(host.url()).origin;
     const partitions = {
       host: 'desktop',
-      public: 'public-' + report.work,
       player: 'player-' + report.work,
+      ...(legacyPublicScreen ? { public: 'public-' + report.work } : {}),
     };
-    const publicState = await desktop.request('new-window', {
-      url: origin + '/public',
-      managed: true,
-      partition: partitions.public,
-    });
+    // Only historical-package callers may request the retired third screen.
+    const publicState = legacyPublicScreen
+      ? await desktop.request('new-window', {
+          url: origin + '/public',
+          managed: true,
+          partition: partitions.public,
+        })
+      : null;
     const playerState = await desktop.request('new-window', {
       url: origin + '/player',
       managed: false,
@@ -150,10 +159,12 @@ export async function withDeliverySession({
       }
       throw new Error('Missing isolated native context');
     }
-    const publicPage = await pageFor(publicState.id),
+    const publicPage = publicState ? await pageFor(publicState.id) : undefined,
       player = await pageFor(playerState.id);
-    assert.equal(publicState.role, 'public');
-    assert.equal(publicState.managed, true);
+    if (legacyPublicScreen) {
+      assert.equal(publicState.role, 'public');
+      assert.equal(publicState.managed, true);
+    }
     assert.equal(playerState.role, 'player');
     assert.equal(playerState.managed, false);
     report.partitions = partitions;
@@ -161,7 +172,7 @@ export async function withDeliverySession({
     await host.evaluate(() => {
       document.cookie = 'tablemax-acceptance-probe=host; SameSite=Strict';
     });
-    for (const page of [publicPage, player])
+    for (const page of legacyPublicScreen ? [publicPage, player] : [player])
       assert.ok(
         !(await page.evaluate(() => document.cookie)).includes(
           'tablemax-acceptance-probe',
@@ -170,7 +181,15 @@ export async function withDeliverySession({
     report.environment = await desktop.request('runtime');
     for (const check of checks) {
       const checkStarted = performance.now();
-      await check.run({ desktop, host, publicPage, player, origin, app, work });
+      await check.run({
+        desktop,
+        host,
+        player,
+        origin,
+        app,
+        work,
+        ...(legacyPublicScreen ? { publicPage } : {}),
+      });
       const durationMs = performance.now() - checkStarted;
       report.checks.push({ id: check.id, status: 'passed', durationMs });
       report.timings.checksMs += durationMs;

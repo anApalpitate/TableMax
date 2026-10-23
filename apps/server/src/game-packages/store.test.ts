@@ -309,8 +309,9 @@ function fixture(text = 'first') {
       'base64',
     ),
   };
-  mkdirSync(resolve('tmp'), { recursive: true });
-  const root = mkdtempSync(resolve('tmp/package-store-'));
+  const temporaryRoot = resolve(process.env.TABLEMAX_TEST_TMP_ROOT ?? 'tmp');
+  mkdirSync(temporaryRoot, { recursive: true });
+  const root = mkdtempSync(join(temporaryRoot, 'package-store-'));
   roots.push(root);
   const offline = join(root, 'offline.zip');
   writeFileSync(

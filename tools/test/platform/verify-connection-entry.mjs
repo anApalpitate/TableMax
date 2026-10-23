@@ -273,15 +273,10 @@ try {
   assert.ok(oldLanUrl);
   await setExternal(host, origin + '/player');
   await nativeEntry(host, origin);
-  const publicEvent = desktop.waitForEvent('window');
-  await desktop.request('open-public');
-  const publicPage = await publicEvent;
-  await publicPage.locator('[data-room-revision]').waitFor();
-  await nativeEntry(publicPage, origin, true);
+  await nativeEntry(host, origin, true);
   await capture(host, 'host-current-entry');
-  await capture(publicPage, 'public-current-entry');
   await checked(
-    'Host mouse activation and public keyboard activation approved exact saved root URL without navigation or revision changes',
+    'Administrator mouse and keyboard activation approved the exact saved root URL without navigation or revision changes',
   );
   const beforeRejected = (await snapshot(host)).externalJoin.count;
   await host.evaluate((url) => window.open(url, '_blank'), origin);
@@ -340,13 +335,42 @@ try {
     report.externalRequests.push(url.origin);
     return route.abort();
   });
-  const publicBrowser = await context.newPage();
-  publicBrowser.on('pageerror', (error) =>
-    report.pageErrors.push(error.message),
+  const browserHost = await context.newPage();
+  browserHost.on('pageerror', (error) => report.pageErrors.push(error.message));
+  for (const path of ['/host', '/host/game']) {
+    await browserHost.goto(origin + path);
+    await browserHost
+      .getByRole('heading', { name: 'TableMax 管理兼展示端', exact: true })
+      .waitFor();
+    await browserHost
+      .getByText(
+        '此入口仅供已认证管理员使用。请从本机 TableMax 管理窗口进入。',
+        { exact: true },
+      )
+      .waitFor();
+    assert.equal(
+      await browserHost.locator('.room-root,.box-screen').count(),
+      0,
+    );
+  }
+  for (const path of ['/public', '/public/', '/public/game', '/public/game/']) {
+    const response = await browserHost.goto(origin + path);
+    assert.equal(response.status(), 410);
+    await browserHost
+      .getByRole('heading', { name: '独立公共屏已停用', exact: true })
+      .waitFor();
+    assert.equal(await browserHost.getByRole('link').getAttribute('href'), '/');
+    assert.equal(await browserHost.locator('script,.room-root').count(), 0);
+  }
+  await browserHost.goto(origin);
+  await browserHost.evaluate(
+    (token) => sessionStorage.setItem('tablemax-host', token),
+    hostToken,
   );
-  await publicBrowser.goto(origin + '/public');
-  const popupEvent = publicBrowser.waitForEvent('popup');
-  await publicBrowser
+  await browserHost.goto(origin + '/host');
+  await browserHost.locator('.room-root').waitFor();
+  const popupEvent = browserHost.waitForEvent('popup');
+  await browserHost
     .getByRole('link', { name: '使用网址，在浏览器中加入牌桌', exact: true })
     .click();
   const player = await popupEvent;
@@ -425,30 +449,29 @@ try {
   );
   await setExternal(host, external + '/player');
   await nativeEntry(host, external);
-  await nativeEntry(publicPage, external);
   await until(
     async () =>
-      (await publicBrowser
+      (await browserHost
         .locator('a[data-tablemax-join-link]')
         .getAttribute('href')) === external,
     'Browser link lagged QR entry',
   );
   for (const width of [320, 390, 1280]) {
-    await publicBrowser.setViewportSize({
+    await browserHost.setViewportSize({
       width,
       height: width < 500 ? 640 : 720,
     });
-    const displayedLink = publicBrowser.locator('a[data-tablemax-join-link]');
+    const displayedLink = browserHost.locator('a[data-tablemax-join-link]');
     assert.equal((await displayedLink.innerText()).trim(), '打开网址');
     assert.ok(
       await displayedLink.evaluate(
         (element) => element.scrollWidth <= element.clientWidth + 2,
       ),
     );
-    await publicBrowser
+    await browserHost
       .getByRole('button', { name: '连接帮助', exact: true })
       .click();
-    const panel = publicBrowser.getByRole('dialog', {
+    const panel = browserHost.getByRole('dialog', {
       name: '连接帮助',
       exact: true,
     });
@@ -456,7 +479,7 @@ try {
     await panel.getByText('直接打开', { exact: true }).waitFor();
     assert.equal(
       await panel.getByLabel('外部入口网址', { exact: true }).count(),
-      0,
+      1,
     );
     await panel.locator('.connection-help__url').scrollIntoViewIfNeeded();
     assert.ok(
@@ -465,15 +488,15 @@ try {
       ),
     );
     assert.ok(
-      await publicBrowser.evaluate(
+      await browserHost.evaluate(
         () => document.documentElement.scrollWidth <= innerWidth + 2,
       ),
     );
-    await capture(publicBrowser, `public-help-long-url-${width}`);
+    await capture(browserHost, `browser-host-help-long-url-${width}`);
     await panel.getByRole('button', { name: '关闭面板', exact: true }).click();
   }
   await checked(
-    'HTTPS nonstandard-port normalized entry synchronized host/public/browser; long URL and dual instructions remained readable at 320/390/1280px',
+    'HTTPS nonstandard-port normalized entry synchronized native/browser administrator views; long URL and dual instructions remained readable at 320/390/1280px',
   );
   await host.getByRole('button', { name: '连接帮助', exact: true }).click();
   await host.getByRole('button', { name: '使用局域网', exact: true }).click();
@@ -502,20 +525,18 @@ try {
       .getByRole('button', { name: '取消准备', exact: true })
       .waitFor();
     await command({ type: 'start' });
-    for (const page of [host, publicPage]) {
-      await page.locator('.pokemon-screen').waitFor();
-      await page.reload();
-      await page.locator('.pokemon-screen').waitFor();
-      await page.locator('.back-to-box').click();
-      await page.locator('.invite-friends').waitFor();
-      await page
-        .getByRole('heading', { name: '对局进行中', exact: true })
-        .waitFor();
-      await nativeEntry(page, oldLanUrl);
-    }
+    await host.locator('.pokemon-screen').waitFor();
+    await host.reload();
+    await host.locator('.pokemon-screen').waitFor();
+    await host.locator('.back-to-box').click();
+    await host.locator('.invite-friends').waitFor();
+    await host
+      .getByRole('heading', { name: '对局进行中', exact: true })
+      .waitFor();
+    await nativeEntry(host, oldLanUrl);
     await capture(host, 'host-game-refresh-return-entry');
     await checked(
-      'After real two-human game start, game-page reload and return-to-box navigation preserved authorized host/public website entry',
+      'After real two-human game start, administrator game-page reload and return-to-box navigation preserved the authorized website entry',
     );
   }
   assert.deepEqual(report.externalRequests, []);

@@ -83,6 +83,19 @@ export function verifyCatalog(
   return envelope.payload;
 }
 export function validateCatalog(catalog: PackageCatalog): void {
+  validateCatalogContents(catalog);
+}
+/** Installed local runtimes are not archives transferred or installed as packages. */
+export function validateInstalledCatalog(
+  catalog: PackageCatalog,
+  verifyLocalRuntime: (release: GameRelease, code: PackageBlob) => boolean,
+): void {
+  validateCatalogContents(catalog, verifyLocalRuntime);
+}
+function validateCatalogContents(
+  catalog: PackageCatalog,
+  verifyLocalRuntime?: (release: GameRelease, code: PackageBlob) => boolean,
+): void {
   if (
     catalog.schemaVersion !== 1 ||
     !Array.isArray(catalog.blobs) ||
@@ -142,12 +155,16 @@ export function validateCatalog(catalog: PackageCatalog): void {
       release.resources.some((id) => blobs.get(id)?.kind !== 'resources')
     )
       throw new Error('missing-package-dependency');
-    for (const metric of ['archiveBytes', 'installedBytes'] as const)
-      if (
-        closure.reduce((n, b) => n + (b?.[metric] ?? 0), 0) >= GAME_SIZE_LIMIT
-      )
-        throw new Error('game-package-size-limit');
     const code = blobs.get(release.code)!;
+    if (
+      (['archiveBytes', 'installedBytes'] as const).some(
+        (metric) =>
+          closure.reduce((n, b) => n + (b?.[metric] ?? 0), 0) >=
+          GAME_SIZE_LIMIT,
+      ) &&
+      !verifyLocalRuntime?.(release, code)
+    )
+      throw new Error('game-package-size-limit');
     if (
       !release.module.entries.web.startsWith('web/') ||
       release.module.entries.rules.startsWith('web/') ||

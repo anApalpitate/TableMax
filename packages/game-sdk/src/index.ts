@@ -14,6 +14,7 @@ export interface GameManifest {
   decisionTimer?: boolean;
 }
 
+/** Safe non-player projection, including administrators; not a UI screen role. */
 export type Viewer = { role: 'public' } | { role: 'player'; seatId: string };
 // Authorization is platform-owned; a host gets no extra game information.
 export interface RuleContext {

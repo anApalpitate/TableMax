@@ -52,6 +52,22 @@ import {
   publicReleaseDetails,
 } from './game-packages/public';
 
+const retiredPublicScreen = `<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>独立公共屏已停用 · TableMax</title>
+</head>
+<body>
+  <main>
+    <h1>独立公共屏已停用</h1>
+    <p>电脑管理员界面统一管理和展示牌桌。玩家请从入口加入。</p>
+    <p><a href="/">进入玩家页面</a></p>
+  </main>
+</body>
+</html>`;
+
 export async function createService(
   input: ServiceConfig,
   game?: LoadedGame | GameRegistry,
@@ -220,7 +236,7 @@ export async function createService(
       reply.header('Cache-Control', 'no-store');
     reply.header(
       'Content-Security-Policy',
-      `default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data: blob:; connect-src 'self' ws: wss:; object-src 'none'; base-uri 'none'; frame-ancestors ${/^\/(?:player(?:\/game)?)?(?:\?|$)/.test(request.url) ? "'self'" : "'none'"}`,
+      `default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data: blob:; connect-src 'self' ws: wss:; object-src 'none'; base-uri 'none'; frame-ancestors ${/^\/(?:player(?:\/game)?\/?)?(?:\?|$)/.test(request.url) ? "'self'" : "'none'"}`,
     );
     reply.header('X-Content-Type-Options', 'nosniff');
     reply.header('Referrer-Policy', 'no-referrer');
@@ -388,6 +404,12 @@ export async function createService(
   app.addHook('preHandler', async (request, reply) => {
     if (closing && !['GET', 'HEAD', 'OPTIONS'].includes(request.method))
       return reply.code(503).send({ ok: false, reason: 'service-closing' });
+    // Screen namespaces never fall through to filesystem aliases or the SPA.
+    if (
+      request.routeOptions.url === '/*' &&
+      /^\/(?:host|public|player)(?:\/|\?|$)/.test(request.url)
+    )
+      return reply.callNotFound();
   });
   app.post('/api/session/transfer/request', async (request, reply) => {
     const parsed = TransferRequestSchema.safeParse(request.body);
@@ -706,12 +728,28 @@ export async function createService(
       index: ['index.html'],
     });
     for (const route of [
-      '/host',
       '/public',
-      '/player',
-      '/host/game',
+      '/public/',
       '/public/game',
+      '/public/game/',
+    ]) {
+      app.get(route, (_request, reply) =>
+        reply
+          .code(410)
+          .type('text/html; charset=utf-8')
+          .header('Cache-Control', 'no-store')
+          .send(retiredPublicScreen),
+      );
+    }
+    for (const route of [
+      '/host',
+      '/host/',
+      '/player',
+      '/player/',
+      '/host/game',
+      '/host/game/',
       '/player/game',
+      '/player/game/',
     ]) {
       app.get(route, (_request, reply) => reply.sendFile('index.html'));
     }

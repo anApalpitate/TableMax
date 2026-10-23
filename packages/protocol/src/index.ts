@@ -381,6 +381,7 @@ export interface RoomView {
     online: boolean;
     botDifficulty: BotDifficulty | null;
   }[];
+  /** Legacy public wire identity means an unauthenticated visitor, not a screen. */
   self: { role: 'public' | 'host' | 'player'; seatId: string | null };
   gameView: unknown;
   decisionId: string | null;

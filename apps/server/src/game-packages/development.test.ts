@@ -1,18 +1,35 @@
 import { expect, it } from 'vitest';
 import { build } from 'esbuild';
-import { mkdirSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
+import {
+  closeSync,
+  mkdirSync,
+  mkdtempSync,
+  openSync,
+  readFileSync,
+  writeFileSync,
+  writeSync,
+} from 'node:fs';
 import { join, resolve } from 'node:path';
+import { generateKeyPairSync, sign } from 'node:crypto';
 import { createService } from '../service';
 import { PackageStore } from './store';
 import { PROJECT_GAME_PUBLIC_KEY } from './project-public-key';
-import { blobIdentity, releaseIdentity } from './verification';
+import {
+  blobIdentity,
+  canonical,
+  GAME_SIZE_LIMIT,
+  releaseIdentity,
+  validateCatalog,
+  verifyCatalog,
+} from './verification';
 import type { Command } from '@tablemax/protocol';
 import type { ModuleManifest } from '@tablemax/game-sdk/module-manifest';
 
 type Service = Awaited<ReturnType<typeof createService>>;
 async function fixture() {
-  mkdirSync('tmp', { recursive: true });
-  const root = mkdtempSync(resolve('tmp/development-games-'));
+  const temporaryRoot = resolve(process.env.TABLEMAX_TEST_TMP_ROOT ?? 'tmp');
+  mkdirSync(temporaryRoot, { recursive: true });
+  const root = mkdtempSync(join(temporaryRoot, 'development-games-'));
   const app = join(root, 'app');
   for (const path of [
     'games',
@@ -285,4 +302,110 @@ it('keeps non-legacy resource resolution bound to its explicit inventory map', a
   expect(
     store.resolvePublicFile(mapped.releaseId, 'games/manila.cjs'),
   ).toBeUndefined();
+}, 30000);
+
+it('restores a materialized local runtime over the historical transfer limit and rejects forged receipts or changed files', async () => {
+  const f = await fixture();
+  const largeRelative = 'web/resources/manila/large-local-runtime.bin';
+  writeFileSync(
+    join(f.app, 'web/games/manila/resources/manila/large-local-runtime.bin'),
+    Buffer.alloc(GAME_SIZE_LIMIT, 1),
+  );
+  const options = {
+    root: f.config.gamesDir,
+    publicKey: PROJECT_GAME_PUBLIC_KEY,
+    protectedReleaseIds: () => [],
+  };
+  let service: Service | undefined;
+  try {
+    service = await createService(f.config);
+    await command(service, service.hostToken, {
+      type: 'select-game',
+      gameId: 'manila',
+    });
+    const ref = service.room.view().game!.releaseRef!;
+    const entryPath = `/game-packages/${ref}/web/web/entry.js`;
+    const entryBefore = await service.app.inject(entryPath);
+    expect(entryBefore.statusCode).toBe(200);
+    await service.close();
+    service = undefined;
+
+    // No development option: proof belongs to the existing local record itself.
+    const restored = new PackageStore(options);
+    const index = restored.snapshot().index;
+    const release = index.releases[ref]!;
+    const code = index.blobs[release.code]!;
+    expect(code.installedBytes).toBeGreaterThan(GAME_SIZE_LIMIT);
+    expect(code.files.find((file) => file.path === largeRelative)?.size).toBe(
+      GAME_SIZE_LIMIT,
+    );
+    expect(restored.resolveModule(ref)?.release.releaseId).toBe(ref);
+    const catalog = {
+      schemaVersion: 1 as const,
+      releases: Object.values(index.releases),
+      blobs: Object.values(index.blobs),
+    };
+    expect(() => validateCatalog(catalog)).toThrow('game-package-size-limit');
+    const keys = generateKeyPairSync('ed25519');
+    expect(() =>
+      verifyCatalog(
+        {
+          payload: catalog,
+          signature: sign(
+            null,
+            Buffer.from(canonical(catalog)),
+            keys.privateKey,
+          ).toString('base64'),
+        },
+        keys.publicKey,
+      ),
+    ).toThrow('game-package-size-limit');
+
+    service = await createService(f.config);
+    expect(service.room.view().game!.releaseRef).toBe(ref);
+    const entryAfter = await service.app.inject(entryPath);
+    expect(entryAfter.statusCode).toBe(200);
+    expect(entryAfter.rawPayload).toEqual(entryBefore.rawPayload);
+    await service.close();
+    service = undefined;
+
+    const indexPath = join(f.config.gamesDir, 'index.json');
+    const originalIndex = JSON.stringify(index);
+    const forgedReceipt = structuredClone(index);
+    forgedReceipt.blobs[code.id]!.archiveSha256 = '0'.repeat(64);
+    writeFileSync(indexPath, JSON.stringify(forgedReceipt));
+    expect(() => new PackageStore({ ...options, development: true })).toThrow(
+      'game-package-size-limit',
+    );
+
+    const notLocal = structuredClone(index);
+    const ordinary = notLocal.releases[ref]!;
+    delete ordinary.legacy;
+    ordinary.releaseId = releaseIdentity(ordinary);
+    delete notLocal.releases[ref];
+    notLocal.releases[ordinary.releaseId] = ordinary;
+    for (const key of Object.keys(notLocal.selected))
+      if (notLocal.selected[key] === ref)
+        notLocal.selected[key] = ordinary.releaseId;
+    writeFileSync(indexPath, JSON.stringify(notLocal));
+    expect(() => new PackageStore({ ...options, development: true })).toThrow(
+      'game-package-size-limit',
+    );
+
+    writeFileSync(indexPath, originalIndex);
+    const file = openSync(
+      join(f.config.gamesDir, release.gameId, 'blobs', code.id, largeRelative),
+      'r+',
+    );
+    try {
+      writeSync(file, Buffer.from([0]), 0, 1, 0);
+    } finally {
+      closeSync(file);
+    }
+    expect(() => new PackageStore(options)).toThrow(
+      'installed-package-corrupt',
+    );
+  } finally {
+    await service?.close();
+  }
 }, 30000);

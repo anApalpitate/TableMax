@@ -537,21 +537,46 @@ try {
       await rendered(player.page, await view(player.token));
     }
   }
-  for (const path of connectionOnly
-    ? ['/host', '/public']
-    : ['/host', '/public', '/host/game', '/public/game']) {
+  for (const path of connectionOnly ? ['/host'] : ['/host', '/host/game']) {
     const page = await browser.newPage();
     await page.goto(origin + path);
-    await page.locator('[data-room-revision]').waitFor();
-    assert.equal(await page.locator('iframe[data-player-frame]').count(), 0);
+    await page
+      .getByRole('heading', { name: 'TableMax 管理兼展示端', exact: true })
+      .waitFor();
+    await page
+      .getByText(
+        '此入口仅供已认证管理员使用。请从本机 TableMax 管理窗口进入。',
+        { exact: true },
+      )
+      .waitFor();
+    assert.equal(
+      await page
+        .locator('.room-root,.box-screen,iframe[data-player-frame]')
+        .count(),
+      0,
+    );
+    await page.close();
+  }
+  for (const path of ['/public', '/public/', '/public/game', '/public/game/']) {
+    const page = await browser.newPage();
+    const response = await page.goto(origin + path + '?entry=retired');
+    assert.equal(response.status(), 410);
+    await page
+      .getByRole('heading', { name: '独立公共屏已停用', exact: true })
+      .waitFor();
+    assert.equal(await page.getByRole('link').getAttribute('href'), '/');
+    assert.equal(
+      await page.locator('script,.room-root,.box-screen').count(),
+      0,
+    );
     await page.close();
   }
   assert.deepEqual(report.pageErrors, []);
   assert.deepEqual(report.externalRequests, []);
   await checked(
     connectionOnly
-      ? 'Standalone host/public box routes verified'
-      : 'Legacy /player/game refresh and standalone host/public routes verified',
+      ? 'Unauthenticated host box access denied; retired public URLs return static 410'
+      : 'Legacy player game refresh, unauthenticated host denial and retired public 410 verified',
   );
   assert.equal(hash(await readFile(archive)), report.archiveSha256);
   report.status = 'passed';

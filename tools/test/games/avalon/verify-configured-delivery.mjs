@@ -55,9 +55,9 @@ try {
     workDirectory: option('work'),
     checks: [
       {
-        id: 'configured-package-and-three-end-rules',
-        async run({ desktop, host, publicPage, player, origin }) {
-          for (const page of [host, publicPage, player])
+        id: 'configured-package-host-player-rules',
+        async run({ desktop, host, player, origin }) {
+          for (const page of [host, player])
             page.on('pageerror', (error) =>
               report.pageErrors.push(error.message),
             );
@@ -211,22 +211,12 @@ try {
           await command({ type: 'start' });
           await command({ type: 'pause' });
           await host.goto(origin + '/host/game');
-          await publicPage.goto(origin + '/public/game');
           await player.goto(origin + '/player/game');
           const surfaces = [
             [
               host,
               host,
               'host',
-              [
-                [1280, 720],
-                [3840, 2160],
-              ],
-            ],
-            [
-              publicPage,
-              publicPage,
-              'public',
               [
                 [1280, 720],
                 [3840, 2160],

@@ -32,7 +32,7 @@ import {
   verifyCatalog,
   blobIdentity,
   releaseIdentity,
-  validateCatalog,
+  validateInstalledCatalog,
 } from './verification';
 import type { ModuleManifest } from '../../../../packages/game-sdk/src/module-manifest';
 import { releaseCompatible } from './catalog';
@@ -803,11 +803,39 @@ export class PackageStore {
       !index.selected
     )
       throw new Error('invalid-install-index');
-    validateCatalog({
-      schemaVersion: 1,
-      releases: Object.values(index.releases),
-      blobs: Object.values(index.blobs),
-    });
+    validateInstalledCatalog(
+      {
+        schemaVersion: 1,
+        releases: Object.values(index.releases),
+        blobs: Object.values(index.blobs),
+      },
+      (release, code) => {
+        // Recognize registerLocalRuntime's content-derived receipt, then prove
+        // its materialized files. Development mode or legacy labels alone grant nothing.
+        if (
+          release.legacy !== true ||
+          release.releaseTag !== 'legacy' ||
+          release.resources.length !== 0 ||
+          Object.keys(release.resourceMap).length !== 0 ||
+          !compatibleModule(release.module.compatibility) ||
+          code.archiveBytes !== 1 ||
+          code.assetName !== 'legacy.zip' ||
+          code.releaseTag !== 'legacy' ||
+          code.archiveSha256 !==
+            sha256(
+              canonical(
+                code.files.map(({ path, sha256 }) => ({ path, sha256 })),
+              ),
+            )
+        )
+          return false;
+        this.verifyInstalled(
+          join(this.root, release.gameId, 'blobs', code.id),
+          code,
+        );
+        return true;
+      },
+    );
     for (const [id, release] of Object.entries(index.releases))
       if (id !== release.releaseId) throw new Error('invalid-install-index');
     for (const [id, blob] of Object.entries(index.blobs))

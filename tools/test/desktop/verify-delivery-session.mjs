@@ -22,6 +22,8 @@ const report = {
 };
 try {
   await withDeliverySession({
+    edition: 'box',
+    legacyPublicScreen: true,
     report,
     checks: [
       {

@@ -9,6 +9,7 @@ import {
   copyFileSync,
 } from 'node:fs';
 import { resolve, join } from 'node:path';
+import { createHash } from 'node:crypto';
 import { createService } from '../service';
 import type { Command } from '@tablemax/protocol';
 import type { SignedCatalog } from './types';
@@ -26,8 +27,9 @@ const currentReleases = preferredCatalogReleases(
     !retiredVariant(r.gameId, r.variantId, retiredVariantPolicies()),
 );
 function fixture() {
-  mkdirSync('tmp', { recursive: true });
-  const root = mkdtempSync(resolve('tmp/package-service-'));
+  const temporaryRoot = resolve(process.env.TABLEMAX_TEST_TMP_ROOT ?? 'tmp');
+  mkdirSync(temporaryRoot, { recursive: true });
+  const root = mkdtempSync(join(temporaryRoot, 'package-service-'));
   const webDir = join(root, 'app', 'web'),
     dataDir = join(root, 'data'),
     gamesDir = join(root, 'games'),
@@ -88,6 +90,37 @@ it('preserves actual SQLite save and identities across local executable repair o
     ).toBe(true);
     const player = await service.room.join('Persisted');
     const ref = service.room.view().game!.releaseRef!;
+    const release = currentReleases.find((item) => item.releaseId === ref)!;
+    expect(release.gameId).toBe('uno');
+    expect(release.module.compatibility.sdk).toBe(1);
+    expect(release.module.compatibility.webHost).toBe(1);
+    const digest = (bytes: Uint8Array) =>
+      createHash('sha256').update(bytes).digest('hex');
+    const frozenBlobs = signedCatalog.payload.blobs.filter((blob) =>
+      [release.code, ...release.resources].includes(blob.id),
+    );
+    const verifyFrozenBytes = () => {
+      for (const blob of frozenBlobs) {
+        expect(digest(readFileSync(join(artifacts, blob.assetName)))).toBe(
+          blob.archiveSha256,
+        );
+        for (const file of blob.files)
+          expect(
+            digest(
+              readFileSync(
+                join(
+                  config.gamesDir,
+                  release.gameId,
+                  'blobs',
+                  blob.id,
+                  file.path,
+                ),
+              ),
+            ),
+          ).toBe(file.sha256);
+      }
+    };
+    verifyFrozenBytes();
     expect((await command(service, { type: 'add-bot', name: 'Bot' })).ok).toBe(
       true,
     );
@@ -111,6 +144,39 @@ it('preserves actual SQLite save and identities across local executable repair o
     expect(service.room.view().instanceId).toBe(instance);
     expect(service.room.view().paused).toBe(true);
     expect(service.room.view(player.token).self.role).toBe('player');
+    verifyFrozenBytes();
+    for (const [token, role] of [
+      [service.hostToken, 'host'],
+      [player.token, 'player'],
+    ] as const) {
+      const projected = await service.app.inject({
+        method: 'POST',
+        url: '/api/session/view',
+        payload: { token },
+      });
+      expect(projected.statusCode).toBe(200);
+      const view = projected.json().view;
+      expect(view.self.role).toBe(role);
+      expect(view.game.releaseRef).toBe(ref);
+      expect(view.gameView).not.toBeNull();
+      const page = await service.app.inject(`/${role}/game`);
+      expect(page.statusCode).toBe(200);
+    }
+    expect(service.room.view(service.hostToken).gameView).toEqual(
+      service.room.view().gameView,
+    );
+    expect(service.room.view(player.token).gameView).not.toEqual(
+      service.room.view(service.hostToken).gameView,
+    );
+    const webPath = release.module.entries.web;
+    const webFile = frozenBlobs
+      .flatMap((blob) => blob.files)
+      .find((file) => file.path === webPath)!;
+    const webEntry = await service.app.inject(
+      `/game-packages/${ref}/${webPath}`,
+    );
+    expect(webEntry.statusCode).toBe(200);
+    expect(digest(webEntry.rawPayload)).toBe(webFile.sha256);
   } finally {
     await service.close();
     rmSync(config.root, { recursive: true, force: true });

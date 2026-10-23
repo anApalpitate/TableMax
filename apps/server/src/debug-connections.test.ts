@@ -32,7 +32,7 @@ import { readCurrentSave } from './save-audit';
 import { safeHttpPort } from '../../../tools/test/fixtures/safe-http-port';
 
 type Service = Awaited<ReturnType<typeof createService>>;
-const tmpRoot = resolve('tmp');
+const tmpRoot = resolve(process.env.TABLEMAX_TEST_TMP_ROOT ?? 'tmp');
 const directories: string[] = [];
 const services = new Set<Service>();
 const clients: Socket[] = [];
@@ -404,13 +404,26 @@ it('keeps root and legacy player links reloadable while protecting saved identit
     });
   }
   expect(saved(config.dataDir)).toEqual(beforeReload);
-  for (const path of ['/host', '/host/game', '/public', '/public/game']) {
+  for (const path of ['/host', '/host/game']) {
     const page = await fetch(`${origin}${path}`);
     expect(page.status).toBe(200);
     expect(page.headers.get('Content-Security-Policy')).toContain(
       "frame-ancestors 'none'",
     );
     expect(await page.text()).not.toContain(service.hostToken);
+  }
+  for (const path of ['/public', '/public/', '/public/game', '/public/game/']) {
+    const page = await fetch(`${origin}${path}?token=${playerToken}`);
+    expect(page.status).toBe(410);
+    expect(page.headers.get('Content-Security-Policy')).toContain(
+      "frame-ancestors 'none'",
+    );
+    const html = await page.text();
+    expect(html).toContain('独立公共屏已停用');
+    expect(html).toContain('<a href="/">进入玩家页面</a>');
+    expect(html).not.toMatch(/<script\b|\/host\b|connection fixture/);
+    expect(html).not.toContain(playerToken);
+    expect(html).not.toContain(service.hostToken);
   }
   const invalid = await post(origin, '/api/session/view', {
     token: requestKey(),
