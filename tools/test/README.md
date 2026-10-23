@@ -79,6 +79,7 @@ version 1、version 2 和准确文件 Vitest 入口均关闭子项自动维护�
 | [box/verify-box-notifications.mjs](box/verify-box-notifications.mjs)                                                                     | `node tools/test/box/verify-box-notifications.mjs`                                   |
 | [box/verify-box-repository.mjs](box/verify-box-repository.mjs)                                                                           | `node tools/test/box/verify-box-repository.mjs`                                      |
 | [box/verify-box-seats.mjs](box/verify-box-seats.mjs)                                                                                     | `node tools/test/box/verify-box-seats.mjs`                                           |
+| [box/verify-box-expanded-seats.mjs](box/verify-box-expanded-seats.mjs)                                                                   | 盒子7–12席网格、正常阿瓦隆十席与六席回归；按下文version 1计划执行                    |
 | [box/verify-game-library.mjs](box/verify-game-library.mjs)                                                                               | `node tools/test/box/verify-game-library.mjs`                                        |
 | [desktop/verify-desktop.mjs](desktop/verify-desktop.mjs)                                                                                 | `node tools/test/desktop/verify-desktop.mjs`                                         |
 | [desktop/verify-display.mjs](desktop/verify-display.mjs)                                                                                 | `pnpm verify:display`                                                                |
@@ -415,6 +416,18 @@ before或双阶段时另传`--before-bundle=tmp/<任务唯一ID>/fixture-<改前
 ### 盒子大厅与两新游戏简介源码验证
 
 `node tools/test/box/verify-box-lobby.mjs --evidence=<唯一名称>`通过现有批次计划执行，范围为`box,game:cockroach-poker,game:cockroach-salad`。实际BoxScreen源码以合成session运行在隐藏静音Edge、127.0.0.1；覆盖六视口入座／本人名片、十／十二席长昵称、保存状态时序、失败及确认入口、游戏入口合并，以及两游戏三端简介真实图片加载与关闭。报告、截图与源码SHA位于`artifacts/maintenance/box-lobby-20261023/<名称>`。不构建安装器，不证明真实服务保存、物理设备或Windows DPI；不使用旧安装包作本轮源码证明。
+
+[扩展座位网格入口](box/verify-box-expanded-seats.mjs)登记为`box`，通过version 1计划交给`node tools/test/runner/test-scoped.mjs --scope=box --plan=<计划.json>`执行。计划项使用`runtime: node`、`script: tools/test/box/verify-box-expanded-seats.mjs`，参数数组为：
+
+```text
+--phase=before|after
+--run=<新的唯一轮名>
+--task=tmp/avalon-box-seats-20261024-d1
+```
+
+该入口构建真实BoxScreen和正常目录的阿瓦隆十席，使用符合协议昵称的合成大厅session；7／12席明确为容量兼容夹具，六席回归使用正常UNO目录，不扩大阿瓦隆人数。before仅在构建器模块加载时替换任务下`baseline/apps/web/src/screens/box-lobby.css`，记录原布局；after使用当前生产源码，核对三角色六视口、十席五人／满员／空桌，以及7／12席补充几何。after可另传`--baseline-report=artifacts/maintenance/avalon-box-seats-20261024-d1/<改前轮名>/report.json`精确核对六席旧几何不变。可传`--cases=<真实检查ID,...>`定向选择本阶段已列出的场景，例如`host-10-5-1920x1080`；不接受不属于当前矩阵的ID。
+
+Vite产物位于任务下`<轮名>/bundle`，浏览器`TEMP`／`TMP`集中在`browser-temp/`，报告、截图与验证器副本写入`artifacts/maintenance/avalon-box-seats-20261024-d1/<轮名>/`，因此每轮须用全新轮名。检查隐藏静音Edge和`127.0.0.1`夹具服务，构建及执行前后逐SHA核对实际加载源码，子检查关闭自动维护。结果仅证明源码盒子布局，不证明真实服务、保存房间、自然对局、原生DPI、实体设备或安装器；通过数与旧失败按各轮原报告保留。
 
 ### 盒子稳定布局与头像重设计源码验证
 
