@@ -2905,3 +2905,88 @@
 .ma-screen .ma-market-history__unit {
   font-size: 16px;
 }
+
+/* During an auction the two existing columns follow their content height.
+   The galleries keep their original second-row scroll area. */
+@media (min-width: 701px) {
+  .ma-screen:not(.player) .ma-table[data-auction-active='true'] {
+    grid-template-rows: auto minmax(0, 1fr) auto;
+  }
+  .ma-screen:not(.player) .ma-table[data-auction-active='true'] > .ma-center {
+    container-type: inline-size;
+    align-self: start;
+  }
+  .ma-screen:not(.player) .ma-table[data-auction-active='true'] .ma-auction {
+    flex: none;
+    grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+    grid-template-rows: auto auto auto;
+    align-items: start;
+    align-content: start;
+    row-gap: 18px;
+  }
+  .ma-screen:not(.player)
+    .ma-table[data-auction-active='true']
+    .ma-auction:has(.ma-auction__countdown) {
+    grid-template-rows: auto auto auto auto;
+    row-gap: 18px;
+  }
+  .ma-screen:not(.player)
+    .ma-table[data-auction-active='true']
+    .ma-auction__paintings {
+    container-type: normal;
+    width: 100%;
+    height: auto;
+    align-self: start;
+    align-items: start;
+  }
+  .ma-screen:not(.player)
+    .ma-table[data-auction-active='true']
+    .ma-auction__paintings
+    > .ma-card {
+    width: min(100%, clamp(140px, 14vw, 340px));
+    min-width: 0;
+    flex-shrink: 1;
+    transform: none;
+  }
+  .ma-screen:not(.player)
+    .ma-table[data-auction-active='true']
+    .ma-auction__paintings:has(> :nth-child(2))
+    > .ma-card {
+    width: min(48%, clamp(112px, 10vw, 250px));
+  }
+  .ma-screen:not(.player) .ma-table[data-auction-active='true'] .ma-theme {
+    align-self: start;
+  }
+  .ma-screen:not(.player)
+    .ma-table[data-auction-active='true']
+    :is(.ma-theme__envelopes, .ma-theme__lead, .ma-theme__identity) {
+    min-width: 0;
+    max-width: 100%;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  .ma-screen:not(.player)
+    .ma-table[data-auction-active='true']
+    .ma-theme__identity
+    > span {
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+}
+@media (min-width: 701px) and (max-height: 600px) {
+  .ma-screen:not(.player) .ma-table[data-auction-active='true'] .ma-auction {
+    row-gap: 16px;
+  }
+  .ma-screen:not(.player)
+    .ma-table[data-auction-active='true']
+    .ma-auction__paintings
+    > .ma-card {
+    width: min(100%, 116px);
+  }
+  .ma-screen:not(.player)
+    .ma-table[data-auction-active='true']
+    .ma-auction__paintings:has(> :nth-child(2))
+    > .ma-card {
+    width: min(48%, 104px);
+  }
+}

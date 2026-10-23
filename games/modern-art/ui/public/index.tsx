@@ -81,11 +81,67 @@ export function SavedAction({
 export function MarketBoard({
   view,
   showHistory,
+  compact = false,
 }: {
   view: ModernArtView;
   showHistory(): void;
+  compact?: boolean;
 }) {
   const settled = view.phase === 'round-result' || view.phase === 'ended';
+  if (compact)
+    return (
+      <section
+        className="ma-market ma-market--summary"
+        aria-label="艺术家估值板"
+      >
+        <div className="ma-section-heading">
+          <div>
+            <h2>艺术市场</h2>
+            <p>上拍 / {settled ? '兑现' : '估值'}（千元）</p>
+          </div>
+          <button
+            type="button"
+            className="secondary ma-market-history-control"
+            aria-label="历轮行情"
+            onClick={showHistory}
+          >
+            详情
+          </button>
+        </div>
+        <div className="ma-market__columns">
+          {view.artists.map((artist) => (
+            <div
+              key={artist.id}
+              className="ma-artist"
+              style={
+                {
+                  '--ma-artist': artistPresentation[artist.id].color,
+                } as CSSProperties
+              }
+            >
+              <h3 title={artist.name}>
+                {artistPresentation[artist.id].shortName}
+              </h3>
+              <div className="ma-artist__summary-numbers">
+                <span
+                  className="ma-artist__count"
+                  aria-label={`已上拍 ${artist.playedCount} / 5`}
+                >
+                  <strong>{artist.playedCount}</strong>
+                </span>
+                <span aria-hidden="true">/</span>
+                <strong
+                  className="ma-artist__value"
+                  aria-label={`每幅${settled ? '兑现' : '预估兑现'} ${artist.currentValue} 千元`}
+                >
+                  {artist.currentValue}
+                </strong>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+    );
   return (
     <section className="ma-market" aria-label="艺术家估值板">
       <div className="ma-section-heading">

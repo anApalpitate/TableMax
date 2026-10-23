@@ -139,10 +139,63 @@ function ModernArtScreen({ session }: { session: RoomSession }) {
         )}
       </div>
     ) : null;
+  const playerStage =
+    game && view ? (
+      <div className="ma-center">
+        {game.phase === 'round-result' || game.phase === 'ended' ? (
+          <RoundResult view={game} names={names} portraits={portraits} />
+        ) : (
+          <AuctionStage
+            view={game}
+            names={names}
+            portraits={portraits}
+            activityMessage={activityMessage}
+            waitingNotice={mergedPausedOffer ? notice : undefined}
+            countdown={
+              clock && (
+                <DecisionProgress
+                  id={clock.id}
+                  remainingMs={remainingMs}
+                  durationSeconds={view.countdownSeconds}
+                  running={clock.running}
+                />
+              )
+            }
+          />
+        )}
+        {canControl &&
+          !view.paused &&
+          game.phase === 'round-result' &&
+          nextRound && (
+            <button
+              className="ma-next-round"
+              disabled={locked}
+              onClick={() =>
+                command({
+                  type: 'lifecycle',
+                  action: nextRound as JsonValue,
+                })
+              }
+            >
+              开始下一轮
+            </button>
+          )}
+        {canControl && view.status === 'ended' && game.phase === 'ended' && (
+          <button
+            className="ma-next-round"
+            disabled={locked}
+            onClick={() => command({ type: 'replay' })}
+          >
+            原班人马再玩一局
+          </button>
+        )}
+      </div>
+    ) : null;
   return (
     <main
       className={`ma-screen ${role} ${saved ? 'ma-saved' : ''}`}
       data-play-mode={view?.playMode ?? 'play'}
+      data-player-layout-contract={role === 'player' ? 'three-v1' : undefined}
     >
       <header className="ma-toolbar">
         <ScreenLink
@@ -235,64 +288,28 @@ function ModernArtScreen({ session }: { session: RoomSession }) {
           {role === 'player' && !mergedPausedOffer && notice}
           <div
             data-phase={game.phase}
+            data-auction-active={
+              role !== 'player' &&
+              connected &&
+              view.status === 'playing' &&
+              !view.paused &&
+              !view.botError &&
+              (game.phase === 'auction' || game.phase === 'double')
+                ? true
+                : undefined
+            }
             data-hand-action={
               (view.actions as Action[]).some((action) => 'cardId' in action) ||
               undefined
             }
             className={`ma-table ${featuredAuction ? 'ma-table--featured-auction' : ''} ${featuredAuction && game.auction && game.auction.cards.length > 1 ? 'ma-table--paired-auction' : ''}`}
           >
-            <MarketBoard view={game} showHistory={() => setPanel('market')} />
-            <div className="ma-center">
-              {game.phase === 'round-result' || game.phase === 'ended' ? (
-                <RoundResult view={game} names={names} portraits={portraits} />
-              ) : (
-                <AuctionStage
-                  view={game}
-                  names={names}
-                  portraits={portraits}
-                  activityMessage={activityMessage}
-                  waitingNotice={mergedPausedOffer ? notice : undefined}
-                  countdown={
-                    clock && (
-                      <DecisionProgress
-                        id={clock.id}
-                        remainingMs={remainingMs}
-                        durationSeconds={view.countdownSeconds}
-                        running={clock.running}
-                      />
-                    )
-                  }
-                />
-              )}
-              {canControl &&
-                !view.paused &&
-                game.phase === 'round-result' &&
-                nextRound && (
-                  <button
-                    className="ma-next-round"
-                    disabled={locked}
-                    onClick={() =>
-                      command({
-                        type: 'lifecycle',
-                        action: nextRound as JsonValue,
-                      })
-                    }
-                  >
-                    开始下一轮
-                  </button>
-                )}
-              {canControl &&
-                view.status === 'ended' &&
-                game.phase === 'ended' && (
-                  <button
-                    className="ma-next-round"
-                    disabled={locked}
-                    onClick={() => command({ type: 'replay' })}
-                  >
-                    原班人马再玩一局
-                  </button>
-                )}
-            </div>
+            <MarketBoard
+              view={game}
+              showHistory={() => setPanel('market')}
+              compact={role === 'player'}
+            />
+            {role !== 'player' && playerStage}
             {role === 'player' && !ended && (
               <SavedAction view={game} names={names} />
             )}
@@ -304,6 +321,7 @@ function ModernArtScreen({ session }: { session: RoomSession }) {
             )}
             {role === 'player' && game.self && (
               <PlayerControls
+                stage={playerStage}
                 view={game}
                 actions={(view.actions ?? []) as Action[]}
                 locked={locked || view.paused || view.status !== 'playing'}
