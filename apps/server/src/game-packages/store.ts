@@ -602,19 +602,18 @@ export class PackageStore {
         }
       };
       visit(join(source, 'web', 'games', original.id), 'web');
+      const inventory = files.map((f) => ({
+        path: f.path,
+        size: f.data.length,
+        sha256: sha256(f.data),
+      }));
       const blob: PackageBlob = {
         id: '',
         kind: 'code',
-        files: files.map((f) => ({
-          path: f.path,
-          size: f.data.length,
-          sha256: sha256(f.data),
-        })),
+        files: inventory,
         archiveBytes: 1,
         archiveSha256: sha256(
-          canonical(
-            files.map((f) => ({ path: f.path, sha256: sha256(f.data) })),
-          ),
+          canonical(inventory.map(({ path, sha256 }) => ({ path, sha256 }))),
         ),
         installedBytes: files.reduce((n, f) => n + f.data.length, 0),
         assetName: 'legacy.zip',
@@ -622,9 +621,11 @@ export class PackageStore {
       };
       blob.id = blobIdentity(blob);
       const target = join(this.root, original.id, 'blobs', blob.id);
+      let verified = false;
       if (existsSync(target)) {
         try {
           this.verifyInstalled(target, blob);
+          verified = true;
         } catch {
           const quarantine = join(
             this.root,
@@ -637,15 +638,18 @@ export class PackageStore {
           this.verifiedDirectories.delete(target);
         }
       }
-      this.ensureDirectory(target);
-      for (const file of files) {
-        const path = join(target, file.path);
-        this.ensureDirectory(dirname(path));
-        if (existsSync(path)) {
-          if (sha256(this.readSafe(path)) !== sha256(file.data))
-            throw new Error('legacy-content-collision');
-        } else writeFileSync(path, file.data, { flag: 'wx' });
+      if (!verified) {
+        this.ensureDirectory(target);
+        for (const file of files) {
+          const path = join(target, file.path);
+          this.ensureDirectory(dirname(path));
+          writeFileSync(path, file.data, { flag: 'wx' });
+        }
+        this.verifyInstalled(target, blob);
       }
+      // This registration always checks the current source and complete target.
+      // resolveModule may reuse that proof, without another read of each member.
+      this.verifiedDirectories.add(target);
       const variants = original.variants?.length
         ? original.variants.map((v) => ({
             id: v.id,
@@ -803,6 +807,9 @@ export class PackageStore {
       !index.selected
     )
       throw new Error('invalid-install-index');
+    // Variants can reference one materialized blob. This proof is local to the
+    // index read; later source registration still checks its target afresh.
+    const verifiedLocalDirectories = new Set<string>();
     validateInstalledCatalog(
       {
         schemaVersion: 1,
@@ -829,10 +836,11 @@ export class PackageStore {
             )
         )
           return false;
-        this.verifyInstalled(
-          join(this.root, release.gameId, 'blobs', code.id),
-          code,
-        );
+        const target = join(this.root, release.gameId, 'blobs', code.id);
+        if (!verifiedLocalDirectories.has(target)) {
+          this.verifyInstalled(target, code);
+          verifiedLocalDirectories.add(target);
+        }
         return true;
       },
     );

@@ -23,6 +23,7 @@ import {
   releaseIdentity,
   readZip,
   crc32,
+  GAME_SIZE_LIMIT,
   verifyCatalog,
 } from './verification';
 import type {
@@ -93,6 +94,112 @@ function developmentFixture() {
 }
 
 describe('development runtime path checks', () => {
+  it('checks a shared local blob once per startup stage and reuses the completed registration proof', () => {
+    const f = developmentFixture();
+    f.module.variants = ['first', 'second'].map((id) => ({
+      id,
+      name: id,
+      description: 'Shared-runtime verification fixture',
+      compatibility: f.module.compatibility,
+    }));
+    f.module.defaultVariantId = 'first';
+    writeFileSync(join(f.runtime, 'modules.json'), JSON.stringify([f.module]));
+    writeFileSync(
+      join(f.runtime, 'web/games/uno/web/large.bin'),
+      Buffer.alloc(GAME_SIZE_LIMIT, 1),
+    );
+    const sourcePrefix = f.runtime + '/';
+    const installedPrefix = join(f.options.root, 'uno/blobs') + '/';
+    const normalize = (path: string) => path.replaceAll('\\', '/');
+    const counts = {
+      sourceFiles: 0,
+      sourceBytes: 0,
+      installedFiles: 0,
+      installedBytes: 0,
+    };
+    const reset = () => {
+      for (const key of Object.keys(counts) as (keyof typeof counts)[])
+        counts[key] = 0;
+    };
+    const read = fs.readFileSync;
+    const mocked = vi.spyOn(fs, 'readFileSync').mockImplementation(((
+      path: fs.PathOrFileDescriptor,
+      options?: unknown,
+    ) => {
+      const bytes = read(path, options as never);
+      const absolute = normalize(resolve(String(path)));
+      const size = Buffer.isBuffer(bytes)
+        ? bytes.length
+        : Buffer.byteLength(bytes);
+      if (
+        absolute.startsWith(normalize(sourcePrefix)) &&
+        absolute !== normalize(join(f.runtime, 'modules.json'))
+      ) {
+        counts.sourceFiles++;
+        counts.sourceBytes += size;
+      }
+      if (absolute.startsWith(normalize(installedPrefix))) {
+        counts.installedFiles++;
+        counts.installedBytes += size;
+      }
+      return bytes;
+    }) as typeof fs.readFileSync);
+    syncBuiltinESMExports();
+    try {
+      const first = new LocalModuleStore(f.options);
+      first.loadDevelopment(f.runtime);
+      const ref = first.current('uno', 'first')!.releaseId;
+      const release = first.snapshot().index.releases[ref]!;
+      const blob = first.snapshot().index.blobs[release.code]!;
+      expect(counts).toEqual({
+        sourceFiles: blob.files.length,
+        sourceBytes: blob.installedBytes,
+        installedFiles: blob.files.length,
+        installedBytes: blob.installedBytes,
+      });
+      reset();
+
+      const reopened = new LocalModuleStore(f.options);
+      expect(counts).toEqual({
+        sourceFiles: 0,
+        sourceBytes: 0,
+        installedFiles: blob.files.length,
+        installedBytes: blob.installedBytes,
+      });
+      reset();
+      reopened.loadDevelopment(f.runtime);
+      expect(counts).toEqual({
+        sourceFiles: blob.files.length,
+        sourceBytes: blob.installedBytes,
+        installedFiles: blob.files.length,
+        installedBytes: blob.installedBytes,
+      });
+      reset();
+      for (const variant of ['first', 'second'])
+        expect(
+          reopened.resolveModule(reopened.current('uno', variant)!.releaseId),
+        ).toBeDefined();
+      expect(counts.installedFiles).toBe(0);
+      expect(counts.installedBytes).toBe(0);
+
+      // The index-stage proof never excuses a later registration check.
+      const betweenStages = new LocalModuleStore(f.options);
+      const target = join(f.options.root, 'uno', 'blobs', blob.id);
+      writeFileSync(
+        join(target, f.module.entries.rules),
+        'changed after index',
+      );
+      betweenStages.loadDevelopment(f.runtime);
+      expect(readFileSync(join(target, f.module.entries.rules), 'utf8')).toBe(
+        'exact development rules',
+      );
+      expect(betweenStages.current('uno', 'first')!.releaseId).toBe(ref);
+    } finally {
+      mocked.mockRestore();
+      syncBuiltinESMExports();
+    }
+  });
+
   it('creates absent parent directories and rejects damaged or extra installed files on reopening', () => {
     for (const kind of ['damaged', 'extra']) {
       const f = developmentFixture();
