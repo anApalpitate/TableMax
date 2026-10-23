@@ -41,19 +41,19 @@
     "steps": [
       {
         "icon": "cards",
-        "illustration": "assets/games/cockroach-poker/runtime/cover-reference.webp",
+        "illustration": "assets/games/cockroach-poker/introduction-1-v1.svg",
         "title": "选牌、选人、声明",
         "text": "从手中选一张牌，交给任意其他玩家，声明一种动物。可以说真话，也可以诈唬。"
       },
       {
         "icon": "swap",
-        "illustration": "assets/games/cockroach-poker/flow.svg",
+        "illustration": "assets/games/cockroach-poker/introduction-2-v1.svg",
         "title": "判断或查看转传",
         "text": "相信或质疑声明；也可秘密查看后转给尚未看过的人，声明可改变。查看即承诺转传，最后一人必须判断；双人不能转传。"
       },
       {
         "icon": "pair",
-        "illustration": "assets/games/cockroach-poker/card-reference.svg",
+        "illustration": "assets/games/cockroach-poker/introduction-3-v1.svg",
         "title": "收牌，再开始下一轮",
         "text": "判断正确由最近传牌者收牌，判断错误由接收者收牌。收下的牌公开放在面前，由收牌者出下一张。"
       }

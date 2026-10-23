@@ -372,3 +372,7 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File tools/test/installation/
 
 - `games/cockroach/verify-cockroach-source.mjs --evidence=<唯一安全名称> [--density-only]`：实际生产客户端和规则派生内存夹具，默认53项三端／320px至4K／密度／减少动态检查，并检查320px规则示例字号；源码及资源逐SHA绑定。仅证明源码浏览器，不冒称Socket、SQLite、安装或实体设备通过。
 - `games/cockroach/verify-cockroach-installed.mjs --delivery=<installer-delivery.json> --proof=<正式完成的shipping proof或封存proof> --evidence=<全新artifacts/maintenance目录>`：先核原EXE、载荷、两个清单及已卸载／保留runtime证明，再从精确冻结成员建立隔离副本。真实Native WebView2主机／公共屏、隐藏静音Edge手机模拟，执行两款生产动作、沙拉共同窗口与无人操作处罚、全部声明资源SHA及图像／WAV解码、实际保存重启；结束复核所有输入和保留runtime未变。安装系统验收须独立完成，不以此脚本替代；不证明实体手机、真实网络、多物理DPI或真人试听。
+
+### 盒子大厅与两新游戏简介源码验证
+
+`node tools/test/box/verify-box-lobby.mjs --evidence=<唯一名称>`通过现有批次计划执行，范围为`box,game:cockroach-poker,game:cockroach-salad`。实际BoxScreen源码以合成session运行在隐藏静音Edge、127.0.0.1；覆盖六视口入座／本人名片、十／十二席长昵称、保存状态时序、失败及确认入口、游戏入口合并，以及两游戏三端简介真实图片加载与关闭。报告、截图与源码SHA位于`artifacts/maintenance/box-lobby-20261023/<名称>`。不构建安装器，不证明真实服务保存、物理设备或Windows DPI；不使用旧安装包作本轮源码证明。

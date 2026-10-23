@@ -105,7 +105,6 @@ export function RoomTable({
               <span />
             </div>
             <h3>空座</h3>
-            <p>等朋友入座</p>
           </>
         )}
       </article>
@@ -144,11 +143,7 @@ export function RoomTable({
           <i />
         </div>
       </div>
-      {expanded ? (
-        <div className="room-table__seats">{seatElements}</div>
-      ) : (
-        seatElements
-      )}
+      <div className="room-table__seats">{seatElements}</div>
     </div>
   );
 }

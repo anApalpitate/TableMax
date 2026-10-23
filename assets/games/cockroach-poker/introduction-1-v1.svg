@@ -1,0 +1,167 @@
+<svg
+  xmlns="http://www.w3.org/2000/svg"
+  viewBox="0 0 480 320"
+  role="img"
+  aria-labelledby="title description"
+>
+  <title id="title">选牌、选人、声明</title>
+  <desc id="description">
+    示例实际牌面为蝙蝠，传出的牌扣着；玩家声明蟑螂，可以诈唬。声明气泡属于出牌者。
+  </desc>
+  <defs>
+    <filter id="shadow" x="-35%" y="-25%" width="170%" height="165%">
+      <feDropShadow
+        dx="0"
+        dy="4"
+        stdDeviation="4"
+        flood-color="#244737"
+        flood-opacity=".17"
+      />
+    </filter>
+    <marker
+      id="arrow"
+      viewBox="0 0 12 12"
+      refX="10"
+      refY="6"
+      markerWidth="3.2"
+      markerHeight="3.2"
+      orient="auto-start-reverse"
+    >
+      <path
+        d="M2 2L10 6 2 10"
+        fill="none"
+        stroke="#6e5689"
+        stroke-width="2.4"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      />
+    </marker>
+    <clipPath id="back-crop">
+      <polygon points="333,23 747,28 860,710 234,709" />
+    </clipPath>
+    <symbol id="bat" viewBox="0 0 137 220">
+      <image
+        href="data:image/webp;base64,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"
+        width="137"
+        height="220"
+      />
+    </symbol>
+    <symbol id="claim" viewBox="0 0 137 220">
+      <image
+        href="data:image/webp;base64,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"
+        width="137"
+        height="220"
+      />
+    </symbol>
+    <symbol id="back" viewBox="225 16 640 704">
+      <image
+        href="data:image/webp;base64,UklGRiAFAABXRUJQVlA4IBQFAACQJgCdASrcAKUAPt1qrlKopamzoRM7inAbiWcHAKkq1Gkd3d7i03SBHCwUj74dQ6c8IdpaPNjFHx8ttFTchh4zrc4Lj6gzv0NU+u7XkC6E3e5TMjuKX2JccfOz67QDbOQDow+MI9uMHJCVjxRM+8q5TTq8xxWNueR0Do4eA1eTCEBzPHI+ijpUjtoM7XvxOCS1gRp7IOX+fDiw8LJSY3ZedNCFqAjNwjDsq8iip9yTY37TIJVCFE3tVOfhhycc5X+EzlF3Ff/1dcR9dXwV8fHXZscEy15nk8WSuAAT0jFy1PKugdBoXlXAI5rld1pnvP02LINlp0BhkMUot4HpkPD9+w2eFXZGlhuN6kE4UH9W+iPIFDZ+bUvQ1g9T+XhNcb4TbgF45UR0ENtokTmOG13YcKKkPVb/O6slu81GgAD+7piP31+fCpYsZceVw5rAnsn5eaklC1Qfv80yB4vYsNHgFPa/LdiRhjwfWBp4lqctE3O/mEOWFQdJait5Rk9q1R+UGb/g5HnaEj6eTB50YIHsx4SXA7bC/PwjQvtlVgxa3jevQ/RIPF4tt8lrui61GAiNTnoPnJ41TEba9iKpTJrAo5Gl0FQy/MzQBA1RtOqFadm1h+29cCV97c9ufdGcowiUtmdXMSNi9x7nMajAcXxeKnHaV0fH6IlrceqB60iDs/mZTHZsbf78D+XaC6sVGd7T5D0+AKQ1uVDbi9tPBX6Eg+QEB0dtfs3fqTNkTRVuLoAUO6cNWpj/uDYYX7K+3Cq6UGGsJ4nEJaxSgMCAjfB79nDChE3qKdpnjnXQdo1lweyLjW2PlseGQkfGPipCgM8AspFpBiof9BjqBLDQgr4Jkq2GsHDu6IRwzukUtKlzUsTPOamaN7WOsdObn5se+aLiFB/oJbs9WuQa7BVvXM4Q86ADkm/917XAYQ+ozWhE/e5UFqJeFBcETSvOVbzEz3zJmcmqeK+51gvXDFN8UBwtn8xsX6qaKenbCCS+2Se0ewwu7/uQSKLzgR7T8xwRtdB2yAeyb4DaMnCsK1K2IrKa9uZ+ArmrrGT1wX7iEeMjeHda+sIe0UHKezp1garKGl6GdN+GqlLHTpt21MXlEn26wGk1wHgJMcoFPIQ7U4UH7fZiP8xXouEa+XlkyUmNnZhGMo/i216Q3oTKCvmPi4d7hjSWtaZ7NB8jp6UNk03zStUQ75m/Rb8PTnMBNrDZdnRe43U0gJChvRKUYVa17osMfkEJLqvcvCrHoEaTx4etGZc62pC9xShLhROq2bsnyzmh0kWSY9CrKxsnyAKyXYIImz+5BdkAzZ26N7W1o5PKA3PkjLv1l9qQVHmaGfU4srydMOzZZAQCULGAJrBelJB18CqM2iDw4MPrqaqloniUugSrpDl7YXb8iv19VinSgXnM4zvipDTh/CafkNeyEMG1YiTctHA144UBOpgHU3o/BT6G3ZyRhF+Dum1SW/ABCs6tGjKTw+16KkVj93a1pBd3mCexSkSGpgSAsZPD/U+qy1vh0zsMOS3FNEqk4tZAmjb9Ytmdvr0jFeCmQgT0KGXh6U+Onf0OSezyzYVfTTIc3ztUOmBgiwsQiZNigWJSYefulPds+hG6iW69fpX4SrlY/LbUzrEB8JUFU2qmLBFkXCYXVJV6+Oy6vAqF0tdDqx19JtUZemd9vriaMBKekcSChkcPE6nROWDwKfrPprG1S08P0KiTnU2Ci05xpjghK6bnIAAA"
+        width="1024"
+        height="768"
+        clip-path="url(#back-crop)"
+      />
+    </symbol>
+  </defs>
+  <rect x="3" y="3" width="474" height="314" rx="30" fill="#fbf1d9" />
+  <ellipse cx="240" cy="185" rx="218" ry="110" fill="#f2e2be" />
+  <g
+    font-family="Microsoft YaHei UI, Microsoft YaHei, Noto Sans CJK SC, sans-serif"
+  >
+    <g transform="translate(54 251) scale(0.65)">
+      <circle r="35" fill="#8d6fa6" stroke="#fffdf5" stroke-width="5" />
+      <circle cy="-9" r="11" fill="#fffdf5" />
+      <path d="M-20 21c1-25 39-25 40 0" fill="#fffdf5" />
+    </g>
+    <g transform="rotate(-12 94.5 171.5)">
+      <use
+        href="#bat"
+        x="52"
+        y="103"
+        width="85"
+        height="137"
+        filter="url(#shadow)"
+      />
+    </g>
+    <rect x="30" y="34" width="138" height="44" rx="22" fill="#ede5f4" />
+    <text
+      x="99"
+      y="64"
+      text-anchor="middle"
+      font-size="24"
+      font-weight="700"
+      fill="#62497e"
+    >
+      选一张牌
+    </text>
+    <path
+      d="M157 185H330"
+      fill="none"
+      stroke="#6e5689"
+      stroke-width="7"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      marker-end="url(#arrow)"
+    />
+    <g transform="rotate(5 237 182)">
+      <use
+        href="#back"
+        x="205"
+        y="132"
+        width="64"
+        height="100"
+        filter="url(#shadow)"
+      />
+    </g>
+    <g transform="translate(390 184) scale(1.03)">
+      <circle r="35" fill="#d59653" stroke="#fffdf5" stroke-width="5" />
+      <circle cy="-9" r="11" fill="#fffdf5" />
+      <path d="M-20 21c1-25 39-25 40 0" fill="#fffdf5" />
+    </g>
+    <path
+      d="M168 35H338Q351 35 351 48V90Q351 103 338 103H200L178 121V103H168Q155 103 155 90V48Q155 35 168 35Z"
+      fill="#fffdf5"
+      stroke="#d8c3a0"
+      stroke-width="2"
+    />
+    <g transform="rotate(0 185 68.5)">
+      <use
+        href="#claim"
+        x="171"
+        y="46"
+        width="28"
+        height="45"
+        filter="url(#shadow)"
+      />
+    </g>
+    <text
+      x="272"
+      y="77"
+      text-anchor="middle"
+      font-size="25"
+      font-weight="700"
+      fill="#614774"
+    >
+      我说：蟑螂
+    </text>
+    <text
+      x="391"
+      y="264"
+      text-anchor="middle"
+      font-size="25"
+      font-weight="700"
+      fill="#28463c"
+    >
+      任意对手
+    </text>
+    <text
+      x="180"
+      y="293"
+      text-anchor="middle"
+      font-size="24"
+      font-weight="700"
+      fill="#614774"
+    >
+      真话、诈唬都可以
+    </text>
+  </g>
+</svg>

@@ -51,7 +51,8 @@
       "purpose": "Abstract critter identity, library cover, card back or rule diagram",
       "version": 1,
       "sha256": "a516fa24b51dffdf953633696f75850d7a51096107ee3d2af66915a3598dd14f",
-      "bytes": 617
+      "bytes": 617,
+      "status": "Retained source; no longer referenced by current introduction metadata."
     },
     {
       "id": "cockroach-poker/fly",
@@ -1466,7 +1467,104 @@
       "processing": "Native SVG data URI wrapper only; wrapper uses repository LF line endings; embedded original image bytes unchanged",
       "purpose": "Unchanged physical cockroach face embedded in a native SVG metadata illustration",
       "useBoundary": "User authorized local project integration; no claim of publisher redistribution authorization",
-      "version": 1
+      "version": 1,
+      "status": "Retained source; no longer referenced by current introduction metadata."
+    },
+    {
+      "id": "cockroach-poker/introduction-1-v1",
+      "file": "introduction-1-v1.svg",
+      "source": "TableMax original code-composed SVG diagram, 2026-10-23; existing verified physical-card runtime WebP bytes embedded unchanged as data URIs",
+      "purpose": "选牌、选人、声明",
+      "version": 1,
+      "width": 480,
+      "height": 320,
+      "bytes": 11792,
+      "sha256": "d2c14dace9ec6841c62a61b627d649b896c9d0127f7544044c5a3bca655cd22c",
+      "description": "静态诈唬示例：从手中选一张蝙蝠牌，扣着交给指定对手，却声明蟑螂；这不是实际对局或玩家秘密。",
+      "processing": "Original vector layout, arrows, labels and marks composed in SVG; physical card art is embedded byte-identically from runtime sources; no new bitmap generated. Classic poker back uses the existing approved native-SVG viewBox and clip polygon, retaining photo perspective.",
+      "sourceInputs": [
+        {
+          "path": "assets/games/cockroach-poker/runtime/cards/bat-1.webp",
+          "sha256": "a1637a3bbbe0eca178eb5bc5a034a8111cec76f6725ac3adef8bfee8653ba5dc",
+          "bytes": 1910
+        },
+        {
+          "path": "assets/games/cockroach-poker/runtime/cards/cockroach-1.webp",
+          "sha256": "37749b233bce829df7a82c3bcdd7e9c5801b0b69a1f21e8c9e9b5f4e5d09a218",
+          "bytes": 2606
+        },
+        {
+          "path": "assets/games/cockroach-poker/runtime/back-photo.webp",
+          "sha256": "50c72dd0e203791cf0c6f5884b457a6749a31c37d1bd942bbfca60daa7174f06",
+          "bytes": 1320
+        }
+      ],
+      "rights": "Original diagram layout and vector annotations; embedded publisher artwork retains its existing source, edition and redistribution boundaries in this manifest and the game sources document.",
+      "status": "Current introduction source metadata reference, 2026-10-23; production UI verification evidence is maintained by the main task."
+    },
+    {
+      "id": "cockroach-poker/introduction-2-v1",
+      "file": "introduction-2-v1.svg",
+      "source": "TableMax original code-composed SVG diagram, 2026-10-23; existing verified physical-card runtime WebP bytes embedded unchanged as data URIs",
+      "purpose": "判断或查看转传",
+      "version": 1,
+      "width": 480,
+      "height": 320,
+      "bytes": 8626,
+      "sha256": "451d4793a9c475d04ba8709eb87b9d0a1d9e7d714568f789bcf320dfbc724276",
+      "description": "接收者可直接相信或质疑；若选择秘密查看，就必须传给尚未看过的另一人，不能返回判断。双人及最后接收者只判断。",
+      "processing": "Original vector layout, arrows, labels and marks composed in SVG; physical card art is embedded byte-identically from runtime sources; no new bitmap generated. Classic poker back uses the existing approved native-SVG viewBox and clip polygon, retaining photo perspective.",
+      "sourceInputs": [
+        {
+          "path": "assets/games/cockroach-poker/runtime/cards/bat-1.webp",
+          "sha256": "a1637a3bbbe0eca178eb5bc5a034a8111cec76f6725ac3adef8bfee8653ba5dc",
+          "bytes": 1910
+        },
+        {
+          "path": "assets/games/cockroach-poker/runtime/back-photo.webp",
+          "sha256": "50c72dd0e203791cf0c6f5884b457a6749a31c37d1bd942bbfca60daa7174f06",
+          "bytes": 1320
+        }
+      ],
+      "rights": "Original diagram layout and vector annotations; embedded publisher artwork retains its existing source, edition and redistribution boundaries in this manifest and the game sources document.",
+      "status": "Current introduction source metadata reference, 2026-10-23; production UI verification evidence is maintained by the main task."
+    },
+    {
+      "id": "cockroach-poker/introduction-3-v1",
+      "file": "introduction-3-v1.svg",
+      "source": "TableMax original code-composed SVG diagram, 2026-10-23; existing verified physical-card runtime WebP bytes embedded unchanged as data URIs",
+      "purpose": "公开收牌与同类风险",
+      "version": 1,
+      "width": 480,
+      "height": 320,
+      "bytes": 16866,
+      "sha256": "772dcf336ce066ad2da96861713d8f7059a6ad02c2c4785fc91d21e7daf0a5fc",
+      "description": "3至6人示例：公开收牌列已有三张蟑螂，收下第四张同类即失败；双人阈值为五张。收牌者开始下一轮，判断收牌归属与无手牌失败条件仍见正文。",
+      "processing": "Original vector layout, arrows, labels and marks composed in SVG; physical card art is embedded byte-identically from runtime sources; no new bitmap generated. Classic poker back uses the existing approved native-SVG viewBox and clip polygon, retaining photo perspective.",
+      "sourceInputs": [
+        {
+          "path": "assets/games/cockroach-poker/runtime/cards/cockroach-1.webp",
+          "sha256": "37749b233bce829df7a82c3bcdd7e9c5801b0b69a1f21e8c9e9b5f4e5d09a218",
+          "bytes": 2606
+        },
+        {
+          "path": "assets/games/cockroach-poker/runtime/cards/cockroach-2.webp",
+          "sha256": "7da0b6ed2cd41a85a2f4a2b452b16bbcf749ced1db9fcfa372568fccde1eeb32",
+          "bytes": 2406
+        },
+        {
+          "path": "assets/games/cockroach-poker/runtime/cards/cockroach-3.webp",
+          "sha256": "bf92da5657229d633aefbae0a5de310282170d961500ae97f607cf5a969f4120",
+          "bytes": 2492
+        },
+        {
+          "path": "assets/games/cockroach-poker/runtime/cards/cockroach-4.webp",
+          "sha256": "6c70afce0d5fe0cb80a884f01ac40befd2f740fb76e78314e1da605e7cefb4df",
+          "bytes": 1918
+        }
+      ],
+      "rights": "Original diagram layout and vector annotations; embedded publisher artwork retains its existing source, edition and redistribution boundaries in this manifest and the game sources document.",
+      "status": "Current introduction source metadata reference, 2026-10-23; production UI verification evidence is maintained by the main task."
     }
   ],
   "runtimeAssets": [
@@ -2289,9 +2387,7 @@
     "sourceMetadata": "Original decoded source pixels only; EXIF/trailing data not copied",
     "originalPolicy": "All original files and original manifest records retained unchanged",
     "bytes": 201000,
-    "exceptions": {
-      "runtime/cover-reference.webp": "maximum edge200"
-    },
+    "exceptions": { "runtime/cover-reference.webp": "maximum edge200" },
     "qa": "All64 animal faces at160 CSS pixel wide contact sheets plus representative source comparisons reviewed; eight vegetable normal/taboo faces, both backs and covers reviewed. Eight animal identities and distinct per-card illustration poses retained; vegetable identity and white taboo crosses remain clear. Fine grain and subtle shadows show smoothing and minor block artifacts; source-resolution detail is reduced. Complete compositions, no crop/repaint or merged variants. HTML labels are separate. Runtime three-end/installer validation belongs to main agent.",
     "evidence": "E:\\Proj\\TMP\\TableMaxMaterial\\exports\\installer-art-20261023-r3\\qa.json"
   }

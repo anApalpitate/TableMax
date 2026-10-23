@@ -1,0 +1,185 @@
+<svg
+  xmlns="http://www.w3.org/2000/svg"
+  viewBox="0 0 480 320"
+  role="img"
+  aria-labelledby="title description"
+>
+  <title id="title">判断或查看转传</title>
+  <desc id="description">
+    上方：接收扣牌后可以相信或质疑。下方：秘密查看后必须把牌转传给未看过的人；不能撤回判断。双人不能转传，最后接收者必须判断，完整规则见正文。
+  </desc>
+  <defs>
+    <filter id="shadow" x="-35%" y="-25%" width="170%" height="165%">
+      <feDropShadow
+        dx="0"
+        dy="4"
+        stdDeviation="4"
+        flood-color="#244737"
+        flood-opacity=".17"
+      />
+    </filter>
+    <marker
+      id="arrow"
+      viewBox="0 0 12 12"
+      refX="10"
+      refY="6"
+      markerWidth="3.2"
+      markerHeight="3.2"
+      orient="auto-start-reverse"
+    >
+      <path
+        d="M2 2L10 6 2 10"
+        fill="none"
+        stroke="#6e5689"
+        stroke-width="2.4"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      />
+    </marker>
+    <clipPath id="back-crop">
+      <polygon points="333,23 747,28 860,710 234,709" />
+    </clipPath>
+    <symbol id="back" viewBox="225 16 640 704">
+      <image
+        href="data:image/webp;base64,UklGRiAFAABXRUJQVlA4IBQFAACQJgCdASrcAKUAPt1qrlKopamzoRM7inAbiWcHAKkq1Gkd3d7i03SBHCwUj74dQ6c8IdpaPNjFHx8ttFTchh4zrc4Lj6gzv0NU+u7XkC6E3e5TMjuKX2JccfOz67QDbOQDow+MI9uMHJCVjxRM+8q5TTq8xxWNueR0Do4eA1eTCEBzPHI+ijpUjtoM7XvxOCS1gRp7IOX+fDiw8LJSY3ZedNCFqAjNwjDsq8iip9yTY37TIJVCFE3tVOfhhycc5X+EzlF3Ff/1dcR9dXwV8fHXZscEy15nk8WSuAAT0jFy1PKugdBoXlXAI5rld1pnvP02LINlp0BhkMUot4HpkPD9+w2eFXZGlhuN6kE4UH9W+iPIFDZ+bUvQ1g9T+XhNcb4TbgF45UR0ENtokTmOG13YcKKkPVb/O6slu81GgAD+7piP31+fCpYsZceVw5rAnsn5eaklC1Qfv80yB4vYsNHgFPa/LdiRhjwfWBp4lqctE3O/mEOWFQdJait5Rk9q1R+UGb/g5HnaEj6eTB50YIHsx4SXA7bC/PwjQvtlVgxa3jevQ/RIPF4tt8lrui61GAiNTnoPnJ41TEba9iKpTJrAo5Gl0FQy/MzQBA1RtOqFadm1h+29cCV97c9ufdGcowiUtmdXMSNi9x7nMajAcXxeKnHaV0fH6IlrceqB60iDs/mZTHZsbf78D+XaC6sVGd7T5D0+AKQ1uVDbi9tPBX6Eg+QEB0dtfs3fqTNkTRVuLoAUO6cNWpj/uDYYX7K+3Cq6UGGsJ4nEJaxSgMCAjfB79nDChE3qKdpnjnXQdo1lweyLjW2PlseGQkfGPipCgM8AspFpBiof9BjqBLDQgr4Jkq2GsHDu6IRwzukUtKlzUsTPOamaN7WOsdObn5se+aLiFB/oJbs9WuQa7BVvXM4Q86ADkm/917XAYQ+ozWhE/e5UFqJeFBcETSvOVbzEz3zJmcmqeK+51gvXDFN8UBwtn8xsX6qaKenbCCS+2Se0ewwu7/uQSKLzgR7T8xwRtdB2yAeyb4DaMnCsK1K2IrKa9uZ+ArmrrGT1wX7iEeMjeHda+sIe0UHKezp1garKGl6GdN+GqlLHTpt21MXlEn26wGk1wHgJMcoFPIQ7U4UH7fZiP8xXouEa+XlkyUmNnZhGMo/i216Q3oTKCvmPi4d7hjSWtaZ7NB8jp6UNk03zStUQ75m/Rb8PTnMBNrDZdnRe43U0gJChvRKUYVa17osMfkEJLqvcvCrHoEaTx4etGZc62pC9xShLhROq2bsnyzmh0kWSY9CrKxsnyAKyXYIImz+5BdkAzZ26N7W1o5PKA3PkjLv1l9qQVHmaGfU4srydMOzZZAQCULGAJrBelJB18CqM2iDw4MPrqaqloniUugSrpDl7YXb8iv19VinSgXnM4zvipDTh/CafkNeyEMG1YiTctHA144UBOpgHU3o/BT6G3ZyRhF+Dum1SW/ABCs6tGjKTw+16KkVj93a1pBd3mCexSkSGpgSAsZPD/U+qy1vh0zsMOS3FNEqk4tZAmjb9Ytmdvr0jFeCmQgT0KGXh6U+Onf0OSezyzYVfTTIc3ztUOmBgiwsQiZNigWJSYefulPds+hG6iW69fpX4SrlY/LbUzrEB8JUFU2qmLBFkXCYXVJV6+Oy6vAqF0tdDqx19JtUZemd9vriaMBKekcSChkcPE6nROWDwKfrPprG1S08P0KiTnU2Ci05xpjghK6bnIAAA"
+        width="1024"
+        height="768"
+        clip-path="url(#back-crop)"
+      />
+    </symbol>
+    <symbol id="face" viewBox="0 0 137 220">
+      <image
+        href="data:image/webp;base64,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"
+        width="137"
+        height="220"
+      />
+    </symbol>
+  </defs>
+  <rect x="3" y="3" width="474" height="314" rx="30" fill="#fbf1d9" />
+  <ellipse cx="240" cy="185" rx="218" ry="110" fill="#f2e2be" />
+  <g
+    font-family="Microsoft YaHei UI, Microsoft YaHei, Noto Sans CJK SC, sans-serif"
+  >
+    <rect x="20" y="18" width="440" height="128" rx="22" fill="#fff9eb" />
+    <g transform="rotate(0 74.5 82.5)">
+      <use
+        href="#back"
+        x="46"
+        y="38"
+        width="57"
+        height="89"
+        filter="url(#shadow)"
+      />
+    </g>
+    <path
+      d="M124 81H174"
+      fill="none"
+      stroke="#6e5689"
+      stroke-width="7"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      marker-end="url(#arrow)"
+    />
+    <rect x="195" y="29" width="112" height="44" rx="22" fill="#e0ead5" />
+    <text
+      x="251"
+      y="59"
+      text-anchor="middle"
+      font-size="25"
+      font-weight="700"
+      fill="#466b43"
+    >
+      相信
+    </text>
+    <rect x="323" y="29" width="112" height="44" rx="22" fill="#f1dfcf" />
+    <text
+      x="379"
+      y="59"
+      text-anchor="middle"
+      font-size="25"
+      font-weight="700"
+      fill="#9c5d3e"
+    >
+      质疑
+    </text>
+    <text
+      x="314"
+      y="118"
+      text-anchor="middle"
+      font-size="24"
+      font-weight="700"
+      fill="#614774"
+    >
+      直接判断
+    </text>
+    <path
+      d="M32 160H448"
+      stroke="#dfcca7"
+      stroke-width="2"
+      stroke-dasharray="7 8"
+    />
+    <g transform="rotate(-5 77.5 229.5)">
+      <use
+        href="#face"
+        x="48"
+        y="182"
+        width="59"
+        height="95"
+        filter="url(#shadow)"
+      />
+    </g>
+    <g transform="translate(138 224) scale(0.8)">
+      <path
+        d="M-26 0Q0-28 26 0Q0 28-26 0Z"
+        fill="#fffdf5"
+        stroke="#6e5689"
+        stroke-width="5"
+      />
+      <circle r="9" fill="#6e5689" />
+    </g>
+    <path
+      d="M185 225H329"
+      fill="none"
+      stroke="#6e5689"
+      stroke-width="7"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      marker-end="url(#arrow)"
+    />
+    <g transform="translate(391 225) scale(0.85)">
+      <circle r="35" fill="#d59653" stroke="#fffdf5" stroke-width="5" />
+      <circle cy="-9" r="11" fill="#fffdf5" />
+      <path d="M-20 21c1-25 39-25 40 0" fill="#fffdf5" />
+    </g>
+    <text
+      x="391"
+      y="291"
+      text-anchor="middle"
+      font-size="24"
+      font-weight="700"
+      fill="#28463c"
+    >
+      未看过的人
+    </text>
+    <text
+      x="205"
+      y="189"
+      text-anchor="middle"
+      font-size="23"
+      font-weight="700"
+      fill="#614774"
+    >
+      秘密查看后
+    </text>
+    <text
+      x="225"
+      y="280"
+      text-anchor="middle"
+      font-size="27"
+      font-weight="700"
+      fill="#614774"
+    >
+      必须转传
+    </text>
+  </g>
+</svg>

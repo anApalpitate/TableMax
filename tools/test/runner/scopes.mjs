@@ -336,6 +336,11 @@ const verificationScopes = {
   'tools/test/box/verify-game-library.mjs': ['box'],
   'tools/test/box/verify-box-repository.mjs': ['box'],
   'tools/test/box/verify-box-seats.mjs': ['box'],
+  'tools/test/box/verify-box-lobby.mjs': [
+    'box',
+    'game:cockroach-poker',
+    'game:cockroach-salad',
+  ],
   'tools/test/box/verify-box-notifications.mjs': ['box'],
   'tools/test/platform/verify-speech-panel.mjs': ['box', 'shared'],
   'tools/test/platform/verify-player-interaction-audio.mjs': ['box', 'shared'],

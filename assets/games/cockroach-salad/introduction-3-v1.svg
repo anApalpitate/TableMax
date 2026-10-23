@@ -1,0 +1,208 @@
+<svg
+  xmlns="http://www.w3.org/2000/svg"
+  viewBox="0 0 480 320"
+  role="img"
+  aria-labelledby="title description"
+>
+  <title id="title">共同质疑窗口后判胜</title>
+  <desc id="description">
+    左侧用问号表示其他玩家尚未公开的独立选择，不展示任何已提交的他人票。右侧表示个人牌堆已经空，但必须等共同质疑窗口结算后才判定胜利；罚给作答者时不会获胜。
+  </desc>
+  <defs>
+    <filter id="shadow" x="-35%" y="-25%" width="170%" height="165%">
+      <feDropShadow
+        dx="0"
+        dy="4"
+        stdDeviation="4"
+        flood-color="#244737"
+        flood-opacity=".17"
+      />
+    </filter>
+    <marker
+      id="arrow"
+      viewBox="0 0 12 12"
+      refX="10"
+      refY="6"
+      markerWidth="3.2"
+      markerHeight="3.2"
+      orient="auto-start-reverse"
+    >
+      <path
+        d="M2 2L10 6 2 10"
+        fill="none"
+        stroke="#3d8065"
+        stroke-width="2.4"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      />
+    </marker>
+    <clipPath id="back-crop">
+      <polygon points="333,23 747,28 860,710 234,709" />
+    </clipPath>
+    <symbol id="tomato" viewBox="0 0 116 220">
+      <image
+        href="data:image/webp;base64,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"
+        width="116"
+        height="220"
+      />
+    </symbol>
+    <symbol id="back" viewBox="0 0 116 220">
+      <image
+        href="data:image/webp;base64,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"
+        width="116"
+        height="220"
+      />
+    </symbol>
+  </defs>
+  <rect x="3" y="3" width="474" height="314" rx="30" fill="#edf4d9" />
+  <ellipse cx="240" cy="185" rx="218" ry="110" fill="#dcebc3" />
+  <g
+    font-family="Microsoft YaHei UI, Microsoft YaHei, Noto Sans CJK SC, sans-serif"
+  >
+    <rect x="20" y="20" width="216" height="44" rx="22" fill="#fff6d5" />
+    <text
+      x="128"
+      y="50"
+      text-anchor="middle"
+      font-size="24"
+      font-weight="700"
+      fill="#6d6137"
+    >
+      各自质疑 / 放过
+    </text>
+    <g transform="rotate(-9 112 160)">
+      <use
+        href="#back"
+        x="82"
+        y="103"
+        width="60"
+        height="114"
+        filter="url(#shadow)"
+      />
+    </g>
+    <g transform="rotate(8 140.5 151.5)">
+      <use
+        href="#tomato"
+        x="108"
+        y="90"
+        width="65"
+        height="123"
+        filter="url(#shadow)"
+      />
+    </g>
+    <g transform="translate(48 238) scale(0.6)">
+      <circle r="35" fill="#7f9f62" stroke="#fffdf5" stroke-width="5" />
+      <circle cy="-9" r="11" fill="#fffdf5" />
+      <path d="M-20 21c1-25 39-25 40 0" fill="#fffdf5" />
+    </g>
+    <g transform="translate(204 238) scale(0.6)">
+      <circle r="35" fill="#c49465" stroke="#fffdf5" stroke-width="5" />
+      <circle cy="-9" r="11" fill="#fffdf5" />
+      <path d="M-20 21c1-25 39-25 40 0" fill="#fffdf5" />
+    </g>
+    <circle cx="38" cy="180" r="20" fill="#fffdf5" />
+    <text
+      x="38"
+      y="188"
+      text-anchor="middle"
+      font-size="28"
+      font-weight="700"
+      fill="#5f8051"
+    >
+      ?
+    </text>
+    <circle cx="213" cy="180" r="20" fill="#fffdf5" />
+    <text
+      x="213"
+      y="188"
+      text-anchor="middle"
+      font-size="28"
+      font-weight="700"
+      fill="#5f8051"
+    >
+      ?
+    </text>
+    <path
+      d="M249 84V254"
+      stroke="#bfd1a4"
+      stroke-width="2"
+      stroke-dasharray="7 8"
+    />
+    <g transform="translate(360 101)">
+      <circle r="40" fill="#fffdf5" stroke="#3d8065" stroke-width="7" />
+      <path
+        d="M0-22V0L15 10"
+        fill="none"
+        stroke="#3d8065"
+        stroke-width="7"
+        stroke-linecap="round"
+      />
+      <path
+        d="M-9-51H9"
+        stroke="#3d8065"
+        stroke-width="7"
+        stroke-linecap="round"
+      />
+    </g>
+    <path
+      d="M360 155V181"
+      fill="none"
+      stroke="#3d8065"
+      stroke-width="6"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      marker-end="url(#arrow)"
+    />
+    <rect
+      x="309"
+      y="197"
+      width="75"
+      height="61"
+      rx="12"
+      fill="#fffdf5"
+      stroke="#84a66e"
+      stroke-width="3"
+      stroke-dasharray="6 5"
+    />
+    <text
+      x="346"
+      y="239"
+      text-anchor="middle"
+      font-size="38"
+      font-weight="700"
+      fill="#3d7151"
+    >
+      0
+    </text>
+    <g transform="translate(420 226) scale(0.67)">
+      <path
+        d="M-24-27H24V-9C24 24-24 24-24-9Z"
+        fill="#efba4d"
+        stroke="#a87928"
+        stroke-width="4"
+      />
+      <path
+        d="M-24-20H-36C-40 3-29 8-17 8M24-20H36C40 3 29 8 17 8"
+        fill="none"
+        stroke="#a87928"
+        stroke-width="5"
+      />
+      <path
+        d="M0 18V36M-20 38H20"
+        stroke="#a87928"
+        stroke-width="7"
+        stroke-linecap="round"
+      />
+    </g>
+    <text
+      x="355"
+      y="290"
+      text-anchor="middle"
+      font-size="27"
+      font-weight="700"
+      fill="#3d7151"
+    >
+      结算后再判胜
+    </text>
+  </g>
+</svg>

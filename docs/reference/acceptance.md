@@ -14,6 +14,14 @@
 
 工作区占用及逐文件退役见[项目瘦身](project-slimming.md)；1.0.7.2发布任务未追加清理，马尼拉任务的单次维护单独记录。旧运行ZIP唯一迁移输入见[整理归档](../archive/tooling-delivery-organization-2026-10-15.md#旧运行zip的迁移输入)；下方旧标题保留历史导航。
 
+## 盒子大厅与两新游戏简介源码（2026-10-23）
+
+用户手写问题单与后续确认方案已落实到源码：围桌名片／空座与加入卡重排，宽屏六席首屏可见，进入牌桌并入游戏条，玩法说明采用书页图标；保存回执从连接状态移出，独立短暂浮现，失败和未确认重试保留。德国小强、蟑螂沙拉六张简介SVG复用原牌面并修复白名单路径，新增81,176字节，原素材保留。设计及维护边界见[通用视觉](visual-design.md#盒子大厅重排与新游戏简介2026-10-23)。
+
+通过统一范围批次`box,game:cockroach-poker,game:cockroach-salad`执行源码夹具，最终[报告](../../artifacts/maintenance/box-lobby-20261023/round-10/report.json)64项通过、无页面异常，源码SHA与交付工作树相符。覆盖320／390竖屏、844×390横屏、1280×720、1080p、4K；入座／已入座、十／十二席长昵称、准备及取消、关闭加入、入座与保存未确认、失败／重连清除、成功续时及消退、进行中／终局入口、两游戏三端真实三图解码与浮窗关闭。检查保留无关游戏范围，合成session只证明界面及命令意图，不证明真实服务端保存或实体设备；实际Windows DPI、实体手机与完整安装器未在本轮验收。
+
+TypeScript、改动TSX／验证器ESLint、定向Prettier与`git diff --check`通过。前轮夹具解析、Edge沙箱crashpad及保存锚点失败、实质修正与复验范围保留在[轮次记录](../../artifacts/maintenance/box-lobby-20261023/rounds.md)，素材子agent的沙箱预览失败另留[环境账](../../artifacts/maintenance/cockroach-introductions-20261023/environment-failures.json)。不以较早通过或中途修改过的验证器哈希代替最终冻结输入。本轮未构建安装器，本地current仍为此前1.0.8.9，原字节及证明不变，未发布或部署。
+
 ## 实体牌运行资源与安装器更新（2026-10-23）
 
 本轮按用户要求更新本地完整安装器，公开版本保持1.0.8，不发布、不改标签或线上附件。[完整安装器1.0.8.9](../../artifacts/releases/v1.0.8/1.0.8.9/TableMax-1.0.8.9-installer-win-x64.exe)及[清单](../../artifacts/releases/v1.0.8/1.0.8.9/TableMax-1.0.8.9-installer-win-x64-manifest.json)预装9款游戏／10个玩法；EXE38,552,763字节，SHA256 `76c828598990b166e45cbdf24f09d55d2c40e454f79961128c48829b6d63b409`；内部ZIP46,808,447字节，实际提取99,790,309字节，三项均低于120,000,000。冻结快照 `809678d5ba3586d0bf6fe7b5fa77d14d3f79f77aa7e4c18c88eef3f471797281`。

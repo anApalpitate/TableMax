@@ -14,6 +14,7 @@ import { ScreenLink } from '../components/ScreenLink';
 import { RoomManagement } from '../components/RoomManagement';
 import { InviteFriends } from '../components/InviteFriends';
 import { BoxFeedback } from '../components/BoxFeedback';
+import { BoxSaveStatus } from '../components/BoxSaveStatus';
 import { Notifications } from '../components/notifications/Notifications';
 import { RoomTable } from '../components/RoomTable';
 import {
@@ -43,6 +44,7 @@ import { useNotifications } from '../components/notifications/context';
 import { navigate } from '../navigation';
 import { useSeatRemoval } from '../components/useSeatRemoval';
 import './box-refinements.css';
+import './box-lobby.css';
 
 const difficultyNames: Record<BotDifficulty, string> = {
   default: '默认',
@@ -145,7 +147,6 @@ function BoxScreenContent({ session }: { session: RoomSession }) {
     connected &&
     !session.admissionPending &&
     !session.awaitingConfirmation;
-  const saveStatusVisible = session.messageKind === 'saved' || compactProgress;
   return (
     <main
       className={`shell box-screen ${role}`}
@@ -163,17 +164,15 @@ function BoxScreenContent({ session }: { session: RoomSession }) {
           <span className="box-connection-copy">
             {connected ? '已连接' : '正在连接'}
           </span>
-          <span className="box-header-feedback">
-            <span
-              className="box-save-status"
-              data-visible={connected && saveStatusVisible}
-            >
-              {feedbackText(
-                compactProgress ? 'session.submitting' : 'session.saved',
-              )}
-            </span>
-          </span>
         </span>
+        <BoxSaveStatus
+          messageKind={session.messageKind}
+          compactProgress={compactProgress}
+          connected={connected}
+          busy={busy}
+          admissionPending={session.admissionPending}
+          awaitingConfirmation={session.awaitingConfirmation}
+        />
         <div className="header-status" role="group" aria-label="牌桌设置">
           <PlayModeBadge mode={view?.playMode} />
           {isHost && <ApplicationUpdate playing={view?.status === 'playing'} />}
@@ -204,25 +203,32 @@ function BoxScreenContent({ session }: { session: RoomSession }) {
           <button
             type="button"
             className="secondary box-info-control"
-            aria-label="游戏介绍"
-            title="游戏介绍"
+            aria-label="玩法说明"
+            title="玩法说明"
             onClick={() => setPanel('intro')}
           >
-            <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true">
-              <circle
-                cx="12"
-                cy="12"
-                r="9"
+            <svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true">
+              <path
+                d="M12 5.5C9.2 3.7 6 3.4 3 4.4v14.2c3-1 6.2-.7 9 1.1 2.8-1.8 6-2.1 9-1.1V4.4c-3-1-6.2-.7-9 1.1Zm0 0v14.2M6 8h3m-3 3.5h3M15 8h3m-3 3.5h3"
                 fill="none"
                 stroke="currentColor"
                 strokeWidth="1.8"
+                strokeLinecap="round"
+                strokeLinejoin="round"
               />
-              <path d="M12 11v6" stroke="currentColor" strokeWidth="1.8" />
-              <circle cx="12" cy="7" r="1" fill="currentColor" />
             </svg>
-            <span>玩法</span>
           </button>
         )}
+        {Boolean(view?.gameView) &&
+          view &&
+          (role !== 'player' || credential) && (
+            <ScreenLink
+              className="button box-enter-game"
+              href={`/${role}/game`}
+            >
+              进入牌桌
+            </ScreenLink>
+          )}
       </section>
       <div className="box-feedback" data-submitting={compactProgress}>
         <BoxFeedback session={session} />
@@ -239,22 +245,6 @@ function BoxScreenContent({ session }: { session: RoomSession }) {
               管理设置
             </button>
           )}
-        </div>
-      )}
-      {Boolean(view?.gameView) && view && (role !== 'player' || credential) && (
-        <div className="continue-game">
-          <div>
-            <h2>
-              {view.status === 'ended'
-                ? '查看对局结果'
-                : view.paused || view.botError
-                  ? '对局已暂停'
-                  : '对局进行中'}
-            </h2>
-          </div>
-          <ScreenLink className="button" href={`/${role}/game`}>
-            进入牌桌
-          </ScreenLink>
         </div>
       )}
       <div className="grid">
@@ -317,11 +307,23 @@ function BoxScreenContent({ session }: { session: RoomSession }) {
                   type="button"
                   className="profile-avatar secondary"
                   aria-label="更换头像"
+                  title="更换头像"
                   disabled={avatarLocked}
                   onClick={() => setPanel('avatars')}
                 >
                   <img src={avatarFor(self.avatarId)} alt="" />
-                  <span>更换头像</span>
+                  <span className="profile-avatar__edit" aria-hidden="true">
+                    <svg viewBox="0 0 20 20" width="18" height="18">
+                      <path
+                        d="m12.5 3.5 4 4M4 12l9-9a1.4 1.4 0 0 1 2 0l2 2a1.4 1.4 0 0 1 0 2l-9 9-5 1 1-5Z"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="1.7"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                  </span>
                 </button>
                 <div className="player-profile">
                   <strong title={self.name}>{self.name}</strong>
@@ -364,12 +366,12 @@ function BoxScreenContent({ session }: { session: RoomSession }) {
                     );
                 }}
               >
-                <h2>加入牌桌</h2>
-                <div className="join-table__profile">
+                <div className="join-table__heading">
                   <button
                     type="button"
                     className="profile-avatar secondary"
                     aria-label="选择头像"
+                    title="选择头像"
                     disabled={avatarLocked}
                     onClick={() => setPanel('avatars')}
                   >
@@ -383,8 +385,22 @@ function BoxScreenContent({ session }: { session: RoomSession }) {
                         <img src={avatarFor(chosenAvatar)} alt="" />
                       )
                     )}
-                    <span>选择头像</span>
+                    <span className="profile-avatar__edit" aria-hidden="true">
+                      <svg viewBox="0 0 20 20" width="18" height="18">
+                        <path
+                          d="m12.5 3.5 4 4M4 12l9-9a1.4 1.4 0 0 1 2 0l2 2a1.4 1.4 0 0 1 0 2l-9 9-5 1 1-5Z"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="1.7"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                      </svg>
+                    </span>
                   </button>
+                  <h2>加入牌桌</h2>
+                </div>
+                <div className="join-table__profile">
                   <div className="join-table__fields">
                     <label htmlFor="nickname">你的昵称</label>
                     <div className="join-table__row">
@@ -416,7 +432,7 @@ function BoxScreenContent({ session }: { session: RoomSession }) {
                           !avatarAvailable
                         }
                       >
-                        加入
+                        加入牌桌
                       </button>
                     </div>
                   </div>

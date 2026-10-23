@@ -1,7 +1,7 @@
 {
   "gameId": "cockroach-salad",
   "status": "Physical commercial art integrated into local source by explicit user request, 2026-10-21; installer acceptance remains main task.",
-  "license": "Active PNGs are publisher artwork without established redistribution permission; retained unused SVGs are original project artwork. File-level origins and license boundaries are recorded separately.",
+  "license": "Publisher artwork retains its existing source, edition and redistribution boundaries. Active introduction SVGs combine original project vector composition with unchanged embedded runtime WebP card art; retained unused SVGs are original project artwork.",
   "ruleEdition": "Schmidt40839 current112 vegetable+16 taboo, unchanged",
   "artEdition": "Eight face textures and one back from public2022 TTS mod carrying old120+8 deck composition; exact physical printing unverified. Official current packshot for cover.",
   "adoptionReason": "User requires actual tabletop artwork. Current official materials only supply small/overlapping images, not complete clear independent8faces+back. User explicitly authorizes selected older physical art with current rules.",
@@ -223,6 +223,97 @@
       "use": "Retained original project SVG reference; discovered as media by build but not used in current presentation",
       "status": "legacy original reference / unused by current UI and module illustrations",
       "license": "Original project-authored SVG, project source distribution terms"
+    },
+    {
+      "id": "cockroach-salad/introduction-1-v1",
+      "file": "introduction-1-v1.svg",
+      "source": "TableMax original code-composed SVG diagram, 2026-10-23; existing verified physical-card runtime WebP bytes embedded unchanged as data URIs",
+      "purpose": "翻牌与重复改名",
+      "version": 1,
+      "width": 480,
+      "height": 320,
+      "bytes": 15492,
+      "sha256": "0e19dc8543bedb94a335a3175bf72f15024726505b89196f2ae5e9a102a68ecb",
+      "description": "静态示例：上一张番茄且上一回答为番茄，本张又是普通番茄，无可见禁忌；回答生菜是合法替代。普通情况应如实命名。",
+      "processing": "Original vector layout, arrows, labels and marks composed in SVG; physical card art is embedded byte-identically from runtime sources; no new bitmap generated. Full vegetable and taboo card borders and proportions are preserved.",
+      "sourceInputs": [
+        {
+          "path": "assets/games/cockroach-salad/runtime/normal-tomato.webp",
+          "sha256": "b56897213d654e4b4746939cf607e8558e13555f3daef3d386ce4a3b53f8e6f5",
+          "bytes": 2308
+        },
+        {
+          "path": "assets/games/cockroach-salad/runtime/normal-lettuce.webp",
+          "sha256": "c63e60d86fec980e2af93e283781fb4f7a4ab08bdc1824acbe328a8cde791652",
+          "bytes": 3926
+        },
+        {
+          "path": "assets/games/cockroach-salad/runtime/back.webp",
+          "sha256": "58dacfaddb3e63606d4baa07842d87646c692b4a54fc7511437e2ed40f2e795c",
+          "bytes": 2530
+        }
+      ],
+      "rights": "Original diagram layout and vector annotations; embedded publisher artwork retains its existing source, edition and redistribution boundaries in this manifest and the game sources document.",
+      "status": "Current introduction source metadata reference, 2026-10-23; production UI verification evidence is maintained by the main task."
+    },
+    {
+      "id": "cockroach-salad/introduction-2-v1",
+      "file": "introduction-2-v1.svg",
+      "source": "TableMax original code-composed SVG diagram, 2026-10-23; existing verified physical-card runtime WebP bytes embedded unchanged as data URIs",
+      "purpose": "禁忌与换堆",
+      "version": 1,
+      "width": 480,
+      "height": 320,
+      "bytes": 16976,
+      "sha256": "951078b84b9199d0f9cacca3ea1ca1ffbe304850aa7930764b0f9ec14a070bef",
+      "description": "甜椒禁忌牌必须回答蟑螂，下一张打到另一堆；甜椒禁忌只要仍可见就继续有效。普通牌覆盖旧禁忌时的首次双禁忌边界见正文。",
+      "processing": "Original vector layout, arrows, labels and marks composed in SVG; physical card art is embedded byte-identically from runtime sources; no new bitmap generated. Full vegetable and taboo card borders and proportions are preserved.",
+      "sourceInputs": [
+        {
+          "path": "assets/games/cockroach-salad/runtime/taboo-pepper.webp",
+          "sha256": "5ba2f75858c7baad3c1b08ba2a29b74ed0e977f1ee9c3e89e30cf29bf1d34684",
+          "bytes": 3598
+        },
+        {
+          "path": "assets/games/cockroach-salad/runtime/normal-lettuce.webp",
+          "sha256": "c63e60d86fec980e2af93e283781fb4f7a4ab08bdc1824acbe328a8cde791652",
+          "bytes": 3926
+        },
+        {
+          "path": "assets/games/cockroach-salad/runtime/back.webp",
+          "sha256": "58dacfaddb3e63606d4baa07842d87646c692b4a54fc7511437e2ed40f2e795c",
+          "bytes": 2530
+        }
+      ],
+      "rights": "Original diagram layout and vector annotations; embedded publisher artwork retains its existing source, edition and redistribution boundaries in this manifest and the game sources document.",
+      "status": "Current introduction source metadata reference, 2026-10-23; production UI verification evidence is maintained by the main task."
+    },
+    {
+      "id": "cockroach-salad/introduction-3-v1",
+      "file": "introduction-3-v1.svg",
+      "source": "TableMax original code-composed SVG diagram, 2026-10-23; existing verified physical-card runtime WebP bytes embedded unchanged as data URIs",
+      "purpose": "共同质疑窗口后判胜",
+      "version": 1,
+      "width": 480,
+      "height": 320,
+      "bytes": 11424,
+      "sha256": "32a9fd5a53a44d2c2b907f431b3728065fb7936c4eccdfbebdbc34d2f2516b02",
+      "description": "多人在共同窗口独立选择质疑或放过；他人选择不公开。右侧表示个人牌堆已空仍须等待窗口结算，再决定是否获胜；不是立即判胜。",
+      "processing": "Original vector layout, arrows, labels and marks composed in SVG; physical card art is embedded byte-identically from runtime sources; no new bitmap generated. Full vegetable and taboo card borders and proportions are preserved.",
+      "sourceInputs": [
+        {
+          "path": "assets/games/cockroach-salad/runtime/normal-tomato.webp",
+          "sha256": "b56897213d654e4b4746939cf607e8558e13555f3daef3d386ce4a3b53f8e6f5",
+          "bytes": 2308
+        },
+        {
+          "path": "assets/games/cockroach-salad/runtime/back.webp",
+          "sha256": "58dacfaddb3e63606d4baa07842d87646c692b4a54fc7511437e2ed40f2e795c",
+          "bytes": 2530
+        }
+      ],
+      "rights": "Original diagram layout and vector annotations; embedded publisher artwork retains its existing source, edition and redistribution boundaries in this manifest and the game sources document.",
+      "status": "Current introduction source metadata reference, 2026-10-23; production UI verification evidence is maintained by the main task."
     }
   ],
   "audio": "Original saved-result sine cue retained; it does not represent publisher audio.",
