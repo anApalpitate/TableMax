@@ -136,7 +136,7 @@ node --test tools/maintenance/maintenance.test.mjs
 
 任务新产生的临时输入、一次性脚本、构建、profile和临时审阅稿集中到一个 `tmp/<任务唯一ID>/`；生命周期与正式证据边界见[工作区维护](../../docs/reference/workspace-maintenance.md#tmp-临时内容的生命周期2026-10-11)。用户明确要求最终 HTML／建议截图也可删除时，将其纳入同一精确清单；不将方案图标为正式UI或安装验收。
 
-需要一键入口时，在 `artifacts/maintenance/<任务唯一ID>/` 保存仅针对该任务根的 PowerShell 薄包装和 `.cmd` 启动入口，复用 `scripts/Clean-Intermediates.ps1 -TemporaryManifest <同控制目录内清单>`，不增加全库清理功能或任意PID豁免。先停止该任务输出，再冻结普通文件的精确路径、字节、UTC修改时间与SHA；包装层绑定控制脚本及预览清单SHA，默认交互流程先预览，明确显示最终HTML也在范围内，再要求输入准确确认短语，确认后在同一流程调用一次 `-Apply -PreviewSha256 <同一SHA>`。取消不写确认记录或执行journal；显式 `-Preview` 只读且不交互，不生成预览记录。缺失／过期确认、清单变化、未列／新增文件或内容变化均拒绝。控制文件与清理journal继续保留，不自动删交付内容，也不归档待删字节。
+每次产生临时文件的改动任务收尾，须在 `artifacts/maintenance/<任务唯一ID>/` 保存仅针对该任务根的 PowerShell 薄包装和 `.cmd` 一键启动入口，并在最终答复链接；无临时文件则说明不适用。复用 `scripts/Clean-Intermediates.ps1 -TemporaryManifest <同控制目录内清单>`，不增加全库清理功能或任意PID豁免。先停止该任务输出，再冻结普通文件的精确路径、字节、UTC修改时间与SHA；包装层绑定控制脚本及预览清单SHA，默认交互流程先预览，明确显示最终HTML也在范围内，再要求输入准确确认短语，确认后在同一流程调用一次 `-Apply -PreviewSha256 <同一SHA>`。取消不写确认记录或执行journal；显式 `-Preview` 只读且不交互，不生成预览记录。缺失／过期确认、清单变化、未列／新增文件或内容变化均拒绝。控制文件与清理journal继续保留，不自动删交付内容，也不归档待删字节。
 
 `TemporaryManifest`继续要求当前版本已验收载荷及其实际passed证明；可只读复用已有完整交付证明，无需为方案审阅另建安装器或重跑安装验收。30分钟、活动工程进程、精确路径／链接、嵌套仓库、当前交付保护及共享互斥均沿用原通路；仅删除清单成员与空目录，不递归清空混合根。开始Apply即消耗清单ID，部分失败不自动重试；实际结果仍写入 `artifacts/maintenance/tmp-retirements/<id>.json`。本节描述任务级包装方式，不代表已有通用任务清理命令或新的自动删除白名单。
 
