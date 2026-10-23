@@ -379,4 +379,6 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File tools/test/installation/
 
 ### 盒子稳定布局与头像重设计源码验证
 
+局部本人操作卡改动可追加`--profile-only`，执行三角色六视口卡槽稳定检查及现代艺术4号位四视口准备切换，跳过未改的头像画廊／游戏库检查，保存`ticket-<宽度>.png`实际组件截图。
+
 `node tools/test/box/verify-box-redesign.mjs --evidence=<唯一名称>`经现有version 1批次计划以`box`范围执行。隐藏静音Edge、127.0.0.1，仅以合成session和诊断二维码验证当前BoxScreen；检查三角色六视口的入座前后卡槽几何与最长昵称、窗口利用、大图头像占用／选择／上传裁剪、无简介游戏库及搜索、扫码下方预留和十／十二席兼容。先冻结13项源码哈希再构建，执行结束核对未变；报告与截图进入`artifacts/maintenance/box-redesign-20261023/<名称>`。不证明真实服务保存、扫码连通、安装器、物理设备或Windows DPI，不触发未来服务端玩家输入功能。

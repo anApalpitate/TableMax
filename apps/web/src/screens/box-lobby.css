@@ -185,7 +185,7 @@
 .box-screen .stage .join-table,
 .box-screen .stage .player-actions {
   margin: 0;
-  padding: 18px;
+  padding: 14px;
   border: 1px solid #d5dfcd;
   border-radius: 18px;
   background: #fffdf5;
@@ -195,7 +195,7 @@
   display: flex;
   align-items: center;
   gap: 14px;
-  margin-bottom: 16px;
+  margin-bottom: 12px;
 }
 .box-screen .stage .join-table__heading h2 {
   margin: 0;
@@ -214,15 +214,15 @@
 }
 .box-screen .stage .profile-avatar {
   position: relative;
-  width: 68px;
-  height: 68px;
+  width: 56px;
+  height: 56px;
   padding: 4px;
   border-radius: 18px;
   background: #eef4e5;
 }
 .box-screen .stage .profile-avatar img {
-  width: 56px;
-  height: 56px;
+  width: 48px;
+  height: 48px;
 }
 .box-screen .stage .profile-avatar > span {
   position: absolute;
@@ -240,7 +240,7 @@
 }
 .box-screen .stage .player-actions {
   display: grid;
-  grid-template-columns: 68px minmax(0, 1fr);
+  grid-template-columns: 56px minmax(0, 1fr);
   gap: 12px;
 }
 .box-screen .stage .player-profile {
@@ -335,10 +335,11 @@
 }
 .box-screen .stage .join-table,
 .box-screen .stage .player-actions {
-  min-height: 280px;
+  min-height: 156px;
 }
 .box-screen .stage .player-actions {
-  grid-template-rows: minmax(0, 1fr) auto;
+  grid-template-rows: 56px 48px;
+  align-content: center;
   align-items: center;
 }
 .box-screen .stage .player-actions > button:last-child:not(.profile-avatar) {
@@ -516,4 +517,37 @@
   [data-player-display='wide'] .box-screen.player .stage > .room-table {
     align-self: stretch;
   }
+}
+
+/* A compact admission ticket: identity and action, without an elastic spacer. */
+.box-screen .stage .join-table__fields label {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+.box-screen .stage .join-table__fields {
+  gap: 0;
+}
+.box-screen .stage .join-table__row {
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+}
+.box-screen .stage .join-table__row > button {
+  width: auto;
+  padding: 8px 12px;
+}
+.box-screen .stage .player-ready {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin: 0;
+}
+.box-screen .stage .player-ready.is-ready {
+  background: #e8f1df;
+  color: #285c47;
+  border: 1px solid #b3cba5;
 }

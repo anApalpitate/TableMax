@@ -335,6 +335,8 @@ function BoxScreenContent({ session }: { session: RoomSession }) {
                 </div>
                 {lobby && (
                   <button
+                    className={`player-ready${self.ready ? ' is-ready' : ''}`}
+                    aria-pressed={self.ready}
                     disabled={locked}
                     onClick={() =>
                       command({ type: 'ready', ready: !self.ready })
