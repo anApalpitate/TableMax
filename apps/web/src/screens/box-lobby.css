@@ -465,8 +465,10 @@
 /* Clearing becomes available after admission; it must not resize the toolbar. */
 .box-screen .box-table-actions button {
   box-sizing: border-box;
-  height: 48px;
+  height: auto;
   min-height: 48px;
+  flex: 0 0 auto;
+  white-space: nowrap;
 }
 
 /* Room actions belong to the table heading, not a second full-width banner. */
@@ -480,30 +482,33 @@
   background: transparent;
 }
 .box-screen .room-heading .room-heading__actions {
+  min-width: 0;
+  max-width: 100%;
   flex-wrap: wrap;
+}
+.box-screen .stage > .room-heading {
+  display: flex;
+  flex-wrap: wrap;
+}
+.box-screen .room-heading .room-heading__title {
+  flex: 1 1 240px;
+}
+.box-screen .room-heading .room-heading__meta {
+  order: 1;
+  flex-basis: 100%;
 }
 @media (max-width: 959px) {
   .box-screen .stage > .room-heading {
-    grid-template-columns: minmax(0, 1fr);
-    grid-template-areas: 'title' 'meta' 'actions';
     gap: 8px;
-  }
-  .box-screen .room-heading .room-heading__title {
-    grid-area: title;
-  }
-  .box-screen .room-heading .room-heading__meta {
-    grid-area: meta;
-  }
-  .box-screen .room-heading .room-heading__actions {
-    grid-area: actions;
   }
 }
 
 .box-screen .room-heading .box-table-actions .room-actions {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  width: 224px;
-  flex: 0 0 224px;
+  display: flex;
+  flex-wrap: wrap;
+  width: auto;
+  max-width: 100%;
+  flex: 0 1 auto;
   gap: 8px;
 }
 

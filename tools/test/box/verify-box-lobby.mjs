@@ -12,7 +12,12 @@ const run = process.argv.find((x) => x.startsWith('--evidence='))?.slice(11);
 assert.match(run ?? '', /^[a-z0-9-]+$/);
 const output = resolve('artifacts/maintenance/box-lobby-20261023', run);
 await mkdir(output, { recursive: true });
-const work = await mkdtemp(resolve('tmp/box-lobby-'));
+const taskRoot = resolve(
+  'tmp',
+  process.env.TABLEMAX_TASK_ID ?? `box-lobby-${run}`,
+);
+await mkdir(taskRoot, { recursive: true });
+const work = await mkdtemp(join(taskRoot, 'fixture-'));
 const report = { checks: [], screenshots: [], errors: [] };
 await writeFile(
   join(work, 'index.html'),
@@ -32,8 +37,8 @@ let options={};
 window.renderBox=(patch={})=>{options={...options,...patch};const o=options;
 const seats=Array.from({length:o.joining?0:(o.count??3)},(_,i)=>({id:'seat-'+i,name:o.long?(i%2?'Abcdefghijklmnop':'大家一起开心玩耍'):i===0?'小明':'朋友'+i,avatarId:AVATAR_PRESETS[i%AVATAR_PRESETS.length].id,ready:i===0?!!o.ready:true,online:i!==1,controller:i===2?'bot':'human',botDifficulty:'default'}));
 const role=o.role??'player';
-const view={id:'fixture',name:'聚会牌桌',status:o.status??'lobby',joinOpen:!o.closed,playMode:'play',seats,ownerSeatId:null,paused:false,botError:null,gameView:o.status==='playing'||o.status==='ended'?{}:null,capabilities:{manage:false,manageSeats:false},game:{id:o.game??'cockroach-salad',name:o.game==='cockroach-poker'?'德国小强':'蟑螂沙拉',min:2,max:o.capacity??6}};
-const session={role,view,self:role!=='player'||o.joining?null:seats[0],isHost:false,canControl:false,canManageSeats:false,locked:!!o.closed,busy:!!o.busy,connected:o.connected!==false,credential:o.joining?null:'fixture',name:'小明',message:o.message??'',messageKind:o.kind??'saved',errorId:'',admissionPending:!!o.pending,awaitingConfirmation:!!o.awaiting,admissionAvatarId:null,admissionAvatarImage:null,addresses:[],adapters:[],address:'',port:38473,networkMessage:'',externalJoinUrl:null,setAddress(){},refreshNetwork(){},async saveExternalJoinUrl(){return true},setName(){},join(){window.commands.push({type:'join'})},retry(){window.commands.push({type:'retry'})},retryAdmission(){window.commands.push({type:'retryAdmission'})},setPlayerCredential(){},command(c){window.commands.push(c)}};
+const view={id:'fixture',name:'聚会牌桌',status:o.status??'lobby',joinOpen:!o.closed,playMode:'play',seats,ownerSeatId:null,paused:!!o.paused,lifecycleActions:o.status==='playing'?[{type:'next'}]:[],botError:null,gameView:o.status==='playing'||o.status==='ended'?{}:null,capabilities:{manage:false,manageSeats:false},game:{id:o.game??'cockroach-salad',name:o.game==='cockroach-poker'?'德国小强':'蟑螂沙拉',min:2,max:o.capacity??6}};
+const session={role,view,self:role!=='player'||o.joining?null:seats[0],isHost:role==='host',canControl:role==='host',canManageSeats:role==='host',locked:!!o.closed,busy:!!o.busy,connected:o.connected!==false,credential:o.joining?null:'fixture',name:'小明',message:o.message??'',messageKind:o.kind??'saved',errorId:'',admissionPending:!!o.pending,awaitingConfirmation:!!o.awaiting,admissionAvatarId:null,admissionAvatarImage:null,addresses:[],adapters:[],address:'',port:38473,networkMessage:'',externalJoinUrl:null,setAddress(){},refreshNetwork(){},async saveExternalJoinUrl(){return true},setName(){},join(){window.commands.push({type:'join'})},retry(){window.commands.push({type:'retry'})},retryAdmission(){window.commands.push({type:'retryAdmission'})},setPlayerCredential(){},command(c){window.commands.push(c)}};
 flushSync(()=>root.render(<BoxScreen session={session}/>));};window.renderBox();
 `,
 );
@@ -83,6 +88,118 @@ try {
   const render = async (o) => {
     await page.evaluate((o) => window.renderBox(o), o);
   };
+  // Exercise the real host toolbar with the five-character lifecycle action.
+  for (const [w, h] of [
+    [320, 568],
+    [844, 390],
+    [1280, 720],
+    [1568, 944],
+    [1920, 1080],
+    [3840, 2160],
+  ]) {
+    await page.setViewportSize({ width: w, height: h });
+    for (const status of ['lobby', 'playing', 'ended']) {
+      await render({
+        role: 'host',
+        status,
+        joining: false,
+        count: 3,
+        capacity: 5,
+        paused: false,
+      });
+      const layout = await page.evaluate(() => {
+        const heading = document
+          .querySelector('.room-heading')
+          .getBoundingClientRect();
+        return {
+          overflow: document.documentElement.scrollWidth > innerWidth + 1,
+          buttons: [...document.querySelectorAll('.room-heading button')].map(
+            (b) => {
+              const r = b.getBoundingClientRect();
+              const range = document.createRange();
+              range.selectNodeContents(b);
+              const text = range.getBoundingClientRect();
+              return {
+                label: b.textContent.trim(),
+                left: r.left,
+                right: r.right,
+                top: r.top,
+                bottom: r.bottom,
+                clipped:
+                  b.scrollWidth > b.clientWidth + 1 ||
+                  b.scrollHeight > b.clientHeight + 1,
+                textFits:
+                  text.left >= r.left &&
+                  text.right <= r.right &&
+                  text.top >= r.top &&
+                  text.bottom <= r.bottom,
+                inside: r.left >= heading.left && r.right <= heading.right + 1,
+              };
+            },
+          ),
+        };
+      });
+      assert(!layout.overflow, `host overflow ${w} ${status}`);
+      assert(
+        layout.buttons.every((b) => !b.clipped && b.textFits && b.inside),
+        JSON.stringify({ w, status, layout }),
+      );
+      for (let i = 0; i < layout.buttons.length; i++)
+        for (let j = i + 1; j < layout.buttons.length; j++) {
+          const a = layout.buttons[i],
+            b = layout.buttons[j];
+          assert(
+            !(
+              a.left < b.right - 1 &&
+              a.right > b.left + 1 &&
+              a.top < b.bottom - 1 &&
+              a.bottom > b.top + 1
+            ),
+            `host actions overlap ${w} ${status}`,
+          );
+        }
+      report.checks.push(`host actions ${w}x${h} ${status}`);
+      if (status === 'playing') {
+        const path = join(output, `host-${w}.png`);
+        await page.screenshot({ path, fullPage: true });
+        report.screenshots.push(path);
+      }
+    }
+  }
+  await render({ role: 'host', status: 'playing' });
+  await page.getByRole('button', { name: '开始下一局', exact: true }).click();
+  assert(
+    await page.evaluate(() =>
+      window.commands.some((c) => c.type === 'lifecycle'),
+    ),
+  );
+  await page.getByRole('button', { name: '暂停游戏', exact: true }).click();
+  assert(
+    await page.evaluate(() => window.commands.some((c) => c.type === 'pause')),
+  );
+  await render({ paused: true });
+  assert.equal(
+    await page.getByRole('button', { name: '开始下一局', exact: true }).count(),
+    0,
+  );
+  await page.getByRole('button', { name: '恢复游戏', exact: true }).click();
+  assert(
+    await page.evaluate(() => window.commands.some((c) => c.type === 'resume')),
+  );
+  await page.getByRole('button', { name: '结束游戏', exact: true }).click();
+  assert(
+    await page
+      .getByRole('button', { name: '确认结束游戏', exact: true })
+      .isVisible(),
+  );
+  await page.getByRole('button', { name: '取消', exact: true }).click();
+  assert(
+    !(await page.evaluate(() => window.commands.some((c) => c.type === 'end'))),
+  );
+  report.checks.push(
+    'host lifecycle/pause/resume commands and end confirmation cancel',
+  );
+  await render({ role: 'player', status: 'lobby', paused: false });
   for (const [w, h] of [
     [320, 568],
     [390, 844],
