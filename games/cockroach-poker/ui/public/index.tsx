@@ -60,7 +60,7 @@ export function Table({
             <span className="cp-trophy" aria-hidden="true">
               ✧
             </span>
-            <h2>共同获胜</h2>
+            <h2>{game.winners.length > 1 ? '共同获胜' : '获胜'}</h2>
             <div className="cp-winners">
               {game.winners.map((id) => (
                 <PlayerBadge key={id} name={players[id]} avatar={avatars[id]} />

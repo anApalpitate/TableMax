@@ -74,7 +74,7 @@ import ${file('apps/web/src/styles.css')};
 configureGameHost({ScreenLink:p=><a {...p}/>,FullscreenControl:()=>null,DisplaySettings:()=>null,useAudioOutput:()=>false,claimAudioEvent:()=>false,avatarFor:()=>'',avatarChoices:[]});
 const root=createRoot(document.getElementById('root'));
 const fixtures={poker:{rules:pokerRules,client:poker}};
-let current, state, role, self, revision=0, feedback=null, seed=223;
+let current, state, role, self, revision=0, feedback=null, seed=223, flags={};
 const random={next(){seed^=seed<<13;seed^=seed>>>17;seed^=seed<<5;return (seed>>>0)/4294967296;}};
 const seats=Array.from({length:6},(_,i)=>({id:'s'+i,name:['桌游伙伴名字八字','SixteenLetterABC','玩家丙','玩家丁','玩家戊','玩家己'][i],controller:'human',ready:true,online:true,avatarId:'preset-01',botDifficulty:null}));
 window.commands=[];
@@ -82,13 +82,23 @@ function render(){
  const decisions=current.rules.decisions(state), decision=decisions.find(d=>d.seatId===self);
  const game=current.rules.project(state,role==='player'?{role:'player',seatId:self}:{role:'public'});
  const pending=current.rules.automaticAction?.(state);
- const view={instanceId:'source-fixture',revision,branch:0,status:current.rules.ended(state)?'ended':'playing',paused:false,seats:seats.slice(0,state.seats.length),self:{role,seatId:role==='player'?self:null},game:{...current.rules.manifest,min:2,max:6},gameView:game,decisionId:decision?.id??null,selectionToken:decision?.id??null,actions:role==='player'&&decision?current.rules.legalActions(state,self):[],lifecycleActions:[],history:[],joinOpen:false,ownerSeatId:null,decisionClock:null,automaticTiming:pending?{key:'a'.repeat(64),remainingMs:pending.delayMs,serverTime:Date.now(),running:true}:null};
- const session={role,view,self:view.seats.find(s=>s.id===self),connected:true,locked:false,canControl:role==='host',message:'',messageKind:'none',admissionPending:false,awaitingConfirmation:false,feedback,errorId:'',motion:[],command(value){window.commands.push(value);if(value.type==='game'){const result=current.rules.apply(state,value.action,self,{seats:state.seats,random});state=current.rules.validateState(result.state,state.seats);revision++;feedback={instanceId:view.instanceId,branch:0,revision,events:result.events??[]};render();}}};
+ const view={instanceId:'source-fixture',revision,branch:0,status:current.rules.ended(state)?'ended':'playing',paused:!!flags.paused,seats:seats.slice(0,state.seats.length),self:{role,seatId:role==='player'?self:null},game:{...current.rules.manifest,min:2,max:6},gameView:game,decisionId:decision?.id??null,selectionToken:decision?.id??null,actions:role==='player'&&decision?current.rules.legalActions(state,self):[],lifecycleActions:[],history:[],joinOpen:false,ownerSeatId:null,decisionClock:null,automaticTiming:pending?{key:'a'.repeat(64),remainingMs:pending.delayMs,serverTime:Date.now(),running:true}:null};
+ const session={role,view,self:view.seats.find(s=>s.id===self),connected:!flags.disconnected,locked:!!flags.locked,canControl:role==='host',message:'',messageKind:'none',admissionPending:false,awaitingConfirmation:!!flags.awaiting,feedback,errorId:'',motion:[],command(value){window.commands.push(value);if(value.type==='game'){const result=current.rules.apply(state,value.action,self,{seats:state.seats,random});state=current.rules.validateState(result.state,state.seats);revision++;feedback={instanceId:view.instanceId,branch:0,revision,events:result.events??[]};render();}}};
  flushSync(()=>root.render(<HostedGame key={role+current.rules.manifest.id} session={session} client={current.client} presentation={{management:()=>null,feedback:()=>null,playMode:()=>null,countdown:()=>null}}/>));
  window.snapshot={game,actions:view.actions,decisionId:view.decisionId};
 }
-window.setup=(id,newRole,count=6,stage='opening')=>{current=fixtures[id];role=newRole;revision=0;feedback=null;seed=223;window.commands=[];state=current.rules.initialize({seats:seats.slice(0,count).map(s=>s.id),random});self=state.seats[0];
- if(id==='poker'&&stage!=='opening'){const a=current.rules.legalActions(state,self).find(a=>a.type==='offer');state=current.rules.apply(state,a,self,{seats:state.seats,random}).state;self=a.target;if(stage==='peek')state=current.rules.apply(state,{type:'peek'},self,{seats:state.seats,random}).state;}
+window.setFlags=value=>{flags=value;render();};
+window.setup=(id,newRole,count=6,stage='opening')=>{current=fixtures[id];role=newRole;revision=0;feedback=null;flags={};seed=223;window.commands=[];state=current.rules.initialize({seats:seats.slice(0,count).map(s=>s.id),random});self=state.seats[0];
+ if(stage==='dense'||stage==='end'){
+   for(let i=0;i<5000&&!current.rules.ended(state);i++){
+     if(stage==='dense'&&Object.values(state.piles).flat().length>=count*2)break;
+     const actor=current.rules.decisions(state)[0].seatId,all=current.rules.legalActions(state,actor),judgments=all.filter(a=>a.type==='judge');
+     const candidates=judgments.length?judgments:all,action=candidates[Math.floor(random.next()*candidates.length)];
+     state=current.rules.apply(state,action,actor,{seats:state.seats,random}).state;
+   }
+   if(stage==='end'&&!current.rules.ended(state))throw new Error('Legal fixture did not reach an ending');
+   self=current.rules.decisions(state)[0]?.seatId??state.seats[0];
+ }else if(id==='poker'&&stage!=='opening'){const a=current.rules.legalActions(state,self).find(a=>a.type==='offer');state=current.rules.apply(state,a,self,{seats:state.seats,random}).state;self=a.target;if(stage==='peek')state=current.rules.apply(state,{type:'peek'},self,{seats:state.seats,random}).state;}
  current.rules.validateState(state,state.seats);render();};
 window.setup('poker','player');
 window.pokerArtFiles=Array.from({length:64},(_,card)=>cardAssetFile(card));
@@ -483,13 +493,148 @@ try {
           boxes.every((r) => r.width >= 44 && r.height >= 44),
           JSON.stringify({ viewport, boxes }),
         );
-        if (viewport.width === 844)
+        if (viewport.width === 844) {
+          const nameBox = await page
+            .locator('.cp-draft-preview .cp-person strong')
+            .evaluate((node) => ({
+              height: node.getBoundingClientRect().height,
+              line: Number.parseFloat(getComputedStyle(node).lineHeight),
+            }));
+          assert(
+            nameBox.height <= nameBox.line * 2 + 1,
+            'Full target name must fit at most two lines in short landscape',
+          );
           assert(
             boxes.at(-1).bottom <= viewport.height,
             'Short landscape confirmation must remain on screen',
           );
+        }
+        await captureBrowserScreenshot(page, {
+          path: join(output, `draft-${viewport.width}-${viewport.height}.png`),
+          fullPage: true,
+        });
       }
     });
+  }
+  if (!densityOnly) {
+    for (const count of [2, 6])
+      for (const stage of ['opening', 'offer', 'peek', 'dense', 'end']) {
+        if (count === 2 && stage === 'peek') continue;
+        for (const layout of [
+          { role: 'host', width: 1280, height: 720 },
+          { role: 'player', width: 390, height: 844 },
+          { role: 'player', width: 844, height: 390 },
+        ])
+          await check(
+            `state-${count}-${stage}-${layout.role}-${layout.width}`,
+            async () => {
+              await page.setViewportSize({
+                width: layout.width,
+                height: layout.height,
+              });
+              await page.evaluate(
+                ({ count, stage, role }) =>
+                  window.setup('poker', role, count, stage),
+                { count, stage, role: layout.role },
+              );
+              await page.evaluate(async () => {
+                await document.fonts.ready;
+                await Promise.all(
+                  [...document.images].map((image) => image.decode()),
+                );
+              });
+              const geometry = await page.evaluate(() => ({
+                width: innerWidth,
+                scroll: document.documentElement.scrollWidth,
+                game: window.snapshot.game,
+              }));
+              assert(
+                geometry.scroll <= geometry.width + 1,
+                JSON.stringify({
+                  count,
+                  stage,
+                  layout,
+                  scroll: geometry.scroll,
+                }),
+              );
+              if (
+                count === 2 &&
+                stage === 'opening' &&
+                layout.role === 'player'
+              )
+                assert.equal(await page.locator('.cp-hand button').count(), 27);
+              if (layout.role === 'host')
+                assert.equal(
+                  await page
+                    .locator('.cp-controls,.cp-known,.cp-preview-card')
+                    .count(),
+                  0,
+                );
+              if (stage === 'end') {
+                assert(geometry.game.loser);
+                assert.equal(
+                  await page.locator('.cp-winners .cp-person').count(),
+                  count - 1,
+                );
+                assert.equal(
+                  await page.locator('.cp-ending h2').innerText(),
+                  count === 2 ? '获胜' : '共同获胜',
+                );
+              }
+              if (stage === 'dense')
+                assert(
+                  Object.values(geometry.game.piles).flat().length >=
+                    count * 2 || geometry.game.loser,
+                );
+              if (
+                stage === 'dense' ||
+                stage === 'end' ||
+                (stage === 'peek' && layout.role === 'player')
+              )
+                await captureBrowserScreenshot(page, {
+                  path: join(
+                    output,
+                    `state-${count}-${stage}-${layout.role}-${layout.width}.png`,
+                  ),
+                  fullPage: true,
+                });
+            },
+          );
+      }
+    await check(
+      'suspended-or-unconfirmed-intent-does-not-dispatch',
+      async () => {
+        await page.setViewportSize({ width: 390, height: 844 });
+        await page.evaluate(() => window.setup('poker', 'player'));
+        await page.locator('.cp-hand button').first().click();
+        await page.locator('.cp-targets button').first().click();
+        await page.locator('.cp-claims button').first().click();
+        const label = await page
+          .locator('.cp-confirm')
+          .getAttribute('aria-label');
+        for (const flags of [
+          { paused: true },
+          { disconnected: true },
+          { awaiting: true },
+          { locked: true },
+        ]) {
+          await page.evaluate((flags) => window.setFlags(flags), flags);
+          assert(
+            await page.locator('.cp-confirm').isDisabled(),
+            JSON.stringify(flags),
+          );
+          assert.equal(await page.evaluate(() => window.commands.length), 0);
+        }
+        await page.evaluate(() => window.setFlags({}));
+        assert.equal(
+          await page.locator('.cp-confirm').getAttribute('aria-label'),
+          label,
+        );
+        assert(await page.locator('.cp-confirm').isEnabled());
+        await page.locator('.cp-confirm').click();
+        assert.equal(await page.evaluate(() => window.commands.length), 1);
+      },
+    );
   }
   for (const scale of [1.25, 1.5]) {
     const denseContext = await browser.newContext({

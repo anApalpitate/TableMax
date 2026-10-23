@@ -1133,3 +1133,20 @@
   font-size: 32px;
   color: #a6542b;
 }
+.cp-player .cp-targets strong {
+  max-width: 100%;
+  line-height: 20px;
+}
+.cp-draft-preview .cp-person strong {
+  white-space: normal;
+  overflow: visible;
+  text-overflow: clip;
+  overflow-wrap: anywhere;
+  text-align: center;
+  line-height: 1.2;
+}
+@media (max-width: 1000px) and (min-aspect-ratio: 1/1) {
+  .cp-player .cp-draft-preview .cp-person .cp-avatar {
+    display: none;
+  }
+}

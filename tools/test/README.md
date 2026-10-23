@@ -439,7 +439,7 @@ before或双阶段时另传`--before-bundle=tmp/<任务唯一ID>/fixture-<改前
 
 以下脚本登记为`game:cockroach-poker`，放入version 1独立计划，经`node tools/test/runner/test-scoped.mjs --scope=game:cockroach-poker --plan=<计划.json>`运行；保留原失败账，实质修复后只复验受影响范围。
 
-- `games/cockroach/verify-cockroach-source.mjs --evidence=<唯一安全名称> [--density-only]`：实际生产客户端和规则派生内存夹具，现覆盖待迁移的旧三端／320px至4K／密度／减少动态及图文规则检查；源码及资源逐SHA绑定。仅证明源码浏览器，不冒称Socket、SQLite、安装或实体设备通过。
+- `games/cockroach/verify-cockroach-source.mjs --evidence=<唯一安全名称> [--density-only]`：实际生产客户端和规则派生内存夹具，覆盖管理横屏、玩家横竖／320px至4K／密度／减少动态及图文规则；2／6人合法推进到出牌、接牌、查看后转传、密集收牌和终局，核对27张起手、公开／本人牌面边界、44px热区、旋转草稿与短横屏确认可达，暂停／断线／未确认／锁定不派发动作。双人不生成非法查看状态，不再维护独立公共屏产品矩阵。源码及资源逐SHA绑定；待全部美术接入后仍须冻结最终输入复验。仅证明源码浏览器，不冒称Socket、SQLite、安装或实体设备通过。
 - `games/cockroach/verify-cockroach-installed.mjs --delivery=<installer-delivery.json> --proof=<正式完成的shipping proof或封存proof> --evidence=<全新artifacts/maintenance目录>`：先核原EXE、载荷、两个清单及已卸载／保留runtime证明，再从精确冻结成员建立隔离副本。现按旧主机／公共屏Native WebView2与隐藏静音Edge手机模拟矩阵，执行德国小强生产动作、全部声明资源SHA及图像／WAV解码、实际保存重启；矩阵待随工具迁移，原冻结包仍按原输入验证。结束复核所有输入和保留runtime未变。安装系统验收须独立完成，不以此脚本替代；不证明实体手机、真实网络、多物理DPI或真人试听。
 
 ### 盒子大厅与德国小强简介源码验证

@@ -15,11 +15,11 @@
 ### 实施接续（未完成）
 
 - 核心UI第一阶段：已重写公共牌桌、头像传递／声明气泡、公开收牌、玩家目标／声明／确认、判断及查看后转传、三类布局与规则浮窗外壳。原搜集运行图暂占位，精修资源尚未导入；最终视觉和全部状态仍待收尾，不能称全任务完成。
-- 最新源码浏览器证据：[r3报告](../../artifacts/maintenance/cockroach-source/ui-redesign-r3-20261024/report.json)通过，含实际卡牌解码、管理公开投影不渲染暗牌、本人查看的精确卡图、44px热区、390↔844横竖切换草稿保留及短横屏确认首屏可达。源检查不含独立公共屏产品矩阵，SDK公开投影继续用于安全验证。旧r1／r2及修复理由见[独立轮记录](../../artifacts/maintenance/cockroach-ui-redesign-20261024/rounds.txt)。
+- 最新源码浏览器证据：[r6报告](../../artifacts/maintenance/cockroach-source/ui-redesign-r6-20261024/report.json)48项通过：除卡牌解码、管理公开投影不渲染暗牌、本人查看的精确卡图、44px热区、旋转草稿和短横屏确认可达外，已补2／6人合法推进的出牌、接牌、查看转传、密集收牌和终局，27张起手及暂停／断线／未确认／锁定不派发动作。双人单赢家正确标“获胜”，多人共同赢家才标“共同获胜”；选中目标长名完整显示，短横屏16字符目标名不超过两行。旧轮与修复理由见[独立轮记录](../../artifacts/maintenance/cockroach-ui-redesign-20261024/rounds.txt)。美术导入后仍须冻结最终输入复验。
 - UI静态6项：[定向复验](../../artifacts/maintenance/test-history/runs/b2523a7e-73e3-45c2-88b3-b7f642c472ba/results.json)通过；真实Socket／SQLite保存与重连及UI前轮见[服务回归](../../artifacts/maintenance/test-history/runs/5419e7a6-6dc5-4c38-9564-6240fd760fbb/results.json)。已纠正新增徽章的严格可选类型错误，类型检查通过；当前工程检查不替代最终全部输入冻结。
-- imagegen子agent：`/root/poker_imagegen`，已授权继续全部64张，**不要重新派发或重复生成**。已复核八类各1号共8张及统一牌背候选，正在逐张制作其余变体。原件与候选在外部素材工作区；[批次01](../../../TMP/TableMaxMaterial/work/cockroach-poker-polish-20261024/batch-01.json)保存完整提示词、原件映射与QA，[候选目录](../../../TMP/TableMaxMaterial/exports/cockroach-poker-polish-20261024)保存输出。主agent负责后续正式导入和共享资源manifest，子agent不修改UI／正式清单。
+- imagegen子agent：`/root/poker_imagegen`，已授权继续全部64张，**不要重新派发或重复生成**。已完成40／64张（八类各1–5号）及统一牌背候选；主agent已查看八类1号及牌背样板，其余逐张身份QA由子agent记录，最终导入前复核。原件与候选在外部素材工作区；[批次01](../../../TMP/TableMaxMaterial/work/cockroach-poker-polish-20261024/batch-01.json)至[批次05](../../../TMP/TableMaxMaterial/work/cockroach-poker-polish-20261024/batch-05.json)保存完整提示词、原件映射与QA，[候选目录](../../../TMP/TableMaxMaterial/exports/cockroach-poker-polish-20261024)保存输出。以各批次`candidate`为准（部分返修为v2），不能按文件通配选v1。主agent负责后续正式导入和共享资源manifest，子agent不修改UI／正式清单。
 - 临时目录唯一入口：`tmp/cockroach-ui-redesign-20261024/`。证据留`artifacts/maintenance/cockroach-ui-redesign-20261024/`及各独立范围测试目录。收尾清理按该目录内入口先预览；不删除活动imagegen成果或证据。
-- 下一步：接续现有imagegen子agent的逐批交付并审核64张独立身份；按清晰度和实际字节预算生成运行派生，导入后更新Theme映射及清单／来源说明。再补2人27张、密集收牌、转传与共同终局等完整状态，冻结最终输入复验三布局，制作实际前后变化HTML，最后更新长期游戏规格并归档本任务。
+- 下一步：接续现有imagegen子agent的逐批交付并审核64张独立身份；按清晰度和实际字节预算生成运行派生，导入后更新Theme映射及清单／来源说明。资源记录必须区分原搜集JPG、AI生成母版、实际编码运行图的SHA与来源关系，不能沿用“无重绘／仅原图编码”的旧声明；更新UI资源映射测试以验证完整链，避免让源码测试依赖外部素材目录可用。完整状态检查已补齐，待最终美术接入后冻结输入复验，制作实际前后变化HTML，最后收尾并归档。
 
 ## 设计依据与当前问题
 
