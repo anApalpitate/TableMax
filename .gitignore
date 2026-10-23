@@ -4,6 +4,9 @@ node_modules/
 .cache/
 .vite/
 
+# Project-local skills (already tracked project skills remain tracked)
+/.agents/skills/
+
 # Regenerable build and verification output
 /build/
 /dist/
