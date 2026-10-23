@@ -14,14 +14,7 @@ import {
   rules as poker,
   bot as pokerBot,
 } from '../../../games/cockroach-poker';
-import {
-  rules as salad,
-  bot as saladBot,
-} from '../../../games/cockroach-salad';
-const modules = [
-  { rules: poker, bot: pokerBot },
-  { rules: salad, bot: saladBot },
-];
+const modules = [{ rules: poker, bot: pokerBot }];
 import { WorkerBotExecutor } from './bot-executor';
 
 let workerPath: string;

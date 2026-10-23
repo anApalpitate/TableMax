@@ -1,6 +1,6 @@
 # 德国小强与蟑螂沙拉开发定案
 
-2026-10-21用户经本轮问答确认，两款已一次完成开发、适用验证与完整安装器1.0.8.8本地交付。本页归档保留定案、研究边界、失败与交付过程；当前规则分别维护在[德国小强](../games/cockroach-poker/README.md)、[蟑螂沙拉](../games/cockroach-salad/README.md)，当前产物与设备边界见[验收](../reference/acceptance.md#德国小强与蟑螂沙拉完整交付2026-10-21)。本任务不授权公开发布。
+2026-10-21用户经本轮问答确认，两款已一次完成开发、适用验证与完整安装器1.0.8.8本地交付。本页归档保留定案、研究边界、失败与交付过程；当前规则分别维护在[德国小强](../games/cockroach-poker/README.md)、蟑螂沙拉（当前内容已于2026-10-24移除），当前产物与设备边界见[验收](../reference/acceptance.md#德国小强与蟑螂沙拉完整交付2026-10-21)。本任务不授权公开发布。
 
 ## 目标与交付范围
 
@@ -77,7 +77,7 @@
 
 自动计时后续补至12项，含回退重开完整时限、同阶段提交不重置时限及退出停止调度；[报告](../../artifacts/maintenance/test-history/runs/b8f48a59-6386-4e87-a558-02122a657df8/results.json)中该文件通过，但同轮三个既有核心文件因沙箱临时SSR缓存ENOENT未能加载。纠正为项目内隔离TEMP／TMP后，仅重跑受影响的game-setup-timing、room、room-shutdown三个文件并通过，见[环境纠正复验](../../artifacts/maintenance/test-history/runs/902e3de7-94a4-4615-a55e-9f74e631e9e3/results.json)。初次定向类型检查发现可选投影返回类型包含undefined，已收窄返回类型；限定配置补入项目已有pngjs声明后，平台／服务类型检查通过。没有升级依赖或放宽断言。
 
-两款规则与采用参数分别归[德国小强](../games/cockroach-poker/README.md)和[蟑螂沙拉](../games/cockroach-salad/README.md)，各自来源页保留官方原件SHA与数字解释。德国小强17规则用例（含60场完整种子对局）、5静态UI用例通过；蟑螂沙拉14规则／策略用例通过，含官方示例、2–6人完整种子对局与三档失误／漏抓频率。服务Socket／SQLite7用例见[实库复验](../../artifacts/maintenance/test-history/runs/19d37975-46ee-4077-a47c-419349609daf/results.json)，两款×三档×2／6人的12个真实32MiB Worker验证见[Worker证据](../../artifacts/maintenance/test-history/runs/f32b16f8-cae4-4d6d-8854-875d9ff3adf1/results.json)；该首轮仅服务综合I/O用例总预算5秒超时，明确15秒I/O总预算后独立新轮通过，单动作5秒与Worker2秒门禁未放宽。授权换机／回退旧凭证定向[回归](../../artifacts/maintenance/test-history/runs/d5a49e93-f499-420b-8ffe-167ae6b1b98f/results.json)通过。
+两款规则与采用参数分别归[德国小强](../games/cockroach-poker/README.md)和蟑螂沙拉（当前内容已于2026-10-24移除），各自来源页保留官方原件SHA与数字解释。德国小强17规则用例（含60场完整种子对局）、5静态UI用例通过；蟑螂沙拉14规则／策略用例通过，含官方示例、2–6人完整种子对局与三档失误／漏抓频率。服务Socket／SQLite7用例见[实库复验](../../artifacts/maintenance/test-history/runs/19d37975-46ee-4077-a47c-419349609daf/results.json)，两款×三档×2／6人的12个真实32MiB Worker验证见[Worker证据](../../artifacts/maintenance/test-history/runs/f32b16f8-cae4-4d6d-8854-875d9ff3adf1/results.json)；该首轮仅服务综合I/O用例总预算5秒超时，明确15秒I/O总预算后独立新轮通过，单动作5秒与Worker2秒门禁未放宽。授权换机／回退旧凭证定向[回归](../../artifacts/maintenance/test-history/runs/d5a49e93-f499-420b-8ffe-167ae6b1b98f/results.json)通过。
 
 源码41项实际渲染／按钮检查见[完整输入绑定报告](../../artifacts/maintenance/cockroach-source/bound-inputs-20261021/report.json)，绑定61个源码／资源输入。首轮Edge在沙箱无法启动；改用正常本机隐藏静音Edge。初次自动通过后人工发现手机纵排标题、长姓名挤压与主操作位于次要收牌区下方，已修复并补位置／标题／短桌面断言。Windows路径分隔符曾导致报告仅绑定验证器，修正后补录全部源码和资源并复验；旧报告不升级为完整输入证明。全工程TypeScript、任务文件ESLint与适用Prettier通过；旧失败证据均保留。
 

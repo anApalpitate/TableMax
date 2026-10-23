@@ -16,21 +16,14 @@ export const gameIds = [
   'avalon',
   'manila',
   'cockroach-poker',
-  'cockroach-salad',
 ];
 const gameScopes = gameIds.map((id) => `game:${id}`);
 const validScopes = ['box', 'shared', 'tooling', ...gameScopes];
 
 // Classify what a test actually exercises, rather than its containing app.
 const unitScopes = {
-  'apps/server/src/cockroach-games.test.ts': [
-    'game:cockroach-poker',
-    'game:cockroach-salad',
-  ],
-  'apps/server/src/cockroach-worker.test.ts': [
-    'game:cockroach-poker',
-    'game:cockroach-salad',
-  ],
+  'apps/server/src/cockroach-games.test.ts': ['game:cockroach-poker'],
+  'apps/server/src/cockroach-worker.test.ts': ['game:cockroach-poker'],
   'packages/platform-core/src/automatic-timing.test.ts': ['shared'],
   'apps/server/src/game-packages/development.test.ts': [
     'shared',
@@ -156,11 +149,9 @@ const unitScopes = {
 const verificationScopes = {
   'tools/test/games/cockroach/verify-cockroach-installed.mjs': [
     'game:cockroach-poker',
-    'game:cockroach-salad',
   ],
   'tools/test/games/cockroach/verify-cockroach-source.mjs': [
     'game:cockroach-poker',
-    'game:cockroach-salad',
   ],
   'tools/shared/application-version.test.mjs': ['tooling'],
   'tools/release/installer-retention.test.mjs': ['tooling'],
@@ -169,11 +160,7 @@ const verificationScopes = {
   'tools/dev/verify-session.mjs': ['tooling'],
   'tools/build/module-efficiency.test.mjs': ['tooling'],
   'tools/build/setup-desktop.test.mjs': ['tooling'],
-  'tools/dev/verify-game-resources.mjs': [
-    'tooling',
-    'game:cockroach-poker',
-    'game:cockroach-salad',
-  ],
+  'tools/dev/verify-game-resources.mjs': ['tooling', 'game:cockroach-poker'],
   'tools/shared/windows-executable-security.test.mjs': ['tooling'],
   'tools/test/platform/verify-save-overlay.mjs': [
     'box',
@@ -349,11 +336,7 @@ const verificationScopes = {
   'tools/test/box/verify-box-seats.mjs': ['box'],
   'tools/test/box/verify-box-expanded-seats.mjs': ['box'],
   'tools/test/box/verify-box-redesign.mjs': ['box'],
-  'tools/test/box/verify-box-lobby.mjs': [
-    'box',
-    'game:cockroach-poker',
-    'game:cockroach-salad',
-  ],
+  'tools/test/box/verify-box-lobby.mjs': ['box', 'game:cockroach-poker'],
   'tools/test/box/verify-box-notifications.mjs': ['box'],
   'tools/test/platform/verify-speech-panel.mjs': ['box', 'shared'],
   'tools/test/platform/verify-player-interaction-audio.mjs': ['box', 'shared'],

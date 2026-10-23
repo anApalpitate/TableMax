@@ -92,18 +92,6 @@ test('local rule illustrations accept PNG, JPEG, WebP and GIF alongside SVG', as
   );
 });
 
-test('current salad runtime illustrations join their frozen resource inputs', async () => {
-  const module = JSON.parse(
-    await readFile('games/cockroach-salad/game-module.json', 'utf8'),
-  );
-  const paths = await introductionResourceInputs(module);
-  assert.deepEqual(paths, [
-    'assets/games/cockroach-salad/runtime/back.webp',
-    'assets/games/cockroach-salad/runtime/normal-tomato.webp',
-    'assets/games/cockroach-salad/runtime/taboo-pepper.webp',
-  ]);
-});
-
 test('resource collector rejects a missing local SVG instead of freezing an absent image', async () => {
   await assert.rejects(
     introductionResourceInputs({

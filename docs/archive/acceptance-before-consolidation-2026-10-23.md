@@ -54,7 +54,7 @@ TypeScript、改动TSX／验证器ESLint、定向Prettier与`git diff --check`�
 
 ## 实体牌美术与开发资源加载（2026-10-21）
 
-当前源码已采用两款游戏的实体卡牌美术：德国小强64张牌面按实际卡ID对应，补入经典灰色八动物牌背实拍；蟑螂沙拉采用实体蔬菜、禁说牌和厨师牌背。灰背仍为实拍透视图，并非平面扫描。沙拉2007版规则为120张普通牌＋8张禁说牌，当前项目规则保持112＋16；素材对应旧构成，确切印次及新版全部图案尚未证实，来源与采用边界见[沙拉来源](../games/cockroach-salad/sources.md)。
+当前源码已采用两款游戏的实体卡牌美术：德国小强64张牌面按实际卡ID对应，补入经典灰色八动物牌背实拍；蟑螂沙拉采用实体蔬菜、禁说牌和厨师牌背。灰背仍为实拍透视图，并非平面扫描。沙拉2007版规则为120张普通牌＋8张禁说牌，当前项目规则保持112＋16；素材对应旧构成，确切印次及新版全部图案尚未证实，来源与采用边界见沙拉来源（当前内容已于2026-10-24移除）。
 
 [源码界面57项检查](../../artifacts/maintenance/cockroach-source/physical-art-r4-20261021/report.json)通过，覆盖320px至4K、125%／150%像素密度及实体牌显示。[实际开发命令记录](../../artifacts/maintenance/cockroach-art-integration-20261021/direct-launch-final.json)确认独立运行`node tools/dev/dev.mjs --foundation-test`，构建后启动隐藏原生盒子并正常退出；[原生开发资源检查](../../artifacts/maintenance/dev-game-resources/physical-art-final-r4-20261021/report.json)通过两款游戏97个资源的HTTP、MIME、SHA、图像解码及主机／模拟手机显示。冻结开发快照为`f756883c78bfef9d72df123529d86006670790a988c78c4b4d8976f902e9d1c8`。这些结果不代表实体手机、真实LAN或安装验收。
 
@@ -64,7 +64,7 @@ TypeScript、改动TSX／验证器ESLint、定向Prettier与`git diff --check`�
 
 ## 德国小强与蟑螂沙拉完整交付（2026-10-21）
 
-[1.0.8.8原交付清单](../../artifacts/releases/v1.0.8/1.0.8.8/TableMax-1.0.8.8-installer-win-x64-manifest.json)38,251,047字节，SHA256 `6f3bf19bfa4c83a2bd9a6ff499b97e1e75e3efd3bacbd003ff79cfb8c48cc67c`；内部ZIP46,501,132字节，SHA256 `22d88bf48d7ca877f985fd08e763c74e2299cad94a8e161712f62dc3995c9403`；实际提取99,456,031字节，均低于120,000,000。冻结快照 `ebb0ce7cc3410f0deb413e5a2d49f7cb26bd156312050ff82c7416a33540f5a5`。两款规则、数字改编、来源与三档人机分别见[德国小强](../games/cockroach-poker/README.md)和[蟑螂沙拉](../games/cockroach-salad/README.md)。
+[1.0.8.8原交付清单](../../artifacts/releases/v1.0.8/1.0.8.8/TableMax-1.0.8.8-installer-win-x64-manifest.json)38,251,047字节，SHA256 `6f3bf19bfa4c83a2bd9a6ff499b97e1e75e3efd3bacbd003ff79cfb8c48cc67c`；内部ZIP46,501,132字节，SHA256 `22d88bf48d7ca877f985fd08e763c74e2299cad94a8e161712f62dc3995c9403`；实际提取99,456,031字节，均低于120,000,000。冻结快照 `ebb0ce7cc3410f0deb413e5a2d49f7cb26bd156312050ff82c7416a33540f5a5`。两款规则、数字改编、来源与三档人机分别见[德国小强](../games/cockroach-poker/README.md)和蟑螂沙拉（当前内容已于2026-10-24移除）。
 
 [正式安装证明](../../artifacts/maintenance/cockroach-delivery-20261021/finalized-installation-r2.json)通过：原路径标准账户Medium启动、中文向导、默认目录／长路径外置数据／旧框架失败恢复三条8步更新链，以及正式产品首装、复装、保存、默认卸载、同根重装读回和再次卸载12项检查。临时账户及profile删除、errors为空，见[隔离终态](../../artifacts/maintenance/cockroach-delivery-20261021/production-r2/isolated-account.json)。首次健康启动同次采样118,305,209字节，低于硬限、触发110,000,000工程预警；不称整个安装过程绝对峰值。
 

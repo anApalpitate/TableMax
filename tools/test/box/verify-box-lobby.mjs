@@ -37,7 +37,7 @@ let options={};
 window.renderBox=(patch={})=>{options={...options,...patch};const o=options;
 const seats=Array.from({length:o.joining?0:(o.count??3)},(_,i)=>({id:'seat-'+i,name:o.long?(i%2?'Abcdefghijklmnop':'大家一起开心玩耍'):i===0?'小明':'朋友'+i,avatarId:AVATAR_PRESETS[i%AVATAR_PRESETS.length].id,ready:i===0?!!o.ready:true,online:i!==1,controller:i===2?'bot':'human',botDifficulty:'default'}));
 const role=o.role??'player';
-const view={id:'fixture',name:'聚会牌桌',status:o.status??'lobby',joinOpen:!o.closed,playMode:'play',seats,ownerSeatId:o.owner?'seat-0':null,paused:!!o.paused,lifecycleActions:o.status==='playing'?[{type:'next'}]:[],botError:null,gameView:o.status==='playing'||o.status==='ended'?{}:null,capabilities:{manage:false,manageSeats:false},game:{id:o.game??'cockroach-salad',name:o.game==='cockroach-poker'?'德国小强':'蟑螂沙拉',min:2,max:o.capacity??6}};
+const view={id:'fixture',name:'聚会牌桌',status:o.status??'lobby',joinOpen:!o.closed,playMode:'play',seats,ownerSeatId:o.owner?'seat-0':null,paused:!!o.paused,lifecycleActions:o.status==='playing'?[{type:'next'}]:[],botError:null,gameView:o.status==='playing'||o.status==='ended'?{}:null,capabilities:{manage:false,manageSeats:false},game:{id:o.game??'cockroach-poker',name:'德国小强',min:2,max:o.capacity??6}};
 const session={role,view,self:role!=='player'||o.joining?null:seats[0],isHost:role==='host',canControl:role==='host'||!!o.owner,canManageSeats:role==='host'||!!o.owner,locked:!!o.closed,busy:!!o.busy,connected:o.connected!==false,credential:o.joining?null:'fixture',name:'小明',message:o.message??'',messageKind:o.kind??'saved',errorId:'',admissionPending:!!o.pending,awaitingConfirmation:!!o.awaiting,admissionAvatarId:null,admissionAvatarImage:null,addresses:[],adapters:[],address:'',port:38473,networkMessage:'',externalJoinUrl:null,setAddress(){},refreshNetwork(){},async saveExternalJoinUrl(){return true},setName(){},join(){window.commands.push({type:'join'})},retry(){window.commands.push({type:'retry'})},retryAdmission(){window.commands.push({type:'retryAdmission'})},setPlayerCredential(){},command(c){window.commands.push(c)}};
 flushSync(()=>root.render(<BoxScreen session={session}/>));};window.renderBox();
 `,
@@ -421,7 +421,7 @@ try {
     report.checks.push(`${status} entry in hero`);
   }
   for (const role of ['host', 'public', 'player']) {
-    for (const id of ['cockroach-salad', 'cockroach-poker']) {
+    for (const id of ['cockroach-poker']) {
       for (const [w, h] of [
         [320, 568],
         [390, 844],
@@ -525,7 +525,7 @@ try {
     'apps/web/src/components/RoomTable.tsx',
     'apps/web/src/components/BoxSaveStatus.tsx',
     'tools/test/box/verify-box-lobby.mjs',
-    ...['cockroach-poker', 'cockroach-salad'].flatMap((id) => [
+    ...['cockroach-poker'].flatMap((id) => [
       'games/' + id + '/game-module.json',
       ...[1, 2, 3].map(
         (n) => 'assets/games/' + id + '/introduction-' + n + '-v1.svg',

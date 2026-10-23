@@ -411,16 +411,16 @@ before或双阶段时另传`--before-bundle=tmp/<任务唯一ID>/fixture-<改前
 
 检查启动隐藏静音Edge与`127.0.0.1`夹具服务，写指定全新报告目录、截图索引及验证器源码副本；浏览器`TEMP`／`TMP`集中到任务下`server-browser-temp/`，额外合法场景的编译／数据放在`server-extra-fixtures/`，准备后的快照及证明另以`extra-snapshots.json`和`extra-preparation-proof.json`留在本轮报告目录并记录SHA，子检查关闭自动维护。它证明真实生产组件在合法RoomCoordinator投影、受控本地夹具和冻结时钟下的源码渲染；不证明真实网络、自然整局、物理设备／Windows DPI、声音试听或安装器。失败轮和未执行项原位保留，实质修复后仅定向复验；游戏当前结果与边界见[现代艺术验证](../../docs/games/modern-art/validation-scenarios.md)。
 
-## 德国小强与蟑螂沙拉验证
+## 德国小强验证
 
-以下脚本登记为`game:cockroach-poker,game:cockroach-salad`，放入version 1独立计划，经`node tools/test/runner/test-scoped.mjs --scope=game:cockroach-poker,game:cockroach-salad --plan=<计划.json>`运行；保留原失败账，实质修复后只复验受影响范围。
+以下脚本登记为`game:cockroach-poker`，放入version 1独立计划，经`node tools/test/runner/test-scoped.mjs --scope=game:cockroach-poker --plan=<计划.json>`运行；保留原失败账，实质修复后只复验受影响范围。
 
-- `games/cockroach/verify-cockroach-source.mjs --evidence=<唯一安全名称> [--density-only]`：实际生产客户端和规则派生内存夹具，默认53项三端／320px至4K／密度／减少动态检查，并检查320px规则示例字号；源码及资源逐SHA绑定。仅证明源码浏览器，不冒称Socket、SQLite、安装或实体设备通过。
-- `games/cockroach/verify-cockroach-installed.mjs --delivery=<installer-delivery.json> --proof=<正式完成的shipping proof或封存proof> --evidence=<全新artifacts/maintenance目录>`：先核原EXE、载荷、两个清单及已卸载／保留runtime证明，再从精确冻结成员建立隔离副本。真实Native WebView2主机／公共屏、隐藏静音Edge手机模拟，执行两款生产动作、沙拉共同窗口与无人操作处罚、全部声明资源SHA及图像／WAV解码、实际保存重启；结束复核所有输入和保留runtime未变。安装系统验收须独立完成，不以此脚本替代；不证明实体手机、真实网络、多物理DPI或真人试听。
+- `games/cockroach/verify-cockroach-source.mjs --evidence=<唯一安全名称> [--density-only]`：实际生产客户端和规则派生内存夹具，覆盖三端／320px至4K／密度／减少动态及图文规则检查；源码及资源逐SHA绑定。仅证明源码浏览器，不冒称Socket、SQLite、安装或实体设备通过。
+- `games/cockroach/verify-cockroach-installed.mjs --delivery=<installer-delivery.json> --proof=<正式完成的shipping proof或封存proof> --evidence=<全新artifacts/maintenance目录>`：先核原EXE、载荷、两个清单及已卸载／保留runtime证明，再从精确冻结成员建立隔离副本。真实Native WebView2主机／公共屏、隐藏静音Edge手机模拟，执行德国小强生产动作、全部声明资源SHA及图像／WAV解码、实际保存重启；结束复核所有输入和保留runtime未变。安装系统验收须独立完成，不以此脚本替代；不证明实体手机、真实网络、多物理DPI或真人试听。
 
-### 盒子大厅与两新游戏简介源码验证
+### 盒子大厅与德国小强简介源码验证
 
-`node tools/test/box/verify-box-lobby.mjs --evidence=<唯一名称>`通过现有批次计划执行，范围为`box,game:cockroach-poker,game:cockroach-salad`。实际BoxScreen源码以合成session运行在隐藏静音Edge、127.0.0.1；覆盖六视口入座／本人名片、十／十二席长昵称、保存状态时序、失败及确认入口、游戏入口合并，以及两游戏三端简介真实图片加载与关闭。报告、截图与源码SHA位于`artifacts/maintenance/box-lobby-20261023/<名称>`。不构建安装器，不证明真实服务保存、物理设备或Windows DPI；不使用旧安装包作本轮源码证明。
+`node tools/test/box/verify-box-lobby.mjs --evidence=<唯一名称>`通过现有批次计划执行，范围为`box,game:cockroach-poker`。实际BoxScreen源码以合成session运行在隐藏静音Edge、127.0.0.1；覆盖六视口入座／本人名片、十／十二席长昵称、保存状态时序、失败及确认入口、游戏入口合并，以及德国小强三端简介真实图片加载与关闭。报告、截图与源码SHA位于`artifacts/maintenance/box-lobby-20261023/<名称>`。不构建安装器，不证明真实服务保存、物理设备或Windows DPI；不使用旧安装包作本轮源码证明。
 
 [扩展座位网格入口](box/verify-box-expanded-seats.mjs)登记为`box`，通过version 1计划交给`node tools/test/runner/test-scoped.mjs --scope=box --plan=<计划.json>`执行。计划项使用`runtime: node`、`script: tools/test/box/verify-box-expanded-seats.mjs`，参数数组为：
 

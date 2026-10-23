@@ -23,10 +23,15 @@ const output = resolve('artifacts/maintenance/cockroach-source', name);
 await mkdir(output, { recursive: true });
 const reportPath = join(output, 'report.json');
 await writeFile(reportPath, '{}', { flag: 'wx' });
-const work = await mkdtemp(resolve('tmp/cockroach-source-'));
+const taskRoot = resolve(
+  'tmp',
+  process.env.TABLEMAX_TASK_ID ?? `cockroach-source-${name}`,
+);
+await mkdir(taskRoot, { recursive: true });
+const work = await mkdtemp(join(taskRoot, 'fixture-'));
 const hash = (b) => createHash('sha256').update(b).digest('hex');
 const report = {
-  scope: ['game:cockroach-poker', 'game:cockroach-salad'],
+  scope: ['game:cockroach-poker'],
   inputs: {},
   checks: [],
   failures: [],
@@ -48,7 +53,7 @@ async function bindTree(directory) {
       );
   }
 }
-for (const game of ['cockroach-poker', 'cockroach-salad'])
+for (const game of ['cockroach-poker'])
   await bindTree(resolve('assets/games', game));
 await writeFile(
   join(work, 'index.html'),
@@ -64,13 +69,11 @@ import {HostedGame} from ${file('packages/web-host/src/index.tsx')};
 import {configureGameHost} from ${file('packages/web-host/src/presentation-services.ts')};
 import {client as poker} from ${file('games/cockroach-poker/web/index.tsx')};
 import {Card as PokerCard,cardAssetFile} from ${file('games/cockroach-poker/ui/Theme.tsx')};
-import {client as salad} from ${file('games/cockroach-salad/web/index.tsx')};
 import {rules as pokerRules} from ${file('games/cockroach-poker/rules/index.ts')};
-import {rules as saladRules} from ${file('games/cockroach-salad/rules/index.ts')};
 import ${file('apps/web/src/styles.css')};
 configureGameHost({ScreenLink:p=><a {...p}/>,FullscreenControl:()=>null,DisplaySettings:()=>null,useAudioOutput:()=>false,claimAudioEvent:()=>false,avatarFor:()=>'',avatarChoices:[]});
 const root=createRoot(document.getElementById('root'));
-const fixtures={poker:{rules:pokerRules,client:poker},salad:{rules:saladRules,client:salad}};
+const fixtures={poker:{rules:pokerRules,client:poker}};
 let current, state, role, self, revision=0, feedback=null, seed=223;
 const random={next(){seed^=seed<<13;seed^=seed>>>17;seed^=seed<<5;return (seed>>>0)/4294967296;}};
 const seats=Array.from({length:6},(_,i)=>({id:'s'+i,name:['桌游伙伴名字八字','SixteenLetterABC','玩家丙','玩家丁','玩家戊','玩家己'][i],controller:'human',ready:true,online:true,avatarId:'preset-01',botDifficulty:null}));
@@ -86,7 +89,6 @@ function render(){
 }
 window.setup=(id,newRole,count=6,stage='opening')=>{current=fixtures[id];role=newRole;revision=0;feedback=null;seed=223;window.commands=[];state=current.rules.initialize({seats:seats.slice(0,count).map(s=>s.id),random});self=state.seats[0];
  if(id==='poker'&&stage!=='opening'){const a=current.rules.legalActions(state,self).find(a=>a.type==='offer');state=current.rules.apply(state,a,self,{seats:state.seats,random}).state;self=a.target;if(stage==='peek')state=current.rules.apply(state,{type:'peek'},self,{seats:state.seats,random}).state;}
- if(id==='salad'&&stage!=='opening'){if(stage==='overtime'){state=current.rules.applyAutomatic(state,current.rules.automaticAction(state).action,{seats:state.seats,random}).state;}else{state=current.rules.apply(state,{type:'answer',answer:'tomato'},self,{seats:state.seats,random}).state;}self=state.seats[1];}
  current.rules.validateState(state,state.seats);render();};
 window.setup('poker','player');
 window.pokerArtFiles=Array.from({length:64},(_,card)=>cardAssetFile(card));
@@ -132,7 +134,7 @@ try {
     },
     logLevel: 'error',
   });
-  for (const id of ['cockroach-poker', 'cockroach-salad'])
+  for (const id of ['cockroach-poker'])
     await cp(
       resolve('assets/games', id),
       join(work, 'bundle/assets/games', id),
@@ -200,47 +202,6 @@ try {
         images,
       });
     });
-    await check('physical-salad-all-eight-faces-and-back', async () => {
-      const resources = [
-        ...['normal', 'taboo'].flatMap((type) =>
-          ['tomato', 'lettuce', 'cauliflower', 'pepper'].map(
-            (vegetable) => `${type}-${vegetable}.webp`,
-          ),
-        ),
-        'back.webp',
-      ];
-      const results = await page.evaluate(async (files) => {
-        const results = [];
-        for (const file of files) {
-          const url = `/assets/games/cockroach-salad/runtime/${file}`;
-          const response = await fetch(url);
-          const image = new Image();
-          image.src = url;
-          await image.decode();
-          results.push({
-            file,
-            status: response.status,
-            width: image.naturalWidth,
-            height: image.naturalHeight,
-          });
-        }
-        return results;
-      }, resources);
-      assert(
-        results.every(
-          (result) =>
-            result.status === 200 &&
-            result.width === 116 &&
-            result.height === 220,
-        ),
-        JSON.stringify(results),
-      );
-      report.checks.push({
-        id: 'physical-salad-image-details',
-        passed: true,
-        images: results,
-      });
-    });
   }
   const sizes = [
     [320, 568],
@@ -251,7 +212,7 @@ try {
     [3840, 2160],
   ];
   if (!densityOnly)
-    for (const game of ['poker', 'salad'])
+    for (const game of ['poker'])
       for (const role of ['player', 'host', 'public'])
         for (const [width, height] of sizes) {
           await check([game, role, width, height].join('-'), async () => {
@@ -274,16 +235,6 @@ try {
               );
               const main = document.querySelector('main');
               const hand = document.querySelector('.cp-hand');
-              const answerImages = [
-                ...document.querySelectorAll('.salad-answer-buttons img'),
-              ].map((image) => {
-                const box = image.getBoundingClientRect();
-                const ratio = image.naturalWidth / image.naturalHeight;
-                return {
-                  width: Math.min(box.width, box.height * ratio),
-                  height: Math.min(box.height, box.width / ratio),
-                };
-              });
               const images = [...document.images].filter(
                 (i) => i.offsetParent !== null,
               );
@@ -303,7 +254,6 @@ try {
               return {
                 width: innerWidth,
                 scroll: document.documentElement.scrollWidth,
-                answerImages,
                 hand: hand
                   ? {
                       overflowing: hand.scrollWidth > hand.clientWidth + 1,
@@ -365,15 +315,7 @@ try {
                   .scrollIntoViewIfNeeded();
               }
             }
-            if (game === 'salad' && role === 'player' && width <= 800) {
-              assert.equal(result.answerImages.length, 5);
-              assert(
-                result.answerImages.every(
-                  (image) => image.width >= 24 && image.height >= 46,
-                ),
-                JSON.stringify(result.answerImages),
-              );
-            }
+
             assert(
               result.images.every((i) => i.valid),
               'Image decode: ' +
@@ -392,8 +334,7 @@ try {
                   .toJSON();
               return {
                 title: rect('main h1'),
-                controls: rect('.cp-controls,.salad-answer-buttons'),
-                answer: rect('.salad-answer'),
+                controls: rect('.cp-controls'),
               };
             });
             assert(
@@ -407,13 +348,7 @@ try {
                   JSON.stringify(geometry),
               );
             }
-            if (game === 'salad' && role !== 'player' && width >= 1280) {
-              assert(
-                geometry.answer.bottom <= height,
-                'Public answer outside initial short-screen view: ' +
-                  JSON.stringify(geometry),
-              );
-            }
+
             if (role !== 'player')
               assert.equal(
                 await page
@@ -433,7 +368,7 @@ try {
           });
         }
   if (!densityOnly)
-    for (const game of ['poker', 'salad'])
+    for (const game of ['poker'])
       await check(game + '-rules-dialog', async () => {
         await page.setViewportSize({ width: 390, height: 844 });
         await page.evaluate((game) => window.setup(game, 'player'), game);
@@ -447,45 +382,10 @@ try {
           path: join(output, game + '-rules.png'),
           fullPage: true,
         });
-        if (game === 'salad') {
-          await page.setViewportSize({ width: 320, height: 568 });
-          const example = await page
-            .locator('.salad-rule-flow')
-            .evaluate((node) => ({
-              width: node.getBoundingClientRect().width,
-              scrollWidth: node.scrollWidth,
-              fonts: [...node.querySelectorAll('span, strong, figcaption')].map(
-                (text) => Number.parseFloat(getComputedStyle(text).fontSize),
-              ),
-            }));
-          assert(
-            example.fonts.length >= 7 &&
-              example.fonts.every((size) => size >= 16),
-          );
-          assert(example.scrollWidth <= example.width + 1);
-          await page.locator('.salad-rule-flow').scrollIntoViewIfNeeded();
-          await captureBrowserScreenshot(page, {
-            path: join(output, 'salad-rules-320.png'),
-            fullPage: true,
-          });
-        }
+
         await page.keyboard.press('Escape');
         assert.equal(await page.getByRole('dialog').count(), 0);
       });
-  if (!densityOnly)
-    await check('salad-wrong-options-and-common-window', async () => {
-      await page.evaluate(() => window.setup('salad', 'player'));
-      const buttons = page.locator('.salad-answer-buttons button');
-      assert.equal(await buttons.count(), 5);
-      assert.equal(await buttons.filter({ visible: true }).count(), 5);
-      for (let i = 0; i < 5; i++) assert(await buttons.nth(i).isEnabled());
-      await buttons.nth(0).click();
-      assert.equal(await page.evaluate(() => window.commands.length), 1);
-      await page.evaluate(() => window.setup('salad', 'player', 6, 'review'));
-      await page.getByRole('button', { name: '质疑错误／拖延' }).click();
-      await page.getByText(/已秘密提交/).waitFor();
-      assert.equal(await page.evaluate(() => window.commands.length), 1);
-    });
   if (!densityOnly)
     await check('poker-belief-and-peek-commitment', async () => {
       await page.evaluate(() => window.setup('poker', 'player', 6, 'offer'));
@@ -534,7 +434,7 @@ try {
     const densePage = await denseContext.newPage();
     await densePage.goto(server.url);
     await densePage.waitForFunction(() => typeof window.setup === 'function');
-    for (const game of ['poker', 'salad'])
+    for (const game of ['poker'])
       for (const role of ['player', 'host', 'public'])
         await check(`${game}-${role}-density-${scale}`, async () => {
           await densePage.evaluate(

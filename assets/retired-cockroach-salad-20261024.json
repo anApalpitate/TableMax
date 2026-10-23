@@ -1,0 +1,226 @@
+{
+  "date": "2026-10-24",
+  "reason": "用户明确要求移除游戏；原资料、正式存档、历史发行和恢复模块保留原身份。",
+  "files": [
+    {
+      "path": "games/cockroach-salad/bot/index.ts",
+      "bytes": 1704,
+      "sha256": "90a69e4b4e0aa07e24a7c0d60f47bdc56306ade699b4062999a4a16ecf22fba8"
+    },
+    {
+      "path": "games/cockroach-salad/game-module.json",
+      "bytes": 3079,
+      "sha256": "98bc57b2b4d4da893f5ca707cbc7dad10d9a691423dce63aaffd67cc194883c3"
+    },
+    {
+      "path": "games/cockroach-salad/index.ts",
+      "bytes": 62,
+      "sha256": "8343c0c2828fa348a6a6e00e3d8cfc809bf243d81115e4c52429a0c351afd203"
+    },
+    {
+      "path": "games/cockroach-salad/package.json",
+      "bytes": 264,
+      "sha256": "3d9aaf01dd1faf17699c49022369c022f45163ac14f368bed92313f195a63f67"
+    },
+    {
+      "path": "games/cockroach-salad/rules/index.ts",
+      "bytes": 9252,
+      "sha256": "13009a7adb1fa20124e4f0099a0f542733c9401d54617727c6444f666bdca33a"
+    },
+    {
+      "path": "games/cockroach-salad/rules/rules.test.ts",
+      "bytes": 14567,
+      "sha256": "1c82df25252bee17f61c463ea1d2b1ca7ed73611f8fdd73679e9948371cd6335"
+    },
+    {
+      "path": "games/cockroach-salad/rules/state.ts",
+      "bytes": 4265,
+      "sha256": "365a6ae1c20342df623e535e27515c8c8440c2836f252f34e82209906962e718"
+    },
+    {
+      "path": "games/cockroach-salad/tsconfig.json",
+      "bytes": 98,
+      "sha256": "e8fa9c4df6408b2214757a78de361f5356c8edc4105d191767d29fab6cd7bba6"
+    },
+    {
+      "path": "games/cockroach-salad/types.ts",
+      "bytes": 3037,
+      "sha256": "b86e61344289e807e895503c852368d7365a768585cf9f8ab2d905199171cac5"
+    },
+    {
+      "path": "games/cockroach-salad/ui/SavedFeedback.tsx",
+      "bytes": 3718,
+      "sha256": "c4359c290eb917642ca26a8383f26c4fb7a2c231bb017575c20a61e3d568f366"
+    },
+    {
+      "path": "games/cockroach-salad/ui/style.css",
+      "bytes": 12773,
+      "sha256": "1438935b3849157ac7a81fb7b2a9b623a77ea422825a3f757b9c9f2a1779c023"
+    },
+    {
+      "path": "games/cockroach-salad/web/index.tsx",
+      "bytes": 14366,
+      "sha256": "ba78bd2040ac068a24a5a594e507e991385adbb6370a309583e6a1eda8b7887d"
+    },
+    {
+      "path": "assets/games/cockroach-salad/back.png",
+      "bytes": 5131985,
+      "sha256": "f6955dd1bed89d71f0a5d9669bafcb39873b874e9025b24441e711a301534606"
+    },
+    {
+      "path": "assets/games/cockroach-salad/cauliflower.svg",
+      "bytes": 568,
+      "sha256": "e7d9e6361deac662580a6400c2b1c7a3a18e08dd718b04dd4c15e2fa5ab5f368"
+    },
+    {
+      "path": "assets/games/cockroach-salad/cover-physical.png",
+      "bytes": 578532,
+      "sha256": "9c8eb9431b267df695e7a8182cb036f7bddd036b8dd9195157b9b1fbdb038d5f"
+    },
+    {
+      "path": "assets/games/cockroach-salad/cover.svg",
+      "bytes": 1144,
+      "sha256": "c750639bf7ed8781dd175b53aec681af4f49983fde32ef25b13ae96ae60be1fe"
+    },
+    {
+      "path": "assets/games/cockroach-salad/introduction-1-v1.svg",
+      "bytes": 15492,
+      "sha256": "0e19dc8543bedb94a335a3175bf72f15024726505b89196f2ae5e9a102a68ecb"
+    },
+    {
+      "path": "assets/games/cockroach-salad/introduction-2-v1.svg",
+      "bytes": 16976,
+      "sha256": "951078b84b9199d0f9cacca3ea1ca1ffbe304850aa7930764b0f9ec14a070bef"
+    },
+    {
+      "path": "assets/games/cockroach-salad/introduction-3-v1.svg",
+      "bytes": 11424,
+      "sha256": "32a9fd5a53a44d2c2b907f431b3728065fb7936c4eccdfbebdbc34d2f2516b02"
+    },
+    {
+      "path": "assets/games/cockroach-salad/lettuce.svg",
+      "bytes": 550,
+      "sha256": "4193d9cb962a938cc555b6d446d5da9d572cc83d19323f1bd4a3eeb5e8d16c17"
+    },
+    {
+      "path": "assets/games/cockroach-salad/manifest.json",
+      "bytes": 28807,
+      "sha256": "33fa43b1a0858e188c09c58a4104d4c0d76e6e52ffd53c8e3f90f14a20ae8142"
+    },
+    {
+      "path": "assets/games/cockroach-salad/normal-cauliflower.png",
+      "bytes": 250827,
+      "sha256": "6d38b1f13a23f092a088abc464215db0fcb5c34346c10068cab36b6f8fc10616"
+    },
+    {
+      "path": "assets/games/cockroach-salad/normal-lettuce.png",
+      "bytes": 278934,
+      "sha256": "599d34e9828fb16773e4ef90f1af2bb6da3d06ed19a3bf71b6fac62bdf9a79a3"
+    },
+    {
+      "path": "assets/games/cockroach-salad/normal-pepper.png",
+      "bytes": 196947,
+      "sha256": "1c4dcde49ccb90b66ebba199c6dc66a26152230349d06613b2a741d08687c800"
+    },
+    {
+      "path": "assets/games/cockroach-salad/normal-tomato.png",
+      "bytes": 218329,
+      "sha256": "09ba25a035a4bebe08f5bb6cf95e6a10ad33ee3506d8262f59d9cb2355371938"
+    },
+    {
+      "path": "assets/games/cockroach-salad/pepper.svg",
+      "bytes": 536,
+      "sha256": "159ff3f39cab9c2905311318b0395dff518765f479836314d9663434cbfe7b61"
+    },
+    {
+      "path": "assets/games/cockroach-salad/rules.svg",
+      "bytes": 584,
+      "sha256": "ee93ceefd2ea836f066209e7f71bc72b2a5830f79f3e16cbfbe6b5e7e7ae4b1f"
+    },
+    {
+      "path": "assets/games/cockroach-salad/runtime/back.webp",
+      "bytes": 2530,
+      "sha256": "58dacfaddb3e63606d4baa07842d87646c692b4a54fc7511437e2ed40f2e795c"
+    },
+    {
+      "path": "assets/games/cockroach-salad/runtime/cover-physical.webp",
+      "bytes": 10458,
+      "sha256": "76e6297654f02b2878937fa1f944191981dcc7cbade03651fdc74b47cd4d637e"
+    },
+    {
+      "path": "assets/games/cockroach-salad/runtime/normal-cauliflower.webp",
+      "bytes": 2904,
+      "sha256": "89645f318ad0bdae04da849baa2c1f30e98a0449a2abf9211a9da0cbc4c47f51"
+    },
+    {
+      "path": "assets/games/cockroach-salad/runtime/normal-lettuce.webp",
+      "bytes": 3926,
+      "sha256": "c63e60d86fec980e2af93e283781fb4f7a4ab08bdc1824acbe328a8cde791652"
+    },
+    {
+      "path": "assets/games/cockroach-salad/runtime/normal-pepper.webp",
+      "bytes": 2356,
+      "sha256": "9d1f868f3ea7f2642ffbd9c88ee1a19b2cb632d85845dba940c29cb2720d7dbe"
+    },
+    {
+      "path": "assets/games/cockroach-salad/runtime/normal-tomato.webp",
+      "bytes": 2308,
+      "sha256": "b56897213d654e4b4746939cf607e8558e13555f3daef3d386ce4a3b53f8e6f5"
+    },
+    {
+      "path": "assets/games/cockroach-salad/runtime/taboo-cauliflower.webp",
+      "bytes": 3330,
+      "sha256": "a7483714db59728f433c91fc8ee0f29d507708c819d9bebd23f74b6d2ef3ecfc"
+    },
+    {
+      "path": "assets/games/cockroach-salad/runtime/taboo-lettuce.webp",
+      "bytes": 3742,
+      "sha256": "93b7abfdb9e793e4bfbee4e0c9a72af0c8e607912fc055c36fdd072ff02afb13"
+    },
+    {
+      "path": "assets/games/cockroach-salad/runtime/taboo-pepper.webp",
+      "bytes": 3598,
+      "sha256": "5ba2f75858c7baad3c1b08ba2a29b74ed0e977f1ee9c3e89e30cf29bf1d34684"
+    },
+    {
+      "path": "assets/games/cockroach-salad/runtime/taboo-tomato.webp",
+      "bytes": 3160,
+      "sha256": "9c9825afd750e57f306c52f5b6d555d80690289b8a56003fb82f44fd248dda49"
+    },
+    {
+      "path": "assets/games/cockroach-salad/taboo-cauliflower.png",
+      "bytes": 237429,
+      "sha256": "28969f1c0f5fcf2e76b0fe6712895e7db97c0efd5874e4d441ee48a1bffedab6"
+    },
+    {
+      "path": "assets/games/cockroach-salad/taboo-lettuce.png",
+      "bytes": 248199,
+      "sha256": "7201756aa6925638af76ff19b933e2324bafede537c32104ed384c048e188100"
+    },
+    {
+      "path": "assets/games/cockroach-salad/taboo-pepper.png",
+      "bytes": 229853,
+      "sha256": "8c4ae3fb10aa5ac445a29cc1a098a12bab3c40cd4f6c4fa44264d04a2735ccf2"
+    },
+    {
+      "path": "assets/games/cockroach-salad/taboo-tomato.png",
+      "bytes": 222412,
+      "sha256": "fe5a3a786efbcdf5f5d97535335222e224131bb14a0c54934ff6adad45d22243"
+    },
+    {
+      "path": "assets/games/cockroach-salad/tomato.svg",
+      "bytes": 459,
+      "sha256": "c3ccfaabfd479d05c184299712d8cf39d29bca72a036c3a1bbaab7afd3e46f62"
+    },
+    {
+      "path": "docs/games/cockroach-salad/README.md",
+      "bytes": 8284,
+      "sha256": "3c8a7f0d709c145001f69472f8fca5dac20441de98ef60a180532a4e2a66f039"
+    },
+    {
+      "path": "docs/games/cockroach-salad/sources.md",
+      "bytes": 4856,
+      "sha256": "5679b3a67885d0f03e631edc6d1280dd006f065eecddf374d6d0333f76ff1001"
+    }
+  ]
+}

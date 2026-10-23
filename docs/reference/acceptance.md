@@ -4,6 +4,10 @@
 
 ## 当前源码与本地交付
 
+2026-10-24按用户要求，当前源码移除蟑螂沙拉，保留8款游戏／9个玩法；旧完整EXE、current及历史恢复模块未改写，本次未导出新包。旧包仍为下述9游戏／10玩法，不能据源码移除推定旧安装已移除。
+
+移除清单及逐文件SHA见[退役记录](../../assets/retired-cockroach-salad-20261024.json)。源码目录／拒绝加载及真实服务保存回归、Worker、类型、格式与链接检查见[本次汇总](../../artifacts/maintenance/remove-salad-20261024/summary.json)；[盒子73项](../../artifacts/maintenance/box-lobby-20261023/remove-salad-20261024-r2/report.json)与[德国小强29项](../../artifacts/maintenance/cockroach-source/remove-salad-20261024-r2/report.json)源码浏览器检查通过，不升级为旧安装器已移除或实体设备验收。沙箱临时缓存、realpath与Edge启动失败保留原账；普通权限复验仅覆盖受影响项。另行探测的旧`game-registry.test.ts`仍因早期“初始游戏为空”断言失败，未纳入本次通过项，原用例未修改。
+
 2026-10-23本轮只读核对：package.json公开版本1.0.8；本地current为1.0.8.9。源码、候选、本地current及线上发行分别认定，工作区后续代码不因同一公开版本自动进入原EXE，也不继承其通过结论。
 
 | 对象         | 当前记录与权威入口                                                                                                                             | 证明边界                                                                            |

@@ -176,10 +176,7 @@ try {
   );
   const phone = await context.newPage();
   phone.on('pageerror', (error) => report.errors.push(error.message));
-  for (const [gameId, title] of [
-    ['cockroach-poker', '德国小强'],
-    ['cockroach-salad', '蟑螂沙拉'],
-  ]) {
+  for (const [gameId, title] of [['cockroach-poker', '德国小强']]) {
     await command(origin, hostSocket, token, {
       type: 'select-game',
       gameId,
@@ -265,9 +262,7 @@ try {
       await target
         .getByRole('heading', { name: new RegExp(title), level: 1 })
         .waitFor();
-      await target
-        .locator(gameId === 'cockroach-poker' ? '.cp-game' : '.salad-screen')
-        .waitFor();
+      await target.locator('.cp-game').waitFor();
       try {
         await target.waitForFunction(
           (release) =>

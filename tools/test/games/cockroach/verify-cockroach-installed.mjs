@@ -341,10 +341,7 @@ try {
     headless: true,
     args: ['--mute-audio'],
   });
-  for (const [gameId, title] of [
-    ['cockroach-poker', '德国小强'],
-    ['cockroach-salad', '蟑螂沙拉'],
-  ]) {
+  for (const [gameId, title] of [['cockroach-poker', '德国小强']]) {
     const release = releases.find((item) => item.gameId === gameId);
     assert.ok(
       release,
@@ -491,10 +488,7 @@ try {
       const publicView = await view();
       assert.deepEqual(publicView.actions, []);
       assert.ok(!('hands' in publicView.gameView));
-      assert.equal(
-        await publicPage.locator('.cp-controls, .salad-controls').count(),
-        0,
-      );
+      assert.equal(await publicPage.locator('.cp-controls').count(), 0);
       assert.equal(started.game.releaseRef, release.releaseId);
       await send(origin, hostSocket, hostToken, { type: 'resume' });
       if (gameId === 'cockroach-poker') {
@@ -557,50 +551,6 @@ try {
           async () => !(await view()).gameView.offer,
           'Judgment not saved',
         );
-      } else {
-        const actor = (await view()).gameView.actor;
-        const views = await Promise.all(players.map((p) => view(p.token)));
-        const i = views.findIndex((v) => v.self.seatId === actor);
-        const step = views[i].gameView.step;
-        await frames[i].locator('.salad-answer-buttons button').first().click();
-        await until(async () => {
-          const saved = (await view(players[i].token)).gameView;
-          return (
-            saved.step === step + 1 &&
-            saved.phase === 'review' &&
-            saved.answer === 'tomato'
-          );
-        }, 'Production answer not saved in the same review window');
-        item.actions.push('production answer');
-        const challenger = (i + 1) % 3;
-        await frames[challenger]
-          .getByRole('button', { name: '质疑错误／拖延', exact: true })
-          .click();
-        await until(async () => {
-          const saved = (await view(players[challenger].token)).gameView;
-          return (
-            saved.step === step + 1 &&
-            saved.phase === 'review' &&
-            saved.selfResponse === 'challenge'
-          );
-        }, 'Production challenge not saved in the same review window');
-        item.actions.push('production challenge');
-        await until(
-          async () => (await view()).gameView.step > step + 1,
-          'Production review deadline not advanced',
-          12000,
-        );
-        const afterReview = (await view()).gameView.step;
-        await until(
-          async () =>
-            (await view()).gameView.step >= afterReview + 2 &&
-            (await view()).gameView.lastResult.includes('无人作答'),
-          'Production no-operation deadline did not penalize',
-          16000,
-        );
-        item.actions.push(
-          'production automatic overtime/no-operation deadline',
-        );
       }
       await send(origin, hostSocket, hostToken, { type: 'pause' });
       item.resources = await decodeResources(
@@ -612,7 +562,7 @@ try {
       await frames[0]
         .getByRole('button', { name: '图文规则', exact: true })
         .click();
-      await frames[0].locator('.cp-rulebook, .salad-rulebook').waitFor();
+      await frames[0].locator('.cp-rulebook').waitFor();
       await frames[0].evaluate(async () => {
         for (const image of document.querySelectorAll('img')) {
           image.loading = 'eager';

@@ -61,7 +61,6 @@ const role=o.role??'player';
 const view={catalog:${JSON.stringify([
     { id: 'avalon', name: '阿瓦隆', min: 5, max: 10, decisionTimer: true },
     { id: 'cockroach-poker', name: '德国小强', min: 2, max: 6 },
-    { id: 'cockroach-salad', name: '蟑螂沙拉', min: 2, max: 6 },
     { id: 'manila', name: '马尼拉', min: 3, max: 5 },
     { id: 'modern-art', name: '现代艺术', min: 3, max: 5, decisionTimer: true },
     {
@@ -73,7 +72,7 @@ const view={catalog:${JSON.stringify([
     { id: 'power-grid', name: '电力公司', min: 2, max: 6, decisionTimer: true },
     { id: 'rummikub', name: '拉密', min: 2, max: 4, decisionTimer: true },
     { id: 'uno', name: 'UNO', min: 2, max: 6, decisionTimer: true },
-  ])},lifecycleActions:[],joinPolicy:'open',id:'fixture',name:'聚会牌桌',status:o.status??'lobby',joinOpen:!o.closed,playMode:'play',seats,ownerSeatId:o.owner?seats[0]?.id:null,paused:false,botError:null,gameView:o.status==='playing'||o.status==='ended'?{}:null,capabilities:{manage:role==='host',manageSeats:role==='host'},game:{id:o.game??'cockroach-salad',name:o.game==='modern-art'?'现代艺术':o.game==='cockroach-poker'?'德国小强':'蟑螂沙拉',min:2,max:o.capacity??6}};
+  ])},lifecycleActions:[],joinPolicy:'open',id:'fixture',name:'聚会牌桌',status:o.status??'lobby',joinOpen:!o.closed,playMode:'play',seats,ownerSeatId:o.owner?seats[0]?.id:null,paused:false,botError:null,gameView:o.status==='playing'||o.status==='ended'?{}:null,capabilities:{manage:role==='host',manageSeats:role==='host'},game:{id:o.game??'cockroach-poker',name:o.game==='modern-art'?'现代艺术':'德国小强',min:2,max:o.capacity??6}};
 const session={role,view,self:role!=='player'||o.joining?null:seats[o.selfIndex??0],isHost:role==='host',canControl:role==='host',canManageSeats:role==='host',locked:!!o.closed,busy:!!o.busy,connected:o.connected!==false,credential:o.joining?null:'fixture',name:'小明',message:o.message??'',messageKind:o.kind??'saved',errorId:'',admissionPending:!!o.pending,awaitingConfirmation:!!o.awaiting,admissionAvatarId:null,admissionAvatarImage:null,addresses:[],adapters:[],address:'127.0.0.1',port:38473,networkMessage:'',externalJoinUrl:null,setAddress(){},refreshNetwork(){},async saveExternalJoinUrl(){return true},setName(){},join(){window.commands.push({type:'join'})},retry(){window.commands.push({type:'retry'})},retryAdmission(){window.commands.push({type:'retryAdmission'})},setPlayerCredential(){},uploadAvatar(image){window.commands.push({type:'upload-avatar',bytes:image.length})},command(c){window.commands.push(c)}};
 flushSync(()=>root.render(<BoxScreen session={session}/>));};window.renderBox();
 `,

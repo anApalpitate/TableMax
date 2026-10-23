@@ -9,15 +9,6 @@ import {
   rules as poker,
   bot as pokerBot,
 } from '../../../games/cockroach-poker';
-import {
-  rules as salad,
-  bot as saladBot,
-} from '../../../games/cockroach-salad';
-import {
-  correctAnswers,
-  type SaladView,
-  type State,
-} from '../../../games/cockroach-salad/types';
 import { createService } from './service';
 import { createGameRegistry } from './game-registry';
 import { SqliteSaveRepository } from './save-repository';
@@ -43,18 +34,8 @@ async function fixture(baseRules: GameRules, count = 3) {
     host: '127.0.0.1',
     port: 0,
   };
-  // Explicit test mode: only shorten real scheduler delays; preserve keys, actions and phases.
-  const rules: GameRules =
-    baseRules === salad
-      ? {
-          ...salad,
-          automaticAction(state) {
-            const action = salad.automaticAction!(state);
-            return action ? { ...action, delayMs: 700 } : null;
-          },
-        }
-      : baseRules;
-  const module = { rules, bot: baseRules === salad ? saladBot : pokerBot };
+  const rules = baseRules;
+  const module = { rules, bot: pokerBot };
   let service = await createService(config, module);
   let port = await service.listen();
   let sockets: Socket[] = [];
@@ -148,9 +129,20 @@ async function fixture(baseRules: GameRules, count = 3) {
   };
 }
 
-for (const rules of [poker, salad]) {
+for (const rules of [poker]) {
   it(`${rules.manifest.id} loads independent registry rules and three bot levels`, async () => {
     const registry = createGameRegistry();
+    expect(registry.catalog().map((game) => game.id)).toEqual([
+      'pokemon-encounters',
+      'modern-art',
+      'power-grid',
+      'rummikub',
+      'uno',
+      'avalon',
+      'manila',
+      'cockroach-poker',
+    ]);
+    await expect(registry.load('cockroach-salad')).rejects.toThrow();
     expect(
       registry.catalog().find((g) => g.id === rules.manifest.id),
     ).toMatchObject({ min: 2, max: 6 });
@@ -267,186 +259,3 @@ it('poker keeps hands and peeked cards private across real socket saves and reco
     await f.close();
   }
 });
-
-it('salad real scheduler preserves paused deadlines, allows same-window challengers and applies no-operation penalty once', async () => {
-  const f = await fixture(salad, 4);
-  try {
-    const initial = f.game(0) as unknown as SaladView;
-    expect(f.service.room.view().gameView).not.toHaveProperty('hands');
-    expect(
-      (await f.run(f.host, f.service.hostToken, { type: 'pause' })).ok,
-    ).toBe(true);
-    await new Promise((r) => setTimeout(r, 850));
-    expect(f.game(0)).toEqual(initial);
-    await f.restart();
-    expect(f.service.room.view(f.tokens[0]).paused).toBe(true);
-    expect(
-      (await f.run(f.host, f.service.hostToken, { type: 'resume' })).ok,
-    ).toBe(true);
-    await vi.waitFor(
-      () => expect(f.game(0)).toHaveProperty('phase', 'overtime'),
-      { timeout: 2500 },
-    );
-    const actor = f.tokens.findIndex((t) =>
-      f.service.room
-        .view(t)
-        .actions.some((a) => (a as { type: string }).type === 'answer'),
-    );
-    const responders = f.tokens.map((_, i) => i).filter((i) => i !== actor);
-    const commands = responders.map((i) =>
-      envelope(f.service.room.view(f.tokens[i]), {
-        type: 'game',
-        decisionId: f.service.room.view(f.tokens[i]).decisionId!,
-        action: { type: 'challenge' },
-      }),
-    );
-    const replies = await Promise.all(
-      commands.map((c, n) => f.send(f.players[responders[n]!]!, c)),
-    );
-    expect(replies.map((r) => r.ok)).toEqual([true, true, true]);
-    expect(f.game(actor)).toHaveProperty('phase', 'overtime');
-    expect(
-      (
-        await f.action(actor, {
-          type: 'answer',
-          answer: correctAnswers(f.game(actor) as unknown as SaladView)[0]!,
-        })
-      ).ok,
-    ).toBe(true);
-    await vi.waitFor(
-      () =>
-        expect((f.game(0) as unknown as SaladView).step).toBeGreaterThan(
-          initial.step + 2,
-        ),
-      { timeout: 2500 },
-    );
-    expect((f.game(0) as unknown as SaladView).lastResult).toContain(
-      '质疑成立',
-    );
-    const settled = f.stored().snapshot!.state as unknown as State;
-    expect(
-      salad.validateState(settled as unknown as JsonValue, settled.seats),
-    ).toEqual(settled);
-    const turn = settled.turn;
-    await vi.waitFor(
-      () =>
-        expect((f.stored().snapshot!.state as unknown as State).turn).toBe(
-          turn + 1,
-        ),
-      { timeout: 3000 },
-    );
-    const automatic = f.stored().snapshot!.state as unknown as State;
-    expect(automatic.lastResult).toContain('无人作答');
-    const all = [
-      ...Object.values(automatic.hands).flat(),
-      ...automatic.spare,
-      ...automatic.piles.flat(),
-    ];
-    expect(all).toHaveLength(128);
-    expect(new Set(all).size).toBe(128);
-  } finally {
-    await f.close();
-  }
-}, 15000);
-
-it('salad multiple false challengers share odd piles once in SQLite without losing cards or exposing other responses', async () => {
-  const f = await fixture(salad, 4);
-  try {
-    for (let round = 0; round < 2; round++) {
-      const s = f.stored().snapshot!.state as unknown as State;
-      const actor = f.tokens.findIndex((t) =>
-        f.service.room
-          .view(t)
-          .actions.some((a) => (a as { type: string }).type === 'answer'),
-      );
-      expect(
-        (
-          await f.action(actor, {
-            type: 'answer',
-            answer: correctAnswers(f.game(actor) as unknown as SaladView)[0]!,
-          })
-        ).ok,
-      ).toBe(true);
-      await vi.waitFor(
-        () =>
-          expect((f.stored().snapshot!.state as unknown as State).turn).toBe(
-            s.turn + 1,
-          ),
-        { timeout: 2500 },
-      );
-    }
-    const before = f.stored().snapshot!.state as unknown as State;
-    expect(before.piles.flat()).toHaveLength(3);
-    const actor = f.tokens.findIndex((t) =>
-      f.service.room
-        .view(t)
-        .actions.some((a) => (a as { type: string }).type === 'answer'),
-    );
-    expect(
-      (
-        await f.action(actor, {
-          type: 'answer',
-          answer: correctAnswers(f.game(actor) as unknown as SaladView)[0]!,
-        })
-      ).ok,
-    ).toBe(true);
-    const responders = f.tokens
-      .map((_, i) => i)
-      .filter((i) => i !== actor)
-      .slice(0, 2);
-    const commands = responders.map((i) =>
-      envelope(f.service.room.view(f.tokens[i]), {
-        type: 'game',
-        decisionId: f.service.room.view(f.tokens[i]).decisionId!,
-        action: { type: 'challenge' },
-      }),
-    );
-    expect(
-      (
-        await Promise.all(
-          commands.map((c, n) => f.send(f.players[responders[n]!]!, c)),
-        )
-      ).map((r) => r.ok),
-    ).toEqual([true, true]);
-    expect(f.game(actor)).toHaveProperty('selfResponse', null);
-    expect(f.game(actor)).toHaveProperty('phase', 'review');
-    expect((f.game(actor) as unknown as SaladView).lastResult).not.toContain(
-      '误判者',
-    );
-    await vi.waitFor(
-      () =>
-        expect((f.stored().snapshot!.state as unknown as State).turn).toBe(
-          before.turn + 1,
-        ),
-      { timeout: 2500 },
-    );
-    const after = f.stored().snapshot!.state as unknown as State;
-    expect(after.lastResult).toContain('误判者');
-    const recipients = before.seats.filter((id) =>
-      responders.some(
-        (i) => (f.game(i) as unknown as SaladView).seats[i] === id,
-      ),
-    );
-    expect(after.actor).toBe(recipients[0]);
-    for (let i = 0; i < recipients.length; i++) {
-      const id = recipients[i]!;
-      expect(after.hands[id]!.length).toBe(
-        before.hands[id]!.length +
-          (i === 0 ? 2 : 1) -
-          (after.actor === id ? 1 : 0),
-      );
-    }
-    const all = [
-      ...Object.values(after.hands).flat(),
-      ...after.spare,
-      ...after.piles.flat(),
-    ];
-    expect(all).toHaveLength(128);
-    expect(new Set(all).size).toBe(128);
-    expect(
-      salad.validateState(after as unknown as JsonValue, after.seats),
-    ).toEqual(after);
-  } finally {
-    await f.close();
-  }
-}, 15000);
