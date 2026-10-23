@@ -140,6 +140,48 @@ node --test tools/maintenance/maintenance.test.mjs
 
 `TemporaryManifest`继续要求当前版本已验收载荷及其实际passed证明；可只读复用已有完整交付证明，无需为方案审阅另建安装器或重跑安装验收。30分钟、活动工程进程、精确路径／链接、嵌套仓库、当前交付保护及共享互斥均沿用原通路；仅删除清单成员与空目录，不递归清空混合根。开始Apply即消耗清单ID，部分失败不自动重试；实际结果仍写入 `artifacts/maintenance/tmp-retirements/<id>.json`。本节描述任务级包装方式，不代表已有通用任务清理命令或新的自动删除白名单。
 
+## 任务收尾检查
+
+复用只读入口：`node tools/maintenance/audit-efficiency-docs.mjs --delivery=artifacts/maintenance/<任务ID>/task-delivery.json`，仅显式追加`--report=<仓库内路径>`时写报告。该模式独立于文档出入链审计，不同时使用`--changes`、`--baseline`、`--migration`或`--baseline-only`；不启动浏览器、产品或清理，不建立新的测试注册表。根入口8KiB和链接仍由原文档审计模式检查。
+
+交付清单version 1由工具实际消费：`taskId`为安全小写ID，`type`为`visual-change`、`change`或`analysis`。无临时文件用`temporary: {"none":"具体原因"}`；工具拒绝同ID临时根已存在的声明，但不能发现另一个未申报目录，因此任务仍须核对所调用工具的实际输出位置。有临时文件必须提供下列结构，路径均相对仓库根：
+
+```json
+{
+  "version": 1,
+  "taskId": "example-review",
+  "type": "visual-change",
+  "temporary": {
+    "root": "tmp/example-review",
+    "cleanup": {
+      "launcher": "artifacts/maintenance/example-review/cleanup.cmd",
+      "script": "artifacts/maintenance/example-review/cleanup.ps1",
+      "manifest": "artifacts/maintenance/example-review/cleanup-manifest.json",
+      "manifestSha256": "<冻结清单的64位SHA-256>"
+    }
+  },
+  "preview": {
+    "html": "tmp/example-review/index.html",
+    "before": "无可核验的改前截图；不补造旧界面",
+    "limitations": "具体检查及未验证范围",
+    "renderings": [
+      {
+        "path": "artifacts/maintenance/example-review/after.png",
+        "kind": "actual-rendering",
+        "role": "player",
+        "viewport": "390x844"
+      }
+    ]
+  }
+}
+```
+
+视觉任务必须有HTML、图像类别／角色／视口、改前资料说明及验证局限，且图像由HTML静态引用；示意图用`design-illustration`，真实渲染用`actual-rendering`。非视觉任务不声明`preview`。HTML审计检查静态媒体、脚本、样式引用及CSS的url／import，禁止远程运行依赖，普通外部来源超链接仍可用；不支持base URL或data URI srcset。检查不执行HTML／JS，不能证明动态依赖完全离线、图像真实性、前后说明准确、可访问性或视觉质量，仍须实际打开审阅。
+
+临时目录只接受`tmp/<taskId>/`；清理控制文件在同任务maintenance目录。沿用既有`TemporaryManifest`，要求精确单任务成员、清单SHA及`controlFiles`中CMD／PowerShell哈希，核对实际普通文件字节／SHA与完整库存；新增、缺失、改变、跨任务、链接或嵌套仓库均失败。控制脚本静态检查只确认命名了既有清理入口，不证明脚本执行安全；交付前仍审阅包装脚本，删除时由原工具复核修改时间、交付证明、近期文件、活动进程等门禁。收尾检查通过不授权Apply。
+
+工具回归沿用已登记的`audit-efficiency-docs.test.mjs`与tooling范围；本任务设置`TABLEMAX_TASK_TMP=tmp/<任务ID>`，将测试夹具集中于该根。已有夹具的自动释放沿用测试生命周期，其余临时夹具纳入任务冻结清单；不把测试夹具或假图像作为产品验收证据。
+
 ## 定向Markdown读取与迁移审计
 
 文档工具只按需读取源码，不启动产品或维护常驻索引。查找与读取拒绝越界、链接绕行及生成物路径；默认输出8KiB，预算包含定位信息和截断提示。原文按UTF-8读取；包管理器不可用时直接执行下面的Node等价入口，不为阅读修复或升级全局环境。

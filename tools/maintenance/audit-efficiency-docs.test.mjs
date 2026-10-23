@@ -16,9 +16,92 @@ import {
   auditEfficiencyDocs,
 } from './audit-efficiency-docs.mjs';
 import { sourceSha256 } from './markdown-source.mjs';
+import { auditTaskDelivery } from './task-delivery.mjs';
+
+const taskTemporary = resolve(
+  process.env.TABLEMAX_TASK_TMP ?? `tmp/documentation-audit-${process.pid}`,
+);
+assert.ok(taskTemporary.startsWith(resolve('tmp') + sep));
+mkdirSync(taskTemporary, { recursive: true });
+
+function deliveryFixture() {
+  const root = mkdtempSync(join(taskTemporary, 'delivery-'));
+  const id = 'review-example';
+  const base = 'tmp/' + id;
+  const control = 'artifacts/maintenance/' + id;
+  const write = (path, source) => {
+    mkdirSync(dirname(join(root, path)), { recursive: true });
+    writeFileSync(join(root, path), source);
+  };
+  const files = {
+    [base + '/index.html']:
+      '<link href="style.css" rel="stylesheet"><img src="after.png">',
+    [base + '/style.css']: 'body { background: url(texture.png) }',
+    [base + '/after.png']: 'fixture image, not real rendering evidence',
+    [base + '/texture.png']: 'fixture texture',
+  };
+  for (const [path, source] of Object.entries(files)) write(path, source);
+  write(control + '/cleanup.cmd', 'powershell -File cleanup.ps1');
+  write(
+    control + '/cleanup.ps1',
+    '& scripts/Clean-Intermediates.ps1 -TemporaryManifest manifest.json',
+  );
+  const plan = {
+    version: 1,
+    id,
+    authorization: 'retire-reviewed-tmp-once',
+    taskRoot: base,
+    controlFiles: ['cleanup.cmd', 'cleanup.ps1'].map((name) => ({
+      name,
+      sha256: sourceSha256(readFileSync(join(root, control, name))),
+    })),
+    entries: [
+      {
+        name: id,
+        reason: 'Unit test fixture only',
+        files: Object.entries(files).map(([path, source]) => ({
+          path,
+          bytes: Buffer.byteLength(source),
+          sha256: sourceSha256(source),
+        })),
+      },
+    ],
+  };
+  const manifest = control + '/cleanup-manifest.json';
+  write(manifest, JSON.stringify(plan));
+  const delivery = {
+    version: 1,
+    taskId: id,
+    type: 'visual-change',
+    temporary: {
+      root: base,
+      cleanup: {
+        launcher: control + '/cleanup.cmd',
+        script: control + '/cleanup.ps1',
+        manifest,
+        manifestSha256: sourceSha256(readFileSync(join(root, manifest))),
+      },
+    },
+    preview: {
+      html: base + '/index.html',
+      before: 'Unavailable: fixture has no before image',
+      limitations:
+        'Synthetic unit test; does not prove image content or provenance',
+      renderings: [
+        {
+          path: base + '/after.png',
+          kind: 'design-illustration',
+          role: 'player',
+          viewport: '390x844',
+        },
+      ],
+    },
+  };
+  return { root, base, control, delivery, write };
+}
 
 function fixture(t, files = {}) {
-  const root = mkdtempSync(resolve('tmp/efficiency-doc-incremental-'));
+  const root = mkdtempSync(join(taskTemporary, 'incremental-'));
   assert.ok(root.startsWith(resolve('tmp') + sep));
   t.after(() => rmSync(root, { recursive: true, force: true }));
   execFileSync('git', ['init', '--quiet'], { cwd: root });
@@ -62,7 +145,7 @@ function audit(root, args = []) {
 }
 
 test('migration audit detects a missing obligation despite formatting changes', (t) => {
-  const root = mkdtempSync(resolve('tmp/efficiency-doc-audit-'));
+  const root = mkdtempSync(join(taskTemporary, 'migration-'));
   assert.ok(root.startsWith(resolve('tmp') + sep));
   t.after(() => rmSync(root, { recursive: true, force: true }));
   writeFileSync(
@@ -82,7 +165,7 @@ test('migration audit detects a missing obligation despite formatting changes', 
 });
 
 test('real heading slugs, duplicate suffixes and incoming broken anchors are audited', (t) => {
-  const root = mkdtempSync(resolve('tmp/efficiency-doc-links-'));
+  const root = mkdtempSync(join(taskTemporary, 'links-'));
   assert.ok(root.startsWith(resolve('tmp') + sep));
   t.after(() => rmSync(root, { recursive: true, force: true }));
   writeFileSync(
@@ -357,5 +440,113 @@ test('long sections are review warnings and terminal details preserve strict byt
     JSON.parse(readFileSync(join(input.root, 'report.json'), 'utf8')).failures
       .length,
     40,
+  );
+});
+
+test('task delivery: static offline HTML, CSS dependencies and frozen inventory pass', () => {
+  const input = deliveryFixture();
+  const result = auditTaskDelivery(input.root, input.delivery);
+  assert.equal(result.failed, false, JSON.stringify(result));
+  assert.ok(result.checkedFiles >= 7);
+  assert.match(result.limits, /no rendering/);
+});
+
+test('task delivery: nonvisual work has an explicit no-temporary-files reason', () => {
+  const root = mkdtempSync(join(taskTemporary, 'no-files-'));
+  const delivery = {
+    version: 1,
+    taskId: 'plain-docs',
+    type: 'change',
+    temporary: { none: 'No temporary outputs' },
+  };
+  assert.equal(auditTaskDelivery(root, delivery).failed, false);
+  mkdirSync(join(root, 'tmp/plain-docs'), { recursive: true });
+  assert.equal(auditTaskDelivery(root, delivery).failed, true);
+});
+
+test('task delivery: missing preview and unlabelled renderings fail', () => {
+  const input = deliveryFixture();
+  const missing = structuredClone(input.delivery);
+  delete missing.preview;
+  assert.equal(auditTaskDelivery(input.root, missing).failed, true);
+  input.delivery.preview.renderings[0].kind = 'unknown';
+  assert.equal(auditTaskDelivery(input.root, input.delivery).failed, true);
+});
+
+test('task delivery: remote CSS and missing dependencies fail', () => {
+  const input = deliveryFixture();
+  input.write(
+    input.base + '/style.css',
+    '@import "https://example.com/remote.css";',
+  );
+  let result = auditTaskDelivery(input.root, input.delivery);
+  assert.ok(
+    result.failures.some((item) =>
+      item.reason.includes('Remote preview dependency'),
+    ),
+  );
+  input.write(input.base + '/style.css', 'body {background:url(missing.png)}');
+  result = auditTaskDelivery(input.root, input.delivery);
+  assert.equal(result.failed, true);
+});
+
+test('task delivery: remote media and path escapes fail', () => {
+  for (const value of [
+    'https://example.com/a.png',
+    '//example.com/a.png',
+    '../../../escape.png',
+  ]) {
+    const input = deliveryFixture();
+    input.write(input.base + '/index.html', '<img src="' + value + '">');
+    assert.equal(auditTaskDelivery(input.root, input.delivery).failed, true);
+  }
+});
+
+test('task delivery: new members and changed controls invalidate cleanup', () => {
+  const input = deliveryFixture();
+  input.write(input.base + '/unlisted.txt', 'unlisted');
+  assert.ok(
+    auditTaskDelivery(input.root, input.delivery).failures.some(
+      (item) => item.reason === 'Unlisted temporary member',
+    ),
+  );
+  const second = deliveryFixture();
+  second.write(second.control + '/cleanup.ps1', 'changed');
+  assert.ok(
+    auditTaskDelivery(second.root, second.delivery).failures.some((item) =>
+      item.reason.includes('Cleanup control hash changed'),
+    ),
+  );
+});
+
+test('task delivery: foreign task controls and stale manifest hash fail', () => {
+  const input = deliveryFixture();
+  input.delivery.temporary.cleanup.launcher =
+    'artifacts/maintenance/other/cleanup.cmd';
+  assert.equal(auditTaskDelivery(input.root, input.delivery).failed, true);
+  const second = deliveryFixture();
+  second.delivery.temporary.cleanup.manifestSha256 = '0'.repeat(64);
+  assert.equal(auditTaskDelivery(second.root, second.delivery).failed, true);
+});
+
+test('task delivery: CLI is read-only unless a report is explicitly requested', () => {
+  const input = deliveryFixture();
+  input.write('delivery.json', JSON.stringify(input.delivery));
+  let output = '';
+  const report = auditEfficiencyDocs(['--delivery=delivery.json'], {
+    root: input.root,
+    stdout: (text) => {
+      output += text;
+    },
+  });
+  assert.equal(report.failed, false);
+  assert.equal(JSON.parse(output).failed, false);
+  assert.equal(existsSync(join(input.root, 'report.json')), false);
+  assert.throws(
+    () =>
+      auditEfficiencyDocs(['--delivery=delivery.json', '--baseline-only'], {
+        root: input.root,
+      }),
+    /independently/,
   );
 });

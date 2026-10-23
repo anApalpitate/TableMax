@@ -12,6 +12,7 @@ import {
 import { validateOwnedChanges } from '../test/runner/plan.mjs';
 import { localFile } from '../test/runner/evidence.mjs';
 import { isDirectExecution } from '../shared/workspace-root.mjs';
+import { auditTaskDelivery } from './task-delivery.mjs';
 
 export function headingSlug(title) {
   return title
@@ -234,6 +235,7 @@ function parseAuditOptions(args) {
     else if (arg.startsWith('--migration=')) options.migration = arg.slice(12);
     else if (arg.startsWith('--report=')) options.report = arg.slice(9);
     else if (arg.startsWith('--changes=')) options.changes = arg.slice(10);
+    else if (arg.startsWith('--delivery=')) options.delivery = arg.slice(11);
     else throw new Error('Unknown option: ' + arg);
   }
   return options;
@@ -249,11 +251,33 @@ export function auditEfficiencyDocs(
 ) {
   if (args.includes('--help')) {
     stdout(
-      'docs:audit [--changes=owned.json] [--baseline=report.json] [--migration=migration.json] [--report=output.json] [--baseline-only]\n',
+      'docs:audit [--changes=owned.json] [--baseline=report.json] [--migration=migration.json] [--report=output.json] [--baseline-only]\ndocs:audit --delivery=task-delivery.json [--report=output.json]\n',
     );
     return;
   }
   const options = parseAuditOptions(args);
+  if (options.delivery) {
+    if (
+      options.changes ||
+      options.baseline ||
+      options.migration ||
+      options.baselineOnly
+    )
+      throw new Error(
+        'Delivery audit must run independently of document audit',
+      );
+    const report = auditTaskDelivery(
+      root,
+      JSON.parse(readFileSync(localFile(root, options.delivery), 'utf8')),
+    );
+    if (options.report) {
+      const absolute = localFile(root, options.report);
+      mkdirSync(dirname(absolute), { recursive: true });
+      writeFileSync(absolute, JSON.stringify(report, null, 2) + '\n');
+    }
+    stdout(boundedLines([JSON.stringify(report)], 2048, '\nTRUNCATED\n').text);
+    return report;
+  }
   const documents = listMarkdownSources(root, { history: true });
   const readJson = (path) =>
     JSON.parse(readFileSync(localFile(root, path), 'utf8'));

@@ -143,3 +143,5 @@ Git 远程 `origin` 为 GitHub 的 `anApalpitate/TableMax`，现有Pages工作�
 ## 开发文档与定向读取
 
 开发环境只做路由／旧锚点；当前正文在build-and-run.md、validation.md、workspace-maintenance.md，操作命令在对应tools/README。历史长记录归docs/archive对应主题，当前交付／最近瘦身仅留有效状态。tools/maintenance/read-doc.mjs提供8KiB按章节／cursor读取；审计报告进入artifacts/maintenance/development-efficiency/docs，不进入运行载荷。
+
+视觉正文分为跨游戏的`visual-design.md`与盒子专属`box-visual-design.md`，用户原话和覆盖关系仍归`art-preferences.md`；游戏主题不迁入盒子。整理前原文归archive并保留旧锚点，当前页不累积已被覆盖的日期追加规范。`tools/maintenance/task-delivery.mjs`由既有文档审计入口调用，只读核对交付清单，不执行产品或清理。

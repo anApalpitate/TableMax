@@ -4,35 +4,32 @@
 
 ## 最小阅读
 
-先查Git状态与任务diff，按[文档索引](docs/README.md)进入；已注入未变入口不重读，仅补diff。默认8KiB，MORE按返回游标续读，截断不代表不存在。
+先查Git状态及任务diff，按[文档索引](docs/README.md)进入；已注入未变入口只补diff。默认8KiB，MORE按游标续读，截断不代表不存在。
 
-- 目录／工程边界：[目录职责](docs/reference/project-structure.md)、[架构](docs/reference/architecture.md)
 - 工具链／运行／构建／便携／冻结：[构建与运行](docs/reference/build-and-run.md)；命令见[工具索引](tools/README.md)
 - 范围、失败阈值、证据复用：[验证](docs/reference/validation.md)
-- 清理、体积、压缩与产物保护：[工作区维护](docs/reference/workspace-maintenance.md)、[最近瘦身](docs/reference/project-slimming.md)
 - 文档、接续、提交与效率：[维护规则](docs/reference/maintenance.md)
-- EXE／发布：[验收](docs/reference/acceptance.md)、[Release流程](docs/reference/release.md)
-- 身份、房主、动作、回退、恢复、计时：[平台规格](docs/reference/phase-02-platform-spec.md)
-- UI、美术、声画与视觉审查：先查[用户美术偏好](docs/reference/art-preferences.md)、[通用视觉](docs/reference/visual-design.md)，再查对应游戏；视觉改造收尾须交付展示本次变化的本地HTML
+- 权限／恢复：[平台规格](docs/reference/phase-02-platform-spec.md)
+- UI／声画：先查[用户偏好](docs/reference/art-preferences.md)、[通用视觉](docs/reference/visual-design.md)，再查[盒子](docs/reference/box-visual-design.md)或游戏；视觉改造收尾交付变化展示HTML
 - 游戏规则、来源、秘密、人机、验证：[游戏索引](docs/games/README.md)、[人机规格](docs/reference/bot-players.md)、[扩展指南](docs/reference/game-development.md)
-- 待办与协作：[任务索引](docs/tasks/README.md)、[职责索引](docs/subagent/README.md)及对应角色
+- 接续／协作：[任务](docs/tasks/README.md)、[职责](docs/subagent/README.md)
 
-规格定向查询，不遍历生成物；归档仅追溯结论、来源、理由、失败或旧哈希。素材检索／处理进入[外部素材工作区](../TMP/TableMaxMaterial/AGENTS.md)，不创建Git；核验后导入assets。授权位图生成／编辑／核验交[imagegen子agent](docs/subagent/imagegen.md)。
+规格定向查询，不遍历生成物；归档仅追溯结论、来源、理由、失败、旧哈希。素材检索／处理进入[外部素材工作区](../TMP/TableMaxMaterial/AGENTS.md)，不创建Git，核验后导入assets；授权位图生成／编辑／核验交[imagegen子agent](docs/subagent/imagegen.md)。
 
 ## 关键边界
 
 1. 修改前明确范围及完成标准，保留其他改动。同文件仅一名负责人；关键未知影响目录或实现才询问。要求、实现及建议分开。
-2. 公开版本／标签／附件使用三位1.x.x；package.json保留三位。第四位按一次对话中的交付更新计数，同次更新只加1，失败或检查未通过的中间构建不占号；仅最终验收通过的交付确认计数。冻结快照恢复／原载荷重封不递增，已交付版本及原字节不改写。分配规则及实现边界见[Release流程](docs/reference/release.md#三位公开版本与四位本地构建2026-10-12)。公开版本只按用户明确指示调整。
-3. Windows仅交付预装全部正式游戏／玩法的唯一完整installer EXE，文件名含installer，无full／box后缀；不提供盒子版、游戏下载、ZIP导入、独立游戏更新／卸载／回退或作者安装工具包。完整程序安装／更新按[冻结契约](docs/reference/build-and-run.md#windows-安装与整个程序更新)，正式推广须干净Windows用户证明。模块独立维护／增量构建，历史仓库仅内部预装／原局恢复；新局固定EXE核验映射，旧缓存不得覆盖。旧局固定原发行，缺失时保留原档并提示所需旧完整EXE。
-4. 本地日常只导出完整EXE与清单，payload／manifest留artifacts/package-payloads。未经明确授权不发布、部署Pages或生成source ZIP；未来Release仅完整EXE与发布source ZIP。普通commit／push不触发部署；旧标签、原发布字节和SHA映射保留。
+2. 公开版本／标签／附件及package.json用三位1.x.x，公开版本仅按用户明确指示调整。第四位按一次对话的交付更新计数，同次只加1；失败／检查未过的中间构建不占号，仅最终验收通过确认计数。冻结快照恢复／原载荷重封不递增，已交付版本及字节不改写。详见[Release流程](docs/reference/release.md#三位公开版本与四位本地构建2026-10-12)。
+3. Windows仅交付预装全部正式游戏／玩法的唯一完整installer EXE，文件名含installer，无full／box后缀；不提供盒子版、游戏下载、ZIP导入、独立游戏更新／卸载／回退及作者安装工具包。安装／整程序更新按[冻结契约](docs/reference/build-and-run.md#windows-安装与整个程序更新)，推广须干净Windows用户证明。模块独立维护／增量构建；历史仓库仅内部预装／原局恢复。新局固定EXE核验映射，旧缓存不得覆盖；旧局固定原发行，缺失时保留原档并提示所需旧完整EXE。
+4. 日常仅导出完整EXE与清单，payload／manifest留artifacts/package-payloads。未经明确授权不发布、部署Pages或生成source ZIP；Release仅完整EXE与发布source ZIP。普通commit／push不触发部署；保留旧标签、原发布字节及SHA映射。
 5. C# WinForms／.NET Framework4.8、共享WebView2、包内Node22.14.0，SDK和依赖锁定。EXE、内部ZIP、实际提取内容各严格小于120,000,000字节，预警110,000,000。交付须检查原EXE安全标记并从原路径以标准Medium令牌直接启动验收，同SHA副本不能替代。凭证只走私有管道，桥接核验本源／顶层／角色，Job Object清理服务。
-6. 旧便携EXE在旁边TableMax目录保存配置／数据；新受管理安装配置根为安装根下data，默认数据根同目录，运行资源在data/app。目录不可写不回退C盘。配置目录变更重启生效；存档、旧模块及迁移见构建与运行。
+6. 旧便携EXE配置／数据在旁边TableMax目录；受管理安装配置根为安装根下data，默认数据根同目录，运行资源在data/app。不可写不回退C盘；配置目录变更重启生效。存档、旧模块及迁移见构建与运行。
 7. 服务端权威、按身份投影秘密；动作统一校验、保存和决策点回退。管理员不占座、公共屏只读；手机／电脑玩家同权限。房主、换机授权与checkpoint分离，回退不能恢复旧授权；换机撤销旧凭证与连接。具体管理动作严格按平台规格。
-8. 游戏开发核验对应版本原文、数据、秘密与决策点；发布方同版原文／修订优先，项目解释与官方明文分开。宝可梦新检索仅中文、优先用户资料，查不到按既有授权自主定案并记理由。电力公司仅经典德国修正版42城／六区／83边；拉密经典2–4人；UNO Mattel G7942经典108牌、平台2–6人；阿瓦隆2012经典5–10人新局仅configured，旧classic／court仅恢复。
+8. 核验游戏对应版本原文、数据、秘密及决策点，发布方同版原文／修订优先，项目解释与官方明文分开。宝可梦仅中文检索、优先用户资料，查不到按既有授权定案并记理由。固定版本与人数严格按[游戏索引](docs/games/README.md)进入各游戏：电力公司经典德国修正版42城／六区／83边；拉密经典2–4人；UNO Mattel G7942经典108牌、平台2–6人；阿瓦隆2012经典5–10人新局仅configured，旧classic／court仅恢复。
 9. 游戏规则、策略、UI、样式和资源保持games/<id>及对应assets内聚；共享层组合装配，不直接依赖游戏类型／动效。React／TypeScript、独立服务和规则保持边界；主机／公共／玩家有独立盒子与game页面。人机“默认／豆包／绝悟”各游戏独立、仅本人授权信息、统一动作，不代掉线真人行动。
 10. 明亮桌游美术，主体与主要操作优先；单步直接操作，位置选择具体确认；管理／帮助／记录按需浮窗，声画只表达已保存结果。规则维护顶层图文，不增加强制教程。字号信息≥16、主要动作／关键状态≥18、电脑标题≥20CSS px，短屏重排不缩字；适配至4K与Windows DPI，主机／公共独立保存缩放，手机无电脑显示设置。偏好依据仅用户历史，不将agent回答／实现选择写成用户偏好。
 11. 明确新导出包才验安装器。检查、构建与优化限任务影响：盒子只盒子、单游戏只对应游戏，共享变化按依赖选项；文档／配置仅适用检查。按低通过率排序；每轮默认10失败即停，保留旧账及未执行项，按证据修复。记录实质修复或环境纠正的原因、范围后，在已有授权内自动新建独立预算轮，仅复验受影响项，不另问新轮、不清旧失败。禁止无变化盲重试、放宽断言或跨权限；新增权限才询问。证据复用不增统计，不省必需验收。
 12. 安装验收所需临时标准账户及profile创建／清理随验收任务执行，无需另行请求授权，验后按精确SID清理。测试默认静音，隐藏窗口／后台，截图来自实际更新渲染；专门试听显式开启，不改日常声音偏好。本机服务显式监听127.0.0.1，只有真实LAN验收目的才开放网卡；不关闭防火墙或全局放行，系统防火墙修改需明确授权。
-13. 批量独立读取／检查，输出结论约2KiB、失败约8KiB，完整日志留证据；有界等待，无新信息不反复轮询。可独立派工优先不继承完整历史，传入目标、入口、文件边界和交接标准，优先复用agent；集成、权限、保存、旧档与失败场景先验证。估计须更新，不作实测。
-14. 每次改动任务的新临时文件集中于唯一 `tmp/<任务唯一ID>/`，收尾配齐该任务一键清理入口，按[工作区维护](docs/reference/workspace-maintenance.md#tmp-临时内容的生命周期2026-10-11)执行；无临时文件时说明不适用。tmp仅临时输入／输出，不存恢复归档。清理先预览核对后Apply，保护原资料、正式存档、原素材、当前交付／验收、历史模块、活动进程、近期变化、路径／链接与嵌套仓库；不按Git忽略删除。发现完整逻辑体积>15GB，优先启动[深度瘦身](docs/reference/deep-slimming-methodology.md)，目标<6GB；否则日常>10GiB清至8GiB或安全候选耗尽。工程退出后同轮只执行一次已审安全清理，保留依赖／工具缓存，不追加第二轮；NTFS物理节省不替代逻辑体积。历史退役保留文字原因、逐文件SHA与记录，不复制待删备份。
-15. 使用项目Prettier，不升级全局工具／环境；长期知识归唯一主题，任务页仅剩余接续，完成后归档并修复索引／入链。主agent统一提交／推送：阶段通过或收尾立即检查，长任务每30分钟检查；仅提交本任务已验证改动，不强推、不混其他任务、不自行发布。
+13. 批量独立读取／检查，结论约2KiB、失败约8KiB，完整日志留证据；有界等待，无新信息不反复轮询。独立派工优先不继承完整历史，传入目标、入口、文件边界、交接标准，优先复用agent；先验集成、权限、保存、旧档及失败。估计须更新，不作实测。
+14. 新临时文件集中于唯一 `tmp/<任务唯一ID>/`，收尾配齐一键清理入口；无临时文件说明不适用，规则见[工作区维护](docs/reference/workspace-maintenance.md#tmp-临时内容的生命周期2026-10-11)。tmp不存恢复归档。清理先预览核对后Apply，保护原资料／素材、正式存档、当前交付／验收、历史模块、活动进程、近期变化、路径／链接及嵌套仓库；不按Git忽略删除。完整逻辑体积>15GB先[深度瘦身](docs/reference/deep-slimming-methodology.md)，目标<6GB；否则日常>10GiB清至8GiB或安全候选耗尽。工程退出后同轮仅一次已审安全清理，保留依赖／工具缓存，不追加第二轮。NTFS物理节省不替代逻辑体积；历史退役留文字原因、逐文件SHA及记录，不复制待删备份。
+15. 用项目Prettier，不升级全局工具／环境；长期知识归唯一主题，任务页仅余接续，完成后归档并修复索引／入链。主agent统一提交／推送：阶段通过或收尾即检查，长任务每30分钟检查；仅提交本任务已验证改动，不强推、不混其他任务、不自行发布。

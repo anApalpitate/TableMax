@@ -12,7 +12,7 @@
 - 固定工具链、启动、构建、安装目录和冻结：[构建与运行](reference/build-and-run.md)。实际命令查[工具索引](../tools/README.md)。
 - 选择检查、证据复用及失败处理：[验证](reference/validation.md#按变更范围选择检查)；安装／更新证据和原EXE直接启动查[安装验收](reference/installation-validation.md)。
 - 源码视觉检查：[源码视觉验证](reference/source-visual-verification.md)。源码通过不证明安装器或实体设备通过。
-- UI、插画、声音及视觉审查：先查[用户美术偏好](reference/art-preferences.md#agent-使用入口)，再查[通用视觉](reference/visual-design.md)和对应游戏。
+- UI、插画、声音及视觉审查：先查[用户美术偏好](reference/art-preferences.md#agent-使用入口)，再查[通用视觉](reference/visual-design.md)；大厅、头像、游戏库及设置查[盒子视觉](reference/box-visual-design.md)，游戏查对应主题。视觉改造收尾交付变化展示HTML。
 - 玩法、采用版本、来源、秘密、策略、资源及验证：[游戏索引](games/README.md)。宝可梦原版／扩展、电力公司、现代艺术、拉密、UNO、阿瓦隆和马尼拉均从所属主题进入。
 - 新游戏接入：[扩展指南](reference/game-development.md)；电脑玩家配置与调度查[人机规格](reference/bot-players.md)。
 - 来源变化、冲突与采用理由：[来源复核](reference/maintenance.md#来源身份与变化复核)；迁移、旧锚点与入链查[小批迁移](reference/maintenance.md#小批迁移与闭合)。
@@ -48,6 +48,6 @@ pnpm docs:read docs/reference/validation.md --heading="按变更范围选择检�
 
 ## 开发效率速查
 
-[开发环境](reference/development.md)路由运行、验证与维护；[项目技能](reference/maintenance.md#项目技能与按需加载)组织文档整合与定向验证流程。按需加载，普通问答不启动写入。
+[开发环境](reference/development.md)路由运行、验证与维护；[项目技能](reference/maintenance.md#项目技能与按需加载)组织文档整合与定向验证流程。按需加载，普通问答不启动写入。改动收尾按[完成检查](reference/maintenance.md#任务完成检查)核对适用交付物，临时文件一键清理仍先预览后确认。
 
 [文档优化接续](tasks/documentation-wiki-and-skills.md)与[既有提效观察](tasks/development-efficiency.md)分别保存剩余事项和真实任务收益；字节、token及费用分开记录，不以读取量下降代替正确性。
