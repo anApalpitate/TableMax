@@ -2,27 +2,33 @@
 
 正常流程昵称夹具使用最多8个中文字或16个半角字符，混合计长；布局边界覆盖8字中文、16字符无空格英文及混合输入，长度判断复用协议实现。超限拒绝与旧存档兼容测试须明确保留理由，历史报告不改写。统一要求见[昵称测试输入](../../docs/reference/validation.md#按变更范围选择检查)。
 
+## 管理兼展示的工具迁移（2026-10-24，待实施）
+
+已确认后续取消独立公共屏，只保留管理兼展示与玩家；当前源码和本页工具尚未完成迁移。下文的公共屏、三端／三角色及`--roles=host,public`等是现有工具的旧界面矩阵，保留准确命令以便复核原输入，不是后续必须保留的产品端侧。已明确限定历史包的命令与原报告保持原范围。
+
+实施时须迁移原生助手、当前源码夹具及受影响游戏入口，按[迁移验证要求](../../docs/reference/validation.md#管理兼展示的迁移验证2026-10-24待实施)补齐旧路由HTTP 410、真实管理员权限、显示配置读v1写host v2及兼容边界。不得将下列旧公共屏用例通过记为目标已通过，也不得先把命令改成脚本尚未支持的新参数。SDK的`public`公开投影、匿名wire及旧ABI不随界面取消；这里的工具迁移不授权构建、安装或重新运行历史验收。
+
 ## 马尼拉信息精简与行动引导
 
-`games/manila/verify-manila-harbor.mjs --evidence=<新安全名称> --only=clarity-layout,action-guidance,stocks-finance --viewports=320x568,844x390`复用当前React与合法规则投影，检查岸上岗位实际字形／完整棋子居中、单份保存提示的字形碰撞与布局不变、全部玩家行动入口的呼吸／定位／减少动态、纯图形股票及独立抵押／赎回和强制付款。`clarity-layout`可用`--roles=player`或`--roles=host,public`限定三端角色，并用相同视口参数覆盖720p至4K；另外两组验证玩家行为及公开端秘密隔离。检查实现为[clarity-checks.mjs](games/manila/clarity-checks.mjs)，由原港湾脚本调用，不另建运行入口。
+`games/manila/verify-manila-harbor.mjs --evidence=<新安全名称> --only=clarity-layout,action-guidance,stocks-finance --viewports=320x568,844x390`复用当前React与合法规则投影，检查岸上岗位实际字形／完整棋子居中、单份保存提示的字形碰撞与布局不变、全部玩家行动入口的呼吸／定位／减少动态、纯图形股票及独立抵押／赎回和强制付款。现有`clarity-layout`可用`--roles=player`或`--roles=host,public`限定旧三端角色，并用相同视口参数覆盖720p至4K；角色矩阵待随管理兼展示迁移，参数当前保持原样。另外两组验证玩家行为及公开端秘密隔离。检查实现为[clarity-checks.mjs](games/manila/clarity-checks.mjs)，由原港湾脚本调用，不另建运行入口。
 
 以上通过现有`game:manila`显式批次计划执行，默认隐藏、静音、仅监听127.0.0.1。证据仍进入`artifacts/maintenance/manila-harbor-rebuild-20261017/mobile/<名称>`并绑定源码与参数；模拟视口和控制的运输状态不代表实体手机、Safari、系统DPI、真实服务或安装器验收。
 
 ## 开发盒子打开网址回归
 
-`box/verify-box-repository.mjs --require-medium --run=<独立名称>`使用当前原路径开发EXE，读取实际进程令牌并断言非提权Medium，验证主机／公共屏的可信“打开网址”和GitHub目标；实际默认浏览器启动仅捕获已批准目标，另用隐藏静音Edge访问回环加入地址并确认网页玩家盒子。`--native-fixture`补同一文档切换`/host`与`/host/game`，并保留合成点击、过期请求、错误焦点、恶意网址、同URL子frame和玩家路由的拒绝检查。通过`box`批次计划执行；默认仅127.0.0.1、独立临时数据，不等同系统默认浏览器关联、实体手机或安装器验收。
+`box/verify-box-repository.mjs --require-medium --run=<独立名称>`使用当前原路径开发EXE，读取实际进程令牌并断言非提权Medium，按待迁移的旧主机／公共屏矩阵验证可信“打开网址”和GitHub目标；实际默认浏览器启动仅捕获已批准目标，另用隐藏静音Edge访问回环加入地址并确认网页玩家盒子。`--native-fixture`补同一文档切换`/host`与`/host/game`，并保留合成点击、过期请求、错误焦点、恶意网址、同URL子frame和玩家路由的拒绝检查。通过`box`批次计划执行；默认仅127.0.0.1、独立临时数据，不等同系统默认浏览器关联、实体手机或安装器验收。管理兼展示的管理员边界及旧公共屏路由退出尚须随工具补验。
 
 ## 设置与保存标记源码验证
 
-`tools/test/platform/verify-settings-and-save-layout.mjs --evidence=<独立安全名称>`构建当前源码夹具，覆盖盒子与八玩法三端设置入口、同源页面／iframe声音同步、手机全屏成功／拒绝／不支持、保存前后几何不变、文字碰撞及18／20／22px矢量角标；`effects`使用真实规则保存事件验证原版／扩展蓝绿色轨迹、减少动态静态落点及恢复不重播。`--only=box,settings,save-layout,sound,mobile,icons,effects`可按实际受影响组筛选，`--games=manila`等可限制游戏专属用例；不传时运行全部。通过现有批次计划执行，范围为`box,shared`及七个正式游戏，默认隐藏、静音、127.0.0.1。证据位于`artifacts/maintenance/settings-and-save-20261020/<名称>`，绑定实际源码与脚本哈希；属于合法规则投影的源码组件夹具，不证明服务端事务、原生系统窗口或实体手机。
+`tools/test/platform/verify-settings-and-save-layout.mjs --evidence=<独立安全名称>`构建当前源码夹具，现有覆盖为盒子与八玩法旧三端设置入口、同源页面／iframe声音同步、手机全屏成功／拒绝／不支持、保存前后几何不变、文字碰撞及18／20／22px矢量角标；端侧与声音矩阵待随管理兼展示迁移。`effects`使用真实规则保存事件验证原版／扩展蓝绿色轨迹、减少动态静态落点及恢复不重播。`--only=box,settings,save-layout,sound,mobile,icons,effects`可按实际受影响组筛选，`--games=manila`等可限制游戏专属用例；不传时运行全部。通过现有批次计划执行，范围为`box,shared`及七个正式游戏，默认隐藏、静音、127.0.0.1。证据位于`artifacts/maintenance/settings-and-save-20261020/<名称>`，绑定实际源码与脚本哈希；属于合法规则投影的源码组件夹具，不证明服务端事务、原生系统窗口或实体手机。
 
-`--only=settings-layout --games=box,uno`定向检查320／390／1280px的紧凑游戏／视频设置、标签hover／聚焦／点按说明和成功截图。盒子主机／公共屏注入显式原生桥接快照，核对适配方式、界面大小、三种窗口模式提交参数；UNO玩家检查浏览器不出现原生专属选项。桥接快照不证明原生窗口或持久化通过。
+`--only=settings-layout --games=box,uno`定向检查320／390／1280px的紧凑游戏／视频设置、标签hover／聚焦／点按说明和成功截图。现有旧矩阵对盒子主机／公共屏注入显式原生桥接快照，核对适配方式、界面大小、三种窗口模式提交参数；后续只保留管理窗口的原生设置，工具待迁移。UNO玩家检查浏览器不出现原生专属选项。桥接快照不证明原生窗口或持久化通过。
 
 `--only=seat-names --games=box`使用真实会话hook及受控Socket transport，检查320／390／1280px四角色、大厅／进行中24项改名入口、确认时归一、pending锁与重复发送、失败／待确认反馈。服务端权限、实际HTTP／Socket／SQLite与旧档边界由`packages/platform-core/src/{admission,room-evolution}.test.ts`及`apps/server/src/platform.test.ts`覆盖，词表回归为`packages/protocol/src/names.test.ts`；浏览器夹具不能替代这些集成或实体设备证据。
 
 `--only=management-layout --games=box`检查320／390／1280px、大厅／进行中的紧凑管理设置与共享完整管理组件，覆盖房主选择、空／有换机申请、核对码与长昵称、说明hover／聚焦／触屏点按、换机与回退的取消／准确确认，并保存实际渲染截图。权限和持久化仍由平台集成测试承担，不把组件夹具写成实体设备或真实服务器验收。
 
-`--only=connection-layout --games=box`检查320／390／1280px管理员／公共屏连接帮助、前缀循环与HTTP(S)组合、完整网址粘贴、保存中锁定、成功回显、失败草稿、LAN重置、警告排查及合法长域名截图。前缀逻辑另见`apps/web/src/components/external-entry.test.ts`，实际网址校验／配置保存见`apps/server/src/network-settings.test.ts`；界面组用受控保存响应，不冒称真实网络或实体设备验收。
+`--only=connection-layout --games=box`现按待迁移的旧管理员／公共屏矩阵检查320／390／1280px连接帮助、前缀循环与HTTP(S)组合、完整网址粘贴、保存中锁定、成功回显、失败草稿、LAN重置、警告排查及合法长域名截图。前缀逻辑另见`apps/web/src/components/external-entry.test.ts`，实际网址校验／配置保存见`apps/server/src/network-settings.test.ts`；界面组用受控保存响应，不冒称真实网络或实体设备验收。
 
 ## UNO 开局设置与手机源码验证
 
@@ -51,7 +57,7 @@ version 1、version 2 和准确文件 Vitest 入口均关闭子项自动维护�
 
 先按本次修改范围选择检查。统一入口为 `pnpm test -- --scope=<范围>`；用 `--list` 只列清单，用 `--plan=<批次JSON路径>` 执行明确 Node／PowerShell 批次。范围支持 `box`、`shared`、`tooling`、`game:<id>` 或明确组合；不以目录或文件名前缀替代实际范围注册。默认按历史低通过率排序，按[统一失败阈值](../../docs/reference/validation.md#历史通过率与失败阈值)停止；实质修复后按该规则自动接续定向新轮，无变化不重试。共享默认失败预算为10，显式预算或 `TABLEMAX_TEST_MAX_FAILURES`可覆盖；`--prior-failures`及PS的 `-PriorFailures`均为小于该轮实际预算的非负整数，不限定旧0–4。PS父入口读取同一策略并冻结到子执行计划，不能由子进程清零累计失败。
 
-《马尼拉》定向单测使用 `node tools/test/runner/test-scoped.mjs --scope=game:manila`；增量构建使用 `node tools/build/build.mjs --only=game:manila`。实际页面与载荷验证入口为 `node tools/test/games/manila/verify-manila.mjs --executable=<实际TableMax.exe> --zip=<对应内部payload.zip> --seats=5 --only=all --evidence=<新安全名称>`：人数接受3/4/5；`only=layout|phone|match|all`分别选择三端布局与保存动态、手机定向复验、自然完整对局或完整范围。布局包含真实竞价/回退、具体岗位草稿/确认及图文规则；手机复验固定移动UA和触摸，要求横屏实际内容宽至少800px，并核验浮球不遮挡必要信息或操作。每轮保存验证源码及SHA，载荷逐成员SHA在运行前后复核。默认静音隐藏、127.0.0.1隔离数据，支持320px短手机/横屏及720p至4K；内部ZIP仅核验输入，不作为用户交付。脚本需经 `game:manila` 批次计划运行以保留统一排序与失败账本。实现及实际验证结果见[马尼拉验证](../../docs/games/manila/validation-scenarios.md)。
+《马尼拉》定向单测使用 `node tools/test/runner/test-scoped.mjs --scope=game:manila`；增量构建使用 `node tools/build/build.mjs --only=game:manila`。实际页面与载荷验证入口为 `node tools/test/games/manila/verify-manila.mjs --executable=<实际TableMax.exe> --zip=<对应内部payload.zip> --seats=5 --only=all --evidence=<新安全名称>`：人数接受3/4/5；`only=layout|phone|match|all`分别选择旧三端布局与保存动态、手机定向复验、自然完整对局或完整范围。该端侧矩阵待随工具迁移，旧完整包仍按原输入验证。布局包含真实竞价/回退、具体岗位草稿/确认及图文规则；手机复验固定移动UA和触摸，要求横屏实际内容宽至少800px，并核验浮球不遮挡必要信息或操作。每轮保存验证源码及SHA，载荷逐成员SHA在运行前后复核。默认静音隐藏、127.0.0.1隔离数据，支持320px短手机/横屏及720p至4K；内部ZIP仅核验输入，不作为用户交付。脚本需经 `game:manila` 批次计划运行以保留统一排序与失败账本。实现及实际验证结果见[马尼拉验证](../../docs/games/manila/validation-scenarios.md)。
 
 马尼拉触控源码验证使用 `node tools/test/games/manila/verify-manila-touch.mjs --evidence=<新安全名称> --only=setup,pilot-small,pilot-large,auction,waiting,labels,round-result`，可用 `--widths=320,390,430,844` 定向。真实React与合法投影检查44px箭头、起点和9、领航预算、草稿确认、操作列表居中、64px出价及手机房主下一航次。证据保留在 `artifacts/maintenance/manila-touch-layout-20261017/touch/<名称>`，默认静音隐藏、127.0.0.1；模拟触控不替代真实设备或完整安装系统链。
 
@@ -107,7 +113,7 @@ version 1、version 2 和准确文件 Vitest 入口均关闭子项自动维护�
 | [games/avalon/verify-avalon.mjs](games/avalon/verify-avalon.mjs)                                                                         | `node tools/test/games/avalon/verify-avalon.mjs`                                     |
 | [games/avalon/verify-host-layout.mjs](games/avalon/verify-host-layout.mjs)                                                               | 阿瓦隆主机布局；经典标签／讨论摘要使用下述discussion-only定向模式                    |
 | [games/modern-art/verify-modern-art-audio.mjs](games/modern-art/verify-modern-art-audio.mjs)                                             | `node tools/test/games/modern-art/verify-modern-art-audio.mjs`                       |
-| [games/modern-art/verify-modern-art-auction-layout.mjs](games/modern-art/verify-modern-art-auction-layout.mjs)                           | 现代艺术主机／公共屏拍卖几何；按下文version 1计划执行                                |
+| [games/modern-art/verify-modern-art-auction-layout.mjs](games/modern-art/verify-modern-art-auction-layout.mjs)                           | 现代艺术旧主机／公共屏拍卖几何，待迁移；按下文version 1计划执行                      |
 | [games/modern-art/prepare-auction-layout.ts](games/modern-art/prepare-auction-layout.ts)                                                 | 内部合法3／4人场景准备器；由拍卖几何入口调用，非独立CLI                              |
 | [games/modern-art/verify-modern-art-workspace.mjs](games/modern-art/verify-modern-art-workspace.mjs)                                     | 现代艺术真实组件夹具构建；当前按钮版交互使用下一入口                                 |
 | [games/modern-art/verify-modern-art-refinement.mjs](games/modern-art/verify-modern-art-refinement.mjs)                                   | 现代艺术竖／横屏按钮、保存反馈与宽屏滚动专项；按下文version 1计划执行                |
@@ -344,7 +350,7 @@ node tools/test/desktop/verify-shutdown.mjs --native=<已编译原生目录> --s
 
 故障请求仅被fixture alternate Main在检查／持续启动分支前接受，限定fixtureGUID、60001、隔离根、默认D、安装身份／receipt与包内NodeSHA；生产入口不可达。B健康失败是预期断言，成功触发不计产品失败。helper健康40与Inno准备拒绝7分别核验，A框架EXE／dat／登记／快捷方式原字节保留，live helper缺失后实际默认卸载保全D/G/config。Base64全字节／真实helper探针仍只证明解码保真，不证明完整容量。
 
-- [verify-update-ui.mjs](installation/verify-update-ui.mjs)：`--root=<真实已安装fixture默认数据根> [--browser-channel=msedge] [--only=permissions|layout]`；实际隐藏WinForms／WebView2主机、公共屏、frame和普通浏览器权限及短屏截图。已有Edge可用于独立headless普通浏览器；不下载或升级全局浏览器。登记 box,shared,tooling；真实GitHub仅主动检查，未授权发布的新附件不模拟成在线下载通过。
+- [verify-update-ui.mjs](installation/verify-update-ui.mjs)：`--root=<真实已安装fixture默认数据根> [--browser-channel=msedge] [--only=permissions|layout]`；现按待迁移的旧主机／公共屏矩阵检查实际隐藏WinForms／WebView2，并覆盖frame和普通浏览器权限及短屏截图。已有Edge可用于独立headless普通浏览器；不下载或升级全局浏览器。登记 box,shared,tooling；真实GitHub仅主动检查，未授权发布的新附件不模拟成在线下载通过。
 - [verify-save-barrier.mjs](installation/verify-save-barrier.mjs)：`--root=<真实已安装fixture默认数据根>`；仅fixture SQLite本轮trigger拒绝保存，经实际私有安装管道请求更新，核对Native失败退出、原状态和进程保全。只清除本轮成功创建的trigger；登记 box,shared,tooling。
 - [verify-production-user.ps1](installation/verify-production-user.ps1)：`-DeliveryPath <正式冻结交付JSON> -HandoffPreparedReport <双fixture准备报告> -OutputDirectory <全新证据目录> -AllowTemporaryAccount -UseProfileAcceptance`；由管理员启动，临时账户与profile操作无需另行请求用户授权。`-AllowTemporaryAccount`用于显式选择该测试模式，执行安装验收任务时直接传入。只创建随机标准测试账户及新profile，凭据仅进程内；依次要求默认D正向、长I／短外D正向、旧框架失败恢复三条fixture链全部通过，再运行正式产品ID首装／同包复装／快捷方式／真实保存后默认卸载／保留D同根重装读回／再次默认卸载及首次启动分项计量。每条各8个唯一passed步骤；三份报告均绑定同一prepared规范路径／rawSHA，驱动另记录各报告自身路径／rawSHA。子进程核对实际SID和profile，归一实际profile环境；PS5.1用raw `ProcessStartInfo`、UTF-8双流并行排空和真实ExitCode判定，日志独立保存。收尾按精确SID、固定句柄和创建时间有界清理进程，只移除本次账户与精确闲置profile；清理成功后才把隔离报告SHA绑定正式证明。工具不自我提升，fixture或环境变量不能替代实际干净用户。
   正式验证器收到卸载外层首段退出0后，仍独立有界观察原卸载EXE消失、日志能以 `FileShare.None` 独占读取，再将原字节／SHA回存工程；报告分别记录进程结果和 `completionObservation`。未达条件仍失败，不重试卸载或代删原EXE；首段0不能当作自删除及全部清理已经结束。
@@ -383,7 +389,7 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File tools/test/installation/
 
 当前先以工作区入口的`--phase=before|after --build-only --task=tmp/<任务唯一ID> --output=artifacts/maintenance/<任务唯一ID>/<新构建轮名>`构建真实组件。before使用事先准备的任务下`baseline`源码，after使用当前生产现代艺术组件及PlayerFrame；构建目录为任务下`fixture-<输出目录末级名>/bundle`，运行源码与状态输入在构建前后核对SHA。合法五人投影由[内部准备器](fixtures/prepare-modern-art-workspace.ts)生成到任务下`legal-fixtures/`，也可复用逐SHA核验的既有合法快照和准备证明；before还会复制本地现代艺术资源到基线。`--build-only`仅写bundle和`result: built`报告，不启动渲染或证明界面通过。该入口原有完整after及`--extra`交互断言针对旧自动／下拉选择控件，保留其历史证明；按钮版使用下面的新专项，不将过期控件断言作为当前验收。
 
-按钮／滚动专项消费已经构建的真实组件bundle，参数如下；`--phase=before|after`可单独选一阶段，省略则检查两阶段，所选阶段须提供对应bundle。before保留旧布局基线，after检查默认竖屏、横竖按钮与同iframe草稿保持、横屏页面容纳、手牌与操作区域及三角色保存提示；实际覆盖和通过范围以本轮报告为准。
+按钮／滚动专项消费已经构建的真实组件bundle，参数如下；`--phase=before|after`可单独选一阶段，省略则检查两阶段，所选阶段须提供对应bundle。before保留旧布局基线，after现检查默认竖屏、横竖按钮与同iframe草稿保持、横屏页面容纳、手牌与操作区域及旧三角色保存提示；角色矩阵待随管理兼展示迁移，实际覆盖和通过范围以本轮报告为准。
 
 ```text
 --phase=after
@@ -405,9 +411,9 @@ before或双阶段时另传`--before-bundle=tmp/<任务唯一ID>/fixture-<改前
 --output=artifacts/maintenance/<任务唯一ID>/server-geometry-<新轮名>
 ```
 
-入口消费已经构建的真实组件夹具，核对其bundle成员SHA，并依据`--source-report`复核现代艺术生产源码输入没有过期。常规场景覆盖五人空／有收藏、单／双画、一口价单幅和无进度条的双拍征集，在主机与公共屏的1280×720、1920×1080和960×540下核对原左右构图、16–24px内容间隔、区域／字形容纳、无重叠及无私有操作；3840×2160追加公开单幅／双幅检查。可用`--before-bundle`与`--after-bundle`明确指定任务内的已构建束；默认分别使用`fixture-before/bundle`与`fixture-after/bundle`。
+入口消费已经构建的真实组件夹具，核对其bundle成员SHA，并依据`--source-report`复核现代艺术生产源码输入没有过期。现有旧主机／公共屏矩阵待迁移：常规场景覆盖五人空／有收藏、单／双画、一口价单幅和无进度条的双拍征集，在1280×720、1920×1080和960×540下核对原左右构图、16–24px内容间隔、区域／字形容纳、无重叠及无私有操作；3840×2160追加公开单幅／双幅检查。可用`--before-bundle`与`--after-bundle`明确指定任务内的已构建束；默认分别使用`fixture-before/bundle`与`fixture-after/bundle`。
 
-独立补充模式每次选择一种，均保留相同任务、输出和最新after源码报告绑定：`--extra-only`替换`--after-only`时，由[内部准备器](games/modern-art/prepare-auction-layout.ts)分别初始化合法3／4人单画、双画及一口价单幅状态，真实加入8中文／16半角字符长昵称，通过规则校验；一口价经合法定价30进入询价，不删座位或拼接手牌。`--inactive-only`检查合法暂停和受控`connected=false`时活动布局／行动提示停用，只表示夹具连接状态，不证明真实网络断线。`--fixed-comparison-only`为同一四人一口价30的单幅／双幅，在主机与公共屏1280×720生成before／after四组对照，此模式需同时提供两份bundle，且不再追加`--after-only`。默认不传这些单独模式或`--after-only`时会额外记录before；before仅作旧布局基线，不按新布局标准断言。
+独立补充模式每次选择一种，均保留相同任务、输出和最新after源码报告绑定：`--extra-only`替换`--after-only`时，由[内部准备器](games/modern-art/prepare-auction-layout.ts)分别初始化合法3／4人单画、双画及一口价单幅状态，真实加入8中文／16半角字符长昵称，通过规则校验；一口价经合法定价30进入询价，不删座位或拼接手牌。`--inactive-only`检查合法暂停和受控`connected=false`时活动布局／行动提示停用，只表示夹具连接状态，不证明真实网络断线。`--fixed-comparison-only`为同一四人一口价30的单幅／双幅，现按待迁移的旧主机／公共屏1280×720矩阵生成before／after四组对照，此模式需同时提供两份bundle，且不再追加`--after-only`。默认不传这些单独模式或`--after-only`时会额外记录before；before仅作旧布局基线，不按新布局标准断言。
 
 检查启动隐藏静音Edge与`127.0.0.1`夹具服务，写指定全新报告目录、截图索引及验证器源码副本；浏览器`TEMP`／`TMP`集中到任务下`server-browser-temp/`，额外合法场景的编译／数据放在`server-extra-fixtures/`，准备后的快照及证明另以`extra-snapshots.json`和`extra-preparation-proof.json`留在本轮报告目录并记录SHA，子检查关闭自动维护。它证明真实生产组件在合法RoomCoordinator投影、受控本地夹具和冻结时钟下的源码渲染；不证明真实网络、自然整局、物理设备／Windows DPI、声音试听或安装器。失败轮和未执行项原位保留，实质修复后仅定向复验；游戏当前结果与边界见[现代艺术验证](../../docs/games/modern-art/validation-scenarios.md)。
 
@@ -415,12 +421,12 @@ before或双阶段时另传`--before-bundle=tmp/<任务唯一ID>/fixture-<改前
 
 以下脚本登记为`game:cockroach-poker`，放入version 1独立计划，经`node tools/test/runner/test-scoped.mjs --scope=game:cockroach-poker --plan=<计划.json>`运行；保留原失败账，实质修复后只复验受影响范围。
 
-- `games/cockroach/verify-cockroach-source.mjs --evidence=<唯一安全名称> [--density-only]`：实际生产客户端和规则派生内存夹具，覆盖三端／320px至4K／密度／减少动态及图文规则检查；源码及资源逐SHA绑定。仅证明源码浏览器，不冒称Socket、SQLite、安装或实体设备通过。
-- `games/cockroach/verify-cockroach-installed.mjs --delivery=<installer-delivery.json> --proof=<正式完成的shipping proof或封存proof> --evidence=<全新artifacts/maintenance目录>`：先核原EXE、载荷、两个清单及已卸载／保留runtime证明，再从精确冻结成员建立隔离副本。真实Native WebView2主机／公共屏、隐藏静音Edge手机模拟，执行德国小强生产动作、全部声明资源SHA及图像／WAV解码、实际保存重启；结束复核所有输入和保留runtime未变。安装系统验收须独立完成，不以此脚本替代；不证明实体手机、真实网络、多物理DPI或真人试听。
+- `games/cockroach/verify-cockroach-source.mjs --evidence=<唯一安全名称> [--density-only]`：实际生产客户端和规则派生内存夹具，现覆盖待迁移的旧三端／320px至4K／密度／减少动态及图文规则检查；源码及资源逐SHA绑定。仅证明源码浏览器，不冒称Socket、SQLite、安装或实体设备通过。
+- `games/cockroach/verify-cockroach-installed.mjs --delivery=<installer-delivery.json> --proof=<正式完成的shipping proof或封存proof> --evidence=<全新artifacts/maintenance目录>`：先核原EXE、载荷、两个清单及已卸载／保留runtime证明，再从精确冻结成员建立隔离副本。现按旧主机／公共屏Native WebView2与隐藏静音Edge手机模拟矩阵，执行德国小强生产动作、全部声明资源SHA及图像／WAV解码、实际保存重启；矩阵待随工具迁移，原冻结包仍按原输入验证。结束复核所有输入和保留runtime未变。安装系统验收须独立完成，不以此脚本替代；不证明实体手机、真实网络、多物理DPI或真人试听。
 
 ### 盒子大厅与德国小强简介源码验证
 
-`node tools/test/box/verify-box-lobby.mjs --evidence=<唯一名称>`通过现有批次计划执行，范围为`box,game:cockroach-poker`。实际BoxScreen源码以合成session运行在隐藏静音Edge、127.0.0.1；覆盖六视口入座／本人名片、十／十二席长昵称、保存状态时序、失败及确认入口、游戏入口合并，以及德国小强三端简介真实图片加载与关闭。报告、截图与源码SHA位于`artifacts/maintenance/box-lobby-20261023/<名称>`。不构建安装器，不证明真实服务保存、物理设备或Windows DPI；不使用旧安装包作本轮源码证明。
+`node tools/test/box/verify-box-lobby.mjs --evidence=<唯一名称>`通过现有批次计划执行，范围为`box,game:cockroach-poker`。实际BoxScreen源码以合成session运行在隐藏静音Edge、127.0.0.1；覆盖六视口入座／本人名片、十／十二席长昵称、保存状态时序、失败及确认入口、游戏入口合并，以及德国小强旧三端简介真实图片加载与关闭；角色矩阵待迁移。报告、截图与源码SHA位于`artifacts/maintenance/box-lobby-20261023/<名称>`。不构建安装器，不证明真实服务保存、物理设备或Windows DPI；不使用旧安装包作本轮源码证明。
 
 [扩展座位网格入口](box/verify-box-expanded-seats.mjs)登记为`box`，通过version 1计划交给`node tools/test/runner/test-scoped.mjs --scope=box --plan=<计划.json>`执行。计划项使用`runtime: node`、`script: tools/test/box/verify-box-expanded-seats.mjs`，参数数组为：
 
@@ -430,12 +436,12 @@ before或双阶段时另传`--before-bundle=tmp/<任务唯一ID>/fixture-<改前
 --task=tmp/avalon-box-seats-20261024-d1
 ```
 
-该入口构建真实BoxScreen和正常目录的阿瓦隆十席，使用符合协议昵称的合成大厅session；7／12席明确为容量兼容夹具，六席回归使用正常UNO目录，不扩大阿瓦隆人数。before仅在构建器模块加载时替换任务下`baseline/apps/web/src/screens/box-lobby.css`，记录原布局；after使用当前生产源码，核对三角色六视口、十席五人／满员／空桌，以及7／12席补充几何。after可另传`--baseline-report=artifacts/maintenance/avalon-box-seats-20261024-d1/<改前轮名>/report.json`精确核对六席旧几何不变。可传`--cases=<真实检查ID,...>`定向选择本阶段已列出的场景，例如`host-10-5-1920x1080`；不接受不属于当前矩阵的ID。
+该入口构建真实BoxScreen和正常目录的阿瓦隆十席，使用符合协议昵称的合成大厅session；7／12席明确为容量兼容夹具，六席回归使用正常UNO目录，不扩大阿瓦隆人数。before仅在构建器模块加载时替换任务下`baseline/apps/web/src/screens/box-lobby.css`，记录原布局；after使用当前生产源码，现核对待迁移的旧三角色六视口、十席五人／满员／空桌，以及7／12席补充几何。after可另传`--baseline-report=artifacts/maintenance/avalon-box-seats-20261024-d1/<改前轮名>/report.json`精确核对六席旧几何不变。可传`--cases=<真实检查ID,...>`定向选择本阶段已列出的场景，例如`host-10-5-1920x1080`；不接受不属于当前矩阵的ID。
 
 Vite产物位于任务下`<轮名>/bundle`，浏览器`TEMP`／`TMP`集中在`browser-temp/`，报告、截图与验证器副本写入`artifacts/maintenance/avalon-box-seats-20261024-d1/<轮名>/`，因此每轮须用全新轮名。检查隐藏静音Edge和`127.0.0.1`夹具服务，构建及执行前后逐SHA核对实际加载源码，子检查关闭自动维护。结果仅证明源码盒子布局，不证明真实服务、保存房间、自然对局、原生DPI、实体设备或安装器；通过数与旧失败按各轮原报告保留。
 
 ### 盒子稳定布局与头像重设计源码验证
 
-局部本人操作卡改动可追加`--profile-only`，执行三角色六视口卡槽稳定检查及现代艺术4号位四视口准备切换，跳过未改的头像画廊／游戏库检查，保存`ticket-<宽度>.png`实际组件截图。
+局部本人操作卡改动可追加`--profile-only`，现执行待迁移的旧三角色六视口卡槽稳定检查及现代艺术4号位四视口准备切换，跳过未改的头像画廊／游戏库检查，保存`ticket-<宽度>.png`实际组件截图。
 
-`node tools/test/box/verify-box-redesign.mjs --evidence=<唯一名称>`经现有version 1批次计划以`box`范围执行。隐藏静音Edge、127.0.0.1，仅以合成session和诊断二维码验证当前BoxScreen；检查三角色六视口的入座前后卡槽几何与最长昵称、窗口利用、大图头像占用／选择／上传裁剪、无简介游戏库及搜索、扫码下方预留和十／十二席兼容。先冻结13项源码哈希再构建，执行结束核对未变；报告与截图进入`artifacts/maintenance/box-redesign-20261023/<名称>`。不证明真实服务保存、扫码连通、安装器、物理设备或Windows DPI，不触发未来服务端玩家输入功能。
+`node tools/test/box/verify-box-redesign.mjs --evidence=<唯一名称>`经现有version 1批次计划以`box`范围执行。隐藏静音Edge、127.0.0.1，仅以合成session和诊断二维码验证当前BoxScreen；现检查待迁移的旧三角色六视口入座前后卡槽几何与最长昵称、窗口利用、大图头像占用／选择／上传裁剪、无简介游戏库及搜索、扫码下方预留和十／十二席兼容。先冻结13项源码哈希再构建，执行结束核对未变；报告与截图进入`artifacts/maintenance/box-redesign-20261023/<名称>`。不证明真实服务保存、扫码连通、安装器、物理设备或Windows DPI，不触发未来服务端玩家输入功能。
