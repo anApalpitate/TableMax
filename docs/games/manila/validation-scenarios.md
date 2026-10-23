@@ -107,7 +107,7 @@
 
 本地完整交付现为1.0.7.22；源码采用契券／铜牌、行动者头像、现金／抵押可借分列及紧凑图文详情。最终[真实载荷报告](../../../artifacts/manila/validation/polish-22-all-5-round06/results.json)通过28布局、50项检查和6航次135动作自然整局，包含完整真实玩家UI航次、伙伴／货物／起点／领航／海盗触摸、取消与确认；0页面错误、0外部请求。新增430×932，原320／390／844横屏、720p至4K与125%／150%独立应用显示偏好继续覆盖。
 
-源码第08轮另通过三端10布局、10个详情、关闭焦点恢复、16px信息下限、正方骰子和滚动末端测量。最终包手机、秘密股与账本[独立视觉复核](../../../artifacts/maintenance/v1.0.7/box-manila-polish-20261017/final-visual-review-22.json)通过。4项体验单测、类型、ESLint与Prettier通过；规则／策略／资源按[指纹](../../../artifacts/maintenance/v1.0.7/box-manila-polish-20261017/runtime-equivalence-18-22.json)仅复用相同单元，不增加执行统计。服务器／Worker构建未宣称字节相同。
+源码第08轮另通过三端10布局、10个详情、关闭焦点恢复、16px信息下限、正方骰子和滚动末端测量。最终包手机、秘密股与账本[独立视觉复核（原件已退役）](../../archive/history-cleanup-20261024.md)通过。4项体验单测、类型、ESLint与Prettier通过；规则／策略／资源按[指纹（原件已退役）](../../archive/history-cleanup-20261024.md)仅复用相同单元，不增加执行统计。服务器／Worker构建未宣称字节相同。
 
 原路径Medium启动、向导、两类目录更新交接、框架失败恢复、正式安装／保存／卸载／重装及临时账户清理均通过，见[当前验收](../../reference/acceptance.md#盒子与马尼拉界面优化2026-10-17)。过程、原失败与设备边界见[本轮归档](../../archive/box-manila-ui-polish-2026-10-17.md)；尺寸与显示偏好模拟不等于实体手机、真实LAN或物理DPI认证。
 
@@ -122,7 +122,7 @@
 | 自然整局／真实UI航次 | 候选17三人104动作／5航次，四人111动作／5航次，五人139动作／6航次；每场第2航次所有决策通过真实UI执行，分别20／22／27次。另覆盖实际货物／起点／领航、伙伴、海盗登船及掠夺拖放、取消和确认。[三人](../../../artifacts/manila/validation/deepening-17-match-3/results.json)、[四人](../../../artifacts/manila/validation/deepening-17-match-4/results.json)、[五人](../../../artifacts/manila/validation/deepening-17-all-5/results.json)。 |
 | 最终手机／规则图     | 候选18仅修规则图解CSS作用域后，通过6个手机布局及图框图片边界；320派遣页808px≤1.5屏，390派遣和选中确认均844px一屏，横屏844×390一屏。44px目标、无效／取消触摸、旋转保留草稿、点击等价、长按／键盘详情、图标及确认避让均通过。[报告](../../../artifacts/manila/validation/deepening-18-all-5/results.json)的`only`明确为`phone`，目录名不是完整整局声明。                                                                                  |
 | 声画                 | 十个SHA绑定原创FLAC在实际WebView2解码；物理静音进程下验证手机显式解锁、不补播旧事件、新保存发声、刷新／测试模式／减少动态。终局保存实际出现结束演出；局部效果按结构化公共差异分类。[候选17报告](../../../artifacts/manila/validation/deepening-17-all-5/results.json)。专门串听实际播放完成，未宣称人耳主观音质认证，见[音频清单](../../../assets/games/manila/audio/manifest.json)。                                                   |
-| 设置／视觉           | 候选17的80项设置正常／长文字布局全部通过，窄屏、短屏、720p至4K及125%／150%模拟缩放；真实保存中／错误／更新进度的业务发生不由文本压力夹具证明。[设置报告](../../../artifacts/maintenance/v1.0.7/debug-20261008/box/deepening-17-settings-manifest4/results.json)。实际手机草稿、设置压力图及规则图交独立审查，修复拆字、风险、双滚动和图像覆盖；最终规则图补充复审确认遮挡消除。                                                         |
+| 设置／视觉           | 候选17的80项设置正常／长文字布局全部通过，窄屏、短屏、720p至4K及125%／150%模拟缩放；真实保存中／错误／更新进度的业务发生不由文本压力夹具证明。[设置报告（原件已退役）](../../archive/history-cleanup-20261024.md)。实际手机草稿、设置压力图及规则图交独立审查，修复拆字、风险、双滚动和图像覆盖；最终规则图补充复审确认遮挡消除。                                                                                                       |
 | 静态／复用           | UI3项回归通过，35个相关根文件定向类型0诊断、ESLint和Prettier通过。17→18规则、策略、服务器、Worker、资源、盒子六单元字节等价；18已重测受影响手机／规则图，不重复未受影响整局和设置，不增复用统计。[等价记录](../../../artifacts/manila/validation/runtime-equivalence-17-18.json)。                                                                                                                                                      |
 
 以上为隐藏本机WebView2和普通宿主Edge的真实渲染／操作，尺寸和显示缩放为模拟；不代表实体手机、Safari、真实LAN、物理4K／DPI或真人多人时长与平衡通过。完整installer身份、容量、原路径Medium启动与标准账户安装结果仅由[验收](../../reference/acceptance.md#当前源码与本地交付)认定。

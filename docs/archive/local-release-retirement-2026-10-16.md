@@ -6,7 +6,7 @@
 
 现有逐文件维护入口先预览并核对清单SHA，再执行唯一一次Apply：删除14文件、187,354,244字节（约187.35MB／178.67MiB），结果passed，无删除错误。原旧目录仅为空时移除，未复制待删内容作备份。当前交付的精确身份与线上证明见[验收](../reference/acceptance.md#当前源码与本地交付)。
 
-[删除前清单](../../artifacts/maintenance/v1.0.7/releases-retirement-20261016/retirement-plan.json)记录路径、字节、原修改时间及SHA；[单次执行日志](../../artifacts/maintenance/reviewed-retirements/release-106-retirement-20261016-once.json)记录实际结果；[保护复核](../../artifacts/maintenance/v1.0.7/releases-retirement-20261016/result.json)绑定保留文件和剩余目录。原文档入链由[迁移表](../../artifacts/maintenance/v1.0.7/releases-retirement-20261016/document-links-before.json)追溯，不改写历史JSON报告中的原路径。
+[删除前清单（原件已退役）](history-cleanup-20261024.md)记录路径、字节、原修改时间及SHA；[单次执行日志](../../artifacts/maintenance/reviewed-retirements/release-106-retirement-20261016-once.json)记录实际结果；[保护复核（原件已退役）](history-cleanup-20261024.md)绑定保留文件和剩余目录。原文档入链由[迁移表（原件已退役）](history-cleanup-20261024.md)追溯，不改写历史JSON报告中的原路径。
 
 旧1.0.6/current、原发布／验收JSON仍保留其原始身份，但对应本地EXE与sidecar已不存在；不能再把旧指针当作可直接执行的交付。原portable10迁移复验也不再具备原EXE输入，历史通过不代表可立即重跑；需要重新复验时先取得并核验所需原字节，不能静默替换成其他包。
 

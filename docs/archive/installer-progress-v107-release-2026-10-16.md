@@ -26,6 +26,6 @@
 
 发布工具首次预检遇到Windows命令行长度限制：730个构建输入的路径合计33,848字符，连同配方共738项。改为每批64项，保持每项原严格diff门禁，实际12批最大5,560字符。该次未创建Release或上传附件。第二次预检在远端标签读取时遇OpenSSL TLS EOF；改用本次进程的Windows schannel和HTTP/1.1，远端精确标签检查通过，不修改全局网络配置或证书策略。第三次已完成全部738项源码检查并上传精确两附件，但按标签读取未公开草稿返回404；已改为按ID读取并增加本次已创建草稿接续，核对414541023的标签、正文及两附件后直接公开，不重传或替换历史附件。全部旧失败保留，本轮累计6次失败，修复后发布通过。
 
-正式[GitHub发布](https://github.com/anApalpitate/TableMax/releases/tag/v1.0.7)通过，标签及source ZIP固定源码提交 `c1207fd0be68b05b2fa88e2989a2c7444ca3527b`，标签对象 `14e0eef4272aeaea5648f9bc08fb43de998e09d7`。只有installer和source ZIP两附件，远端大小／SHA、签名正文和latest已由[发布审计](../../artifacts/maintenance/v1.0.7/windows-editions/91e13f6af698a964df479b8233ecf5e2f063d9579f09f9e1f7f2d652542e7ca5/github-publication.json)核对。本地构建仍为1.0.7.2，三位公开附件与本地installer完全同字节；旧版本未替换，未部署Pages。
+正式[GitHub发布](https://github.com/anApalpitate/TableMax/releases/tag/v1.0.7)通过，标签及source ZIP固定源码提交 `c1207fd0be68b05b2fa88e2989a2c7444ca3527b`，标签对象 `14e0eef4272aeaea5648f9bc08fb43de998e09d7`。只有installer和source ZIP两附件，远端大小／SHA、签名正文和latest已由[发布审计（原件已退役）](history-cleanup-20261024.md)核对。本地构建仍为1.0.7.2，三位公开附件与本地installer完全同字节；旧版本未替换，未部署Pages。
 
-发布工具的参数批处理与草稿定位／接续修复属于发布操作方法，未改动冻结运行输入；[方法回执](../../artifacts/maintenance/v1.0.7/installer-progress-release-20261016/round-01/publication-method.json)分别记录执行脚本与标签内脚本摘要。发布后维护提交纳入该工具修复及文档归档，保留原标签和source ZIP映射。当前交付身份及未测边界只维护在[验收](../reference/acceptance.md#当前源码与本地交付)。
+发布工具的参数批处理与草稿定位／接续修复属于发布操作方法，未改动冻结运行输入；[方法回执（原件已退役）](history-cleanup-20261024.md)分别记录执行脚本与标签内脚本摘要。发布后维护提交纳入该工具修复及文档归档，保留原标签和source ZIP映射。当前交付身份及未测边界只维护在[验收](../reference/acceptance.md#当前源码与本地交付)。

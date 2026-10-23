@@ -17,7 +17,7 @@
 
 第一轮初始日常扫描为 24,484,553,113 字节，最终日常扫描为 5,846,094,609 字节；加回受保护嵌套仓库 50,825,245 字节后，才得到上述完整项目终值。不得直接将不同扫描口径相减，或把聊天中的约数当作精确容量。第二轮最终采样略高于收尾文档写入前的采样，也体现了记录本身的增长。
 
-精确来源：[2026-10-12 记录](../archive/project-slimming-2026-10-09-to-12.md#深度瘦身至6gb内2026-10-12)、[当次结果](../../artifacts/maintenance/v1.0.6/deep-slim-20261012/result.json)、[2026-10-13 记录](project-slimming.md#安全瘦身至6gb内2026-10-13)、[最终采样](../../artifacts/maintenance/v1.0.6/slim-20261013/capacity-final.json)、[保护复验](../../artifacts/maintenance/v1.0.6/slim-20261013/protection-after.json)、[受进程阻止的清理](../archive/project-slimming-2026-10-09-to-12.md#安装器修复快速深度瘦身2026-10-11)、[删除量与净降幅的区别](../archive/project-slimming-2026-10-05-to-08.md#v103-扩展修订后的深度瘦身2026-10-07)。
+精确来源：[2026-10-12 记录](../archive/project-slimming-2026-10-09-to-12.md#深度瘦身至6gb内2026-10-12)、[当次结果（原件已退役）](../archive/history-cleanup-20261024.md)、[2026-10-13 记录](project-slimming.md#安全瘦身至6gb内2026-10-13)、[最终采样（原件已退役）](../archive/history-cleanup-20261024.md)、[保护复验（原件已退役）](../archive/history-cleanup-20261024.md)、[受进程阻止的清理](../archive/project-slimming-2026-10-09-to-12.md#安装器修复快速深度瘦身2026-10-11)、[删除量与净降幅的区别](../archive/project-slimming-2026-10-05-to-08.md#v103-扩展修订后的深度瘦身2026-10-07)。
 
 对话定位：`01a12b47-8dbd-7800-8f86-08d41add5f01`（10.11阿瓦隆）、`01a1331f-75a5-7723-998d-b7d5e165fe02`（10.13 提效）、`01a12b1a-2eca-7942-ba5a-3b74958c4034`（10.11 测试优化）。只读查证不恢复聊天、不回放命令，也不向原聊天发任务。
 

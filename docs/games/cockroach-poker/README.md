@@ -54,6 +54,6 @@
 
 授权UI静态渲染4项通过：选择目标／声明、查看后只可转传、public无手牌、规则说明、保存反馈去重；证据 `artifacts/maintenance/test-history/runs/93601dcd-bcfc-49c9-ad4c-49b55a33219e/results.json`。首轮UI收集失败（`a97d0c80-a39b-46ae-bf57-c859e08846fb`）：游戏包不直接依赖react-dom，已修为复用web-host锁定renderer后独立新轮通过。首次 `.test.tsx` 被范围工具拒绝且未执行测试；已使用项目支持的 `.test.ts`与createElement。
 
-上述规则／静态证据不替代运行验证。后续[真实Socket与SQLite](../../../artifacts/maintenance/test-history/runs/19d37975-46ee-4077-a47c-419349609daf/results.json)、[源码53项界面矩阵](../../../artifacts/maintenance/cockroach-source/final-freeze-20261021/report.json)及[最终冻结游戏](../../../artifacts/maintenance/cockroach-delivery-20261021/installed-r2/results.json)均通过，含三端、生产按钮、全部资源解码和保存重启。2026-10-21正式安装与当时current为本地1.0.8.8，其历史统一见[验收](../../reference/acceptance.md#德国小强与蟑螂沙拉完整交付2026-10-21)。实体手机、真实网络、多物理DPI与真人试听未实测；浏览器模拟和机器解码不升级为这些证据。
+上述规则／静态证据不替代运行验证。后续[真实Socket与SQLite](../../../artifacts/maintenance/test-history/runs/19d37975-46ee-4077-a47c-419349609daf/results.json)、[源码53项界面矩阵](../../../artifacts/maintenance/cockroach-source/final-freeze-20261021/report.json)及[最终冻结游戏（原件已退役）](../../archive/history-cleanup-20261024.md)均通过，含三端、生产按钮、全部资源解码和保存重启。2026-10-21正式安装与当时current为本地1.0.8.8，其历史统一见[验收](../../reference/acceptance.md#德国小强与蟑螂沙拉完整交付2026-10-21)。实体手机、真实网络、多物理DPI与真人试听未实测；浏览器模拟和机器解码不升级为这些证据。
 
 本轮实体牌替换的源码三端与实际开发命令、97个资源HTTP／解码及原生主机／模拟手机检查均通过，见[当前源码验收](../../reference/acceptance.md#实体牌美术与开发资源加载2026-10-21)；上列1.0.8.8验收对应替换之前的交付，不能替代本轮资源证据。无透视的官方牌背扫描母版仍未取得，当前背面为真实照片取景。

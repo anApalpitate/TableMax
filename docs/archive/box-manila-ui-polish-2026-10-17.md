@@ -11,15 +11,15 @@
 
 ## 验证及视觉复核
 
-源码最终第08轮：马尼拉三端10布局、10个可见详情及关闭焦点通过；盒子21个游戏库、21个顶栏、4个头像视口与108个介绍布局通过。4项体验单测、定向类型、ESLint、Prettier及范围工具检查通过。规则、策略、资源等按[模块指纹记录](../../artifacts/maintenance/v1.0.7/box-manila-polish-20261017/runtime-equivalence-18-22.json)只复用相同单元，不增加测试统计，也不宣称服务器／Worker构建相同。
+源码最终第08轮：马尼拉三端10布局、10个可见详情及关闭焦点通过；盒子21个游戏库、21个顶栏、4个头像视口与108个介绍布局通过。4项体验单测、定向类型、ESLint、Prettier及范围工具检查通过。规则、策略、资源等按[模块指纹记录（原件已退役）](history-cleanup-20261024.md)只复用相同单元，不增加测试统计，也不宣称服务器／Worker构建相同。
 
-最终22字节的真实隐藏WinForms／WebView2：马尼拉28布局、50检查、6航次135动作自然整局通过，其中完整自然航次通过真实玩家UI；0页面错误、0外部请求。覆盖320×568、390×844、430×932、844×390、720p／1080p／1440p／4K及125%／150%独立应用显示偏好，核实际触摸、单目标高亮、取消、旋转、草稿确认、骰子、行动者、秘密及只读边界。[马尼拉报告](../../artifacts/manila/validation/polish-22-all-5-round06/results.json)。最终盒子8布局／80个正常与长文字设置浮窗通过，[报告](../../artifacts/maintenance/v1.0.7/debug-20261008/box/polish-22-settings-round06/results.json)。
+最终22字节的真实隐藏WinForms／WebView2：马尼拉28布局、50检查、6航次135动作自然整局通过，其中完整自然航次通过真实玩家UI；0页面错误、0外部请求。覆盖320×568、390×844、430×932、844×390、720p／1080p／1440p／4K及125%／150%独立应用显示偏好，核实际触摸、单目标高亮、取消、旋转、草稿确认、骰子、行动者、秘密及只读边界。[马尼拉报告](../../artifacts/manila/validation/polish-22-all-5-round06/results.json)。最终盒子8布局／80个正常与长文字设置浮窗通过，[报告（原件已退役）](history-cleanup-20261024.md)。
 
-独立审查发现账本重复副标题、320px浮标避让及保险拆字、身份中点串联后逐项修正。最终包手机、账本、秘密股[独立视觉复核](../../artifacts/maintenance/v1.0.7/box-manila-polish-20261017/final-visual-review-22.json)均通过；此前港口详情亦已独立审查。
+独立审查发现账本重复副标题、320px浮标避让及保险拆字、身份中点串联后逐项修正。最终包手机、账本、秘密股[独立视觉复核（原件已退役）](history-cleanup-20261024.md)均通过；此前港口详情亦已独立审查。
 
 ## 失败与纠正
 
-全部失败、原报告与后续独立预算轮保留于[轮次记录](../../artifacts/maintenance/v1.0.7/box-manila-polish-20261017/round-corrections.json)：最初沙箱Edge管道启动失败；合法状态夹具全跳过而未达到待测阶段；滚动测量遗漏display:contents；实际320px浮标遮挡与阶段拆字。修正对应环境、状态推进、测量和产品布局，保留原断言。
+全部失败、原报告与后续独立预算轮保留于[轮次记录（原件已退役）](history-cleanup-20261024.md)：最初沙箱Edge管道启动失败；合法状态夹具全跳过而未达到待测阶段；滚动测量遗漏display:contents；实际320px浮标遮挡与阶段拆字。修正对应环境、状态推进、测量和产品布局，保留原断言。
 
 最终整局夹具曾将rect.bottom发给CDP，float32把落点推到航道外0.000019px，0格草稿未改变；另在点击外部“清空调整”后未重新展开已正确收起的操作列表。只将0／13端点移入0.25px并重新展开，仍断言原确切数值、不提交草稿及真实命中；14／15不夹回13。同21载荷复验通过，随后独立视觉修正进入22，不把候选21当最终交付。
 
@@ -27,15 +27,15 @@
 
 最终交付为[唯一完整安装器1.0.7.22（原件现状）](historical-evidence-audit-2026-10-23.md#h12tablemax-10722-installer-win-x64exe)（历史原路径 `../../artifacts/releases/v1.0.7/1.0.7.22/TableMax-1.0.7.22-installer-win-x64.exe`）及[清单（原件现状）](historical-evidence-audit-2026-10-23.md#h13tablemax-10722-installer-win-x64-manifestjson)（历史原路径 `../../artifacts/releases/v1.0.7/1.0.7.22/TableMax-1.0.7.22-installer-win-x64-manifest.json`），含全部七款游戏／八个玩法。EXE38,077,047字节，SHA `838a7a1ecd82670a6040baf568521498b50b6b19b06fe10bfc3377627db873b5`；内部ZIP46,319,673字节、实际提取99,225,894字节，均严格低于120,000,000字节。签名闭包、成员SHA和运行前后原载荷核验通过。
 
-[原文件安全修正](../../artifacts/maintenance/v1.0.7/box-manila-polish-20261017/executable-security-22.json)只把可信本地EXE继承Low改为Medium，核字节、SHA、owner、DACL与数据流不变。[原路径Medium启动](../../artifacts/maintenance/v1.0.7/box-manila-polish-20261017/production-account-22-01/original-executable/report.json)及[中文安装向导](../../artifacts/maintenance/v1.0.7/box-manila-polish-20261017/production-account-22-01/installer-wizard/report.json)通过，同SHA副本不替代原文件。
+[原文件安全修正（原件已退役）](history-cleanup-20261024.md)只把可信本地EXE继承Low改为Medium，核字节、SHA、owner、DACL与数据流不变。[原路径Medium启动（原件已退役）](history-cleanup-20261024.md)及[中文安装向导（原件已退役）](history-cleanup-20261024.md)通过，同SHA副本不替代原文件。
 
-新建标准账户及真实Medium profile完成默认目录、长根／外置数据和旧框架失败恢复，各8步0失败；随后正式ID首装、同包复装、快捷方式、真实保存、默认卸载、同根重装读回及再次卸载通过。实际安装Native更新设置页16项布局通过，未假称线上下载发生。[同次正式证明](../../artifacts/maintenance/v1.0.7/box-manila-polish-20261017/production-account-22-01/shipping-executable-checks-full.json)、[账户终态](../../artifacts/maintenance/v1.0.7/box-manila-polish-20261017/production-account-22-01/isolated-account.json)与[驱动终态](../../artifacts/maintenance/v1.0.7/box-manila-polish-20261017/production-account-22-01-completion.json)确认退出0、账户／profile均删除、errors为空。
+新建标准账户及真实Medium profile完成默认目录、长根／外置数据和旧框架失败恢复，各8步0失败；随后正式ID首装、同包复装、快捷方式、真实保存、默认卸载、同根重装读回及再次卸载通过。实际安装Native更新设置页16项布局通过，未假称线上下载发生。[同次正式证明（原件已退役）](history-cleanup-20261024.md)、[账户终态（原件已退役）](history-cleanup-20261024.md)与[驱动终态（原件已退役）](history-cleanup-20261024.md)确认退出0、账户／profile均删除、errors为空。
 
-[封存证明](../../artifacts/maintenance/v1.0.7/box-manila-polish-20261017/finalized-installation-22.json)1,991,941字节，SHA `50ac8fbf24cd13344953768f7f611ea77bb933fe124221bd7eeeef6b5c9a2fe7`，只读重核方法、receipt、全部布局证据与保留runtime；[推广回执](../../artifacts/maintenance/v1.0.7/box-manila-polish-20261017/promotion-receipt-22.json)已切本地current至22。旧18／20／21原EXE按现有只留最新规则退役，manifest、payload与历史身份记录保留；候选20／21各自通过安装验收不替代22证明。
+[封存证明（原件已退役）](history-cleanup-20261024.md)1,991,941字节，SHA `50ac8fbf24cd13344953768f7f611ea77bb933fe124221bd7eeeef6b5c9a2fe7`，只读重核方法、receipt、全部布局证据与保留runtime；[推广回执（原件已退役）](history-cleanup-20261024.md)已切本地current至22。旧18／20／21原EXE按现有只留最新规则退役，manifest、payload与历史身份记录保留；候选20／21各自通过安装验收不替代22证明。
 
 首次健康启动的同次程序采样117,663,577字节＝程序99,834,940＋框架5,273,757＋身份／配置16,973＋当前游戏12,537,907，低于硬限并触发110,000,000工程预警。preStartupSampled为false；阶段观测最大183,962,899字节含数据／缓存／暂存，isAbsolutePeak为false，不能把它当程序交付体积或绝对峰值。
 
-收尾单次深度审计从26,635,637,978字节起（含受保护嵌套仓库50,825,245字节），冻结清单并唯一一次退役19,068文件、9,280,038,463字节；最终采样17,391,604,930字节，净降9,244,033,048字节，新增记录使净降小于删除量。原件、未知数据库、未完成候选、依赖／工具缓存和当前交付／证据保留，未达6GB目标且不追加删除。唯一扫描错误经只读补证确认为受保护坏junction（0普通字节），嵌套文件长度／UTC时间不变；PowerShell epoch时区计算误报已纠正。见[容量与边界](../../artifacts/maintenance/v1.0.7/box-manila-polish-20261017/deep-capacity-summary.json)、[逐文件SHA清单](../../artifacts/maintenance/v1.0.7/box-manila-polish-20261017/deep-reviewed-files.json)及[唯一执行记录](../../artifacts/maintenance/reviewed-retirements/box-manila-polish-20261017-deep-once.json)。清理后同次安装证明只读复核通过，SHA仍为50ac8fbf24cd13344953768f7f611ea77bb933fe124221bd7eeeef6b5c9a2fe7，不新增业务测试统计。
+收尾单次深度审计从26,635,637,978字节起（含受保护嵌套仓库50,825,245字节），冻结清单并唯一一次退役19,068文件、9,280,038,463字节；最终采样17,391,604,930字节，净降9,244,033,048字节，新增记录使净降小于删除量。原件、未知数据库、未完成候选、依赖／工具缓存和当前交付／证据保留，未达6GB目标且不追加删除。唯一扫描错误经只读补证确认为受保护坏junction（0普通字节），嵌套文件长度／UTC时间不变；PowerShell epoch时区计算误报已纠正。见[容量与边界（原件已退役）](history-cleanup-20261024.md)、[逐文件SHA清单（原件已退役）](history-cleanup-20261024.md)及[唯一执行记录](../../artifacts/maintenance/reviewed-retirements/box-manila-polish-20261017-deep-once.json)。清理后同次安装证明只读复核通过，SHA仍为50ac8fbf24cd13344953768f7f611ea77bb933fe124221bd7eeeef6b5c9a2fe7，不新增业务测试统计。
 
 ## 真实设备边界
 

@@ -22,9 +22,9 @@
 
 ## 证据
 
-- [来源与预算](../../artifacts/maintenance/deep-slim-20261021/plan-review.json)、[精确清单](../../artifacts/maintenance/deep-slim-20261021/reviewed-files-r5.json)、[最终预览](../../artifacts/maintenance/deep-slim-20261021/preview-r5.log)。
+- [来源与预算](../../artifacts/maintenance/deep-slim-20261021/plan-review.json)、[精确清单（原件已退役）](history-cleanup-20261024.md)、[最终预览（原件已退役）](history-cleanup-20261024.md)。
 - [唯一退役记录](../../artifacts/maintenance/reviewed-retirements/deep-slim-20261021-reviewed-once.json)、[保护复验](../../artifacts/maintenance/deep-slim-20261021/preservation-after.json)、[容量结果](../../artifacts/maintenance/deep-slim-20261021/capacity-result.json)。
-- [原生前采样](../../artifacts/maintenance/deep-slim-20261021/inventory-before.json)、[原生后采样](../../artifacts/maintenance/deep-slim-20261021/inventory-after.json)。
+- [原生前采样（原件已退役）](history-cleanup-20261024.md)、[原生后采样（原件已退役）](history-cleanup-20261024.md)。
 
 现行边界见[工作区维护](../reference/workspace-maintenance.md)，未达目标的剩余工作见[接续](../tasks/installer-and-deep-slimming.md)。
 
