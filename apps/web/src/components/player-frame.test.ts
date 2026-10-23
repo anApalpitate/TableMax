@@ -5,7 +5,24 @@ import {
   playerFramePath,
   readPlayerDisplay,
   savePlayerDisplay,
+  workspaceLayout,
 } from './player-frame';
+
+describe('opt-in game workspace layout', () => {
+  it('uses actual available space rather than the device identity', () => {
+    expect(workspaceLayout(844, 338, 'auto')).toBe('wide');
+    expect(workspaceLayout(390, 792, 'auto')).toBe('portrait');
+    expect(workspaceLayout(639, 390, 'auto')).toBe('portrait');
+    expect(workspaceLayout(640, 320, 'auto')).toBe('wide');
+    expect(workspaceLayout(960, 1000, 'auto')).toBe('portrait');
+  });
+  it('honours a portrait override and safely falls back without changing the preference', () => {
+    expect(workspaceLayout(1280, 668, 'portrait')).toBe('portrait');
+    expect(workspaceLayout(640, 319, 'wide')).toBe('portrait');
+    expect(workspaceLayout(959, 700, 'wide')).toBe('wide');
+    expect(workspaceLayout(1280, 668, 'wide')).toBe('wide');
+  });
+});
 
 describe('player frame navigation', () => {
   const origin = 'https://table.example';

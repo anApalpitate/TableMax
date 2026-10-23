@@ -8,6 +8,21 @@ export function playerFramePath(url: URL, origin: string): string | null {
 export type PlayerDisplay = 'portrait' | 'wide';
 export const playerDisplayKey = 'tablemax-player-display-mode';
 
+export type WorkspacePreference = 'auto' | PlayerDisplay;
+export const workspaceDisplayKey = 'tablemax-workspace-display-mode-v1';
+export function workspaceLayout(
+  width: number,
+  height: number,
+  preference: WorkspacePreference,
+): PlayerDisplay {
+  const fits = width >= 640 && height >= 320;
+  return preference === 'portrait'
+    ? 'portrait'
+    : fits && (preference === 'wide' || width / height >= 1.2)
+      ? 'wide'
+      : 'portrait';
+}
+
 /** Presentation only; never infer a room role from hardware or viewport size. */
 export function isDesktopPlayer(device: {
   userAgent: string;
