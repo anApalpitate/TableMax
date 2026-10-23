@@ -217,7 +217,7 @@ try {
       .filter((value) => value.includes('safe-area-inset-'));
     assert.deepEqual(
       declarations,
-      [10, 16, 8].map((base) =>
+      [10, 8, 12].map((base) =>
         ['top', 'right', 'bottom', 'left']
           .map((side) => `max(${base}px, env(safe-area-inset-${side}))`)
           .join(' '),
@@ -246,11 +246,11 @@ const snapshots=${JSON.stringify(snapshots)};
 configureGameHost({ScreenLink:p=><a {...p}/>,FullscreenControl:()=>null,DisplaySettings:()=>null,useAudioOutput:()=>false,claimAudioEvent:()=>true,avatarFor,avatarChoices});
 const root=createRoot(document.getElementById('root'));let sequence=0,currentKey='initial';
 window.__commands=[];window.__documentId=crypto.randomUUID();
-window.renderModernArt=({scene='auction-open',role='player',preserve=false,view:providedView,suppliedView,connected=true}={})=>{
+window.renderModernArt=({scene='auction-open',role='player',preserve=false,view:providedView,suppliedView,connected=true,savedMessage=''}={})=>{
  const view=structuredClone(suppliedView??providedView??snapshots[scene][role]);
  if(view.decisionClock)view.decisionClock={...view.decisionClock,running:false,serverTime:Date.now()};
  const self=role==='player'?view.seats.find(s=>s.id===view.self?.seatId):undefined;
- const session={role,view,self,connected,locked:!connected,canControl:role==='host'||Boolean(view.self?.capabilities?.control),message:'',messageKind:'none',admissionPending:false,awaitingConfirmation:false,feedback:null,errorId:'',motion:[],command:c=>window.__commands.push(c)};
+ const session={role,view,self,connected,locked:!connected,canControl:role==='host'||Boolean(view.self?.capabilities?.control),message:savedMessage,messageKind:savedMessage?'saved':'none',admissionPending:false,awaitingConfirmation:false,feedback:null,errorId:'',motion:[],command:c=>window.__commands.push(c)};
  window.__fixture={scene,role,revision:view.revision,decisionId:view.decisionId,actions:view.actions,paused:view.paused,connected,publicHasSelf:role!=='player'&&Boolean(view.gameView?.self)};
  if(!preserve)currentKey=String(++sequence);
  flushSync(()=>root.render(<HostedGame key={currentKey} session={session} client={client} presentation={{management:()=>null,feedback:p=><SessionFeedback session={session}{...p}/>,playMode:()=>null,countdown:()=>null}}/>));

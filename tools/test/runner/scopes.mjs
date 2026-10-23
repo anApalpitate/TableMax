@@ -337,6 +337,10 @@ const verificationScopes = {
     'game:modern-art',
     'shared',
   ],
+  'tools/test/games/modern-art/verify-modern-art-refinement.mjs': [
+    'game:modern-art',
+    'shared',
+  ],
   'tools/test/games/modern-art/verify-modern-art-auction-layout.mjs': [
     'game:modern-art',
   ],

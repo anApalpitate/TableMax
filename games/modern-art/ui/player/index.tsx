@@ -1,4 +1,4 @@
-import { useState, useSyncExternalStore } from 'react';
+import { useRef, useState, useSyncExternalStore } from 'react';
 import type { Action, ModernArtView } from '../view';
 import { ArtCard } from '../ArtCard';
 import { money } from '../public/labels';
@@ -176,7 +176,11 @@ export function PlayerControls({
 }) {
   const self = view.self;
   const [sort, setSort] = useState<PaintingSort>('artist');
-  const [handRequested, setHandRequested] = useState<string | null>(null);
+  const [handRequested, setHandRequested] = useState<{
+    key: string;
+    expanded: boolean;
+  } | null>(null);
+  const handRef = useRef<HTMLDivElement>(null);
   const wideHand = useSyncExternalStore(subscribeHandWidth, wideHandWidth);
   if (!self) return null;
   const moneyActions = actions.filter(
@@ -189,7 +193,23 @@ export function PlayerControls({
   );
   const handAction =
     (view.phase === 'offer' || view.phase === 'double') && offered.size > 0;
-  const handExpanded = wideHand || handAction || handRequested === selectionKey;
+  const handExpanded =
+    wideHand ||
+    (handRequested?.key === selectionKey ? handRequested.expanded : handAction);
+  const browseHand = (direction: -1 | 1) => {
+    const hand = handRef.current;
+    const first = hand?.querySelector<HTMLElement>('.ma-hand__card');
+    if (!hand || !first) return;
+    const style = getComputedStyle(hand);
+    const gap = Number.parseFloat(style.columnGap) || 0;
+    const stride = first.offsetWidth + gap;
+    const available =
+      hand.clientWidth -
+      (Number.parseFloat(style.paddingLeft) || 0) -
+      (Number.parseFloat(style.paddingRight) || 0);
+    const count = Math.max(1, Math.floor((available + gap) / stride));
+    hand.scrollBy({ left: direction * count * stride, behavior: 'auto' });
+  };
   const pass = actions.find((action) => action.type === 'pass');
   const passLabel =
     view.auction?.kind === 'open'
@@ -311,26 +331,31 @@ export function PlayerControls({
         <div className="ma-section-heading ma-hand-heading">
           <h2>
             {!activityMessage && view.phase === 'double' && offered.size > 0
-              ? '选择同艺术家的第二幅画'
+              ? '追加同画家画作'
               : view.phase === 'offer' && offered.size
-                ? '选择一幅画作上拍'
+                ? '选画上拍'
                 : '你的手牌'}
           </h2>
           <span className="ma-hand-count">{self.hand.length} 张</span>
-          {!wideHand && !handAction && (
+          {!wideHand && (
             <button
               className="secondary ma-hand-toggle"
               type="button"
               aria-expanded={handExpanded}
               aria-controls="ma-private-hand"
               onClick={() =>
-                setHandRequested((value) =>
-                  value === selectionKey ? null : selectionKey,
-                )
+                setHandRequested({ key: selectionKey, expanded: !handExpanded })
               }
             >
-              {handExpanded ? '收起' : '查看手牌'}
-              <span aria-hidden="true">{handExpanded ? '⌃' : '⌄'}</span>
+              <span className="ma-hand-toggle__portrait">
+                {handExpanded ? '收起' : '查看手牌'}
+              </span>
+              <span className="ma-hand-toggle__landscape">
+                {handExpanded ? '返回拍卖' : `手牌 ${self.hand.length} 张`}
+              </span>
+              <span className="ma-hand-toggle__icon" aria-hidden="true">
+                {handExpanded ? '⌃' : '⌄'}
+              </span>
             </button>
           )}
         </div>
@@ -342,8 +367,35 @@ export function PlayerControls({
               change={setSort}
               label="你的手牌和收藏排序"
             />
+            <div className="ma-hand-navigation" aria-label="横向浏览手牌">
+              <button
+                type="button"
+                className="secondary"
+                aria-label="上一页手牌"
+                aria-controls="ma-hand-gallery"
+                onClick={() => browseHand(-1)}
+              >
+                ‹
+              </button>
+              <button
+                type="button"
+                className="secondary"
+                aria-label="下一页手牌"
+                aria-controls="ma-hand-gallery"
+                onClick={() => browseHand(1)}
+              >
+                ›
+              </button>
+            </div>
           </div>
-          <div className="ma-hand">
+          <div
+            id="ma-hand-gallery"
+            className="ma-hand"
+            ref={handRef}
+            role="region"
+            aria-label="你的完整手牌，横屏可左右浏览"
+            tabIndex={0}
+          >
             {sortPaintings(self.hand, sort).map((card) => {
               const action = offered.get(card.id);
               const artist = view.artists.find(

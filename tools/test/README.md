@@ -107,7 +107,8 @@ version 1、version 2 和准确文件 Vitest 入口均关闭子项自动维护�
 | [games/modern-art/verify-modern-art-audio.mjs](games/modern-art/verify-modern-art-audio.mjs)                                             | `node tools/test/games/modern-art/verify-modern-art-audio.mjs`                       |
 | [games/modern-art/verify-modern-art-auction-layout.mjs](games/modern-art/verify-modern-art-auction-layout.mjs)                           | 现代艺术主机／公共屏拍卖几何；按下文version 1计划执行                                |
 | [games/modern-art/prepare-auction-layout.ts](games/modern-art/prepare-auction-layout.ts)                                                 | 内部合法3／4人场景准备器；由拍卖几何入口调用，非独立CLI                              |
-| [games/modern-art/verify-modern-art-workspace.mjs](games/modern-art/verify-modern-art-workspace.mjs)                                     | 现代艺术实际玩家外框、阶段、收藏、浮窗与交互；按下文version 1计划执行                |
+| [games/modern-art/verify-modern-art-workspace.mjs](games/modern-art/verify-modern-art-workspace.mjs)                                     | 现代艺术真实组件夹具构建；当前按钮版交互使用下一入口                                 |
+| [games/modern-art/verify-modern-art-refinement.mjs](games/modern-art/verify-modern-art-refinement.mjs)                                   | 现代艺术竖／横屏按钮、保存反馈与宽屏滚动专项；按下文version 1计划执行                |
 | [games/modern-art/verify-modern-art-debug.mjs](games/modern-art/verify-modern-art-debug.mjs)                                             | `node tools/test/games/modern-art/verify-modern-art-debug.mjs`                       |
 | [games/modern-art/verify-modern-art-empty-gallery.mjs](games/modern-art/verify-modern-art-empty-gallery.mjs)                             | `node tools/test/games/modern-art/verify-modern-art-empty-gallery.mjs`               |
 | [games/modern-art/verify-modern-art-polish-v2.mjs](games/modern-art/verify-modern-art-polish-v2.mjs)                                     | `node tools/test/games/modern-art/verify-modern-art-polish-v2.mjs`                   |
@@ -372,13 +373,23 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File tools/test/installation/
 
 ## 现代艺术玩家布局与服务端拍卖几何
 
-[工作区入口](games/modern-art/verify-modern-art-workspace.mjs)同样登记为`game:modern-art`，由version 1独立计划经下述范围runner执行。参数为`--phase=before|after --task=tmp/<任务唯一ID> --output=artifacts/maintenance/<任务唯一ID>/<新轮名>`；before使用事先准备的`tmp/<任务唯一ID>/baseline`源码快照，after直接构建当前生产现代艺术组件及PlayerFrame。构建目录为任务下`fixture-<输出目录末级名>/bundle`，源码输入在构建／检查前后核对SHA；合法五人状态与投影由[内部准备器](fixtures/prepare-modern-art-workspace.ts)生成到任务下`legal-fixtures/`，before还会复制本地现代艺术资源到基线副本。
+[工作区构建入口](games/modern-art/verify-modern-art-workspace.mjs)与[按钮／滚动专项入口](games/modern-art/verify-modern-art-refinement.mjs)均登记为`game:modern-art,shared`，放入version 1独立计划后通过`node tools/test/runner/test-scoped.mjs --scope=game:modern-art,shared --plan=<计划.json>`执行；计划项字段为`runtime: node`、`script`和字符串`args`数组。
 
-默认覆盖九阶段／子状态的390×844竖屏和1280×720宽屏、已有收藏／已配双画、主机／公共屏及844×390紧凑横屏和规则浮窗。after另检查新外框切换／旋转时草稿与iframe保留、旧契约不变、输入聚焦时空间冻结与失焦恢复、已提交暗标与双画投影。`--only=<检查ID,...>`只接受脚本列出的唯一真实检查ID，被排除项单列；例如`--only=auction-pair-portrait,compact-landscape`仅复验对应场景。`--smoke`只检查公开拍卖的1280×720玩家与主机，不代表完整矩阵；`--build-only`只生成bundle及`result: built`报告，不启动渲染或证明界面通过。该入口会写临时Vite／esbuild输出、合法状态数据、报告、失败现场和截图，浏览器`TEMP`／`TMP`位于任务下`browser-temp/`；默认隐藏、静音、回环监听，关闭子检查自动维护。
+当前先以工作区入口的`--phase=before|after --build-only --task=tmp/<任务唯一ID> --output=artifacts/maintenance/<任务唯一ID>/<新构建轮名>`构建真实组件。before使用事先准备的任务下`baseline`源码，after使用当前生产现代艺术组件及PlayerFrame；构建目录为任务下`fixture-<输出目录末级名>/bundle`，运行源码与状态输入在构建前后核对SHA。合法五人投影由[内部准备器](fixtures/prepare-modern-art-workspace.ts)生成到任务下`legal-fixtures/`，也可复用逐SHA核验的既有合法快照和准备证明；before还会复制本地现代艺术资源到基线。`--build-only`仅写bundle和`result: built`报告，不启动渲染或证明界面通过。该入口原有完整after及`--extra`交互断言针对旧自动／下拉选择控件，保留其历史证明；按钮版使用下面的新专项，不将过期控件断言作为当前验收。
 
-`--phase=after --extra`独立选择四项补充检查：320px报价、320px上拍、639／640与959／960及可用高度319／320边界的同iframe草稿保留、合法暂停与受控断线。可再用`--only=paused-and-controlled-disconnected`仅复验最后一项，或选择脚本列出的其他extra ID；extra ID要求同时传`--extra`。320px允许正常页面纵向滚动，核对44px操作热区及实际动作回调；断线仅控制夹具`connected=false`与锁定状态，不证明真实Socket断线或服务器保存。
+按钮／滚动专项消费已经构建的真实组件bundle，参数如下；`--phase=before|after`可单独选一阶段，省略则检查两阶段，所选阶段须提供对应bundle。before保留旧布局基线，after检查默认竖屏、横竖按钮与同iframe草稿保持、横屏页面容纳、手牌与操作区域及三角色保存提示；实际覆盖和通过范围以本轮报告为准。
 
-[拍卖几何入口](games/modern-art/verify-modern-art-auction-layout.mjs)登记为`game:modern-art`，通过version 1独立计划交给`node tools/test/runner/test-scoped.mjs --scope=game:modern-art --plan=<计划.json>`执行。计划项使用`runner: node`、`script: tools/test/games/modern-art/verify-modern-art-auction-layout.mjs`；常规改后检查的参数数组包含：
+```text
+--phase=after
+--task=tmp/<任务唯一ID>
+--after-bundle=tmp/<任务唯一ID>/fixture-<新构建轮名>/bundle
+--source-report=artifacts/maintenance/<任务唯一ID>/<新构建轮名>/report.json
+--output=artifacts/maintenance/<任务唯一ID>/<新专项轮名>
+```
+
+before或双阶段时另传`--before-bundle=tmp/<任务唯一ID>/fixture-<改前构建轮名>/bundle`；建议分别保留before和after的新轮报告。`--source-report`绑定对应`result: built`构建报告，并复核其中输入SHA；省略时从bundle的`fixture-<构建轮名>`推导同任务证据目录下的构建报告。before单阶段源码SHA绑定任务基线，after绑定当前八项运行源码；过期输入拒绝继续，不能把旧bundle配上新源码通过结论。两个入口均会写指定全新报告／截图目录，临时构建、状态及浏览器数据集中在任务下，浏览器`TEMP`／`TMP`为`browser-temp/`；实际浏览器检查使用隐藏静音Edge与`127.0.0.1`夹具服务，关闭子检查自动维护。合法规则投影与受控传输不证明真实Socket通信、服务器保存、物理设备或安装器。
+
+[拍卖几何入口](games/modern-art/verify-modern-art-auction-layout.mjs)登记为`game:modern-art`，通过version 1独立计划交给`node tools/test/runner/test-scoped.mjs --scope=game:modern-art --plan=<计划.json>`执行。计划项使用`runtime: node`、`script: tools/test/games/modern-art/verify-modern-art-auction-layout.mjs`；常规改后检查的参数数组包含：
 
 ```text
 --after-only

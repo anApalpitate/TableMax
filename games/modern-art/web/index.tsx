@@ -46,7 +46,7 @@ function ModernArtScreen({ session }: { session: RoomSession }) {
   const remainingMs = useDecisionClock(clock);
   const canPlay = useAudioOutput();
   const [panel, setPanel] = useState<
-    'menu' | 'museums' | 'market' | 'rules' | null
+    'menu' | 'museums' | 'market' | 'rules' | 'log' | null
   >(null);
   const [collectionSort, setCollectionSort] = useState<PaintingSort>('artist');
   const names = Object.fromEntries(
@@ -211,7 +211,7 @@ function ModernArtScreen({ session }: { session: RoomSession }) {
           <span>现代艺术</span>
         </div>
         <span className="ma-round">第 {game?.round ?? 1} / 4 轮</span>
-        <SessionFeedback session={session} mode="saved" />
+        {!game?.latest && <SessionFeedback session={session} mode="saved" />}
         <span
           className={`connection ${connected ? 'online' : ''}`}
           role="status"
@@ -228,6 +228,14 @@ function ModernArtScreen({ session }: { session: RoomSession }) {
         )}
         <PlayModeBadge mode={view?.playMode} />
         <div className="ma-toolbar-tools">
+          {role === 'player' && (
+            <button
+              className="secondary ma-market-entry"
+              onClick={() => setPanel('market')}
+            >
+              行情
+            </button>
+          )}
           <ModernArtSoundControl
             feedback={session.feedback}
             game={game}
@@ -310,9 +318,6 @@ function ModernArtScreen({ session }: { session: RoomSession }) {
               compact={role === 'player'}
             />
             {role !== 'player' && playerStage}
-            {role === 'player' && !ended && (
-              <SavedAction view={game} names={names} />
-            )}
             {role !== 'player' && (!ended || notice) && (
               <div className="ma-table-footer">
                 {!ended && <SavedAction view={game} names={names} />}
@@ -341,12 +346,21 @@ function ModernArtScreen({ session }: { session: RoomSession }) {
               />
             )}
             {role === 'player' && (
-              <button
-                className="secondary ma-museums-control"
-                onClick={() => setPanel('museums')}
-              >
-                查看各家收藏
-              </button>
+              <div className="ma-player-footer">
+                {!ended && <SavedAction view={game} names={names} />}
+                <button
+                  className="secondary ma-record-control"
+                  onClick={() => setPanel('log')}
+                >
+                  记录
+                </button>
+                <button
+                  className="secondary ma-museums-control"
+                  onClick={() => setPanel('museums')}
+                >
+                  各家收藏
+                </button>
+              </div>
             )}
           </div>
         </>
@@ -358,6 +372,8 @@ function ModernArtScreen({ session }: { session: RoomSession }) {
               '各家博物馆'
             ) : panel === 'market' ? (
               '历轮行情'
+            ) : panel === 'log' ? (
+              '已保存的拍卖记录'
             ) : panel === 'rules' ? (
               <>
                 <span className="rules-guide__title-part">现代艺术</span>
@@ -393,6 +409,10 @@ function ModernArtScreen({ session }: { session: RoomSession }) {
             <div className="ma-screen ma-panel">
               <MarketBoard view={game} showHistory={() => setPanel(null)} />
               <MarketHistory view={game} />
+            </div>
+          ) : panel === 'log' && game ? (
+            <div className="ma-screen ma-panel">
+              <PublicLog view={game} names={names} />
             </div>
           ) : (
             <>

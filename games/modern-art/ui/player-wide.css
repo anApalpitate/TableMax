@@ -364,9 +364,976 @@
 }
 .ma-screen.player[data-player-layout-contract='three-v1']
   .ma-hand-toggle
-  > span {
+  > .ma-hand-toggle__icon {
   font-size: 22px;
   line-height: 1;
+}
+.ma-screen .ma-hand-toggle__landscape,
+.ma-screen .ma-hand-navigation,
+.ma-screen .ma-market-entry {
+  display: none;
+}
+
+/* A saved result owns one in-flow place, away from toolbar hit targets. */
+.ma-screen > .ma-toolbar > .session-save-anchor {
+  position: static;
+  width: auto;
+  height: auto;
+}
+.ma-screen > .ma-toolbar .session-save-overlay {
+  position: static;
+}
+.ma-screen
+  > .ma-toolbar
+  > .session-save-anchor:has(.session-save-overlay:empty) {
+  display: none;
+}
+.ma-screen .ma-latest > span {
+  position: static;
+  flex: none;
+  padding: 0;
+  background: none;
+}
+.ma-screen.player[data-player-layout-contract='three-v1'] .ma-player-footer {
+  order: 4;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+.ma-screen.player[data-player-layout-contract='three-v1']
+  .ma-player-footer
+  > .ma-latest {
+  flex: 1;
+  min-width: 0;
+  height: 44px;
+  padding: 6px 8px;
+}
+.ma-screen.player[data-player-layout-contract='three-v1']
+  .ma-player-footer
+  .ma-latest__copy
+  p:first-child {
+  flex-wrap: nowrap;
+  align-items: center;
+  white-space: nowrap;
+}
+.ma-screen.player[data-player-layout-contract='three-v1']
+  .ma-player-footer
+  .ma-latest__copy
+  p:first-child
+  > :is(strong, span) {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ma-screen.player[data-player-layout-contract='three-v1']
+  .ma-player-footer
+  .ma-latest__details {
+  display: none;
+}
+.ma-screen.player[data-player-layout-contract='three-v1']
+  .ma-player-footer
+  > button {
+  flex: none;
+  width: auto;
+  padding: 8px;
+  white-space: nowrap;
+}
+
+/* Landscape is one bounded table. Only the hand gallery browses sideways. */
+@media (min-width: 640px) {
+  [data-player-layout='wide']
+    .ma-screen.player[data-player-layout-contract='three-v1'] {
+    height: 100dvh;
+    min-height: 0;
+    overflow: hidden;
+    padding: max(8px, env(safe-area-inset-top))
+      max(8px, env(safe-area-inset-right)) max(8px, env(safe-area-inset-bottom))
+      max(8px, env(safe-area-inset-left));
+    gap: 8px;
+  }
+  [data-player-layout='wide']
+    .ma-screen.player[data-player-layout-contract='three-v1']
+    .ma-table {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto minmax(0, 1fr) 44px;
+    align-items: stretch;
+    gap: 8px;
+    min-height: 0;
+    max-width: none;
+  }
+  [data-player-layout='wide']
+    .ma-screen.player[data-player-layout-contract='three-v1']
+    .ma-market.ma-market--summary {
+    grid-column: 1 / -1;
+    grid-row: 1;
+    display: grid;
+    grid-template-columns: minmax(250px, 0.32fr) minmax(0, 1fr);
+    align-items: center;
+    gap: 8px;
+    padding: 6px 8px;
+  }
+  [data-player-layout='wide']
+    .ma-screen.player[data-player-layout-contract='three-v1']
+    .ma-market--summary
+    > .ma-section-heading {
+    margin: 0;
+  }
+  [data-player-layout='wide']
+    .ma-screen.player[data-player-layout-contract='three-v1']
+    .ma-market--summary
+    .ma-section-heading
+    p {
+    white-space: nowrap;
+  }
+  [data-player-layout='wide']
+    .ma-screen.player[data-player-layout-contract='three-v1']
+    .ma-player__workspace {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    display: grid;
+    grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
+    min-height: 0;
+    min-width: 0;
+    gap: 8px;
+  }
+  [data-player-layout='wide']
+    .ma-screen.player[data-player-layout-contract='three-v1']
+    .ma-center {
+    min-height: 0;
+    align-self: stretch;
+    container-type: size;
+  }
+  [data-player-layout='wide']
+    .ma-screen.player[data-player-layout-contract='three-v1']
+    .ma-auction {
+    flex: 1;
+    min-height: 0;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-areas: 'clock clock' 'title title' 'paint theme' 'people people';
+    grid-template-rows: auto auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 6px 10px;
+    padding: 10px;
+  }
+  [data-player-layout='wide']
+    .ma-screen.player[data-player-layout-contract='three-v1']
+    .ma-auction:not(:has(.ma-auction__countdown)) {
+    grid-template-areas: 'title title' 'paint theme' 'people people';
+    grid-template-rows: auto minmax(0, 1fr) auto;
+  }
+  [data-player-layout='wide']
+    .ma-screen.player[data-player-layout-contract='three-v1']
+    .ma-auction:has(.ma-auction__paintings > :nth-child(2)) {
+    grid-template-columns: minmax(0, 1.35fr) minmax(0, 0.65fr);
+    grid-template-areas: 'clock clock' 'title title' 'paint theme' 'people people';
+    grid-template-rows: auto auto minmax(0, 1fr) auto;
+  }
+  [data-player-layout='wide']
+    .ma-screen.player[data-player-layout-contract='three-v1']
+    .ma-auction:has(.ma-auction__paintings > :nth-child(2)):not(
+      :has(.ma-auction__countdown)
+    ) {
+    grid-template-areas: 'title title' 'paint theme' 'people people';
+    grid-template-rows: auto minmax(0, 1fr) auto;
+  }
+  [data-player-layout='wide']
+    .ma-screen.player[data-player-layout-contract='three-v1']
+    .ma-auction__paintings {
+    grid-column: 1;
+    min-height: 0;
+    height: 100%;
+    align-items: center;
+    align-self: stretch;
+    container-type: size;
+  }
+  [data-player-layout='wide']
+    .ma-screen.player[data-player-layout-contract='three-v1']
+    .ma-auction__paintings
+    > .ma-card {
+    flex: 0 1 280px;
+    width: min(100%, 280px);
+    max-width: 280px;
+  }
+  [data-player-layout='wide']
+    .ma-screen.player[data-player-layout-contract='three-v1']
+    .ma-auction__paintings:has(> :nth-child(2))
+    > .ma-card {
+    flex-basis: 200px;
+    width: min(48%, 200px);
+    max-width: 48%;
+  }
+  [data-player-layout='wide']
+    .ma-screen.player[data-player-layout-contract='three-v1']
+    .ma-player__operations {
+    align-content: center;
+    align-self: stretch;
+    min-height: 0;
+    padding: 8px;
+  }
+  [data-player-layout='wide']
+    .ma-screen.player[data-player-layout-contract='three-v1']
+    .ma-wallet {
+    padding-bottom: 6px;
+  }
+  [data-player-layout='wide']
+    .ma-screen.player[data-player-layout-contract='three-v1']
+    .ma-player-footer {
+    grid-column: 1 / -1;
+    grid-row: 3;
+    min-height: 0;
+  }
+  [data-player-layout='wide']
+    .ma-screen.player[data-player-layout-contract='three-v1']
+    .ma-hand {
+    display: flex;
+    flex-wrap: nowrap;
+    align-items: start;
+    min-height: 0;
+    max-height: none;
+    overflow-x: auto;
+    overflow-y: hidden;
+    overscroll-behavior-x: contain;
+    scroll-snap-type: x mandatory;
+    scroll-padding-inline: 6px;
+    padding: 6px 6px 12px;
+    gap: 12px;
+  }
+  [data-player-layout='wide']
+    .ma-screen.player[data-player-layout-contract='three-v1']
+    .ma-hand__card {
+    flex: 0 0 180px;
+    width: 180px;
+    height: auto;
+    scroll-snap-align: start;
+  }
+  [data-player-layout='wide']
+    .ma-screen.player[data-player-layout-contract='three-v1']
+    .ma-hand
+    .ma-card {
+    height: auto;
+  }
+  [data-player-layout='wide']
+    .ma-screen.player[data-player-layout-contract='three-v1']
+    .ma-hand
+    .ma-card__artist-name,
+  [data-player-layout='wide']
+    .ma-screen.player[data-player-layout-contract='three-v1']
+    .ma-card__foot
+    > span {
+    display: block;
+  }
+  [data-player-layout='wide']
+    .ma-screen.player[data-player-layout-contract='three-v1']
+    .ma-hand-navigation {
+    display: flex;
+    flex: none;
+    gap: 4px;
+  }
+  [data-player-layout='wide']
+    .ma-screen.player[data-player-layout-contract='three-v1']
+    .ma-hand-navigation
+    button {
+    width: 44px;
+    padding: 0;
+    font-size: 28px;
+  }
+  [data-player-layout='wide']
+    .ma-screen.player[data-player-layout-contract='three-v1']
+    .ma-hand-toggle__landscape {
+    display: inline;
+  }
+  [data-player-layout='wide']
+    .ma-screen.player[data-player-layout-contract='three-v1']
+    .ma-hand-toggle__portrait,
+  [data-player-layout='wide']
+    .ma-screen.player[data-player-layout-contract='three-v1']
+    .ma-hand-toggle__icon,
+  [data-player-layout='wide']
+    .ma-screen.player[data-player-layout-contract='three-v1']
+    .ma-self-collection {
+    display: none;
+  }
+}
+
+/* Results browse within the same table, with every player's full score reachable. */
+@media (min-width: 640px) {
+  [data-player-layout='wide']
+    .ma-screen.player[data-player-layout-contract='three-v1']
+    .ma-player__workspace:has(.ma-results) {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 150px;
+    grid-template-rows: minmax(0, 1fr);
+  }
+  [data-player-layout='wide']
+    .ma-screen.player[data-player-layout-contract='three-v1']
+    .ma-center:has(.ma-results) {
+    grid-column: 1;
+    grid-row: 1;
+    container-type: normal;
+  }
+  [data-player-layout='wide']
+    .ma-screen.player[data-player-layout-contract='three-v1']
+    .ma-player__workspace:has(.ma-results)
+    .ma-player__operations {
+    grid-column: 2;
+    grid-row: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+  [data-player-layout='wide']
+    .ma-screen.player[data-player-layout-contract='three-v1']
+    .ma-results {
+    flex: 1;
+    display: grid;
+    grid-template-columns: minmax(0, 0.42fr) minmax(0, 0.58fr);
+    grid-template-rows: auto minmax(0, 1fr);
+    min-height: 0;
+    min-width: 0;
+    padding: 8px;
+    gap: 8px;
+  }
+  [data-player-layout='wide']
+    .ma-screen.player[data-player-layout-contract='three-v1']
+    .ma-results
+    > .ma-section-heading {
+    grid-column: 1 / -1;
+    margin: 0;
+  }
+  [data-player-layout='wide']
+    .ma-screen.player[data-player-layout-contract='three-v1']
+    :is(.ma-results__ranking, .ma-results__income) {
+    grid-row: 2;
+    display: flex;
+    align-items: center;
+    min-width: 0;
+    min-height: 0;
+    margin: 0;
+    padding: 4px 4px 12px;
+    gap: 8px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    overscroll-behavior-x: contain;
+  }
+  [data-player-layout='wide']
+    .ma-screen.player[data-player-layout-contract='three-v1']
+    .ma-results__ranking {
+    grid-column: 1;
+  }
+  [data-player-layout='wide']
+    .ma-screen.player[data-player-layout-contract='three-v1']
+    .ma-results__ranking
+    > div {
+    flex: 0 0 130px;
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 4px 6px;
+    padding: 6px;
+    min-width: 0;
+  }
+  [data-player-layout='wide']
+    .ma-screen.player[data-player-layout-contract='three-v1']
+    .ma-results__ranking
+    > div
+    > b {
+    grid-column: 1;
+    grid-row: 1 / 3;
+  }
+  [data-player-layout='wide']
+    .ma-screen.player[data-player-layout-contract='three-v1']
+    .ma-results__ranking
+    > div
+    > span {
+    grid-column: 2;
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+  [data-player-layout='wide']
+    .ma-screen.player[data-player-layout-contract='three-v1']
+    .ma-results__ranking
+    strong {
+    grid-column: 1 / -1;
+    margin: 0;
+    font-size: 18px;
+  }
+  [data-player-layout='wide']
+    .ma-screen.player[data-player-layout-contract='three-v1']
+    .ma-results__income {
+    grid-column: 2;
+  }
+  [data-player-layout='wide']
+    .ma-screen.player[data-player-layout-contract='three-v1']
+    .ma-results--ended
+    .ma-results__income {
+    grid-column: 1 / -1;
+  }
+  [data-player-layout='wide']
+    .ma-screen.player[data-player-layout-contract='three-v1']
+    .ma-results__income
+    > div {
+    flex: 0 0 154px;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 6px;
+    min-width: 0;
+    padding: 8px;
+    border: 1px solid #d6c2a2;
+    border-radius: 8px;
+    background: #f7ebd7;
+  }
+  [data-player-layout='wide']
+    .ma-screen.player[data-player-layout-contract='three-v1']
+    .ma-results__identity {
+    display: flex;
+    align-items: start;
+    flex-wrap: nowrap;
+    min-width: 0;
+    gap: 4px;
+  }
+  [data-player-layout='wide']
+    .ma-screen.player[data-player-layout-contract='three-v1']
+    .ma-results__portrait {
+    display: none;
+  }
+  [data-player-layout='wide']
+    .ma-screen.player[data-player-layout-contract='three-v1']
+    .ma-results__name {
+    flex: 1;
+    min-width: 0;
+    max-width: none;
+    font-size: 18px;
+    line-height: 1.25;
+    white-space: normal;
+    overflow: visible;
+    overflow-wrap: anywhere;
+    text-overflow: clip;
+  }
+  [data-player-layout='wide']
+    .ma-screen.player[data-player-layout-contract='three-v1']
+    .ma-results__income
+    > div
+    > strong {
+    align-self: end;
+    font-size: 18px;
+    white-space: nowrap;
+  }
+  [data-player-layout='wide']
+    .ma-screen.player[data-player-layout-contract='three-v1']
+    .ma-next-round {
+    flex: none;
+  }
+}
+
+/* Short tables keep every card's art, artist, title and auction type visible. */
+@media (min-width: 640px) and (max-height: 850px) {
+  [data-player-layout='wide']
+    .ma-screen.player[data-player-layout-contract='three-v1']
+    .ma-auction__paintings
+    > .ma-card {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(65px, 0.8fr);
+    grid-template-rows: auto minmax(0, 1fr);
+    gap: 4px 8px;
+    align-items: center;
+  }
+  [data-player-layout='wide']
+    .ma-screen.player[data-player-layout-contract='three-v1']
+    .ma-auction__paintings
+    .ma-card__art {
+    grid-column: 1;
+    grid-row: 1 / -1;
+    width: min(100%, max(48px, calc(100cqh - 20px)));
+    justify-self: center;
+  }
+  [data-player-layout='wide']
+    .ma-screen.player[data-player-layout-contract='three-v1']
+    .ma-auction__paintings
+    .ma-card__head {
+    grid-column: 2;
+    grid-row: 1;
+    min-height: 0;
+    margin: 0;
+    padding: 4px;
+    gap: 4px;
+    align-self: stretch;
+  }
+  [data-player-layout='wide']
+    .ma-screen.player[data-player-layout-contract='three-v1']
+    .ma-auction__paintings
+    .ma-card__artist-name {
+    display: block;
+    font-size: 16px;
+  }
+  [data-player-layout='wide']
+    .ma-screen.player[data-player-layout-contract='three-v1']
+    .ma-auction__paintings
+    :is(.ma-card__artist-mark, .ma-card__auction-mark) {
+    width: 22px;
+    min-width: 22px;
+    border-width: 1px;
+  }
+  [data-player-layout='wide']
+    .ma-screen.player[data-player-layout-contract='three-v1']
+    .ma-auction__paintings
+    .ma-card__foot {
+    grid-column: 2;
+    grid-row: 2;
+    padding: 0;
+  }
+}
+
+@media (min-width: 640px) and (max-width: 959px) {
+  [data-player-layout='wide']
+    .ma-screen.player[data-player-layout-contract='three-v1']
+    .ma-player-footer {
+    padding-right: 144px;
+  }
+  [data-player-layout='wide']
+    .ma-screen.player[data-player-layout-contract='three-v1']
+    .ma-player__cards {
+    grid-column: 1;
+    grid-row: 3;
+    justify-self: end;
+    align-self: center;
+    width: 136px;
+    min-height: 0;
+    padding: 0;
+    border: 0;
+    background: none;
+    z-index: 1;
+  }
+  [data-player-layout='wide']
+    .ma-screen.player[data-player-layout-contract='three-v1']
+    .ma-player__cards[data-hand-expanded='false']
+    .ma-hand-heading
+    :is(h2, .ma-hand-count) {
+    display: none;
+  }
+  [data-player-layout='wide']
+    .ma-screen.player[data-player-layout-contract='three-v1']
+    .ma-hand-toggle {
+    width: 100%;
+    margin: 0;
+    white-space: nowrap;
+  }
+  [data-player-layout='wide']
+    .ma-screen.player[data-player-layout-contract='three-v1']
+    .ma-auction,
+  [data-player-layout='wide']
+    .ma-screen.player[data-player-layout-contract='three-v1']
+    .ma-auction:not(:has(.ma-auction__countdown)) {
+    grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr);
+    grid-template-areas: 'clock clock' 'paint title' 'paint theme' 'people people';
+    grid-template-rows: auto auto minmax(0, 1fr) auto;
+    padding: 6px;
+    gap: 4px 8px;
+  }
+  [data-player-layout='wide']
+    .ma-screen.player[data-player-layout-contract='three-v1']
+    .ma-auction:not(:has(.ma-auction__countdown)) {
+    grid-template-areas: 'paint title' 'paint theme' 'people people';
+    grid-template-rows: auto minmax(0, 1fr) auto;
+  }
+  [data-player-layout='wide']
+    .ma-screen.player[data-player-layout-contract='three-v1']
+    .ma-auction:has(.ma-auction__paintings > :nth-child(2)) {
+    grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr);
+    grid-template-areas: 'clock clock' 'paint title' 'paint theme' 'people people';
+    grid-template-rows: auto auto minmax(0, 1fr) auto;
+  }
+  [data-player-layout='wide']
+    .ma-screen.player[data-player-layout-contract='three-v1']
+    .ma-auction:has(.ma-auction__paintings > :nth-child(2)):not(
+      :has(.ma-auction__countdown)
+    ) {
+    grid-template-areas: 'paint title' 'paint theme' 'people people';
+    grid-template-rows: auto minmax(0, 1fr) auto;
+  }
+  [data-player-layout='wide']
+    .ma-screen.player[data-player-layout-contract='three-v1']
+    .ma-auction__paintings {
+    justify-content: start;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scroll-snap-type: x mandatory;
+  }
+  [data-player-layout='wide']
+    .ma-screen.player[data-player-layout-contract='three-v1']
+    .ma-auction__paintings
+    > .ma-card,
+  [data-player-layout='wide']
+    .ma-screen.player[data-player-layout-contract='three-v1']
+    .ma-auction__paintings:has(> :nth-child(2))
+    > .ma-card {
+    flex: 0 0 min(100%, 154px);
+    width: min(100%, 154px);
+    max-width: 100%;
+    scroll-snap-align: start;
+  }
+  [data-player-layout='wide']
+    .ma-screen.player[data-player-layout-contract='three-v1']
+    .ma-auction__label {
+    gap: 5px;
+  }
+  [data-player-layout='wide']
+    .ma-screen.player[data-player-layout-contract='three-v1']
+    .ma-auction__mark {
+    display: none;
+  }
+  [data-player-layout='wide']
+    .ma-screen.player[data-player-layout-contract='three-v1']
+    .ma-auction__price {
+    gap: 2px;
+    padding: 0;
+    align-self: stretch;
+    justify-content: center;
+    min-height: 0;
+  }
+  [data-player-layout='wide']
+    .ma-screen.player[data-player-layout-contract='three-v1']
+    :is(.ma-theme__stairs, .ma-theme__ring > svg) {
+    display: none;
+  }
+  [data-player-layout='wide']
+    .ma-screen.player[data-player-layout-contract='three-v1']
+    .ma-theme__ring {
+    display: none;
+  }
+  [data-player-layout='wide']
+    .ma-screen.player[data-player-layout-contract='three-v1']
+    :is(
+      .ma-theme--open > strong + span,
+      .ma-theme--fixed > .ma-theme__caption,
+      .ma-theme__price-tag > span,
+      .ma-theme--double > .ma-theme__pair
+    ) {
+    display: none;
+  }
+  [data-player-layout='wide']
+    .ma-screen.player[data-player-layout-contract='three-v1']
+    .ma-theme--open:not([data-activity-message])
+    > .ma-theme__caption {
+    display: none;
+  }
+  [data-player-layout='wide']
+    .ma-screen.player[data-player-layout-contract='three-v1']
+    .ma-theme--open:has(.ma-theme__lead)
+    > span:first-of-type {
+    display: none;
+  }
+  [data-player-layout='wide']
+    .ma-screen.player[data-player-layout-contract='three-v1']
+    .ma-theme__lead {
+    flex-wrap: nowrap;
+    gap: 4px;
+    width: 100%;
+  }
+  [data-player-layout='wide']
+    .ma-screen.player[data-player-layout-contract='three-v1']
+    .ma-theme__identity {
+    flex-wrap: nowrap;
+    min-width: 0;
+  }
+  [data-player-layout='wide']
+    .ma-screen.player[data-player-layout-contract='three-v1']
+    .ma-theme__identity
+    > span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  [data-player-layout='wide']
+    .ma-screen.player[data-player-layout-contract='three-v1']
+    .ma-theme__envelopes
+    svg {
+    display: none;
+  }
+  [data-player-layout='wide']
+    .ma-screen.player[data-player-layout-contract='three-v1']
+    .ma-theme__price-tag {
+    margin: 0;
+    padding: 2px 8px;
+  }
+  [data-player-layout='wide']
+    .ma-screen.player[data-player-layout-contract='three-v1']
+    .ma-auction__participants {
+    grid-column: 1 / -1;
+    gap: 3px;
+    flex-wrap: nowrap;
+  }
+  [data-player-layout='wide']
+    .ma-screen.player[data-player-layout-contract='three-v1']
+    .ma-auction__participants
+    > span {
+    padding: 0 3px;
+  }
+  [data-player-layout='wide']
+    .ma-screen.player[data-player-layout-contract='three-v1']
+    .ma-table:has(.ma-player__cards[data-hand-expanded='true']) {
+    grid-template-rows: minmax(0, 1fr) 44px;
+  }
+  [data-player-layout='wide']
+    .ma-screen.player[data-player-layout-contract='three-v1']
+    .ma-table:has(.ma-player__cards[data-hand-expanded='true'])
+    > .ma-market,
+  [data-player-layout='wide']
+    .ma-screen.player[data-player-layout-contract='three-v1']
+    .ma-table:has(.ma-player__cards[data-hand-expanded='true'])
+    .ma-player__workspace {
+    display: none;
+  }
+  [data-player-layout='wide']
+    .ma-screen.player[data-player-layout-contract='three-v1']
+    .ma-table:has(.ma-player__cards[data-hand-expanded='true'])
+    .ma-player-footer {
+    grid-row: 2;
+    padding-right: 0;
+  }
+  [data-player-layout='wide']
+    .ma-screen.player[data-player-layout-contract='three-v1']
+    .ma-player__cards[data-hand-expanded='true'] {
+    grid-row: 1;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-rows: 44px minmax(0, 1fr);
+    gap: 6px 10px;
+    align-self: stretch;
+    width: 100%;
+    padding: 6px 8px;
+    border: 1px solid #b58f64;
+    background: #f7ebd7;
+    z-index: auto;
+  }
+  [data-player-layout='wide']
+    .ma-screen.player[data-player-layout-contract='three-v1']
+    .ma-player__cards[data-hand-expanded='true']
+    .ma-hand-heading {
+    grid-column: 1;
+    grid-row: 1;
+    flex-wrap: nowrap;
+  }
+  [data-player-layout='wide']
+    .ma-screen.player[data-player-layout-contract='three-v1']
+    .ma-player__cards[data-hand-expanded='true']
+    .ma-hand-toggle {
+    width: auto;
+  }
+  [data-player-layout='wide']
+    .ma-screen.player[data-player-layout-contract='three-v1']
+    :is(.ma-hand-count, .ma-hand-tools > span) {
+    display: none;
+  }
+  [data-player-layout='wide']
+    .ma-screen.player[data-player-layout-contract='three-v1']
+    #ma-private-hand:not([hidden]) {
+    display: contents;
+  }
+  [data-player-layout='wide']
+    .ma-screen.player[data-player-layout-contract='three-v1']
+    .ma-hand-tools {
+    grid-column: 2;
+    grid-row: 1;
+    margin: 0;
+    min-width: 0;
+    justify-content: start;
+    gap: 4px;
+  }
+  [data-player-layout='wide']
+    .ma-screen.player[data-player-layout-contract='three-v1']
+    .ma-hand-tools
+    .ma-sort {
+    width: 140px;
+    max-width: 140px;
+    min-width: 0;
+  }
+  [data-player-layout='wide']
+    .ma-screen.player[data-player-layout-contract='three-v1']
+    .ma-hand-heading {
+    min-width: 0;
+  }
+  [data-player-layout='wide']
+    .ma-screen.player[data-player-layout-contract='three-v1']
+    .ma-hand-heading
+    h2 {
+    min-width: 0;
+    white-space: nowrap;
+  }
+  [data-player-layout='wide']
+    .ma-screen.player[data-player-layout-contract='three-v1']
+    .ma-hand {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    align-items: center;
+  }
+  [data-player-layout='wide']
+    .ma-screen.player[data-player-layout-contract='three-v1']
+    .ma-hand__card {
+    flex-basis: 280px;
+    width: 280px;
+  }
+  [data-player-layout='wide']
+    .ma-screen.player[data-player-layout-contract='three-v1']
+    .ma-hand
+    .ma-card {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-rows: auto minmax(0, 1fr);
+    align-items: center;
+    gap: 4px 8px;
+  }
+  [data-player-layout='wide']
+    .ma-screen.player[data-player-layout-contract='three-v1']
+    .ma-hand
+    .ma-card__art {
+    grid-column: 1;
+    grid-row: 1 / -1;
+  }
+  [data-player-layout='wide']
+    .ma-screen.player[data-player-layout-contract='three-v1']
+    .ma-hand
+    .ma-card__head {
+    grid-column: 2;
+    grid-row: 1;
+    margin: 0;
+    padding: 4px;
+  }
+  [data-player-layout='wide']
+    .ma-screen.player[data-player-layout-contract='three-v1']
+    .ma-hand
+    .ma-card__foot {
+    grid-column: 2;
+    grid-row: 2;
+    padding: 0;
+  }
+}
+
+/* At phone landscape height, the market opens from the toolbar. */
+@media (min-width: 640px) and (max-width: 959px) and (max-height: 450px) {
+  [data-player-layout='wide']
+    .ma-screen.player[data-player-layout-contract='three-v1']
+    .ma-market-entry {
+    display: inline-block;
+  }
+  [data-player-layout='wide']
+    .ma-screen.player[data-player-layout-contract='three-v1']
+    .ma-table {
+    grid-template-rows: minmax(0, 1fr) 44px;
+  }
+  [data-player-layout='wide']
+    .ma-screen.player[data-player-layout-contract='three-v1']
+    .ma-table
+    > .ma-market {
+    display: none;
+  }
+  [data-player-layout='wide']
+    .ma-screen.player[data-player-layout-contract='three-v1']
+    .ma-player__workspace {
+    grid-row: 1;
+  }
+  [data-player-layout='wide']
+    .ma-screen.player[data-player-layout-contract='three-v1']
+    :is(.ma-player-footer, .ma-player__cards) {
+    grid-row: 2;
+  }
+  [data-player-layout='wide']
+    .ma-screen.player[data-player-layout-contract='three-v1']
+    .ma-player__cards[data-hand-expanded='true'] {
+    grid-row: 1;
+  }
+}
+
+@media (min-width: 960px) {
+  [data-player-layout='wide']
+    .ma-screen.player[data-player-layout-contract='three-v1'] {
+    padding: max(12px, env(safe-area-inset-top))
+      max(12px, env(safe-area-inset-right))
+      max(12px, env(safe-area-inset-bottom))
+      max(12px, env(safe-area-inset-left));
+    gap: 10px;
+  }
+  [data-player-layout='wide']
+    .ma-screen.player[data-player-layout-contract='three-v1']
+    .ma-table {
+    grid-template-columns: minmax(0, 0.6fr) minmax(0, 0.4fr);
+    gap: 10px;
+  }
+  [data-player-layout='wide']
+    .ma-screen.player[data-player-layout-contract='three-v1']
+    .ma-table:is([data-hand-action], [data-phase='double']) {
+    grid-template-columns: minmax(0, 0.4fr) minmax(0, 0.6fr);
+  }
+  [data-player-layout='wide']
+    .ma-screen.player[data-player-layout-contract='three-v1']
+    .ma-player__workspace {
+    grid-column: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  [data-player-layout='wide']
+    .ma-screen.player[data-player-layout-contract='three-v1']
+    .ma-center {
+    flex: 1;
+  }
+  [data-player-layout='wide']
+    .ma-screen.player[data-player-layout-contract='three-v1']
+    .ma-player__operations {
+    flex: none;
+    grid-template-columns: minmax(110px, 0.3fr) minmax(0, 0.7fr);
+    align-items: center;
+    gap: 12px;
+    padding: 10px;
+  }
+  [data-player-layout='wide']
+    .ma-screen.player[data-player-layout-contract='three-v1']
+    .ma-wallet {
+    padding: 0;
+    border: 0;
+    flex-direction: column;
+    align-items: start;
+    justify-content: center;
+    gap: 6px;
+  }
+  [data-player-layout='wide']
+    .ma-screen.player[data-player-layout-contract='three-v1']
+    .ma-wallet
+    > strong {
+    font-size: 28px;
+  }
+  [data-player-layout='wide']
+    .ma-screen.player[data-player-layout-contract='three-v1']
+    .ma-player__cards {
+    grid-column: 2;
+    grid-row: 2;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    padding: 10px;
+    gap: 8px;
+    overflow: hidden;
+  }
+  [data-player-layout='wide']
+    .ma-screen.player[data-player-layout-contract='three-v1']
+    #ma-private-hand:not([hidden]) {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+  }
+  [data-player-layout='wide']
+    .ma-screen.player[data-player-layout-contract='three-v1']
+    .ma-hand-tools {
+    margin: 0 0 6px;
+  }
+  [data-player-layout='wide']
+    .ma-screen.player[data-player-layout-contract='three-v1']
+    .ma-hand {
+    flex: 1;
+    align-items: center;
+  }
 }
 .ma-screen.player[data-player-layout-contract='three-v1']
   #ma-private-hand[hidden] {
@@ -395,282 +1362,6 @@
 }
 .ma-screen.ma-panel .ma-market-history-control {
   display: none;
-}
-
-/* A short landscape screen keeps the lot and the active controls side by side. */
-@media (min-width: 640px) {
-  [data-player-layout='wide']
-    .ma-screen.player[data-player-layout-contract='three-v1']
-    .ma-table {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-    grid-template-rows: auto auto auto auto;
-    align-items: start;
-    gap: 12px;
-  }
-  [data-player-layout='wide']
-    .ma-screen.player[data-player-layout-contract='three-v1']
-    .ma-center {
-    grid-column: 1;
-    grid-row: 2;
-  }
-  [data-player-layout='wide']
-    .ma-screen.player[data-player-layout-contract='three-v1']
-    .ma-player__operations {
-    grid-column: 2;
-    grid-row: 2;
-  }
-  [data-player-layout='wide']
-    .ma-screen.player[data-player-layout-contract='three-v1']
-    .ma-player__cards {
-    grid-column: 1 / -1;
-    grid-row: 3;
-  }
-  [data-player-layout='wide']
-    .ma-screen.player[data-player-layout-contract='three-v1']
-    .ma-table
-    > .ma-latest {
-    grid-column: 1 / -1;
-    grid-row: 5;
-  }
-  [data-player-layout='wide']
-    .ma-screen.player[data-player-layout-contract='three-v1']
-    .ma-market {
-    grid-column: 1 / -1;
-    grid-row: 1;
-  }
-  [data-player-layout='wide']
-    .ma-screen.player[data-player-layout-contract='three-v1']
-    .ma-museums-control {
-    grid-column: 1 / -1;
-    grid-row: 4;
-    justify-self: start;
-    width: auto;
-  }
-  [data-player-layout='wide']
-    .ma-screen.player[data-player-layout-contract='three-v1']
-    .ma-hand {
-    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-  }
-}
-
-/* The desktop table gives the active lot sixty percent; choosing a lot reverses it. */
-@media (min-width: 960px) {
-  [data-player-layout='wide']
-    .ma-screen.player[data-player-layout-contract='three-v1'] {
-    padding: max(16px, env(safe-area-inset-top))
-      max(16px, env(safe-area-inset-right))
-      max(16px, env(safe-area-inset-bottom))
-      max(16px, env(safe-area-inset-left));
-  }
-  [data-player-layout='wide']
-    .ma-screen.player[data-player-layout-contract='three-v1']
-    .ma-table {
-    grid-template-columns: minmax(0, 0.6fr) minmax(0, 0.4fr);
-    grid-template-rows: auto auto auto auto auto;
-    max-width: 1920px;
-    gap: 16px;
-  }
-  [data-player-layout='wide']
-    .ma-screen.player[data-player-layout-contract='three-v1']
-    .ma-market {
-    grid-column: 1 / -1;
-    grid-row: 1;
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) auto;
-    align-items: center;
-    gap: 8px 14px;
-    padding: 10px 12px;
-  }
-  [data-player-layout='wide']
-    .ma-screen.player[data-player-layout-contract='three-v1']
-    .ma-market
-    > .ma-section-heading {
-    grid-column: 1 / -1;
-    margin: 0;
-  }
-  [data-player-layout='wide']
-    .ma-screen.player[data-player-layout-contract='three-v1']
-    .ma-market__columns {
-    gap: 8px;
-  }
-  [data-player-layout='wide']
-    .ma-screen.player[data-player-layout-contract='three-v1']
-    .ma-artist {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) auto;
-    padding: 5px 8px;
-    gap: 2px 6px;
-    align-items: center;
-  }
-  [data-player-layout='wide']
-    .ma-screen.player[data-player-layout-contract='three-v1']
-    .ma-artist__identity {
-    grid-column: 1 / -1;
-    margin: 0;
-    flex-wrap: nowrap;
-    justify-content: start;
-  }
-  [data-player-layout='wide']
-    .ma-screen.player[data-player-layout-contract='three-v1']
-    .ma-artist
-    h3 {
-    font-size: 16px;
-  }
-  [data-player-layout='wide']
-    .ma-screen.player[data-player-layout-contract='three-v1']
-    .ma-artist__count {
-    grid-column: 1;
-    margin: 0;
-    font-size: 16px;
-  }
-  [data-player-layout='wide']
-    .ma-screen.player[data-player-layout-contract='three-v1']
-    .ma-artist__value {
-    grid-column: 2;
-    grid-row: 2;
-    margin: 0;
-    font-size: 26px;
-  }
-  [data-player-layout='wide']
-    .ma-screen.player[data-player-layout-contract='three-v1']
-    :is(
-      .ma-artist__pips,
-      .ma-artist__breakdown,
-      .ma-artist__meaning,
-      .ma-market-tips,
-      .ma-market__supply > span
-    ) {
-    display: none;
-  }
-  [data-player-layout='wide']
-    .ma-screen.player[data-player-layout-contract='three-v1']
-    .ma-market__supply {
-    margin: 0;
-  }
-  [data-player-layout='wide']
-    .ma-screen.player[data-player-layout-contract='three-v1']
-    .ma-center {
-    grid-column: 1;
-    grid-row: 2;
-  }
-  [data-player-layout='wide']
-    .ma-screen.player[data-player-layout-contract='three-v1']
-    .ma-player__operations {
-    grid-column: 1;
-    grid-row: 3;
-    grid-template-columns: minmax(110px, 0.38fr) minmax(0, 0.62fr);
-    gap: 16px;
-    padding: 14px;
-  }
-  [data-player-layout='wide']
-    .ma-screen.player[data-player-layout-contract='three-v1']
-    .ma-wallet {
-    align-content: center;
-    align-items: start;
-    justify-content: center;
-    flex-direction: column;
-    border: 0;
-    padding: 0;
-    gap: 8px;
-  }
-  [data-player-layout='wide']
-    .ma-screen.player[data-player-layout-contract='three-v1']
-    .ma-wallet
-    > strong {
-    font-size: 30px;
-  }
-  [data-player-layout='wide']
-    .ma-screen.player[data-player-layout-contract='three-v1']
-    .ma-player__cards {
-    grid-column: 2;
-    grid-row: 2 / span 2;
-    padding: 14px;
-  }
-  [data-player-layout='wide']
-    .ma-screen.player[data-player-layout-contract='three-v1']
-    .ma-auction {
-    padding: 16px;
-    gap: 16px;
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  }
-  [data-player-layout='wide']
-    .ma-screen.player[data-player-layout-contract='three-v1']
-    .ma-auction__paintings
-    > .ma-card {
-    flex-basis: 220px;
-    width: min(100%, 220px);
-    max-width: 220px;
-  }
-  [data-player-layout='wide']
-    .ma-screen.player[data-player-layout-contract='three-v1']
-    .ma-auction:has(.ma-auction__paintings > :nth-child(2)) {
-    grid-template-areas: 'clock clock' 'title title' 'paint theme' 'people people';
-    grid-template-rows: auto auto auto auto;
-  }
-  [data-player-layout='wide']
-    .ma-screen.player[data-player-layout-contract='three-v1']
-    .ma-auction__paintings:has(> :nth-child(2)) {
-    grid-column: 1;
-  }
-  [data-player-layout='wide']
-    .ma-screen.player[data-player-layout-contract='three-v1']
-    .ma-auction__paintings:has(> :nth-child(2))
-    > .ma-card {
-    flex-basis: 160px;
-    max-width: 48%;
-  }
-  [data-player-layout='wide']
-    .ma-screen.player[data-player-layout-contract='three-v1']
-    .ma-table:is([data-hand-action], [data-phase='double']) {
-    grid-template-columns: minmax(0, 0.4fr) minmax(0, 0.6fr);
-  }
-  [data-player-layout='wide']
-    .ma-screen.player[data-player-layout-contract='three-v1']
-    .ma-table:is([data-hand-action], [data-phase='double'])
-    .ma-player__operations {
-    grid-template-columns: minmax(0, 1fr);
-  }
-  [data-player-layout='wide']
-    .ma-screen.player[data-player-layout-contract='three-v1']
-    .ma-table:is([data-hand-action], [data-phase='double'])
-    .ma-wallet {
-    flex-direction: row;
-    justify-content: space-between;
-    align-items: center;
-  }
-  [data-player-layout='wide']
-    .ma-screen.player[data-player-layout-contract='three-v1']
-    .ma-museums-control {
-    grid-column: 2;
-    grid-row: 4;
-  }
-  [data-player-layout='wide']
-    .ma-screen.player[data-player-layout-contract='three-v1']
-    .ma-table
-    > .ma-latest {
-    grid-column: 1;
-    grid-row: 4;
-  }
-  [data-player-layout='wide']
-    .ma-screen.player[data-player-layout-contract='three-v1']
-    .ma-table:is([data-phase='round-result'], [data-phase='ended'])
-    .ma-center {
-    grid-column: 1 / -1;
-  }
-  [data-player-layout='wide']
-    .ma-screen.player[data-player-layout-contract='three-v1']
-    .ma-table:is([data-phase='round-result'], [data-phase='ended'])
-    .ma-player__operations {
-    grid-column: 1;
-    grid-row: 3;
-  }
-  [data-player-layout='wide']
-    .ma-screen.player[data-player-layout-contract='three-v1']
-    .ma-table:is([data-phase='round-result'], [data-phase='ended'])
-    .ma-player__cards {
-    grid-row: 3;
-  }
 }
 
 /* Five artists stay comparable without pushing the live controls down the page. */
@@ -806,140 +1497,12 @@
     padding: 6px;
   }
 }
-@media (min-width: 640px) {
-  [data-player-layout='wide']
-    .ma-screen.player[data-player-layout-contract='three-v1']
-    .ma-market.ma-market--summary {
-    display: grid;
-    grid-template-columns: minmax(210px, 0.32fr) minmax(0, 1fr);
-    align-items: center;
-    gap: 12px;
-  }
-  [data-player-layout='wide']
-    .ma-screen.player[data-player-layout-contract='three-v1']
-    .ma-market--summary
-    > .ma-section-heading {
-    grid-column: auto;
-    margin: 0;
-  }
-}
-@media (min-width: 960px) and (max-height: 760px) {
-  [data-player-layout='wide']
-    .ma-screen.player[data-player-layout-contract='three-v1']
-    .ma-auction {
-    padding: 12px;
-    gap: 6px 12px;
-  }
-  [data-player-layout='wide']
-    .ma-screen.player[data-player-layout-contract='three-v1']
-    .ma-auction__paintings
-    > .ma-card {
-    flex-basis: 112px;
-    width: min(100%, 112px);
-    max-width: 112px;
-  }
-  [data-player-layout='wide']
-    .ma-screen.player[data-player-layout-contract='three-v1']
-    .ma-auction__paintings:has(> :nth-child(2))
-    > .ma-card {
-    flex-basis: 112px;
-  }
-  [data-player-layout='wide']
-    .ma-screen.player[data-player-layout-contract='three-v1']
-    .ma-theme__ring {
-    height: 88px;
-  }
-}
 
 .ma-screen.player[data-player-layout-contract='three-v1']
   .ma-player__workspace {
   display: contents;
 }
-@media (min-width: 640px) and (max-width: 959px) {
-  [data-player-layout='wide']
-    .ma-screen.player[data-player-layout-contract='three-v1'] {
-    padding: max(8px, env(safe-area-inset-top))
-      max(8px, env(safe-area-inset-right)) max(8px, env(safe-area-inset-bottom))
-      max(8px, env(safe-area-inset-left));
-    gap: 8px;
-  }
-  [data-player-layout='wide']
-    .ma-screen.player[data-player-layout-contract='three-v1']
-    .ma-table {
-    gap: 8px;
-  }
-}
-@media (min-width: 640px) {
-  [data-player-layout='wide']
-    .ma-screen.player[data-player-layout-contract='three-v1']
-    .ma-market.ma-market--summary {
-    grid-template-columns: minmax(250px, 0.32fr) minmax(0, 1fr);
-  }
-  [data-player-layout='wide']
-    .ma-screen.player[data-player-layout-contract='three-v1']
-    .ma-market--summary
-    .ma-section-heading
-    p {
-    white-space: nowrap;
-  }
-}
-@media (min-width: 960px) {
-  [data-player-layout='wide']
-    .ma-screen.player[data-player-layout-contract='three-v1']
-    .ma-table:is(
-      [data-phase='offer'],
-      [data-phase='double'],
-      [data-phase='auction']
-    ) {
-    grid-template-rows: auto auto auto;
-  }
-  [data-player-layout='wide']
-    .ma-screen.player[data-player-layout-contract='three-v1']
-    .ma-table:is(
-      [data-phase='offer'],
-      [data-phase='double'],
-      [data-phase='auction']
-    )
-    .ma-player__workspace {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    grid-column: 1;
-    grid-row: 2;
-    min-width: 0;
-    align-self: start;
-  }
-  [data-player-layout='wide']
-    .ma-screen.player[data-player-layout-contract='three-v1']
-    .ma-table:is(
-      [data-phase='offer'],
-      [data-phase='double'],
-      [data-phase='auction']
-    )
-    .ma-player__cards {
-    grid-row: 2;
-  }
-  [data-player-layout='wide']
-    .ma-screen.player[data-player-layout-contract='three-v1']
-    .ma-table:is(
-      [data-phase='offer'],
-      [data-phase='double'],
-      [data-phase='auction']
-    )
-    > .ma-latest {
-    grid-row: 3;
-  }
-  [data-player-layout='wide']
-    .ma-screen.player[data-player-layout-contract='three-v1']
-    .ma-table:is(
-      [data-phase='offer'],
-      [data-phase='double'],
-      [data-phase='auction']
-    )
-    .ma-museums-control {
-    grid-row: 3;
-  }
-}
+
 @media (max-width: 639px) {
   .ma-screen.player[data-player-layout-contract='three-v1']
     .ma-auction:has(.ma-auction__paintings > :nth-child(2)) {
