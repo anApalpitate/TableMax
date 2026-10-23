@@ -100,9 +100,15 @@
   text-shadow: 0 1px #fff8;
 }
 :where(.avalon-screen, .av-overlay) .av-edition {
-  border-left: 1px solid #a58d5366;
-  padding-left: 16px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 12px;
+  border: 1px solid #a58d5366;
   color: var(--av-muted);
+  font-weight: 700;
+  line-height: 1.25;
+  text-align: center;
 }
 :where(.avalon-screen, .av-overlay) .av-toolbar-tools {
   display: flex;
@@ -2273,9 +2279,37 @@
   background: #fff4d9;
   font-size: 18px;
 }
-.av-discussion > span {
-  flex: 1 1 240px;
+.av-discussion-summary {
+  display: grid;
+  gap: 6px;
+  flex: 1 1 180px;
+  min-width: 0;
+}
+.av-discussion-progress,
+.av-discussion-next {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+.av-discussion-progress {
+  justify-content: space-between;
+}
+.av-discussion-progress > strong {
+  color: var(--av-green);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.av-discussion-next {
+  font-size: 16px;
+  color: var(--av-muted);
+}
+.av-discussion-next > span {
+  flex-shrink: 0;
+}
+.av-discussion-next > strong {
   overflow-wrap: anywhere;
+  color: var(--av-ink);
+  font-size: 18px;
 }
 .av-discussion button {
   min-height: 44px;
@@ -2615,7 +2649,7 @@
 }
 
 @media (min-width: 1000px) and (max-height: 900px) {
-  .av-screen--host .av-discussion > span {
+  .av-screen--host .av-discussion-summary {
     line-height: 1.25;
   }
   .av-screen--host > .av-discussion {

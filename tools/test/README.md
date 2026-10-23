@@ -105,6 +105,7 @@ version 1、version 2 和准确文件 Vitest 入口均关闭子项自动维护�
 | [fixtures/prepare-uno-ui.ts](fixtures/prepare-uno-ui.ts)                                                                                 | 内部辅助／声明／夹具；由对应入口调用                                                 |
 | [fixtures/safe-http-port.ts](fixtures/safe-http-port.ts)                                                                                 | 内部辅助／声明／夹具；由对应入口调用                                                 |
 | [games/avalon/verify-avalon.mjs](games/avalon/verify-avalon.mjs)                                                                         | `node tools/test/games/avalon/verify-avalon.mjs`                                     |
+| [games/avalon/verify-host-layout.mjs](games/avalon/verify-host-layout.mjs)                                                               | 阿瓦隆主机布局；经典标签／讨论摘要使用下述discussion-only定向模式                    |
 | [games/modern-art/verify-modern-art-audio.mjs](games/modern-art/verify-modern-art-audio.mjs)                                             | `node tools/test/games/modern-art/verify-modern-art-audio.mjs`                       |
 | [games/modern-art/verify-modern-art-auction-layout.mjs](games/modern-art/verify-modern-art-auction-layout.mjs)                           | 现代艺术主机／公共屏拍卖几何；按下文version 1计划执行                                |
 | [games/modern-art/prepare-auction-layout.ts](games/modern-art/prepare-auction-layout.ts)                                                 | 内部合法3／4人场景准备器；由拍卖几何入口调用，非独立CLI                              |
@@ -184,6 +185,10 @@ version 1、version 2 和准确文件 Vitest 入口均关闭子项自动维护�
 | [support/fixture-server.mjs](support/fixture-server.mjs)                                                                                 | 内部辅助／声明／夹具；由对应入口调用                                                 |
 | [support/player-test.mjs](support/player-test.mjs)                                                                                       | 内部辅助／声明／夹具；由对应入口调用                                                 |
 | [support/verification-output.mjs](support/verification-output.mjs)                                                                       | 内部辅助／声明／夹具；由对应入口调用                                                 |
+
+阿瓦隆[经典标签与讨论摘要专项](games/avalon/verify-host-layout.mjs)使用`--discussion-only --phase=before|after --task=tmp/<任务唯一ID> --evidence=<全新轮名>`，放入version 1计划后通过`node tools/test/runner/test-scoped.mjs --scope=game:avalon --plan=<计划.json>`执行，计划项字段为`runtime: node`、`script`及`args`。before在模块加载时替换任务下`baseline/games/avalon/web/index.tsx`和`baseline/games/avalon/ui/style.css`，after使用当前生产组件；合法规则推进与角色投影在受控本地session中验证可见标签、精简发言信息及原操作权限，不证明真实服务保存或网络。
+
+该定向模式的构建输出位于任务下`<轮名>/bundle`，浏览器`TEMP`／`TMP`为任务下`browser-temp/`；报告、截图、合法准备记录和验证器副本保存到`artifacts/maintenance/<任务目录名>/<轮名>/`，实际加载输入在执行前后逐SHA核对。检查隐藏静音Edge与`127.0.0.1`夹具，子检查关闭自动维护；不代表实体手机、Windows DPI、声音试听或安装器验收。未传`--discussion-only`时保留原主机完整布局入口及其历史输出边界，不能把上述任务参数视为旧模式的通用参数。
 
 `pnpm typecheck` 使用 [typecheck.mjs](runner/typecheck.mjs) 调用锁定的 TypeScript CLI，保留原参数、诊断和退出码。Windows 原生 realpath 无法读取 pnpm 目录链接时，回退到普通 realpath；都失败时保留编译器原有缺失文件行为，不跳过测试或放宽类型。机制回归：`node --test tools/test/runner/typecheck.test.mjs`。
 

@@ -222,6 +222,21 @@ function AvalonScreen({ session }: { session: GameHost }) {
     (action) => action.type === 'acknowledge',
   );
   const identityScope = `${view?.instanceId}:${view?.branch}:${game?.self?.seatId}`;
+  const discussion = game?.phase === 'discussion' ? game.discussion : null;
+  const discussionDone =
+    discussion?.order.filter(
+      (id) =>
+        discussion.completed.includes(id) || discussion.skipped.includes(id),
+    ).length ?? 0;
+  const nextSpeaker = discussion?.current
+    ? discussion.order
+        .slice(discussion.order.indexOf(discussion.current) + 1)
+        .find(
+          (id) =>
+            !discussion.completed.includes(id) &&
+            !discussion.skipped.includes(id),
+        )
+    : undefined;
   return (
     <main
       className={`avalon-screen av-screen--${role}`}
@@ -387,16 +402,27 @@ function AvalonScreen({ session }: { session: GameHost }) {
             </div>
           </div>
           {game.phase === 'discussion' && (
-            <section className="av-discussion" aria-label="发言顺序">
-              <span>
-                逆时针，队长最后 →{' '}
-                {game.discussion?.order
-                  .map(
-                    (id) =>
-                      `${names[id]}${game.discussion?.skipped.includes(id) ? '（已跳过）' : game.discussion?.completed.includes(id) ? '（完成）' : ''}`,
-                  )
-                  .join(' → ')}
-              </span>
+            <section className="av-discussion" aria-label="发言进度">
+              <div className="av-discussion-summary">
+                <div className="av-discussion-progress">
+                  <span>发言进度</span>
+                  <strong
+                    aria-label={`已结束 ${discussionDone} 人，其中跳过 ${discussion?.skipped.length ?? 0} 人，共 ${discussion?.order.length ?? 0} 人`}
+                  >
+                    {discussionDone} / {discussion?.order.length ?? 0}
+                  </strong>
+                </div>
+                <div className="av-discussion-next">
+                  {nextSpeaker ? (
+                    <>
+                      <span>下一位</span>
+                      <strong>{names[nextSpeaker]}</strong>
+                    </>
+                  ) : (
+                    <span>本轮最后发言</span>
+                  )}
+                </div>
+              </div>
               {role === 'host' &&
                 view.lifecycleActions.map((raw, i) => {
                   const action = raw as Action;
@@ -405,11 +431,12 @@ function AvalonScreen({ session }: { session: GameHost }) {
                       key={i}
                       type="button"
                       disabled={!connected || locked || view.paused}
+                      aria-label={`跳过当前发言：${names[action.target]}`}
                       onClick={() =>
                         command({ type: 'lifecycle', action: raw as JsonValue })
                       }
                     >
-                      跳过 {names[action.target]} 的发言
+                      跳过当前发言
                     </button>
                   ) : null;
                 })}
