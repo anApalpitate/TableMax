@@ -63,18 +63,18 @@
 - 原文：`docs/archive/acceptance-2026-10-16-to-18.md` → 偏好改造完整安装候选（2026-10-17，待验收）；源SHA `16b7c5351b78152049479264b36dafe6a270d6c00e43b6ba94bcdfaf4a51be89`。
 - 原地址：`../../artifacts/releases/v1.0.7/1.0.7.23/TableMax-1.0.7.23-installer-win-x64-manifest.json`，解析为`artifacts/releases/v1.0.7/1.0.7.23/TableMax-1.0.7.23-installer-win-x64-manifest.json`。
 - 状态：**历史原件缺失，原因未确认**。本工作树原件缺失；未查得该文件逐项删除或迁移证明。相关报告只提供原身份／当时结果，不替代缺失清单或原路径复验。
-- 现存材料：[frozen-inputs.json（原件待退役）](history-cleanup-20261024.md)，726字节，SHA `20a6ed5f79c676fd91c11c87e26b4b02162392c199c4d087ad2daa0d0d0be322`。仅按其原版本／方法／范围阅读。
-- 现存材料：[original-executable-security-normalization.json（原件待退役）](history-cleanup-20261024.md)，3519字节，SHA `110c352c842672f36402c46008ab1fb8f2cd09d57dbb7cacf50d479f4574c2d5`。仅按其原版本／方法／范围阅读。
-- 现存材料：[report.json（原件待退役）](history-cleanup-20261024.md)，88104字节，SHA `2231682fb7360eb78f85eb2dec6f2d2644a6fa309cc93f19e39f65130fd311d7`。仅按其原版本／方法／范围阅读。
+- 现存材料：[frozen-inputs.json](../../artifacts/maintenance/v1.0.7/ui-preference-installer-20261017/frozen-inputs.json)，726字节，SHA `20a6ed5f79c676fd91c11c87e26b4b02162392c199c4d087ad2daa0d0d0be322`。仅按其原版本／方法／范围阅读。
+- 现存材料：[original-executable-security-normalization.json](../../artifacts/maintenance/v1.0.7/ui-preference-installer-20261017/original-executable-security-normalization.json)，3519字节，SHA `110c352c842672f36402c46008ab1fb8f2cd09d57dbb7cacf50d479f4574c2d5`。仅按其原版本／方法／范围阅读。
+- 现存材料：[report.json](../../artifacts/maintenance/v1.0.7/ui-preference-installer-20261017/handoff-prepared/report.json)，88104字节，SHA `2231682fb7360eb78f85eb2dec6f2d2644a6fa309cc93f19e39f65130fd311d7`。仅按其原版本／方法／范围阅读。
 
 ## H07：TableMax-1.0.7.23-installer-win-x64-manifest.json
 
 - 原文：`docs/archive/acceptance-2026-10-16-to-18.md` → 偏好改造完整安装候选（2026-10-17，待验收）；源SHA `16b7c5351b78152049479264b36dafe6a270d6c00e43b6ba94bcdfaf4a51be89`。
 - 原地址：`../../artifacts/releases/v1.0.7/1.0.7.23/TableMax-1.0.7.23-installer-win-x64-manifest.json`，解析为`artifacts/releases/v1.0.7/1.0.7.23/TableMax-1.0.7.23-installer-win-x64-manifest.json`。
 - 状态：**历史原件缺失，原因未确认**。本工作树原件缺失；未查得该文件逐项删除或迁移证明。相关报告只提供原身份／当时结果，不替代缺失清单或原路径复验。
-- 现存材料：[frozen-inputs.json（原件待退役）](history-cleanup-20261024.md)，726字节，SHA `20a6ed5f79c676fd91c11c87e26b4b02162392c199c4d087ad2daa0d0d0be322`。仅按其原版本／方法／范围阅读。
-- 现存材料：[original-executable-security-normalization.json（原件待退役）](history-cleanup-20261024.md)，3519字节，SHA `110c352c842672f36402c46008ab1fb8f2cd09d57dbb7cacf50d479f4574c2d5`。仅按其原版本／方法／范围阅读。
-- 现存材料：[report.json（原件待退役）](history-cleanup-20261024.md)，88104字节，SHA `2231682fb7360eb78f85eb2dec6f2d2644a6fa309cc93f19e39f65130fd311d7`。仅按其原版本／方法／范围阅读。
+- 现存材料：[frozen-inputs.json](../../artifacts/maintenance/v1.0.7/ui-preference-installer-20261017/frozen-inputs.json)，726字节，SHA `20a6ed5f79c676fd91c11c87e26b4b02162392c199c4d087ad2daa0d0d0be322`。仅按其原版本／方法／范围阅读。
+- 现存材料：[original-executable-security-normalization.json](../../artifacts/maintenance/v1.0.7/ui-preference-installer-20261017/original-executable-security-normalization.json)，3519字节，SHA `110c352c842672f36402c46008ab1fb8f2cd09d57dbb7cacf50d479f4574c2d5`。仅按其原版本／方法／范围阅读。
+- 现存材料：[report.json](../../artifacts/maintenance/v1.0.7/ui-preference-installer-20261017/handoff-prepared/report.json)，88104字节，SHA `2231682fb7360eb78f85eb2dec6f2d2644a6fa309cc93f19e39f65130fd311d7`。仅按其原版本／方法／范围阅读。
 
 ## H08：TableMax-1.0.7.18-installer-win-x64-manifest.json
 
@@ -83,7 +83,7 @@
 - 状态：**历史原件缺失，原因未确认**。本工作树原件缺失；未查得该文件逐项删除或迁移证明。相关报告只提供原身份／当时结果，不替代缺失清单或原路径复验。
 - 现存材料：[runtime-equivalence-17-18.json](../../artifacts/manila/validation/runtime-equivalence-17-18.json)，4078字节，SHA `13f71ce51a335a5da0770fd9582d37bdd5aac9bf5c9dd6defda8da98acc77354`。仅按其原版本／方法／范围阅读。
 - 现存材料：[deepening-18-security-normalization.json](../../artifacts/manila/deepening-18-security-normalization.json)，3519字节，SHA `edf405ccd416222d08be2382e764bdcb1d186e065412951da21c637e9060cb17`。仅按其原版本／方法／范围阅读。
-- 现存材料：[report.json（原件待退役）](history-cleanup-20261024.md)，38172字节，SHA `fb8e122b2fdbc650a8b9e9cbe71e5ea25103ac1ce3ea6188ddd0bd8f7143a09e`。仅按其原版本／方法／范围阅读。
+- 现存材料：[report.json](../../artifacts/maintenance/v1.0.7/manila-deepening-20261016/production-account-18-01/original-executable/report.json)，38172字节，SHA `fb8e122b2fdbc650a8b9e9cbe71e5ea25103ac1ce3ea6188ddd0bd8f7143a09e`。仅按其原版本／方法／范围阅读。
 
 ## H09：TableMax-1.0.7.18-installer-win-x64-manifest.json
 
@@ -92,16 +92,16 @@
 - 状态：**历史原件缺失，原因未确认**。本工作树原件缺失；未查得该文件逐项删除或迁移证明。相关报告只提供原身份／当时结果，不替代缺失清单或原路径复验。
 - 现存材料：[runtime-equivalence-17-18.json](../../artifacts/manila/validation/runtime-equivalence-17-18.json)，4078字节，SHA `13f71ce51a335a5da0770fd9582d37bdd5aac9bf5c9dd6defda8da98acc77354`。仅按其原版本／方法／范围阅读。
 - 现存材料：[deepening-18-security-normalization.json](../../artifacts/manila/deepening-18-security-normalization.json)，3519字节，SHA `edf405ccd416222d08be2382e764bdcb1d186e065412951da21c637e9060cb17`。仅按其原版本／方法／范围阅读。
-- 现存材料：[report.json（原件待退役）](history-cleanup-20261024.md)，38172字节，SHA `fb8e122b2fdbc650a8b9e9cbe71e5ea25103ac1ce3ea6188ddd0bd8f7143a09e`。仅按其原版本／方法／范围阅读。
+- 现存材料：[report.json](../../artifacts/maintenance/v1.0.7/manila-deepening-20261016/production-account-18-01/original-executable/report.json)，38172字节，SHA `fb8e122b2fdbc650a8b9e9cbe71e5ea25103ac1ce3ea6188ddd0bd8f7143a09e`。仅按其原版本／方法／范围阅读。
 
 ## H10：TableMax-1.0.7.9-installer-win-x64-manifest.json
 
 - 原文：`docs/archive/acceptance-2026-10-16-to-18.md` → 马尼拉本地候选（2026-10-16）；源SHA `16b7c5351b78152049479264b36dafe6a270d6c00e43b6ba94bcdfaf4a51be89`。
 - 原地址：`../../artifacts/releases/v1.0.7/1.0.7.9/TableMax-1.0.7.9-installer-win-x64-manifest.json`，解析为`artifacts/releases/v1.0.7/1.0.7.9/TableMax-1.0.7.9-installer-win-x64-manifest.json`。
 - 状态：**历史原件缺失，原因未确认**。本工作树原件缺失；未查得该文件逐项删除或迁移证明。相关报告只提供原身份／当时结果，不替代缺失清单或原路径复验。
-- 现存材料：[package-09.json（原件待退役）](history-cleanup-20261024.md)，6797字节，SHA `7fc6aa70ba680577b904de209d20ae55126311b9915936e5ebcdbc840f820622`。仅按其原版本／方法／范围阅读。
-- 现存材料：[runtime-equivalence-07-09.json（原件待退役）](history-cleanup-20261024.md)，1170字节，SHA `51344237dd53542a3be1ada74d224dac456c15711ea1e66b179c5b1d0d07a80f`。仅按其原版本／方法／范围阅读。
-- 现存材料：[report.json（原件待退役）](history-cleanup-20261024.md)，34592字节，SHA `77a4e96014b612e08ab970c6c46ce7e12ab30b5bf820ab5799b53aa992c67958`。仅按其原版本／方法／范围阅读。
+- 现存材料：[package-09.json](../../artifacts/maintenance/v1.0.7/manila-installation-20261016/round-01/package-09.json)，6797字节，SHA `7fc6aa70ba680577b904de209d20ae55126311b9915936e5ebcdbc840f820622`。仅按其原版本／方法／范围阅读。
+- 现存材料：[runtime-equivalence-07-09.json](../../artifacts/maintenance/v1.0.7/manila-installation-20261016/round-01/runtime-equivalence-07-09.json)，1170字节，SHA `51344237dd53542a3be1ada74d224dac456c15711ea1e66b179c5b1d0d07a80f`。仅按其原版本／方法／范围阅读。
+- 现存材料：[report.json](../../artifacts/maintenance/v1.0.7/manila-installation-20261016/round-01/production-account-09-02/installer-wizard/report.json)，34592字节，SHA `77a4e96014b612e08ab970c6c46ce7e12ab30b5bf820ab5799b53aa992c67958`。仅按其原版本／方法／范围阅读。
 
 ## H11：TableMax-1.0.7.7-installer-win-x64-manifest.json
 
@@ -115,18 +115,18 @@
 - 原文：`docs/archive/box-manila-ui-polish-2026-10-17.md` → 安装与交付；源SHA `f63c19b7f4120b60a4fcc7fb84805bc22fef573668dc05e85c37504542220430`。
 - 原地址：`../../artifacts/releases/v1.0.7/1.0.7.22/TableMax-1.0.7.22-installer-win-x64.exe`，解析为`artifacts/releases/v1.0.7/1.0.7.22/TableMax-1.0.7.22-installer-win-x64.exe`。
 - 状态：**历史原件缺失，原因未确认**。本工作树原件缺失；未查得该文件逐项删除或迁移证明。相关报告只提供原身份／当时结果，不替代缺失清单或原路径复验。
-- 现存材料：[executable-security-22.json（原件待退役）](history-cleanup-20261024.md)，3519字节，SHA `083f1a62906502026ba6012c9109e38c4bedb32549b6686cb4d20845db471b6b`。仅按其原版本／方法／范围阅读。
-- 现存材料：[report.json（原件待退役）](history-cleanup-20261024.md)，38190字节，SHA `7afca08003e914f4991a1f36f91c4b68f30ee113a4f014af880433da2a7ed110`。仅按其原版本／方法／范围阅读。
-- 现存材料：[report.json（原件待退役）](history-cleanup-20261024.md)，34676字节，SHA `0f967b6c4b6fc3579e74b0f4939ae85a611b672247b2ed4ebf9f922315e5e58a`。仅按其原版本／方法／范围阅读。
+- 现存材料：[executable-security-22.json](../../artifacts/maintenance/v1.0.7/box-manila-polish-20261017/executable-security-22.json)，3519字节，SHA `083f1a62906502026ba6012c9109e38c4bedb32549b6686cb4d20845db471b6b`。仅按其原版本／方法／范围阅读。
+- 现存材料：[report.json](../../artifacts/maintenance/v1.0.7/box-manila-polish-20261017/production-account-22-01/original-executable/report.json)，38190字节，SHA `7afca08003e914f4991a1f36f91c4b68f30ee113a4f014af880433da2a7ed110`。仅按其原版本／方法／范围阅读。
+- 现存材料：[report.json](../../artifacts/maintenance/v1.0.7/box-manila-polish-20261017/production-account-22-01/installer-wizard/report.json)，34676字节，SHA `0f967b6c4b6fc3579e74b0f4939ae85a611b672247b2ed4ebf9f922315e5e58a`。仅按其原版本／方法／范围阅读。
 
 ## H13：TableMax-1.0.7.22-installer-win-x64-manifest.json
 
 - 原文：`docs/archive/box-manila-ui-polish-2026-10-17.md` → 安装与交付；源SHA `f63c19b7f4120b60a4fcc7fb84805bc22fef573668dc05e85c37504542220430`。
 - 原地址：`../../artifacts/releases/v1.0.7/1.0.7.22/TableMax-1.0.7.22-installer-win-x64-manifest.json`，解析为`artifacts/releases/v1.0.7/1.0.7.22/TableMax-1.0.7.22-installer-win-x64-manifest.json`。
 - 状态：**历史原件缺失，原因未确认**。本工作树原件缺失；未查得该文件逐项删除或迁移证明。相关报告只提供原身份／当时结果，不替代缺失清单或原路径复验。
-- 现存材料：[executable-security-22.json（原件待退役）](history-cleanup-20261024.md)，3519字节，SHA `083f1a62906502026ba6012c9109e38c4bedb32549b6686cb4d20845db471b6b`。仅按其原版本／方法／范围阅读。
-- 现存材料：[report.json（原件待退役）](history-cleanup-20261024.md)，38190字节，SHA `7afca08003e914f4991a1f36f91c4b68f30ee113a4f014af880433da2a7ed110`。仅按其原版本／方法／范围阅读。
-- 现存材料：[report.json（原件待退役）](history-cleanup-20261024.md)，34676字节，SHA `0f967b6c4b6fc3579e74b0f4939ae85a611b672247b2ed4ebf9f922315e5e58a`。仅按其原版本／方法／范围阅读。
+- 现存材料：[executable-security-22.json](../../artifacts/maintenance/v1.0.7/box-manila-polish-20261017/executable-security-22.json)，3519字节，SHA `083f1a62906502026ba6012c9109e38c4bedb32549b6686cb4d20845db471b6b`。仅按其原版本／方法／范围阅读。
+- 现存材料：[report.json](../../artifacts/maintenance/v1.0.7/box-manila-polish-20261017/production-account-22-01/original-executable/report.json)，38190字节，SHA `7afca08003e914f4991a1f36f91c4b68f30ee113a4f014af880433da2a7ed110`。仅按其原版本／方法／范围阅读。
+- 现存材料：[report.json](../../artifacts/maintenance/v1.0.7/box-manila-polish-20261017/production-account-22-01/installer-wizard/report.json)，34676字节，SHA `0f967b6c4b6fc3579e74b0f4939ae85a611b672247b2ed4ebf9f922315e5e58a`。仅按其原版本／方法／范围阅读。
 
 ## H14：TableMax-1.0.7.34-installer-win-x64.exe
 
@@ -135,7 +135,7 @@
 - 状态：**已确认退役**。原EXE在已完成且SHA绑定的退役清单中；配套sidecar仍在，只供身份追溯，不是可启动EXE。
 - 原EXE身份SHA：`15230898d50fbafc52761a7735561d42352d0f24fe564485bed5ee71cce6d32c`。
 - 现存材料：[TableMax-1.0.7.34-installer-win-x64-manifest.json](../../artifacts/releases/v1.0.7/1.0.7.34/TableMax-1.0.7.34-installer-win-x64-manifest.json)，56823字节，SHA `9901af19166858211cff94d8608484e6152da7836b9ff2b1916db2b97d36b5cd`。仅按其原版本／方法／范围阅读。
-- 现存材料：[reviewed-files-r5.json（原件待退役）](history-cleanup-20261024.md)，44641820字节，SHA `73df0d4adcbf409b0a4bfa236e021244198dc0548ca7705b98e88c7f64355ead`。仅按其原版本／方法／范围阅读。
+- 现存材料：[reviewed-files-r5.json](../../artifacts/maintenance/deep-slim-20261021/reviewed-files-r5.json)，44641820字节，SHA `73df0d4adcbf409b0a4bfa236e021244198dc0548ca7705b98e88c7f64355ead`。仅按其原版本／方法／范围阅读。
 - 现存材料：[deep-slim-20261021-reviewed-once.json](../../artifacts/maintenance/reviewed-retirements/deep-slim-20261021-reviewed-once.json)，158141字节，SHA `0b7fd35f91592c6190e3871b0a2cfbd5d42e2e81464130429ec4591a39549a57`。仅按其原版本／方法／范围阅读。
 
 ## H15：TableMax-1.0.8.6-installer-win-x64.exe
@@ -189,7 +189,7 @@
 - 状态：**已确认退役**。原EXE在已完成且SHA绑定的退役清单中；配套sidecar仍在，只供身份追溯，不是可启动EXE。
 - 原EXE身份SHA：`15230898d50fbafc52761a7735561d42352d0f24fe564485bed5ee71cce6d32c`。
 - 现存材料：[TableMax-1.0.7.34-installer-win-x64-manifest.json](../../artifacts/releases/v1.0.7/1.0.7.34/TableMax-1.0.7.34-installer-win-x64-manifest.json)，56823字节，SHA `9901af19166858211cff94d8608484e6152da7836b9ff2b1916db2b97d36b5cd`。仅按其原版本／方法／范围阅读。
-- 现存材料：[reviewed-files-r5.json（原件待退役）](history-cleanup-20261024.md)，44641820字节，SHA `73df0d4adcbf409b0a4bfa236e021244198dc0548ca7705b98e88c7f64355ead`。仅按其原版本／方法／范围阅读。
+- 现存材料：[reviewed-files-r5.json](../../artifacts/maintenance/deep-slim-20261021/reviewed-files-r5.json)，44641820字节，SHA `73df0d4adcbf409b0a4bfa236e021244198dc0548ca7705b98e88c7f64355ead`。仅按其原版本／方法／范围阅读。
 - 现存材料：[deep-slim-20261021-reviewed-once.json](../../artifacts/maintenance/reviewed-retirements/deep-slim-20261021-reviewed-once.json)，158141字节，SHA `0b7fd35f91592c6190e3871b0a2cfbd5d42e2e81464130429ec4591a39549a57`。仅按其原版本／方法／范围阅读。
 
 ## H22：TableMax-1.0.7.22-installer-win-x64.exe
@@ -197,24 +197,24 @@
 - 原文：`docs/reference/acceptance.md` → 盒子与马尼拉界面优化（2026-10-17）；源SHA `f62f2bfac272ca0e4609c17199da4bddd04ad83a45fbe9f5e903caede942d3ce`。
 - 原地址：`../../artifacts/releases/v1.0.7/1.0.7.22/TableMax-1.0.7.22-installer-win-x64.exe`，解析为`artifacts/releases/v1.0.7/1.0.7.22/TableMax-1.0.7.22-installer-win-x64.exe`。
 - 状态：**历史原件缺失，原因未确认**。本工作树原件缺失；未查得该文件逐项删除或迁移证明。相关报告只提供原身份／当时结果，不替代缺失清单或原路径复验。
-- 现存材料：[report.json（原件待退役）](history-cleanup-20261024.md)，38190字节，SHA `7afca08003e914f4991a1f36f91c4b68f30ee113a4f014af880433da2a7ed110`。仅按其原版本／方法／范围阅读。
-- 现存材料：[isolated-account.json（原件待退役）](history-cleanup-20261024.md)，53377字节，SHA `80154020bd758fa19b79a6eac4c558146864123ea02d1509cb905d75a33ee1b3`。仅按其原版本／方法／范围阅读。
-- 现存材料：[finalized-installation-22.json（原件待退役）](history-cleanup-20261024.md)，1991941字节，SHA `50ac8fbf24cd13344953768f7f611ea77bb933fe124221bd7eeeef6b5c9a2fe7`。仅按其原版本／方法／范围阅读。
+- 现存材料：[report.json](../../artifacts/maintenance/v1.0.7/box-manila-polish-20261017/production-account-22-01/original-executable/report.json)，38190字节，SHA `7afca08003e914f4991a1f36f91c4b68f30ee113a4f014af880433da2a7ed110`。仅按其原版本／方法／范围阅读。
+- 现存材料：[isolated-account.json](../../artifacts/maintenance/v1.0.7/box-manila-polish-20261017/production-account-22-01/isolated-account.json)，53377字节，SHA `80154020bd758fa19b79a6eac4c558146864123ea02d1509cb905d75a33ee1b3`。仅按其原版本／方法／范围阅读。
+- 现存材料：[finalized-installation-22.json](../../artifacts/maintenance/v1.0.7/box-manila-polish-20261017/finalized-installation-22.json)，1991941字节，SHA `50ac8fbf24cd13344953768f7f611ea77bb933fe124221bd7eeeef6b5c9a2fe7`。仅按其原版本／方法／范围阅读。
 
 ## H23：TableMax-1.0.7.22-installer-win-x64-manifest.json
 
 - 原文：`docs/reference/acceptance.md` → 盒子与马尼拉界面优化（2026-10-17）；源SHA `f62f2bfac272ca0e4609c17199da4bddd04ad83a45fbe9f5e903caede942d3ce`。
 - 原地址：`../../artifacts/releases/v1.0.7/1.0.7.22/TableMax-1.0.7.22-installer-win-x64-manifest.json`，解析为`artifacts/releases/v1.0.7/1.0.7.22/TableMax-1.0.7.22-installer-win-x64-manifest.json`。
 - 状态：**历史原件缺失，原因未确认**。本工作树原件缺失；未查得该文件逐项删除或迁移证明。相关报告只提供原身份／当时结果，不替代缺失清单或原路径复验。
-- 现存材料：[report.json（原件待退役）](history-cleanup-20261024.md)，38190字节，SHA `7afca08003e914f4991a1f36f91c4b68f30ee113a4f014af880433da2a7ed110`。仅按其原版本／方法／范围阅读。
-- 现存材料：[isolated-account.json（原件待退役）](history-cleanup-20261024.md)，53377字节，SHA `80154020bd758fa19b79a6eac4c558146864123ea02d1509cb905d75a33ee1b3`。仅按其原版本／方法／范围阅读。
-- 现存材料：[finalized-installation-22.json（原件待退役）](history-cleanup-20261024.md)，1991941字节，SHA `50ac8fbf24cd13344953768f7f611ea77bb933fe124221bd7eeeef6b5c9a2fe7`。仅按其原版本／方法／范围阅读。
+- 现存材料：[report.json](../../artifacts/maintenance/v1.0.7/box-manila-polish-20261017/production-account-22-01/original-executable/report.json)，38190字节，SHA `7afca08003e914f4991a1f36f91c4b68f30ee113a4f014af880433da2a7ed110`。仅按其原版本／方法／范围阅读。
+- 现存材料：[isolated-account.json](../../artifacts/maintenance/v1.0.7/box-manila-polish-20261017/production-account-22-01/isolated-account.json)，53377字节，SHA `80154020bd758fa19b79a6eac4c558146864123ea02d1509cb905d75a33ee1b3`。仅按其原版本／方法／范围阅读。
+- 现存材料：[finalized-installation-22.json](../../artifacts/maintenance/v1.0.7/box-manila-polish-20261017/finalized-installation-22.json)，1991941字节，SHA `50ac8fbf24cd13344953768f7f611ea77bb933fe124221bd7eeeef6b5c9a2fe7`。仅按其原版本／方法／范围阅读。
 
 ## H24：TableMax-1.0.7.2-installer-win-x64-manifest.json
 
 - 原文：`docs/reference/acceptance.md` → 1.0.7.2：安装进度与版本交付（2026-10-16）；源SHA `f62f2bfac272ca0e4609c17199da4bddd04ad83a45fbe9f5e903caede942d3ce`。
 - 原地址：`../../artifacts/releases/v1.0.7/1.0.7.2/TableMax-1.0.7.2-installer-win-x64-manifest.json`，解析为`artifacts/releases/v1.0.7/1.0.7.2/TableMax-1.0.7.2-installer-win-x64-manifest.json`。
 - 状态：**历史原件缺失，原因未确认**。本工作树原件缺失；未查得该文件逐项删除或迁移证明。相关报告只提供原身份／当时结果，不替代缺失清单或原路径复验。
-- 现存材料：[retained-games-proof.json（原件待退役）](history-cleanup-20261024.md)，846字节，SHA `09f8f098cc1263f11dbbba0748b0ed2cc204c31efdd96065e625175bbbfd447e`。仅按其原版本／方法／范围阅读。
-- 现存材料：[report.json（原件待退役）](history-cleanup-20261024.md)，1420517字节，SHA `1812aa7d42331cadf08e8951996eb1204afed5446bee0fd268cce67dbef472be`。仅按其原版本／方法／范围阅读。
-- 现存材料：[report.json（原件待退役）](history-cleanup-20261024.md)，1363657字节，SHA `82d572a902a2ba24554d1a644521f6fcb9db7f260310b1b60cf1df1eca2e7c74`。仅按其原版本／方法／范围阅读。
+- 现存材料：[retained-games-proof.json](../../artifacts/maintenance/v1.0.7/installer-progress-release-20261016/round-01/retained-games-proof.json)，846字节，SHA `09f8f098cc1263f11dbbba0748b0ed2cc204c31efdd96065e625175bbbfd447e`。仅按其原版本／方法／范围阅读。
+- 现存材料：[report.json](../../artifacts/maintenance/v1.0.7/installer-progress-release-20261016/round-01/production-account-02-02/application-handoff/report.json)，1420517字节，SHA `1812aa7d42331cadf08e8951996eb1204afed5446bee0fd268cce67dbef472be`。仅按其原版本／方法／范围阅读。
+- 现存材料：[report.json](../../artifacts/maintenance/v1.0.7/installer-progress-release-20261016/round-01/production-account-02-02/application-handoff-long-root-external-data/report.json)，1363657字节，SHA `82d572a902a2ba24554d1a644521f6fcb9db7f260310b1b60cf1df1eca2e7c74`。仅按其原版本／方法／范围阅读。

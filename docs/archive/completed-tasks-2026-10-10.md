@@ -122,4 +122,4 @@ Socket.IO 保证已到达事件的顺序，但默认不保证断线期间事件�
 
 ### 已完成检查与原失败
 
-- 已检查：66项相关产品单测及8项范围工具检查最终通过，含15项同步、5项互动收件、服务权限回执和两游戏竞价；TypeScript在正常宿主通过。首次[沙箱链接解析日志（原件待退役）](history-cleanup-20261024.md)与随后[三项源码类型错误（原件待退役）](history-cleanup-20261024.md)保留原失败，修正后见[最终类型日志（原件待退役）](history-cleanup-20261024.md)；失败不改为成功、不据此放宽检查。渲染、包哈希和本机六端结果见[当前验收](../reference/acceptance.md#105菜单互动并发与手机同步2026-10-09)。
+- 已检查：66项相关产品单测及8项范围工具检查最终通过，含15项同步、5项互动收件、服务权限回执和两游戏竞价；TypeScript在正常宿主通过。首次[沙箱链接解析日志](../../artifacts/maintenance/v1.0.5/mobile-sync-optimization/checks/typecheck-initial.txt)与随后[三项源码类型错误](../../artifacts/maintenance/v1.0.5/mobile-sync-optimization/checks/typecheck-host.txt)保留原失败，修正后见[最终类型日志](../../artifacts/maintenance/v1.0.5/mobile-sync-optimization/checks/typecheck-final.txt)；失败不改为成功、不据此放宽检查。渲染、包哈希和本机六端结果见[当前验收](../reference/acceptance.md#105菜单互动并发与手机同步2026-10-09)。

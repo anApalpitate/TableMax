@@ -213,11 +213,11 @@ Windows x64完整EXE、内部payload ZIP及实际提取内容均严格小于120,
 
 2026-10-11 将根目录五个 PowerShell 操作入口集中到 [scripts/](../../scripts/README.md)，内部实现仍在 `tools/maintenance/`。入口按 `PSScriptRoot` 的父目录定位工作区，支持根目录及其他工作目录调用；参数、默认预览与全部安全保护不变。自动收尾和隔离测试同步使用新路径，产品与运行资源未变，无需重打包。
 
-迁移验收见[汇总审计（原件待退役）](../archive/history-cleanup-20261024.md)：适用工具回归、存档读取／恢复、缓存损坏与冻结输入拒绝、静音原生两人样本及自动收尾通过。冷构建44.125秒，相同输入第二次14.554秒、34/34缓存命中；最终源码另经实际构建和原生样本验证。全局类型检查迁前迁后均为317项既有错误，新增0项，尚不能视为全局类型检查通过。当前ZIP哈希不变，未递增版本或重新交付。
+迁移验收见[汇总审计](../../artifacts/maintenance/v1.0.6/tools-migration/results.json)：适用工具回归、存档读取／恢复、缓存损坏与冻结输入拒绝、静音原生两人样本及自动收尾通过。冷构建44.125秒，相同输入第二次14.554秒、34/34缓存命中；最终源码另经实际构建和原生样本验证。全局类型检查迁前迁后均为317项既有错误，新增0项，尚不能视为全局类型检查通过。当前ZIP哈希不变，未递增版本或重新交付。
 
 ### 受限环境下的类型检查（2026-10-10）
 
-`pnpm typecheck` 通过 `tools/test/runner/typecheck.mjs` 调用锁定的 TypeScript CLI，原编译参数、诊断、失败退出码保持有效。Windows 原生 realpath 遇到可读 pnpm Junction 的 EPERM 时，先回退普通 realpath，再沿用编译器的缺失文件行为。迁移审计中317项错误已定位为受限目录链接解析造成：正常权限的原版编译器和修正入口均为0错误，没有放宽类型、排除测试或修改第三方依赖。若 pnpm 自身在编译前遇到目录访问限制，可直接运行 `node tools/test/runner/typecheck.mjs --noEmit`，或在正常权限环境运行原 pnpm 命令。旧失败报告保持原样；本轮复核及工具回归见[检查与空间审计（原件待退役）](../archive/history-cleanup-20261024.md)。
+`pnpm typecheck` 通过 `tools/test/runner/typecheck.mjs` 调用锁定的 TypeScript CLI，原编译参数、诊断、失败退出码保持有效。Windows 原生 realpath 遇到可读 pnpm Junction 的 EPERM 时，先回退普通 realpath，再沿用编译器的缺失文件行为。迁移审计中317项错误已定位为受限目录链接解析造成：正常权限的原版编译器和修正入口均为0错误，没有放宽类型、排除测试或修改第三方依赖。若 pnpm 自身在编译前遇到目录访问限制，可直接运行 `node tools/test/runner/typecheck.mjs --noEmit`，或在正常权限环境运行原 pnpm 命令。旧失败报告保持原样；本轮复核及工具回归见[检查与空间审计](../../artifacts/maintenance/v1.0.6/check-errors-space-20261010/results.json)。
 
 ## 游戏包构建与运行隔离（2026-10-11）
 
