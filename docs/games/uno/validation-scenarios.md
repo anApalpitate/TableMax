@@ -56,7 +56,7 @@
 - 整场 10／10 通过，实际约 14.1 秒，报告 `artifacts/maintenance/test-history/runs/228ee217-8b66-4fb4-aab9-6668a7a11534.json`。
 - 修改后最终组合检查 **39／39 通过**，包含 27 场和两场重复种子，实际 16.05 秒，报告 `artifacts/maintenance/test-history/runs/3f72869a-9ca7-4f4b-8022-5ccfe7a5c288.json`。窄范围 TypeScript、ESLint 与本页五份文档／规则策略的 Prettier 检查通过。
 - 平台真实服务 3 项与 Worker 10 项通过：SQLite／Socket 的秘密权限、保存失败、去重、回退、重启及管理员批准换机；2／4／6 人与三档策略的实际 32MiB Worker、两秒边界和取消。报告 `artifacts/maintenance/test-history/runs/21fce2bb-9e5d-4094-a7e4-9b2cc1fdff2c.json` 包含 15 个测试／hook 统计节点，实际产品测试为 13 项。范围工具 10 项另计；合计 52 个 UNO 产品源码测试及 10 个工具测试通过。
-- 实际三端、声画和便携比赛从 [当前便携证明](../../../artifacts/maintenance/v1.0.5/uno-20261010/portable-final/results.json)进入。当前包六人横屏／320px 密集手牌真实返验，旧包 2／4／6 人自然 500 分、32 小局和 693 个 Worker 决定按逐文件等价保留原哈希边界；不将源码比赛或旧包报告改标为新包完整实测。
+- 实际三端、声画和便携比赛从 [当前便携证明（原件待退役）](../../archive/history-cleanup-20261024.md)进入。当前包六人横屏／320px 密集手牌真实返验，旧包 2／4／6 人自然 500 分、32 小局和 693 个 Worker 决定按逐文件等价保留原哈希边界；不将源码比赛或旧包报告改标为新包完整实测。
 
 正常验证保持 `TABLEMAX_TEST_SOUND=off`。统一范围为 `game:uno`，按[统一失败阈值](../../reference/validation.md#历史通过率与失败阈值)停线并先修复，不自动重试；结果统计沿用项目历史库。
 

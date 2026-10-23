@@ -13,10 +13,10 @@
 
 以下是本轮初步核验，足以解释定调，不等于已完成全部规则、中文术语及资源认证。后续须取得并保存同版原文，逐条建立规则与场景，完整核对附图、示例及特殊规则，再冻结游戏规则标识。
 
-| 游戏 | 发行方原文与本轮核验范围 |
-| --- | --- |
+| 游戏                                       | 发行方原文与本轮核验范围                                                                                                                                                                                                               |
+| ------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | 德国小强／Cockroach Poker／Kakerlakenpoker | Schmidt Spiele，货号40829，[官方规则PDF](https://www.schmidtspiele.de/files/Onlinespiele/Produkte/40829%20-%20Kakerlakenpoker/40829_Kakerlakenpoker_DE_GB_FR_IT.pdf)，英文段第9–14页；本轮核验自由选人、判断真假、查看转传与双人规则。 |
-| 蟑螂沙拉／Cockroach Salad／Kakerlakensalat | Schmidt Spiele，货号40839，[官方规则PDF](https://www.schmidtspiele.de/files/Produkte/4/40839%20-%20Kakerlakensalat/40839_Kakerlakensalat_DE_GB_FR_IT.pdf)，英文段第9–14页；本轮核验回答限制、禁忌牌／双堆、超过三秒迟疑及收牌处罚。 |
+| 蟑螂沙拉／Cockroach Salad／Kakerlakensalat | Schmidt Spiele，货号40839，[官方规则PDF](https://www.schmidtspiele.de/files/Produkte/4/40839%20-%20Kakerlakensalat/40839_Kakerlakensalat_DE_GB_FR_IT.pdf)，英文段第9–14页；本轮核验回答限制、禁忌牌／双堆、超过三秒迟疑及收牌处罚。    |
 
 ## 德国小强：采用经典规则，操作按钮化
 
@@ -85,8 +85,8 @@
 
 新增125%／150%像素密度和减少动态定向12项通过，见[密度报告](../../artifacts/maintenance/cockroach-source/density-20261021/report.json)，未重复执行已通过的41项布局／按钮；这些是桌面浏览器模拟，不冒称物理DPI或真实手机。
 
-第一候选的标准账户安装、更新、框架恢复、卸载及原路径Medium启动均通过，[封存证明](../../artifacts/maintenance/cockroach-delivery-20261021/finalized-installation-r1.json)与[隔离清理](../../artifacts/maintenance/cockroach-delivery-20261021/production-r1/isolated-account.json)保留。但实际安装后游戏检查发现德国小强未冻结SVG／WAV，沙拉只收录三张介绍SVG；不能推广该候选。已将两款动态资源引用改为可扫描的字面量glob，补齐德国小强从清单投影的游戏库介绍，并记录[首候选退役原因与SHA](../../artifacts/maintenance/cockroach-delivery-20261021/candidate-r1-retirement.json)，沿用尚未交付的修订8重新冻结。
+第一候选的标准账户安装、更新、框架恢复、卸载及原路径Medium启动均通过，[封存证明（原件待退役）](history-cleanup-20261024.md)与[隔离清理（原件待退役）](history-cleanup-20261024.md)保留。但实际安装后游戏检查发现德国小强未冻结SVG／WAV，沙拉只收录三张介绍SVG；不能推广该候选。已将两款动态资源引用改为可扫描的字面量glob，补齐德国小强从清单投影的游戏库介绍，并记录[首候选退役原因与SHA（原件待退役）](history-cleanup-20261024.md)，沿用尚未交付的修订8重新冻结。
 
 独立视觉审查发现的圆点串联、公共屏统计数字孤行与规则标题落字已修复；沙拉规则小字号SVG示例改为18px响应式图文，320px四蔬菜示例改两列。[最终源码53项](../../artifacts/maintenance/cockroach-source/final-freeze-20261021/report.json)通过，另有320px示例字号与溢出断言。安装后验证器的无效连接徽标等待、资源枚举和目录层级错误先后保留失败记录；产品资源缺陷与脚本修复分别处理，未放宽资源完整性、按钮保存或重启断言。全工程类型与本任务ESLint通过。
 
-最终snapshot `ebb0ce7cc3410f0deb413e5a2d49f7cb26bd156312050ff82c7416a33540f5a5`已完成[正式安装封存](../../artifacts/maintenance/cockroach-delivery-20261021/finalized-installation-r2.json)、[两款冻结实玩及保存重启](../../artifacts/maintenance/cockroach-delivery-20261021/installed-r2/results.json)和[current推广](../../artifacts/maintenance/cockroach-delivery-20261021/promotion-r2.json)。完整EXE及预算、源版本、实际设备边界统一见验收，不复制第二份当前哈希表。工程收尾深度容量审计独立于产品验收；受保护材料与安全候选不足不能写成已达到6GB。
+最终snapshot `ebb0ce7cc3410f0deb413e5a2d49f7cb26bd156312050ff82c7416a33540f5a5`已完成[正式安装封存（原件待退役）](history-cleanup-20261024.md)、[两款冻结实玩及保存重启（原件待退役）](history-cleanup-20261024.md)和[current推广（原件待退役）](history-cleanup-20261024.md)。完整EXE及预算、源版本、实际设备边界统一见验收，不复制第二份当前哈希表。工程收尾深度容量审计独立于产品验收；受保护材料与安全候选不足不能写成已达到6GB。

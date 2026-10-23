@@ -26,9 +26,9 @@
 
 沿用原版全屏构图、硬币两面、皇冠、烟花、扫光和胜局星标，扩展以既有14套63矢量姿态嵌入，真实保存按能力→研究→结算排队；不新增下载声音或角色位图。源码全量组装首次测得模块4,213,476字节，超4MiB 19,172字节，原始失败记录保留。
 
-盒子封面实际36–66px，原1200×800／170,622字节派生图保留；从原PNG按比例生成480×320／WebP quality90 method6的小封面 `cover-catalog-v2.webp`，57,764字节，减少112,858字节，只更换模块目录封面。原PNG及大封面均未删除，不改变游戏背景或角色卡面。来源、哈希及编码见[派生核验](../../../artifacts/maintenance/v1.0.3/pokemon-final-revision/catalog-thumbnail.json)及[资源清单](../../../assets/games/pokemon-encounters/manifest.json)。受影响metadata单元重编，其余17项复用本轮全量产物，未增加预算。
+盒子封面实际36–66px，原1200×800／170,622字节派生图保留；从原PNG按比例生成480×320／WebP quality90 method6的小封面 `cover-catalog-v2.webp`，57,764字节，减少112,858字节，只更换模块目录封面。原PNG及大封面均未删除，不改变游戏背景或角色卡面。来源、哈希及编码见[派生核验（原件待退役）](../../archive/history-cleanup-20261024.md)及[资源清单](../../../assets/games/pokemon-encounters/manifest.json)。受影响metadata单元重编，其余17项复用本轮全量产物，未增加预算。
 
-整包首次仍为95,273,127字节，超过95MB工程预算；继续将用户提供的火箭队入场及喵喵面两段运行WAV无损编码为FLAC，735,676→326,648字节。原WAV、用户原件与原哈希保留，音量、音调、节奏、采样率和声道不变；逐采样PCM字节一致，见[无损核验](../../../artifacts/maintenance/v1.0.3/pokemon-final-revision/lossless-audio.json)。[实际静音WebView2](../../../artifacts/maintenance/v1.0.3/pokemon-polish-20261005/audio/revision-lossless-03/results.json)解码与播放通过，不能替代真人听感；旧夹具的“Eight WAVs”固定描述已更新，原通过记录的decoded文件列表实际为六WAV＋两FLAC。客户端单元重编、其余17项复用，最终模块3,691,572字节，整包94,864,073字节，预算均通过。失败清单和构建边界保留，不把首次超预算ZIP计作交付。
+整包首次仍为95,273,127字节，超过95MB工程预算；继续将用户提供的火箭队入场及喵喵面两段运行WAV无损编码为FLAC，735,676→326,648字节。原WAV、用户原件与原哈希保留，音量、音调、节奏、采样率和声道不变；逐采样PCM字节一致，见[无损核验（原件待退役）](../../archive/history-cleanup-20261024.md)。[实际静音WebView2（原件待退役）](../../archive/history-cleanup-20261024.md)解码与播放通过，不能替代真人听感；旧夹具的“Eight WAVs”固定描述已更新，原通过记录的decoded文件列表实际为六WAV＋两FLAC。客户端单元重编、其余17项复用，最终模块3,691,572字节，整包94,864,073字节，预算均通过。失败清单和构建边界保留，不把首次超预算ZIP计作交付。
 
 ## 研究插画与下载叫声再派生（2026-10-06）
 
@@ -36,7 +36,7 @@ v1.0.3 前轮为 30 项研究逐项独立调用内置 imagegen，制作明亮简
 
 R01“杰尼龟排排站”、R23“百变怪混进队”、H02“盖欧卡开空调”替换为消防训练码头、模仿训练角和清凉水池／热岸三张新环境。最终从保留的原 PNG 同尺寸 320×180 重新派生 WebP quality 40／method 6，分别 **7,236／11,186／9,152 字节**，三张共 **27,574 字节**；逐张解码、哈希与实际视觉核验通过，原图内容／尺寸与角色 SVG 不变。其余 27 张保留原图哈希；30 张运行背景合计 **135,570 字节**，相比前轮净增 **9,584 字节**，在 150,000 字节背景目标内。新原 PNG 三张共 6,823,576 字节、旧三张 WebP 与完整旧清单均保留；WebP 是有损派生编码，不标作原图逐像素相同。
 
-第一次组装的宝可梦模块超过 4MiB 门槛 **6,485 字节**，按原预算压缩三张背景，减少 **11,100 字节** 后复组；最终模块 **4,189,689 字节**，在 4,194,304 字节硬门槛内。quality 55／50 的三图体积仍不足以通过门禁，最终 quality 40 的选取及逐图检查见 [压缩核验](../../../artifacts/maintenance/v1.0.3/pokemon-ui-depth/research-art/compression/selected-compression-checks.json)。当前根源码正式 ZIP 已成功组装，适用同包技术验收完成，实际包体积、哈希及未变内容复用边界见 [任务](../../archive/pokemon-encounters-expansion-2026-10-05-to-06.md#ui重设计2026-10-06)。
+第一次组装的宝可梦模块超过 4MiB 门槛 **6,485 字节**，按原预算压缩三张背景，减少 **11,100 字节** 后复组；最终模块 **4,189,689 字节**，在 4,194,304 字节硬门槛内。quality 55／50 的三图体积仍不足以通过门禁，最终 quality 40 的选取及逐图检查见 [压缩核验（原件待退役）](../../archive/history-cleanup-20261024.md)。当前根源码正式 ZIP 已成功组装，适用同包技术验收完成，实际包体积、哈希及未变内容复用边界见 [任务](../../archive/pokemon-encounters-expansion-2026-10-05-to-06.md#ui重设计2026-10-06)。
 
 带具体角色参考的生成请求组在输出阶段收到一次 `moderation_blocked`，没有取得角色位图；不能记成三项各自确定拒绝，也不把成功环境写成生成角色。随后三次无角色环境生成成功，保留完整提示词、原件与工具结果；本地官方来源角色和既有百变怪图分别按原身份使用，不新增授权声明。三新背景已通过哈希、解码及原件保留核查；全 30 项在 `depth-source-01` 完成真实源码组合渲染，清单已写 `selectedForUI=true`、`importedInUI=true` 和具体 `uiEvidence`，`depth-sample-07` 独立样板美术审查通过。最终 ZIP 的 `depth-portable-03` 包内 UI 与最终独立美术审查通过；源码导入、样板与包内检查保留各自边界。63关键姿态／14序列、普通游玩及默认静音等同包声画检查完成，真人听感仍独立交接。
 
@@ -44,13 +44,13 @@ R01“杰尼龟排排站”、R23“百变怪混进队”、H02“盖欧卡开�
 
 前轮已将 27 项下载叫声从已有原件派生，离线增益 0.75 改 0.45，即当前音量再乘 0.6；轻削 3kHz 附近约 3dB 并首尾 5ms 淡化，不改音调／内部节奏，不作强降噪或自动增响。播放器全局 0.45、八主题及用户原声保持不变。五代表及批量检查通过，零削波、采样完整，合计 98,051 字节（少 1,493 字节）；本轮深度 UI 继续使用这些已处理资源，不重复派生。原件、旧派生及来源记录保留，未知世代／使用依据明确未确认，不宣称官方授权。
 
-处理入口`soften-pokemon-cries.mjs`及[核验](../../../artifacts/maintenance/v1.0.3/pokemon-ui-redesign/audio/all-results.json)记录编码、增益、频谱与SHA；静音解码／调用不等同真人听感。测试默认静音，专门试听显式开启，听感按[真人交接](validation-scenarios.md#本次真人验收交接2026-10-06)记录。
+处理入口`soften-pokemon-cries.mjs`及[核验（原件待退役）](../../archive/history-cleanup-20261024.md)记录编码、增益、频谱与SHA；静音解码／调用不等同真人听感。测试默认静音，专门试听显式开启，听感按[真人交接](validation-scenarios.md#本次真人验收交接2026-10-06)记录。
 
 ## 资源身份复用与动漫切入（v1.0.3，2026-10-05）
 
 本次不新增或重新处理位图／音频。角色注册表与原版玩法类别映射分离，原图片路径、来源编号及实例ID保持不变；CSS／SVG负责侧面画幅、雷电、念力、漫画速度线及冲击，既有角色图用于切入。火箭队原BGM和喵喵原WAV保持字节不变，币面仍1200ms同步。
 
-当前外部D盘音源目录不可用，核验使用资源清单已经保存的 `source-originals` 与交付WAV逐字节哈希，而非重新取得或试听原文件。八音源解码、播放调用与双槽清理结果见 [本轮音效证据](../../../artifacts/maintenance/v1.0.3/pokemon-polish-20261005/audio/guidance-cutin-v103/results.json)。火箭队现图的青色矩形底在放大切入中明显，属于 [视觉审查](validation-scenarios.md#游玩过程视觉审查2026-10-05) 的后续素材建议，本次保持素材不变。
+当前外部D盘音源目录不可用，核验使用资源清单已经保存的 `source-originals` 与交付WAV逐字节哈希，而非重新取得或试听原文件。八音源解码、播放调用与双槽清理结果见 [本轮音效证据（原件待退役）](../../archive/history-cleanup-20261024.md)。火箭队现图的青色矩形底在放大切入中明显，属于 [视觉审查](validation-scenarios.md#游玩过程视觉审查2026-10-05) 的后续素材建议，本次保持素材不变。
 
 全部运行和原型美术／声音统一在根目录 [assets](../../../assets/README.md)，按 platform 和 games 管理；未采用候选原图归档在 artifacts。正式构建只打包引用资源，运行不请求外站。名称、分值和能力由代码排版，类别图不包含本局顺序、秘密实例或暗格映射。
 
@@ -74,7 +74,7 @@ R01“杰尼龟排排站”、R23“百变怪混进队”、H02“盖欧卡开�
 
 [官方导入清单](../../../assets/games/pokemon-encounters/characters/manifest-official.json) 保存参考页、图片 URL、哈希、alpha 和逐张核验。[批次 A](../../../assets/games/pokemon-encounters/characters/manifest-a.json)、[批次 B](../../../assets/games/pokemon-encounters/characters/manifest-b.json)、[批次 C](../../../assets/games/pokemon-encounters/characters/manifest-c.json) 记录 16 次独立 imagegen 尝试，只有百变怪成功，其余 15 次明确 moderation_blocked／other，无图片产物。官方原图导入不标为生成原创，不宣称取得出版方桌游原卡。S14 实物仅作风格参考，没有裁剪成运行素材。
 
-原图、失败响应和奶油／深棕素材联系表在 artifacts/maintenance/pokemon-refresh；源码卡面等历史运行截图已按 2026-10-05 授权清理，路径与哈希见 [退役清单](../../../artifacts/maintenance/v1.0.6/slim-20261013/archive-records.md#r-3c3d8e893ff0f6b3)。2026-10-02 清理 19 张已退出引用的自然静物牌／牌背／硬币 WebP，原始 PNG 逐项核对哈希后继续保留在 artifacts/phase-05/imagegen/source；[旧主题清单](../../../assets/games/pokemon-encounters/manifest.json) 的 assets 只列仍使用的封面，retiredAssets 保留旧路径、来源、提示词、哈希及可恢复压缩副本的 Git 版本。[声音清单](../../../assets/games/pokemon-encounters/audio/manifest.json)、[背景清单](../../../assets/games/pokemon-encounters/tabletop/manifest.json) 和 [平台清单](../../../assets/platform/manifest.json) 保留来源。1.0.0–1.0.2 原图和文字证据继续保留，历史运行截图已退役；旧版本 ZIP 已按用户 2026-10-02 要求清除。
+原图、失败响应和奶油／深棕素材联系表在 artifacts/maintenance/pokemon-refresh；源码卡面等历史运行截图已按 2026-10-05 授权清理，路径与哈希见 [退役清单（原件待退役）](../../archive/history-cleanup-20261024.md)。2026-10-02 清理 19 张已退出引用的自然静物牌／牌背／硬币 WebP，原始 PNG 逐项核对哈希后继续保留在 artifacts/phase-05/imagegen/source；[旧主题清单](../../../assets/games/pokemon-encounters/manifest.json) 的 assets 只列仍使用的封面，retiredAssets 保留旧路径、来源、提示词、哈希及可恢复压缩副本的 Git 版本。[声音清单](../../../assets/games/pokemon-encounters/audio/manifest.json)、[背景清单](../../../assets/games/pokemon-encounters/tabletop/manifest.json) 和 [平台清单](../../../assets/platform/manifest.json) 保留来源。1.0.0–1.0.2 原图和文字证据继续保留，历史运行截图已退役；旧版本 ZIP 已按用户 2026-10-02 要求清除。
 
 ## 原创规则图解（v1.0.3）
 
@@ -82,7 +82,7 @@ R01“杰尼龟排排站”、R23“百变怪混进队”、H02“盖欧卡开�
 
 三种独立角色请求被内置 imagegen 在输出阶段拒绝，失败请求与提示词完整保留；停止角色生成，改为全新的无角色桌游场景。卡牌、硬币、念力、电流、交换光、火焰与星光承担主题，准确数字、座位、流程和胜场由 HTML/CSS 排版，不把生成画面中的物件数量当作规则。百变怪图例由真实计分模块验证：复制右侧 9，让中列归零，总分 14，优于复制左侧 3 的总分 26。
 
-[资源清单](../../../assets/games/pokemon-encounters/manifest.json) 的 `rulesIllustrations` 保存九图完整提示词、尺寸、SHA-256、用途与导入状态；[生成证据](../../../artifacts/maintenance/v1.0.3/pokemon-rules-redesign-20261005/imagegen/generation.json) 保存原始工具返回、三项失败、原 PNG 和缩小检查。原图为 1774×887 PNG；仅按比例 Lanczos 缩至 960×480，WebP quality 78／method 6，无内容编辑，有损导出不标为逐像素相同。新规则图为原创示意，无出版方图稿认证或真实界面截图声明。实际包字节及 95 MB 工程预算情况见 [验收](../../reference/acceptance.md)。
+[资源清单](../../../assets/games/pokemon-encounters/manifest.json) 的 `rulesIllustrations` 保存九图完整提示词、尺寸、SHA-256、用途与导入状态；[生成证据（原件待退役）](../../archive/history-cleanup-20261024.md) 保存原始工具返回、三项失败、原 PNG 和缩小检查。原图为 1774×887 PNG；仅按比例 Lanczos 缩至 960×480，WebP quality 78／method 6，无内容编辑，有损导出不标为逐像素相同。新规则图为原创示意，无出版方图稿认证或真实界面截图声明。实际包字节及 95 MB 工程预算情况见 [验收](../../reference/acceptance.md)。
 
 ## 权限、动画和声音
 
@@ -177,7 +177,7 @@ EX-A11 通过站点正式访客流程取得，额度检查为 `allowed=1`、下�
 
 补充中文公开视频预检取得任天堂简体中文角色页六张1280×720战斗截图，711,575字节；不同蓄力／发射／念力姿态仍有舞台、对手、特效、裁切，第六张为异色超梦，不满足五个一致透明关键姿态。仅保留参考，未导入产品；页面／截图／逐文件哈希与原件见[预检索引](../../../artifacts/pokemon-expansion/imagegen/video-candidates/2026-10-05-mewtwo-public-preflight/preflight-index.json)，17文件共2,052,269字节。23秒官方公开视频页未提供可取得的直接文件，电影网手机页403、Netflix预告地区限制均未规避；新增视频／音频／透明帧均为0，未核验视频时间段、叫声或独立改编再分发许可。临时检索下载位于`tmp/pokemon-expansion-materials/`，必要候选证据归档，未更改用户客户端缓存。
 
-现有主题CSS演出、事件时长、减少动态静态角色及两槽声音调度已实现和组件验证，不能代替完整多姿态素材验收。没有新增正式角色原声；真实叫声与真人听感继续保留缺口。生产资源离线加载已通过最终同包验收，详见[交付核对](../../../artifacts/maintenance/v1.0.2/pokemon-expansion-delivery/final-checks.json)及[专项场景](validation-scenarios.md#扩展版专项场景2026-10-05)，实际进度见任务页。
+现有主题CSS演出、事件时长、减少动态静态角色及两槽声音调度已实现和组件验证，不能代替完整多姿态素材验收。没有新增正式角色原声；真实叫声与真人听感继续保留缺口。生产资源离线加载已通过最终同包验收，详见[交付核对（原件待退役）](../../archive/history-cleanup-20261024.md)及[专项场景](validation-scenarios.md#扩展版专项场景2026-10-05)，实际进度见任务页。
 
 ### 续建素材与反馈（2026-10-06）
 
@@ -191,7 +191,7 @@ EX-A11 通过站点正式访客流程取得，额度检查为 `allowed=1`、下�
 
 新增超梦、阿尔宙斯、固拉多、盖欧卡、烈空坐、甲贺忍蛙、路卡利欧与研究公布八项原创程序主题音，正式派生编码为Ogg／Opus单声道，共32,604字节。229,152字节原始WAV保留在 `artifacts/pokemon-expansion/continuation-audio/originals/`，原始／派生哈希、编码参数和用途见[主题音清单](../../../assets/games/pokemon-encounters/expansion/audio/themes.json)。这些声音不是角色官方叫声；八项已在最终实际WebView2同包离线解码通过，真人听感仍待验，不以解码成功替代人耳试听。原版媒体不改字节。
 
-扩展UI新增依据已保存结果的场地移位、盖回与翻明局部轨迹；私看不产生公开目标，减少动态隐藏轨迹，事件取消清理演出。主题代码和公开轨迹属于已实现反馈，真实多姿态序列仍未完成。上述续建已在[最新同包汇总](../../../artifacts/maintenance/v1.0.2/pokemon-expansion-continuation-delivery/final-checks.json)完成技术验收：18张卡面、八项Ogg本地解码与54格显示通过，页面错误及外部请求为零。真实姿态、官方叫声、实体设备与真人听感继续待完成，当前状态见[验收记录](../../reference/acceptance.md)。
+扩展UI新增依据已保存结果的场地移位、盖回与翻明局部轨迹；私看不产生公开目标，减少动态隐藏轨迹，事件取消清理演出。主题代码和公开轨迹属于已实现反馈，真实多姿态序列仍未完成。上述续建已在[最新同包汇总（原件待退役）](../../archive/history-cleanup-20261024.md)完成技术验收：18张卡面、八项Ogg本地解码与54格显示通过，页面错误及外部请求为零。真实姿态、官方叫声、实体设备与真人听感继续待完成，当前状态见[验收记录](../../reference/acceptance.md)。
 
 中文现有姿态续检实际保留13张图片原件，共4,995,022字节，见[来源与动作核验](../../../artifacts/pokemon-expansion/existing-pose-audit-20261006/audit.json)。超梦单张高分辨率透明立绘可作为参考；奖杯图含底座或预烘焙效果，小智忍蛙商品图为同一手办的不同角度，均不构成所需完整动作序列，新增合格序列为零，62帧缺口不变。
 
@@ -207,9 +207,9 @@ EX-A11 通过站点正式访客流程取得，额度检查为 `allowed=1`、下�
 
 该次技术收尾按用户选择采用代码多姿态替代位图制作：`expansion/web/poses/` 内14套共63个关键姿态，独立头部、躯干、四肢、尾部关节；百变怪与裂空座还改变路径轮廓。五神各五姿态、忍蛙六姿态，其他八套各四姿态；九套全屏、五套局部。正式运行采用透明SVG与共享时间轴，姿态在0–0.85之间展开，最后15%保留收势；不是静图平移补帧。动作收尾当次未再下载或请求imagegen，历史失败和原素材完整保留；其后研究场景的 imagegen 制作与替换见本页首节。
 
-[消费清单](../../../assets/games/pokemon-encounters/expansion/frames.json)区分源码大小、组件播放及最终便携核验；[静态关节及裁切](../../../artifacts/maintenance/v1.0.2/pokemon-expansion-completion-20261006/poses/articulation-verification-fixed.json)覆盖63帧，首次阿尔宙斯冠尖越界失败与修正保留。[透明核验证据](../../../artifacts/maintenance/v1.0.2/pokemon-expansion-completion-20261006/poses/transparent/transparent-verification.json)逐帧记录512×512、alpha及PNG／SVG／源码哈希，约3.06MB只留证据，不进入包。独立审查及最终实际包证据见[本次任务](../../archive/pokemon-encounters-expansion-2026-10-05-to-06.md#一次性技术收尾2026-10-06)。
+[消费清单](../../../assets/games/pokemon-encounters/expansion/frames.json)区分源码大小、组件播放及最终便携核验；[静态关节及裁切（原件待退役）](../../archive/history-cleanup-20261024.md)覆盖63帧，首次阿尔宙斯冠尖越界失败与修正保留。[透明核验证据（原件待退役）](../../archive/history-cleanup-20261024.md)逐帧记录512×512、alpha及PNG／SVG／源码哈希，约3.06MB只留证据，不进入包。独立审查及最终实际包证据见[本次任务](../../archive/pokemon-encounters-expansion-2026-10-05-to-06.md#一次性技术收尾2026-10-06)。
 
-[音源审计](../../../artifacts/maintenance/v1.0.2/pokemon-expansion-completion-20261006/audio/provenance-audit.json)核对全部27叫声与八主题的原件／运行SHA-256，并将27原件SHA-1与已有公开文件说明证据逐项对应。叫声清单新增已确认说明URL／上传时间／百科使用标记及既有实际播放证据；游戏世代和本项目再分发依据仍未确认，不声明官方授权。上传时间不是世代，百科标记不是项目许可。八主题明确标为项目原创程序合成，补充能力／研究反馈，不替换角色叫声；该次技术收尾没有新下载、重编码或音频字节变化，之后 UI 重设计的 60% 派生见本页首节，用户指定原件继续保留。最终同包听音调用与解码单独验收，真人听感交接待测。
+[音源审计（原件待退役）](../../archive/history-cleanup-20261024.md)核对全部27叫声与八主题的原件／运行SHA-256，并将27原件SHA-1与已有公开文件说明证据逐项对应。叫声清单新增已确认说明URL／上传时间／百科使用标记及既有实际播放证据；游戏世代和本项目再分发依据仍未确认，不声明官方授权。上传时间不是世代，百科标记不是项目许可。八主题明确标为项目原创程序合成，补充能力／研究反馈，不替换角色叫声；该次技术收尾没有新下载、重编码或音频字节变化，之后 UI 重设计的 60% 派生见本页首节，用户指定原件继续保留。最终同包听音调用与解码单独验收，真人听感交接待测。
 
 ## v1.0.5 运行音频无损派生（2026-10-08）
 

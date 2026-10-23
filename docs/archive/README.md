@@ -1,5 +1,7 @@
 # 归档索引
 
+[历史临时内容与旧验收证据退役](history-cleanup-20261024.md)：按最新授权清理未集中管理的旧临时内容及非最新版本证据，保留逐文件SHA与单次执行记录；被退役原件不能再用于验收复用。
+
 [验收整理前原文](acceptance-before-consolidation-2026-10-23.md)与[验证整理前原文](validation-before-consolidation-2026-10-23.md)：2026-10-23第三轮将当前状态、验证政策与操作命令职责分开；完整保留原日期、候选、结果、失败及证明边界。现行答案见[当前验收](../reference/acceptance.md)与[验证政策](../reference/validation.md)。
 
 [历史证据地址24项核查](historical-evidence-audit-2026-10-23.md)：逐条保留原地址、来源SHA、现存材料和可用性；2处有退役证明、1处有同字节备份，其余原件／原发行报告缺口保留，不能当作已补证或当前通过。

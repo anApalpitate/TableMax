@@ -82,7 +82,7 @@
 
 来源：[docs/reference/validation.md](../reference/validation.md)；整理前原文件SHA-256 `f951378a931e42c8895c1f72efc45d0aba584754cc474757b866890f38fce113`。
 
-2026-10-08研究重设计的第一包实际解压95,035,481字节，超过当时95MB工程预算35,481字节，未作交付验收。只压缩宝可梦人机144,410字节为715字节入口＋28,397字节载荷，净省115,298字节；该轮压缩包248文件实际解压94,920,183字节，余79,817字节；后续客户端返修后的当前体积以验收记录为准。相关[载荷检查](../../artifacts/maintenance/v1.0.4/research-redesign-20261008/implementation/pokemon-bot-brotli.json)及[首包预算失败](../../artifacts/maintenance/v1.0.4/research-redesign-20261008/implementation/budget-failure.json)保留；当前实际包验收见[验收记录](../reference/acceptance.md)。
+2026-10-08研究重设计的第一包实际解压95,035,481字节，超过当时95MB工程预算35,481字节，未作交付验收。只压缩宝可梦人机144,410字节为715字节入口＋28,397字节载荷，净省115,298字节；该轮压缩包248文件实际解压94,920,183字节，余79,817字节；后续客户端返修后的当前体积以验收记录为准。相关[载荷检查（原件待退役）](history-cleanup-20261024.md)及[首包预算失败（原件待退役）](history-cleanup-20261024.md)保留；当前实际包验收见[验收记录](../reference/acceptance.md)。
 
 ## 两种Windows交付与空盒子入口（2026-10-11）
 
@@ -98,9 +98,9 @@
 
 本节只追溯2026-10-11的Pages与v1.0.6重新发布，全部独立游戏分发／Pages准备和部署命令已退役。线上旧内容本轮未修改，以下操作不能作为现行命令执行；新的Release边界见[GitHub发布](../reference/release.md#github发布)。
 
-用户此前采用 GitHub Pages 按目录分发游戏包，并暂时撤回 v1.0.6；该 Release 曾改为草稿（ID `409577467`），原标签与25个附件留有历史审计。随后用户明确授权“现在部署Pages并重新发布v1.0.6”，本次已完成[游戏包目录部署](https://anapalpitate.github.io/TableMax/)及[v1.0.6正式重新发布](https://github.com/anApalpitate/TableMax/releases/tag/v1.0.6)。35个公开文件的大小／SHA、正式及latest状态、九条正文和严格三附件核验全部通过，见[最终发布审计](../../artifacts/maintenance/v1.0.6/pages-release-20261011/github-draft-replacement-1791717345309.json)与[验收记录](../reference/acceptance.md)。普通提交、推送和构建不自动构成以后发布的授权。
+用户此前采用 GitHub Pages 按目录分发游戏包，并暂时撤回 v1.0.6；该 Release 曾改为草稿（ID `409577467`），原标签与25个附件留有历史审计。随后用户明确授权“现在部署Pages并重新发布v1.0.6”，本次已完成[游戏包目录部署](https://anapalpitate.github.io/TableMax/)及[v1.0.6正式重新发布](https://github.com/anApalpitate/TableMax/releases/tag/v1.0.6)。35个公开文件的大小／SHA、正式及latest状态、九条正文和严格三附件核验全部通过，见[最终发布审计（原件待退役）](history-cleanup-20261024.md)与[验收记录](../reference/acceptance.md)。普通提交、推送和构建不自动构成以后发布的授权。
 
-本次[已审更新说明](../../artifacts/maintenance/v1.0.6/pages-release-20261011/release-notes.md)以v1.0.5实际发布source提交 `4943ca5cf89aabc850df3fb566519973913feb3e` 为比较基线，不能以保留的旧标签对象替代。本次source ZIP对应 `a7d13f7388442bbc3083913c0786ca43278214ef`，v1.0.6原标签继续指向 `1f8267a4bdf4d8172719a3e71be1f7445f88c3bc`；两者映射已记录在最终发布审计，未移动或强推历史标签。
+本次[已审更新说明（原件待退役）](history-cleanup-20261024.md)以v1.0.5实际发布source提交 `4943ca5cf89aabc850df3fb566519973913feb3e` 为比较基线，不能以保留的旧标签对象替代。本次source ZIP对应 `a7d13f7388442bbc3083913c0786ca43278214ef`，v1.0.6原标签继续指向 `1f8267a4bdf4d8172719a3e71be1f7445f88c3bc`；两者映射已记录在最终发布审计，未移动或强推历史标签。
 
 当时后续方案为full／box两种Windows EXE、发布提交的source ZIP和已验证作者工具包放GitHub Release；签名目录、代码／资源包及完整玩法离线包放 `https://anapalpitate.github.io/TableMax/`。当时线上旧三附件保留原发布事实，四附件方案后来取消；普通推送不触发重新发布。
 
@@ -120,7 +120,7 @@ games/v1.0.6/<gameId>/<variantId或default>/index.html
 
 当时执行 `pnpm prepare:pages -- --packages=<已验独立游戏包目录> --out=<全新输出目录>` 生成静态站点及站点外逐文件清单；当时执行 `pnpm verify:pages -- --packages=<同一目录>` 在127.0.0.1检查目录路径、哈希、离线依赖、篡改拒绝和不覆盖旧输出。工具不调用 GitHub。每次准备使用新目录，部署时合并既有历史目录：内容寻址包不可覆盖或删除，旧对局引用必须仍可下载；当前签名目录和浏览目录可以更新。跨版本依赖须一并保全，不能只上传最新文件。本地 `artifacts/pages/` 当前候选与清单受维护保护，不自动清空。
 
-`.github/workflows/pages.yml`仅手动触发，要求输入 `PUBLISH_TABLEMAX`；没有 push、定时或 Release 自动触发器。本次已核对本地清单及历史目录，将已验证的纯静态目录提交到 `gh-pages`，配置 Pages 使用 GitHub Actions并手动部署；[部署工作流](https://github.com/anApalpitate/TableMax/actions/runs/38133974837)及[公开字节核验](../../artifacts/maintenance/v1.0.6/pages-release-20261011/public-pages.json)通过。该历史工作流不再作为当前交付入口，普通push和本轮维护均不部署。整个站点不超过 [Pages 的1GB限制](https://docs.github.com/en/pages/getting-started-with-github-pages/github-pages-limits)，累计历史文件也计入；部署权限与环境按 [官方工作流说明](https://docs.github.com/en/pages/getting-started-with-github-pages/using-custom-workflows-with-github-pages)。私钥、存档和本地审计永不上传。
+`.github/workflows/pages.yml`仅手动触发，要求输入 `PUBLISH_TABLEMAX`；没有 push、定时或 Release 自动触发器。本次已核对本地清单及历史目录，将已验证的纯静态目录提交到 `gh-pages`，配置 Pages 使用 GitHub Actions并手动部署；[部署工作流](https://github.com/anApalpitate/TableMax/actions/runs/38133974837)及[公开字节核验（原件待退役）](history-cleanup-20261024.md)通过。该历史工作流不再作为当前交付入口，普通push和本轮维护均不部署。整个站点不超过 [Pages 的1GB限制](https://docs.github.com/en/pages/getting-started-with-github-pages/github-pages-limits)，累计历史文件也计入；部署权限与环境按 [官方工作流说明](https://docs.github.com/en/pages/getting-started-with-github-pages/using-custom-workflows-with-github-pages)。私钥、存档和本地审计永不上传。
 
 此前已授权草稿替换使用 `pnpm release:github -- --publish --replace-draft --draft-id=409577467 --notes=<说明> --devkit=<已验工具包> --pages-manifest=<已审站点清单>`完成，三附件及实际源码映射见发布审计。该旧入口曾核对Pages公开字节；双EXE与作者工具包的后续四附件方案已取消，未来发布采用现行完整EXE与source ZIP；`--replace-draft`只适用于明确指定的既有草稿，不能将当前正式Release当作旧草稿再次操作。保留历史标签，不强推或隐瞒实际发布源码映射。
 
@@ -142,11 +142,11 @@ games/v1.0.6/<gameId>/<variantId或default>/index.html
 
 当前本地完整程序为 [TableMax-1.0.6.10-win-x64.exe](local-release-retirement-2026-10-16.md#逐文件退役清单)，公开版本仍为1.0.6。新局使用 `events-research-v3`，统一144张、17项研究、单格超梦及六类随机事件；旧存档、checkpoint及原局下一小局固定原发行。Mega与羁绊仅展示主题占位，7项缺失研究插图采用符合新条件的代码场景。主机／公共隐藏玩家缓冲，本人端保留操作；天气角标、环境层、全屏能力与路卡利欧画像波导已接入。
 
-[实际完整EXE证明](../../artifacts/maintenance/v1.0.6/windows-editions/63b12c9af279f4a374a51d80dfa4e9251ac1f9f1c54b6b467c3cd62d1336c41a/shipping-executable-checks-full.json)通过载荷全部哈希、96成员集合、重复提取及隐藏原生WebView2／包内Node安全。EXE **44,096,512字节**，内部ZIP **43,964,478字节**，实际提取 **97,009,047字节**，均严格小于120,000,000字节。宝可梦扩展模块 **3,717,195字节**（[同包严格预算证明](../../artifacts/maintenance/v1.0.6/pokemon-events-v3-verification/module-budget-10610.json)），本轮仍按4,194,304字节门禁，新增4份运行图片共167,594字节。EXE SHA-256为 `93207df18d568e808ea903ce5d538fe1835323f80a523af95a09241eeb6364bc`，冻结快照与内部载荷按该原始证明绑定；current已于2026-10-15推广18，见[当前源码与本地交付](../reference/acceptance.md#当前源码与本地交付)。
+[实际完整EXE证明（原件待退役）](history-cleanup-20261024.md)通过载荷全部哈希、96成员集合、重复提取及隐藏原生WebView2／包内Node安全。EXE **44,096,512字节**，内部ZIP **43,964,478字节**，实际提取 **97,009,047字节**，均严格小于120,000,000字节。宝可梦扩展模块 **3,717,195字节**（[同包严格预算证明（原件待退役）](history-cleanup-20261024.md)），本轮仍按4,194,304字节门禁，新增4份运行图片共167,594字节。EXE SHA-256为 `93207df18d568e808ea903ce5d538fe1835323f80a523af95a09241eeb6364bc`，冻结快照与内部载荷按该原始证明绑定；current已于2026-10-15推广18，见[当前源码与本地交付](../reference/acceptance.md#当前源码与本地交付)。
 
 源码适用检查已通过：新配置、半分／负分及多暗行计分、144张守恒、单格秘密权限、事件原子保存与恢复、三档2–6人完整三胜矩阵、6席32MiB真实Worker混合大局、原版差分与旧profile回归。人机矩阵及138,392ms混合Worker结果见[人机验证边界](../games/pokemon-encounters/bot.md#当前验证边界)。默认浮钮已修正横竖切换的右缘位置及滚动避让，5项模型检查和类型检查通过。
 
-同一个EXE的适用专项已全部通过：[真实服务与旧发行恢复](../../artifacts/maintenance/v1.0.6/pokemon-expansion-runtime/events-v3-10610-d/results.json)、[显示矩阵](../../artifacts/maintenance/v1.0.6/network-adaptation/game-audit/events-v3-10610-a/results.json)、[演出](../../artifacts/maintenance/v1.0.6/pokemon-expansion-effects/events-v3-10610-b/results.json)、[结算与授胜](../../artifacts/maintenance/v1.0.6/pokemon-expansion-awards/events-v3-10610-a/results.json)和[自然游玩](../../artifacts/maintenance/v1.0.6/pokemon-expansion-normal-play/events-v3-10610-b/results.json)。服务专项6个受控合法事件场景经真实Socket与SQLite保存，对照实际包内规则、单张私看、随机状态及暗牌投影；真实1.0.6.3旧局的恢复、回退、重启和下一小局仍保持原发行。18张肖像、16张无损卡面、8个主题音频、27个叫声及4张新增运行图的离线哈希／解码通过。
+同一个EXE的适用专项已全部通过：[真实服务与旧发行恢复（原件待退役）](history-cleanup-20261024.md)、[显示矩阵（原件待退役）](history-cleanup-20261024.md)、[演出（原件待退役）](history-cleanup-20261024.md)、[结算与授胜（原件待退役）](history-cleanup-20261024.md)和[自然游玩（原件待退役）](history-cleanup-20261024.md)。服务专项6个受控合法事件场景经真实Socket与SQLite保存，对照实际包内规则、单张私看、随机状态及暗牌投影；真实1.0.6.3旧局的恢复、回退、重启和下一小局仍保持原发行。18张肖像、16张无损卡面、8个主题音频、27个叫声及4张新增运行图的离线哈希／解码通过。
 
 显示矩阵含2／4／6人、手机320–430px竖屏及568–932px横屏、电脑720p至4K横竖与短屏／长昵称／浮窗／100／125／150%模拟缩放；1,674次布局审计、422次真实点击、37次草稿保留、425组天气角标几何记录及54格结算通过。记录自然按钮高度、18px主要动作、44px触区及多点点击命中。自然随机对局没有遇到所有能力和事件，未遇阶段单列，固定合法场景补验独立记录；不以随机游玩代替全覆盖。
 
@@ -180,7 +180,7 @@ pnpm package:win -- --candidate --platform-from=build/snapshots/4e4f4f05f0a938f8
 
 来源：[tools/release/README.md](../../tools/release/README.md)；整理前原文件SHA-256 `0c8bca2565d62b70d1f6ad9be842a7d05fe76744efb06ea999a7055a169ed07e`。
 
-重封内部fixture时先把release manifest按原字节复制到本轮独立工作目录，再传给 `createInstallationExecutable`；该工厂会在输入manifest旁写出固定名称的installation manifest，不能复用旧冻结目录作为可写输出。2026-10-15一次旧tmp sidecar覆盖已按原SHA恢复，原ZIP／release manifest／EXE未变，原失败保留于[轮次记录](../../artifacts/maintenance/v1.0.6/installation-remaining/account-round-20261015.json)。
+重封内部fixture时先把release manifest按原字节复制到本轮独立工作目录，再传给 `createInstallationExecutable`；该工厂会在输入manifest旁写出固定名称的installation manifest，不能复用旧冻结目录作为可写输出。2026-10-15一次旧tmp sidecar覆盖已按原SHA恢复，原ZIP／release manifest／EXE未变，原失败保留于[轮次记录（原件待退役）](history-cleanup-20261024.md)。
 
 ## 阿瓦隆旧双版本验证
 
@@ -213,14 +213,14 @@ Node 与 pnpm 沿用锁定版本。沙箱默认 Corepack 缓存落在不可用�
 
 ## 历史候选manifest归组
 
-本次仅迁移四份原manifest，合计133,356字节；[逐文件原新路径与SHA](../../artifacts/maintenance/v1.0.6/tooling-organization-20261015/manifest-relocations.json)及[应用记录](../../artifacts/maintenance/v1.0.6/tooling-organization-20261015/manifest-relocations-applied.json)记录moved4、deleted0。10／18与指针由[保护基线](../../artifacts/maintenance/v1.0.6/tooling-organization-20261015/protected-before.json)绑定，payload和proof未迁移。该元数据归组不表示新输出路径兼容已经通过，失败和接续见[整理任务](tooling-delivery-organization-2026-10-15.md)。
+本次仅迁移四份原manifest，合计133,356字节；[逐文件原新路径与SHA（原件待退役）](history-cleanup-20261024.md)及[应用记录（原件待退役）](history-cleanup-20261024.md)记录moved4、deleted0。10／18与指针由[保护基线（原件待退役）](history-cleanup-20261024.md)绑定，payload和proof未迁移。该元数据归组不表示新输出路径兼容已经通过，失败和接续见[整理任务](tooling-delivery-organization-2026-10-15.md)。
 
 - artifacts/releases/TableMax-1.0.6.13-win-x64-manifest.json → artifacts/releases/retired/v1.0.6/1.0.6.13/TableMax-1.0.6.13-win-x64-manifest.json；32989字节，SHA 8c2ff05cec55e01328203e91ab177537cc6403f90683ac725627482faada5115。
 - artifacts/releases/TableMax-1.0.6.14-win-x64-manifest.json → artifacts/releases/retired/v1.0.6/1.0.6.14/TableMax-1.0.6.14-win-x64-manifest.json；33452字节，SHA 2e4843a4fe22601635bc49a76694a0e8435ad3688e4f980cd10e0b2e0e2656c2。
 - artifacts/releases/TableMax-1.0.6.15-win-x64-manifest.json → artifacts/releases/retired/v1.0.6/1.0.6.15/TableMax-1.0.6.15-win-x64-manifest.json；33460字节，SHA f595c6d24da84ddddb5450a5e96945a852ec687e3effd3ffd71b6f9cf3ced173。
 - artifacts/releases/TableMax-1.0.6.16-win-x64-manifest.json → artifacts/releases/retired/v1.0.6/1.0.6.16/TableMax-1.0.6.16-win-x64-manifest.json；33455字节，SHA e717ac567b2353f6ffe83a868b04227678361e7034d989eee12241a179024fe0。
 
-[一次性工具盘点](../../artifacts/maintenance/v1.0.6/tooling-organization-20261015/tool-inventory.json)保存原337文件职责、直接消费者和文字引用，只作来源审计，不作为新registry。
+[一次性工具盘点（原件待退役）](history-cleanup-20261024.md)保存原337文件职责、直接消费者和文字引用，只作来源审计，不作为新registry。
 
 ## 工具整理任务停线原记录（2026-10-16迁入）
 
@@ -261,11 +261,11 @@ Node 与 pnpm 沿用锁定版本。沙箱默认 Corepack 缓存落在不可用�
 
 后续只做了源码提取、静态审阅、格式／语法／链接检查及原文件哈希核对。未创建账户、未启动安装器、未重新封包或推广，原18的已完成验收不等于新工具方法已通过。
 
-初轮静态检查曾发现提取后两处未用import，后续修正；测试错误保全实现也按静态规则调整。最新39份MJS语法与ESLint通过，三份PS的AST无错误，保护基线内交付、指针、清单、原证明及既有工作区配置均保持原SHA。证据：[初轮记录](../../artifacts/maintenance/v1.0.6/tooling-organization-20261015/validation-round-01.json)、[累计5失败记录](../../artifacts/maintenance/v1.0.6/tooling-organization-20261015/validation-round-02.json)、[最新静态语法](../../artifacts/maintenance/v1.0.6/tooling-organization-20261015/five-limit-static-syntax.json)、[最新ESLint](../../artifacts/maintenance/v1.0.6/tooling-organization-20261015/five-limit-static-eslint.json)。静态检查不替代隔离或系统验收。
+初轮静态检查曾发现提取后两处未用import，后续修正；测试错误保全实现也按静态规则调整。最新39份MJS语法与ESLint通过，三份PS的AST无错误，保护基线内交付、指针、清单、原证明及既有工作区配置均保持原SHA。证据：[初轮记录（原件待退役）](history-cleanup-20261024.md)、[累计5失败记录（原件待退役）](history-cleanup-20261024.md)、[最新静态语法（原件待退役）](history-cleanup-20261024.md)、[最新ESLint（原件待退役）](history-cleanup-20261024.md)。静态检查不替代隔离或系统验收。
 
 达到现行5项上限后不自动继续。后续先复验current-delivery受影响项并保留完整主错误，再跑隔离回归；静态与隔离均通过后才进入真实Windows验证。现有formal驱动默认要求三条fixture链，不能为缩小矩阵省略原门禁；安排实际系统验收时必须据真实入口预算并复用相同方法且仍可核验的材料。
 
-证据入口：[迁移计划](../../artifacts/maintenance/v1.0.6/tooling-organization-20261015/manifest-relocations.json)、[迁移结果](../../artifacts/maintenance/v1.0.6/tooling-organization-20261015/manifest-relocations-applied.json)、[337文件盘点](../../artifacts/maintenance/v1.0.6/tooling-organization-20261015/tool-inventory.json)、[保护基线](../../artifacts/maintenance/v1.0.6/tooling-organization-20261015/protected-before.json)。本任务仍未完成，不将实现与静态通过写成业务验收通过；阶段代码提交与push待适用验证完成。
+证据入口：[迁移计划（原件待退役）](history-cleanup-20261024.md)、[迁移结果（原件待退役）](history-cleanup-20261024.md)、[337文件盘点（原件待退役）](history-cleanup-20261024.md)、[保护基线（原件待退役）](history-cleanup-20261024.md)。本任务仍未完成，不将实现与静态通过写成业务验收通过；阶段代码提交与push待适用验证完成。
 
 ## 验证边界
 
@@ -273,16 +273,16 @@ Node 与 pnpm 沿用锁定版本。沙箱默认 Corepack 缓存落在不可用�
 
 ## 方法拆分后的正式执行与独立封存（2026-10-16）
 
-原停线快照之后，父／子PS方法源数组与环境入口列表经实质修复并定向复验；[入口列表隔离3项](../../artifacts/maintenance/v1.0.6/installation-flow-20261015/round-03/entrypoint-array-fixed.log)通过，首次[账户创建前的失败](../../artifacts/maintenance/v1.0.6/installation-flow-20261015/round-03/production-account-19-01-elevated-error.json)不改写。round03累计4失败仍保留，未因随后通过清零。
+原停线快照之后，父／子PS方法源数组与环境入口列表经实质修复并定向复验；[入口列表隔离3项（原件待退役）](history-cleanup-20261024.md)通过，首次[账户创建前的失败（原件待退役）](history-cleanup-20261024.md)不改写。round03累计4失败仍保留，未因随后通过清零。
 
-`production-account-19-02` 使用拆分后的完整冻结方法源执行三条fixture及正式19系统链，[驱动终态](../../artifacts/maintenance/v1.0.6/installation-flow-20261015/round-03/production-account-19-02-completion.json)退出0，账户／profile实际清理成功。驱动保留原始[execution-proof.json](../../artifacts/maintenance/v1.0.6/installation-flow-20261015/round-03/production-account-19-02/execution-proof.json)、不可覆盖的[execution-receipt.json](../../artifacts/maintenance/v1.0.6/installation-flow-20261015/round-03/production-account-19-02/execution-receipt.json)与[隔离清理报告](../../artifacts/maintenance/v1.0.6/installation-flow-20261015/round-03/production-account-19-02/isolated-account.json)。
+`production-account-19-02` 使用拆分后的完整冻结方法源执行三条fixture及正式19系统链，[驱动终态（原件待退役）](history-cleanup-20261024.md)退出0，账户／profile实际清理成功。驱动保留原始[execution-proof.json（原件待退役）](history-cleanup-20261024.md)、不可覆盖的[execution-receipt.json（原件待退役）](history-cleanup-20261024.md)与[隔离清理报告（原件待退役）](history-cleanup-20261024.md)。
 
-随后独立finalizer按回执复核原输入、完整方法源、清理报告及保留runtime，CreateNew写出[finalized-installation-19.json](../../artifacts/maintenance/v1.0.6/installation-flow-20261015/round-03/finalized-installation-19.json)，[封存日志](../../artifacts/maintenance/v1.0.6/installation-flow-20261015/round-03/finalize-evidence-19.log)为passed；没有重跑产品或将fixture／迁移报告冒充正式proof。实际系统范围见[安装阶段记录](windows-installer-flow-2026-10-16.md#轮次03正式系统链与清理完成2026-10-16)，正式SHA与容量只在[验收](../reference/acceptance.md#当前源码与本地交付)维护。旧18原证明和字节保持原范围，新19方法实际结果另存；真实便携迁移仍在途，整体任务、文档及commit／push尚未收尾。
+随后独立finalizer按回执复核原输入、完整方法源、清理报告及保留runtime，CreateNew写出[finalized-installation-19.json（原件待退役）](history-cleanup-20261024.md)，[封存日志（原件待退役）](history-cleanup-20261024.md)为passed；没有重跑产品或将fixture／迁移报告冒充正式proof。实际系统范围见[安装阶段记录](windows-installer-flow-2026-10-16.md#轮次03正式系统链与清理完成2026-10-16)，正式SHA与容量只在[验收](../reference/acceptance.md#当前源码与本地交付)维护。旧18原证明和字节保持原范围，新19方法实际结果另存；真实便携迁移仍在途，整体任务、文档及commit／push尚未收尾。
 
 ## 迁移修复后的方法源边界与完成记录（2026-10-16）
 
 原正式19系统链和独立封存已经通过。随后round03第5项为portable验证器identity缺productId导致严格回执比较失败：真实default迁移／卸载已执行，整体仍failed，该测试账户清理成功。原报告、旧轮5失败和方法输入均保留，详见[迁移失败与定向完成](windows-installer-flow-2026-10-16.md#轮次03迁移失败与轮次04定向完成2026-10-16)。
 
-只修verifyIdentity四字段投影后，round04独立账户双迁移各8项通过，驱动exit0、账户／profile均删除且errors为空，没有重建或重跑formal。[历史方法源回执](../../artifacts/maintenance/v1.0.6/installation-flow-20261015/round-03/historical-method-sources/receipt.json)保留正式旧方法hash和对应原portable源恢复副本的exact SHA对照；旧proof没有重新绑定为修复后源码，也不把两个账户合成一份证明。
+只修verifyIdentity四字段投影后，round04独立账户双迁移各8项通过，驱动exit0、账户／profile均删除且errors为空，没有重建或重跑formal。[历史方法源回执（原件待退役）](history-cleanup-20261024.md)保留正式旧方法hash和对应原portable源恢复副本的exact SHA对照；旧proof没有重新绑定为修复后源码，也不把两个账户合成一份证明。
 
 本阶段已完成路径／current保护、新预算与隔离、方法拆分、实际执行回执与独立封存，以及新布局正式系统链和真实迁移所需验证。实际证据入口见[安装完成记录](windows-installer-flow-2026-10-16.md#轮次03迁移失败与轮次04定向完成2026-10-16)；现行规则转[验证](../reference/validation.md#历史通过率与失败阈值)，当前身份与交付数字转[验收](../reference/acceptance.md#当前源码与本地交付)。旧原文和失败全部保留，已完成任务撤出进行中索引；现行方法与历史过程分别维护。

@@ -6,7 +6,7 @@
 
 [位图清单](../../../assets/games/uno/visual-manifest.json)记录完整提示词、原图、转换、尺寸、字节与 SHA-256。桌面背景 `table-v1.webp` 为 1672×941／153,662 字节，封面 `cover-v1.webp` 为 800×600／93,080 字节；共 246,742 字节。两张均由内置 imagegen 原创生成，非 Mattel 官方美术，正式资源本地打包。
 
-原图、缩小封面及转换核验保留在 `artifacts/uno/imagegen/`。中央桌面留白用于真实卡牌，边缘四色缝线只是装饰；封面无规则数据与文字，游戏介绍由代码排版。生成、解码、实际三端 UI 与2026-10-10便携包已核验，具体旧包哈希和运行边界见 [当时证明](../../../artifacts/maintenance/v1.0.5/uno-20261010/portable-final/results.json)。
+原图、缩小封面及转换核验保留在 `artifacts/uno/imagegen/`。中央桌面留白用于真实卡牌，边缘四色缝线只是装饰；封面无规则数据与文字，游戏介绍由代码排版。生成、解码、实际三端 UI 与2026-10-10便携包已核验，具体旧包哈希和运行边界见 [当时证明（原件待退役）](../../archive/history-cleanup-20261024.md)。
 
 ## 声画
 
@@ -20,4 +20,4 @@
 
 2026-10-11 增加原创 catch-uno-v1.flac（0.58秒），漏喊质疑与UNO、+4质疑各自映射；11项FLAC与合成WAV解码PCM一致，原WAV继续保护。全项目格式审计见 `artifacts/maintenance/v1.0.6/bug-five-seven/audio-audit.json`，同名原素材不作为可删除副本。
 
-全项目[音效审计](../../../artifacts/maintenance/v1.0.6/bug-five-seven/audio-audit.json)逐文件记录哈希、解码PCM、采样率／声道／时长、源码引用与实际包成员。289份项目音频（181份assets音频及108份清单指向的原素材／历史参考）中65组WAV／FLAC解码一致，WAV为受保护原素材；114份实际运行音频没有相同哈希副本或同名双格式，保留必要运行格式，本次删除0文件，仓库及运行包节省均0字节。新抓漏音效23,065字节，旧10条音频字节未变。WebView2实际事件播放、Edge静音WebAudio解码通过；Windows WebKit缺WebAudio且FLAC加载超时，保留失败记录，不冒称iOS Safari通过。
+全项目[音效审计（原件待退役）](../../archive/history-cleanup-20261024.md)逐文件记录哈希、解码PCM、采样率／声道／时长、源码引用与实际包成员。289份项目音频（181份assets音频及108份清单指向的原素材／历史参考）中65组WAV／FLAC解码一致，WAV为受保护原素材；114份实际运行音频没有相同哈希副本或同名双格式，保留必要运行格式，本次删除0文件，仓库及运行包节省均0字节。新抓漏音效23,065字节，旧10条音频字节未变。WebView2实际事件播放、Edge静音WebAudio解码通过；Windows WebKit缺WebAudio且FLAC加载超时，保留失败记录，不冒称iOS Safari通过。
