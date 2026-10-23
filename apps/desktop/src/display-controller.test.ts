@@ -257,55 +257,45 @@ it('only authorizes the managed corresponding role main frame on the exact local
   expect(() => controller.read(closedRequest)).toThrow('桌面主窗口');
 });
 
-it('keeps each open window independent while saving role defaults for newly opened windows', async () => {
+it('reads v1 host without rewriting and writes host-only v2 on explicit save', async () => {
   const directory = await temporaryDirectory();
   const store = new DisplaySettingsStore(directory);
+  const oldHostPreferences = {
+    resolution: '2560x1440',
+    interfaceScale: 125,
+  } as const;
+  const original = JSON.stringify({
+    version: 1,
+    host: oldHostPreferences,
+    public: { ignored: true },
+  });
+  await writeFile(store.path, original);
+  await store.load();
+  expect(store.read('host')).toEqual(oldHostPreferences);
+  expect(await readFile(store.path, 'utf8')).toBe(original);
   const controller = new DisplayController(store, origin, geometry);
   const host = new TestWindow();
-  const publicA = new TestWindow('public');
-  const publicB = new TestWindow('public');
-  for (const [window, role] of [
-    [host, 'host'],
-    [publicA, 'public'],
-    [publicB, 'public'],
-  ] as const)
-    controller.register(window, role);
+  controller.register(host, 'host');
+  expect(() =>
+    controller.register(new TestWindow('public'), 'public' as 'host'),
+  ).toThrow();
   const hostPreferences = {
     resolution: '1920x1080',
     interfaceScale: 125,
   } as const;
-  const publicPreferences = {
-    resolution: '1920x1080',
-    interfaceScale: 150,
-  } as const;
-  await Promise.all([
-    controller.update(host.request(), hostPreferences),
-    controller.update(publicA.request(), publicPreferences),
-  ]);
+  await controller.update(host.request(), hostPreferences);
   expect(host.webContents.zoomFactor).toBe(1.25);
-  expect(publicA.webContents.zoomFactor).toBe(1.5);
-  expect(publicB.webContents.zoomFactor).toBe(1);
   controller.refreshAll();
-  expect(controller.read(publicB.request()).preferences).toEqual({
-    resolution: 'auto',
-    interfaceScale: 100,
-  });
-  expect(publicB.webContents.zoomFactor).toBe(1);
-  publicA.webContents.emit('did-finish-load');
-  expect(publicA.webContents.zoomFactor).toBe(1.5);
-  const newlyOpenedPublic = new TestWindow('public');
-  controller.register(newlyOpenedPublic, 'public');
-  expect(newlyOpenedPublic.webContents.zoomFactor).toBe(1.5);
-  for (const window of [host, publicA, publicB, newlyOpenedPublic])
-    expect(window.webContents.modes).toEqual(['isolated']);
+  host.webContents.emit('did-finish-load');
+  expect(host.webContents.zoomFactor).toBe(1.25);
+  expect(host.webContents.modes).toEqual(['isolated']);
   const restored = new DisplaySettingsStore(directory);
   await restored.load();
   expect(restored.read('host')).toEqual(hostPreferences);
-  expect(restored.read('public')).toEqual(publicPreferences);
+  expect(() => restored.read('public' as 'host')).toThrow();
   expect(JSON.parse(await readFile(store.path, 'utf8'))).toEqual({
-    version: 1,
+    version: 2,
     host: hostPreferences,
-    public: publicPreferences,
   });
 });
 
@@ -360,8 +350,8 @@ it('recovers damaged settings without changing room.sqlite or overwriting the or
     JSON.stringify({ version: 2, host: {}, public: {} }),
     JSON.stringify({
       version: 1,
-      host: { resolution: 'auto', interfaceScale: 100 },
-      public: { resolution: 'auto', interfaceScale: 200 },
+      host: { resolution: 'auto', interfaceScale: 200 },
+      public: { resolution: 'auto', interfaceScale: 100 },
     }),
   ]) {
     await writeFile(store.path, content);
@@ -370,17 +360,13 @@ it('recovers damaged settings without changing room.sqlite or overwriting the or
       resolution: 'auto',
       interfaceScale: 100,
     });
-    expect(store.read('public')).toEqual({
-      resolution: 'auto',
-      interfaceScale: 100,
-    });
     expect(await readFile(store.path, 'utf8')).toBe(content);
     expect(await readFile(database)).toEqual(gameSave);
   }
-  await store.save('public', { resolution: '2560x1440', interfaceScale: 125 });
+  await store.save('host', { resolution: '2560x1440', interfaceScale: 125 });
   const restored = new DisplaySettingsStore(directory);
   await restored.load();
-  expect(restored.read('public')).toEqual({
+  expect(restored.read('host')).toEqual({
     resolution: '2560x1440',
     interfaceScale: 125,
   });
@@ -417,9 +403,9 @@ it('rechecks queued frame authorization and does not report a committed save as 
   const store = new DisplaySettingsStore(await temporaryDirectory());
   const controller = new DisplayController(store, origin, geometry);
   const host = new TestWindow();
-  const publicWindow = new TestWindow('public');
+  const queuedHost = new TestWindow();
   controller.register(host, 'host');
-  controller.register(publicWindow, 'public');
+  controller.register(queuedHost, 'host');
   const started = gate();
   const release = gate();
   const originalSave = store.save.bind(store);
@@ -432,9 +418,9 @@ it('rechecks queued frame authorization and does not report a committed save as 
   const hostContents = host.webContents;
   const pending = controller.update(host.request(), preferences);
   await started.promise;
-  const queued = controller.update(publicWindow.request(), preferences);
+  const queued = controller.update(queuedHost.request(), preferences);
   const queuedCheck = expect(queued).rejects.toThrow('桌面主窗口');
-  publicWindow.webContents.mainFrame.url = `${origin}/player/game`;
+  queuedHost.webContents.mainFrame.url = `${origin}/public/game`;
   host.close();
   const writes = hostContents.zoomWrites;
   release.open();
@@ -445,10 +431,6 @@ it('rechecks queued frame authorization and does not report a committed save as 
   await queuedCheck;
   expect(hostContents.zoomWrites).toBe(writes);
   expect(store.read('host')).toEqual(preferences);
-  expect(store.read('public')).toEqual({
-    resolution: 'auto',
-    interfaceScale: 100,
-  });
 });
 
 it('cleans closed and destroyed native windows using cached contents without accessing invalid getters', async () => {
@@ -462,16 +444,16 @@ it('cleans closed and destroyed native windows using cached contents without acc
   });
   const controller = new DisplayController(store, origin, nativeGeometry);
   const host = new TestWindow();
-  const publicWindow = new TestWindow('public');
+  const closingHost = new TestWindow();
   controller.register(host, 'host');
-  controller.register(publicWindow, 'public');
-  const contents = publicWindow.webContents;
-  const queuedResize = publicWindow.listeners('resize')[0]!;
+  controller.register(closingHost, 'host');
+  const contents = closingHost.webContents;
+  const queuedResize = closingHost.listeners('resize')[0]!;
   const queuedLoad = contents.listeners('did-finish-load')[0]!;
-  expect(() => publicWindow.close()).not.toThrow();
-  expect(() => publicWindow.webContents).toThrow('Object has been destroyed');
-  expect(() => publicWindow.getBounds()).toThrow('Object has been destroyed');
-  expect(() => publicWindow.off('resize', () => undefined)).toThrow(
+  expect(() => closingHost.close()).not.toThrow();
+  expect(() => closingHost.webContents).toThrow('Object has been destroyed');
+  expect(() => closingHost.getBounds()).toThrow('Object has been destroyed');
+  expect(() => closingHost.off('resize', () => undefined)).toThrow(
     'Object has been destroyed',
   );
   expect(() => contents.off('did-finish-load', () => undefined)).toThrow(
@@ -487,13 +469,13 @@ it('cleans closed and destroyed native windows using cached contents without acc
   expect(controller.read(host.request()).zoomFactor).toBe(1);
 
   // Native teardown can precede delivery of the window's closed event.
-  const destroyedBeforeClosed = new TestWindow('public');
-  controller.register(destroyedBeforeClosed, 'public');
+  const destroyedBeforeClosed = new TestWindow();
+  controller.register(destroyedBeforeClosed, 'host');
   destroyedBeforeClosed.destroyed = true;
   destroyedBeforeClosed.contents.destroyed = true;
   expect(() => controller.refreshAll()).not.toThrow();
-  const destroyedBeforeStop = new TestWindow('public');
-  controller.register(destroyedBeforeStop, 'public');
+  const destroyedBeforeStop = new TestWindow();
+  controller.register(destroyedBeforeStop, 'host');
   destroyedBeforeStop.destroyed = true;
   destroyedBeforeStop.contents.destroyed = true;
   expect(() => controller.stop()).not.toThrow();

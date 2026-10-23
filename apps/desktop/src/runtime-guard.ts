@@ -9,7 +9,7 @@ export class RuntimeGuard {
   start() {
     this.serviceBlocker ??= this.blocker.start('prevent-app-suspension');
   }
-  publicScreenVisible(visible: boolean) {
+  hostWindowVisible(visible: boolean) {
     if (visible)
       this.displayBlocker ??= this.blocker.start('prevent-display-sleep');
     else if (this.displayBlocker !== null) {
@@ -18,7 +18,7 @@ export class RuntimeGuard {
     }
   }
   stop() {
-    this.publicScreenVisible(false);
+    this.hostWindowVisible(false);
     if (this.serviceBlocker !== null) {
       this.blocker.stop(this.serviceBlocker);
       this.serviceBlocker = null;

@@ -19,15 +19,18 @@ export interface AudioRequest {
   senderFrame: AudioFrame | null;
 }
 export class AudioOutputController {
-  private entries = new Map<
-    number,
-    { window: AudioWindow; role: 'host' | 'public'; ready: boolean }
-  >();
+  private entries = new Map<number, { window: AudioWindow; ready: boolean }>();
   private played = new Set<string>();
   constructor(private origin: string) {}
-  register(window: AudioWindow, role: 'host' | 'public') {
+  register(window: AudioWindow, role: 'host') {
+    if (
+      role !== 'host' ||
+      window.isDestroyed() ||
+      window.webContents.isDestroyed()
+    )
+      throw new Error('Only a live managed host may produce desktop audio.');
     const id = window.webContents.id;
-    this.entries.set(id, { window, role, ready: false });
+    this.entries.set(id, { window, ready: false });
     window.on('closed', () => {
       this.entries.delete(id);
       this.broadcast();
@@ -44,8 +47,7 @@ export class AudioOutputController {
       ({ window, ready }) =>
         ready && !window.isDestroyed() && !window.webContents.isDestroyed(),
     );
-    return (entries.find((entry) => entry.role === 'public') ?? entries[0])
-      ?.window.webContents.id;
+    return entries[0]?.window.webContents.id;
   }
   private entry(request: AudioRequest, requireGame: boolean) {
     const entry = this.entries.get(request.sender.id);
@@ -59,10 +61,9 @@ export class AudioOutputController {
     const url = new URL(request.sender.getURL());
     if (
       url.origin !== this.origin ||
-      ![
-        '/' + entry.role + '/game',
-        ...(!requireGame ? ['/' + entry.role] : []),
-      ].includes(url.pathname) ||
+      !['/host/game', ...(!requireGame ? ['/host'] : [])].includes(
+        url.pathname,
+      ) ||
       request.senderFrame.url !== request.sender.getURL()
     )
       throw new Error('Audio request origin is invalid.');

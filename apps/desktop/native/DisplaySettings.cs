@@ -53,26 +53,24 @@ namespace TableMax.Desktop
     internal sealed class DisplaySettingsStore
     {
         private readonly string path;
-        private DisplayPreferences host = new DisplayPreferences(), publicScreen = new DisplayPreferences();
+        private DisplayPreferences host = new DisplayPreferences();
         public DisplaySettingsStore(string dataDirectory)
         {
             path = Path.Combine(dataDirectory, "display-settings.json");
             try
             {
                 var input = Json.Decode(File.ReadAllText(path));
-                if (input.Count != 3 || Json.Number(input, "version") != 1) throw new ArgumentException("Invalid display settings file.");
-                var loadedHost = DisplayPreferences.Parse(Json.Value(input, "host"));
-                var loadedPublic = DisplayPreferences.Parse(Json.Value(input, "public"));
-                host = loadedHost;
-                publicScreen = loadedPublic;
+                var version = Json.Number(input, "version");
+                if (!((version == 1 && input.Count == 3 && input.ContainsKey("public")) || (version == 2 && input.Count == 2))) throw new ArgumentException("Invalid display settings file.");
+                // Reading an old configuration never rewrites it. The retired
+                // public preference cannot invalidate a usable host preference.
+                host = DisplayPreferences.Parse(Json.Value(input, "host"));
             }
-            catch { /* Invalid separate display preferences must not prevent game recovery. */ }
+            catch { /* Invalid display preferences must not prevent game recovery. */ }
         }
-        public DisplayPreferences Read(string role) => (role == "public" ? publicScreen : host).Copy();
-        public void Save(string role, DisplayPreferences preferences)
+        public DisplayPreferences Read() => host.Copy();
+        public void Save(DisplayPreferences preferences)
         {
-            var nextHost = role == "host" ? preferences : host;
-            var nextPublic = role == "public" ? preferences : publicScreen;
             var temporary = path + "." + Guid.NewGuid().ToString("N") + ".tmp";
             try
             {
@@ -80,14 +78,13 @@ namespace TableMax.Desktop
                 using (var stream = new FileStream(temporary, FileMode.CreateNew, FileAccess.Write, FileShare.None))
                 using (var writer = new StreamWriter(stream))
                 {
-                    writer.Write(Json.Encode(new { version = 1, host = nextHost.Snapshot(), @public = nextPublic.Snapshot() }) + "\n");
+                    writer.Write(Json.Encode(new { version = 2, host = preferences.Snapshot() }) + "\n");
                     writer.Flush();
                     stream.Flush(true);
                 }
                 if (File.Exists(path)) File.Replace(temporary, path, null);
                 else File.Move(temporary, path);
-                host = nextHost.Copy();
-                publicScreen = nextPublic.Copy();
+                host = preferences.Copy();
             }
             catch (Exception cause)
             {

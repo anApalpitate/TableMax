@@ -246,8 +246,20 @@ try {
   );
   await host.evaluate(() => history.pushState(null, '', '/host'));
   await host.evaluate(() => window.tablemaxAudio.disconnect());
+  await host.evaluate(() => history.pushState(null, '', '/public/game'));
+  await assert.rejects(host.evaluate(() => window.tablemaxDisplay.read()));
+  await assert.rejects(host.evaluate(() => window.tablemaxWindow.read()));
+  await assert.rejects(host.evaluate(() => window.tablemaxAudio.connect()));
+  await host.evaluate(() => history.pushState(null, '', '/host'));
+  await assert.rejects(desktop.request('open-public'), /Unknown test method/);
+  await desktop.request('show-host');
+  assert.equal(
+    (await desktop.request('windows')).filter((window) => window.managed)
+      .length,
+    1,
+  );
   evidence.checks.push(
-    'Same-document game navigation retains authorized bridge and rejects a phone role',
+    'Same-document host navigation retains authorized bridge, rejects player/public roles and keeps one managed host',
   );
 
   await assert.rejects(desktop.request('unrecognized-method'));

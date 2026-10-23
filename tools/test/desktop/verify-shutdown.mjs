@@ -63,11 +63,7 @@ async function prepare() {
 }
 try {
   await prepare();
-  for (const scenario of [
-    'last-window',
-    'quit-two-windows',
-    'delete-recreate',
-  ]) {
+  for (const scenario of ['last-window', 'quit-host', 'delete-recreate']) {
     desktop = await launchDesktop({
       executablePath: join(app, 'TableMax.exe'),
       env: {
@@ -83,7 +79,12 @@ try {
     });
     const host = await desktop.firstWindow();
     await host.locator('.connection.online').waitFor();
-    if (scenario === 'quit-two-windows') await desktop.request('open-public');
+    await desktop.request('show-host');
+    assert.equal(
+      (await desktop.request('windows')).filter((window) => window.managed)
+        .length,
+      1,
+    );
     const cdp = await host.context().browser().newBrowserCDPSession();
     const { processInfo } = await cdp.send('SystemInfo.getProcessInfo');
     const pids = [
@@ -118,7 +119,7 @@ try {
       },
     );
     checks.push({ scenario, pids, dllExclusiveOpen: true });
-    if (scenario === 'quit-two-windows') {
+    if (scenario === 'quit-host') {
       assert.equal(resolve(box), join(work, 'TableMax'));
       execFileSync(
         'powershell.exe',

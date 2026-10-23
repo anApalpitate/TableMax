@@ -85,21 +85,13 @@ try {
     path: 'explicit-fullscreen-and-escape',
     preservedReturnMode: 'borderless',
   });
-  const next = desktop.waitForEvent('window');
-  await desktop.request('open-public');
-  const publicPage = await next;
-  await publicPage.locator('[data-room-revision]').waitFor();
-  await publicPage.evaluate(() => window.tablemaxWindow.setMode('borderless'));
-  await publicPage.keyboard.press('F11');
-  await publicPage.waitForFunction(() =>
-    window.tablemaxWindow.read().then((value) => value.mode === 'windowed'),
-  );
+  await assert.rejects(desktop.request('open-public'), /Unknown test method/);
+  await desktop.request('show-host');
+  assert.equal((await desktop.request('windows')).length, 1);
   assert.equal((await state()).mode, 'borderless');
   evidence.checks.push({
-    path: 'public-webview',
-    from: 'borderless',
-    to: 'windowed',
-    hostIndependent: true,
+    path: 'sole-host-window',
+    retiredPublicRejected: true,
   });
   assert.deepEqual(evidence.errors, []);
   evidence.passed = true;

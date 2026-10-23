@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { AudioOutputController } from './audio-controller';
 
-function fixture(id: number, role: 'host' | 'public') {
+function fixture(id: number, role: 'host' | 'public' = 'host') {
   let url = `http://127.0.0.1:1234/${role}/game`;
   let closed = false;
   const listeners = new Map<string, () => void>();
@@ -39,35 +39,34 @@ function fixture(id: number, role: 'host' | 'public') {
   };
 }
 describe('single desktop audio output', () => {
-  it('hands off to a public game and back without replaying a saved event', () => {
+  it('keeps the host as sole audio owner and never replays a saved event after reconnect', () => {
     const audio = new AudioOutputController('http://127.0.0.1:1234');
-    const host = fixture(1, 'host'),
-      publicScreen = fixture(2, 'public');
+    const host = fixture(1);
     audio.register(host.window, 'host');
-    audio.register(publicScreen.window, 'public');
     expect(audio.connect(host.request)).toBe(true);
     expect(audio.claim(host.request, 'game:branch:1')).toBe(true);
-    expect(audio.connect(publicScreen.request)).toBe(true);
-    expect(host.sent.at(-1)).toBe(false);
-    expect(audio.claim(publicScreen.request, 'game:branch:1')).toBe(false);
+    audio.reset(host.window);
     expect(audio.claim(host.request, 'game:branch:2')).toBe(false);
-    expect(audio.claim(publicScreen.request, 'game:branch:2')).toBe(true);
-    publicScreen.close();
+    expect(audio.connect(host.request)).toBe(true);
     expect(host.sent.at(-1)).toBe(true);
+    expect(audio.claim(host.request, 'game:branch:1')).toBe(false);
+    expect(audio.claim(host.request, 'game:branch:2')).toBe(true);
     expect(audio.claim(host.request, 'game:branch:2')).toBe(false);
-    expect(audio.claim(host.request, 'game:branch:3')).toBe(true);
+    host.close();
+    expect(() => audio.claim(host.request, 'game:branch:3')).toThrow();
   });
-  it('keeps only one public window active and releases on return to the box', () => {
+  it('rejects public registration and releases host audio on return to the box', () => {
     const audio = new AudioOutputController('http://127.0.0.1:1234');
-    const first = fixture(1, 'public'),
-      second = fixture(2, 'public');
-    audio.register(first.window, 'public');
-    audio.register(second.window, 'public');
+    const first = fixture(1),
+      retired = fixture(2, 'public');
+    expect(() => audio.register(retired.window, 'public' as 'host')).toThrow();
+    expect(() => audio.connect(retired.request)).toThrow();
+    audio.register(first.window, 'host');
     audio.connect(first.request);
-    expect(audio.connect(second.request)).toBe(false);
-    first.navigate('http://127.0.0.1:1234/public');
+    first.navigate('http://127.0.0.1:1234/host');
     audio.disconnect(first.request);
-    expect(second.sent.at(-1)).toBe(true);
+    expect(first.sent.at(-1)).toBe(false);
+    expect(() => audio.connect(first.request)).toThrow();
   });
   it('rejects unknown windows, player pages, foreign origins and subframes', () => {
     const audio = new AudioOutputController('http://127.0.0.1:1234');
@@ -81,6 +80,8 @@ describe('single desktop audio output', () => {
       }),
     ).toThrow();
     host.navigate('http://127.0.0.1:1234/player/game');
+    expect(() => audio.connect(host.request)).toThrow();
+    host.navigate('http://127.0.0.1:1234/public/game');
     expect(() => audio.connect(host.request)).toThrow();
     host.navigate('https://example.com/host/game');
     expect(() => audio.connect(host.request)).toThrow();

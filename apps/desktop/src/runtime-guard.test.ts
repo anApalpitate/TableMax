@@ -16,15 +16,15 @@ it('keeps the service awake, releases screen protection independently and cleans
   guard.start();
   guard.start();
   expect([...blockers.values()]).toEqual(['prevent-app-suspension']);
-  guard.publicScreenVisible(true);
-  guard.publicScreenVisible(true);
+  guard.hostWindowVisible(true);
+  guard.hostWindowVisible(true);
   expect([...blockers.values()]).toEqual([
     'prevent-app-suspension',
     'prevent-display-sleep',
   ]);
-  guard.publicScreenVisible(false);
+  guard.hostWindowVisible(false);
   expect([...blockers.values()]).toEqual(['prevent-app-suspension']);
-  guard.publicScreenVisible(true);
+  guard.hostWindowVisible(true);
   guard.stop();
   guard.stop();
   expect(blockers.size).toBe(0);

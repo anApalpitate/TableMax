@@ -364,23 +364,15 @@ try {
   );
 
   if (!foreground) {
-    const next = desktop.waitForEvent('window');
-    await desktop.request('open-public');
-    const publicPage = await next;
-    publicPage.on('pageerror', (error) => evidence.errors.push(error.message));
-    await publicPage.locator('[data-room-revision]').waitFor();
-    const publicVideo = await openVideo(publicPage);
-    await selectMode(publicPage, publicVideo.select, 'borderless');
-    assert.equal((await state(host)).mode, 'windowed');
-    await selectMode(publicPage, publicVideo.select, 'fullscreen');
-    assert.equal((await state(host)).mode, 'windowed');
-    await setMode(host, 'borderless');
-    await selectMode(publicPage, publicVideo.select, 'windowed');
-    assert.equal((await state(host)).mode, 'borderless');
-    await closeVideo(publicVideo.dialog);
-    await setMode(host, 'windowed');
+    await assert.rejects(desktop.request('open-public'), /Unknown test method/);
+    await desktop.request('show-host');
+    assert.equal(
+      (await desktop.request('windows')).filter((window) => window.managed)
+        .length,
+      1,
+    );
     evidence.checks.push(
-      'Host and public windows expose three video-setting modes and change independently',
+      'The host is the only managed display window; retired public-window requests are rejected',
     );
   }
 

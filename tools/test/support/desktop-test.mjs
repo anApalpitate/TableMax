@@ -348,10 +348,14 @@ export async function launchDesktop(options = {}) {
                         label: '打开房主管理',
                         click: () => queue('show-host'),
                       },
-                      {
-                        label: '打开公共屏',
-                        click: () => queue('open-public'),
-                      },
+                      ...(options.legacyPublicWindow === true
+                        ? [
+                            {
+                              label: '打开公共屏',
+                              click: () => queue('open-public'),
+                            },
+                          ]
+                        : []),
                     ],
                   },
                 },

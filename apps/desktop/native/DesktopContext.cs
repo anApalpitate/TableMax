@@ -30,12 +30,13 @@ namespace TableMax.Desktop
         private readonly RegisteredWaitHandle reopen;
         private ServiceProcess service;
         private NativeWindow hostWindow;
+        private Task<NativeWindow> hostOpening;
         private string hostUrl;
         private int servicePort;
         private int? startupServiceExitCode;
         private string startupStage = "start.initializing";
         private Dictionary<string, object> health;
-        private bool quitting, booting = true, powerActive;
+        private bool quitting, booting = true, powerActive, displayPowerActive, prototypeHost;
         private int nextId = 1;
         private readonly object outputLock = new object();
         private readonly Dictionary<int, Process> browserProcesses = new Dictionary<int, Process>();
@@ -100,6 +101,7 @@ namespace TableMax.Desktop
             {
                 if (!Uri.TryCreate(prototype, UriKind.Absolute, out var address) || address.Scheme != "http" || !IPAddress.TryParse(address.Host, out var ip) || !IPAddress.IsLoopback(ip)) throw new ArgumentException("Prototype test URL must use loopback HTTP.");
                 Origin = address.GetLeftPart(UriPartial.Authority); hostUrl = prototype;
+                prototypeHost = true;
                 health = new Dictionary<string, object>();
             }
             else
@@ -240,14 +242,21 @@ namespace TableMax.Desktop
         public async Task<NativeWindow> ShowHost()
         {
             if (quitting || string.IsNullOrEmpty(hostUrl)) return null;
-            if (hostWindow == null || hostWindow.IsDisposed) hostWindow = await Open(hostUrl, "host", 1080, 800, true, "desktop");
+            if (hostWindow == null || hostWindow.IsDisposed)
+            {
+                if (hostOpening == null) hostOpening = Open(hostUrl, "host", 1080, 800, true, "desktop");
+                try { hostWindow = await hostOpening; }
+                finally { hostOpening = null; }
+            }
             else if (!Background) { if (hostWindow.WindowState == FormWindowState.Minimized) hostWindow.WindowState = FormWindowState.Normal; hostWindow.Show(); if (!Testing) { hostWindow.Activate(); NativeMethods.SetForegroundWindow(hostWindow.Handle); } }
             return hostWindow;
         }
-        public Task<NativeWindow> OpenPublic(string path = "/public") => Open(Origin + path, "public", 1280, 800, true, "desktop");
         public async Task<NativeWindow> Open(string url, string role, int width, int height, bool managed, string partition)
         {
             if (quitting) throw new InvalidOperationException("Desktop is stopping.");
+            var allowedHost = Allowed(url, "host") || (Testing && prototypeHost && url == hostUrl);
+            if (managed && (role != "host" || !allowedHost || windows.Any(window => !window.IsDisposed && window.Managed))) throw new UnauthorizedAccessException("Only one managed host window may be opened.");
+            if (role == "public") throw new ArgumentException("The public window has been retired.");
             var lanPhone = !managed && role == "player" && AllowedTestPhone(url);
             if (!SameOrigin(url) && !lanPhone) throw new ArgumentException("Only the local TableMax origin may be opened.");
             var approvedOrigin = new Uri(url).GetLeftPart(UriPartial.Authority);
@@ -288,7 +297,7 @@ namespace TableMax.Desktop
             // WebView2's message Source can remain the committed document URL
             // after React changes its route with pushState. Both it and the
             // current route must retain this native window's origin and role.
-            if (!window.Managed || window.IsDisposed || (window.Role != "host" && window.Role != "public") || !Allowed(source, window.Role) || !Allowed(window.Url, window.Role)) throw new UnauthorizedAccessException("仅 TableMax 桌面主窗口可以调用桌面功能。");
+            if (!window.Managed || window.IsDisposed || window.Role != "host" || !Allowed(source, "host") || !Allowed(window.Url, "host")) throw new UnauthorizedAccessException("仅 TableMax 桌面主窗口可以调用桌面功能。");
             var method = Json.String(message, "method");
             var parameters = Json.Value(message, "params") as object[];
             if (parameters == null) throw new ArgumentException("桌面请求参数无效。");
@@ -316,7 +325,7 @@ namespace TableMax.Desktop
                 case "display.read": if (parameters.Length != 0) throw new ArgumentException("显示设置参数无效。"); return window.ApplyDisplay();
                 case "display.update":
                     if (parameters.Length != 1) throw new ArgumentException("显示设置参数无效。");
-                    var preferences = DisplayPreferences.Parse(parameters[0]); Displays.Save(window.Role, preferences); window.Preferences = preferences; return window.ApplyDisplay();
+                    var preferences = DisplayPreferences.Parse(parameters[0]); Displays.Save(preferences); window.Preferences = preferences; return window.ApplyDisplay();
                 case "audio.connect":
                     if (parameters.Length != 0 || !Allowed(window.Url, window.Role, true)) throw new UnauthorizedAccessException("Audio output is unavailable.");
                     window.AudioReady = true; BroadcastAudio(); return AudioOwner() == window;
@@ -341,24 +350,24 @@ namespace TableMax.Desktop
                 default: throw new ArgumentException("Unknown desktop request.");
             }
         }
-        private NativeWindow AudioOwner() => windows.Where(window => !window.IsDisposed && window.Managed && window.AudioReady).OrderBy(window => window.Role == "public" ? 0 : 1).FirstOrDefault();
+        private NativeWindow AudioOwner() => windows.FirstOrDefault(window => !window.IsDisposed && window.Managed && window.Role == "host" && window.AudioReady);
         public void BroadcastAudio()
         {
             var owner = AudioOwner();
-            foreach (var window in windows.ToArray()) if (!window.IsDisposed && window.Managed) window.Changed("audio", window == owner);
+            foreach (var window in windows.ToArray()) if (!window.IsDisposed && window.Managed && window.Role == "host") window.Changed("audio", window == owner);
         }
-        private NativeWindow InteractionAudioOwner() => windows.Where(window => !window.IsDisposed && window.Managed && window.InteractionAudioReady).OrderBy(window => window.Role == "public" ? 0 : 1).FirstOrDefault();
+        private NativeWindow InteractionAudioOwner() => windows.FirstOrDefault(window => !window.IsDisposed && window.Managed && window.Role == "host" && window.InteractionAudioReady);
         public void BroadcastInteractionAudio()
         {
             var owner = InteractionAudioOwner();
-            foreach (var window in windows.ToArray()) if (!window.IsDisposed && window.Managed) window.Changed("interaction-audio", window == owner);
+            foreach (var window in windows.ToArray()) if (!window.IsDisposed && window.Managed && window.Role == "host") window.Changed("interaction-audio", window == owner);
         }
         public void UpdatePower()
         {
             if (dispatch.InvokeRequired) { Post(UpdatePower); return; }
             powerActive = !quitting && !booting && service != null;
-            var publicVisible = windows.Any(window => window.Managed && window.Role == "public" && window.Visible && window.WindowState != FormWindowState.Minimized && !Background);
-            NativeMethods.SetThreadExecutionState(0x80000000u | (powerActive ? 1u : 0u) | (publicVisible && !quitting ? 2u : 0u));
+            displayPowerActive = !quitting && windows.Any(window => window.Managed && window.Role == "host" && window.Visible && window.WindowState != FormWindowState.Minimized && !Background);
+            NativeMethods.SetThreadExecutionState(0x80000000u | (powerActive ? 1u : 0u) | (displayPowerActive ? 2u : 0u));
         }
         private void OnPowerModeChanged(object sender, PowerModeChangedEventArgs args)
         {
@@ -552,15 +561,14 @@ namespace TableMax.Desktop
                     versions["webview2"] = Environment.BrowserVersionString;
                     var metrics = new List<object> { Metrics(Process.GetCurrentProcess(), "Browser", "TableMax desktop") };
                     if (service != null) try { metrics.Add(Metrics(Process.GetProcessById(service.Id), "Utility", "TableMax local service")); } catch (ArgumentException) { }
-                    return new { packaged = IsPackaged, appVersion = typeof(DesktopContext).Assembly.GetName().Version.ToString(4), releaseVersion = typeof(DesktopContext).Assembly.GetName().Version.ToString(3), origin = Origin, desktopPid = Process.GetCurrentProcess().Id, servicePid = service?.Id ?? 0, cdpPort = CdpPort, versions, health, displays = Screen.AllScreens.Select((screen, index) => new { id = index + 1, bounds = RectangleValue(screen.Bounds), workArea = RectangleValue(screen.WorkingArea), scaleFactor = NativeMethods.Scale(hostWindow?.Handle ?? dispatch.Handle) }).ToArray(), powerBlockerActive = powerActive, metrics };
+                    return new { packaged = IsPackaged, appVersion = typeof(DesktopContext).Assembly.GetName().Version.ToString(4), releaseVersion = typeof(DesktopContext).Assembly.GetName().Version.ToString(3), origin = Origin, desktopPid = Process.GetCurrentProcess().Id, servicePid = service?.Id ?? 0, cdpPort = CdpPort, versions, health, displays = Screen.AllScreens.Select((screen, index) => new { id = index + 1, bounds = RectangleValue(screen.Bounds), workArea = RectangleValue(screen.WorkingArea), scaleFactor = NativeMethods.Scale(hostWindow?.Handle ?? dispatch.Handle) }).ToArray(), powerBlockerActive = powerActive, displayPowerBlockerActive = displayPowerActive, metrics };
                 case "windows": return windows.Where(window => !window.IsDisposed).Select(window => window.Snapshot()).ToArray();
-                case "open-public": return (await OpenPublic(Json.String(parameters, "path", "/public"))).Snapshot();
                 case "show-host": return (await ShowHost()).Snapshot();
                 case "new-window":
-                    var url = Json.String(parameters, "url", Origin + "/public");
+                    var url = Json.String(parameters, "url", Origin + "/player");
                     var path = new Uri(url).AbsolutePath;
                     var role = path.StartsWith("/player") ? "player" : path.StartsWith("/public") ? "public" : "debug";
-                    var managed = Json.Bool(parameters, "managed") && (role == "public" || path == "/host" || path == "/host/game");
+                    var managed = Json.Bool(parameters, "managed");
                     if (managed && path.StartsWith("/host")) role = "host";
                     return (await Open(url, role, (int)Json.Number(parameters, "width", 1280), (int)Json.Number(parameters, "height", 800), managed, Json.String(parameters, "partition", "desktop"))).Snapshot();
                 case "window":

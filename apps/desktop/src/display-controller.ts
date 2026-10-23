@@ -7,11 +7,10 @@ import {
   type DisplaySnapshot,
 } from './display-types';
 
-type DisplayRole = 'host' | 'public';
+type DisplayRole = 'host';
 interface DisplaySettings {
-  version: 1;
+  version: 2;
   host: DisplayPreferences;
-  public: DisplayPreferences;
 }
 
 export interface DisplayGeometry {
@@ -115,9 +114,8 @@ export function calculateDisplaySnapshot(
 /** Separate desktop preferences; never opens or changes the game database. */
 export class DisplaySettingsStore {
   private settings: DisplaySettings = {
-    version: 1,
+    version: 2,
     host: defaultPreferences(),
-    public: defaultPreferences(),
   };
   readonly path: string;
 
@@ -131,39 +129,45 @@ export class DisplaySettingsStore {
       if (
         typeof input !== 'object' ||
         input === null ||
-        Reflect.ownKeys(input).length !== 3 ||
         !('version' in input) ||
-        input.version !== 1 ||
+        !(
+          (input.version === 1 &&
+            Reflect.ownKeys(input).length === 3 &&
+            'public' in input) ||
+          (input.version === 2 && Reflect.ownKeys(input).length === 2)
+        ) ||
         !('host' in input) ||
-        !('public' in input)
+        !Object.hasOwn(input, 'host')
       )
         throw new Error('Invalid display settings file');
       this.settings = {
-        version: 1,
+        version: 2,
         host: parseDisplayPreferences(input.host),
-        public: parseDisplayPreferences(input.public),
       };
     } catch {
       // Missing, damaged or unreadable settings must not prevent playing.
       this.settings = {
-        version: 1,
+        version: 2,
         host: defaultPreferences(),
-        public: defaultPreferences(),
       };
     }
   }
 
   read(role: DisplayRole): DisplayPreferences {
-    return { ...this.settings[role] };
+    if (role !== 'host')
+      throw new Error('Only host display preferences are available.');
+    return { ...this.settings.host };
   }
 
   async save(
     role: DisplayRole,
     preferences: DisplayPreferences,
   ): Promise<void> {
-    const settings = {
-      ...this.settings,
-      [role]: parseDisplayPreferences(preferences),
+    if (role !== 'host')
+      throw new Error('Only host display preferences are available.');
+    const settings: DisplaySettings = {
+      version: 2,
+      host: parseDisplayPreferences(preferences),
     };
     const temporary = `${this.path}.${randomUUID()}.tmp`;
     try {
@@ -207,6 +211,8 @@ export class DisplayController {
   ) {}
 
   register(window: DisplayWindow, role: DisplayRole): void {
+    if (role !== 'host')
+      throw new Error('Only a managed host may set display preferences.');
     if (window.isDestroyed()) throw new Error('Display window is destroyed');
     const contents = window.webContents;
     if (contents.isDestroyed())

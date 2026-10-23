@@ -12,12 +12,46 @@ import assert from 'node:assert/strict';
 import { launchDesktop, desktopExecutable } from '../support/desktop-test.mjs';
 import { mkdir, mkdtemp, readFile, writeFile } from 'node:fs/promises';
 import { resolve, join } from 'node:path';
-import { execFile } from 'node:child_process';
+import { execFile, spawnSync } from 'node:child_process';
 import { promisify } from 'node:util';
 import { createHash } from 'node:crypto';
 import { verificationOutput } from '../support/verification-output.mjs';
 
-const portable = process.argv.includes('--portable');
+if (!process.argv.includes('--legacy-public-screen')) {
+  if (
+    process.argv.some(
+      (arg) =>
+        ['--portable', '--paused-720p-only', '--box-debug'].includes(arg) ||
+        arg.startsWith('--run='),
+    )
+  )
+    throw new Error(
+      'Old public display selectors require explicit --legacy-public-screen. Current validation uses --task/--evidence/--executable.',
+    );
+  const result = spawnSync(
+    process.execPath,
+    [
+      resolve('tools/test/desktop/verify-host-only-native.mjs'),
+      ...process.argv.slice(2),
+    ],
+    {
+      stdio: 'inherit',
+      windowsHide: true,
+      env: { ...process.env, TABLEMAX_AUTO_MAINTENANCE: '0' },
+    },
+  );
+  if (result.error) throw result.error;
+  process.exit(result.status ?? 1);
+}
+const legacyExecutable = process.argv
+  .find((arg) => arg.startsWith('--executable='))
+  ?.slice(13);
+if (!legacyExecutable && !process.argv.includes('--portable'))
+  throw new Error(
+    'Legacy public-screen validation requires an explicit frozen --executable or the old --portable archive option.',
+  );
+const portable =
+  process.argv.includes('--portable') || Boolean(legacyExecutable);
 const shortOnly = process.argv.includes('--paused-720p-only');
 const runName = process.argv
   .find((value) => value.startsWith('--run='))
@@ -35,9 +69,11 @@ await mkdir(output, { recursive: true });
 await mkdir('tmp', { recursive: true });
 const work = await mkdtemp(resolve('tmp/display-'));
 const dataDir = join(work, 'data');
-let executablePath = desktopExecutable;
+let executablePath = legacyExecutable
+  ? resolve(legacyExecutable)
+  : desktopExecutable;
 let archiveSha256;
-if (portable) {
+if (portable && !legacyExecutable) {
   const project = JSON.parse(await readFile('package.json', 'utf8'));
   const archive = resolve(
     `artifacts/releases/TableMax-${project.version}-win-x64.zip`,
@@ -159,6 +195,7 @@ async function start() {
     env.PATH = `${process.env.SystemRoot}\\system32;${process.env.SystemRoot}`;
   desktop = await launchDesktop({
     executablePath,
+    legacyPublicWindow: true,
     args: ['--foundation-test', '--tablemax-play-mode'],
     env,
     timeout: 30000,

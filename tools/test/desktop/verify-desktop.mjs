@@ -10,21 +10,53 @@ import assert from 'node:assert/strict';
 import { createRequire } from 'node:module';
 import { mkdir, mkdtemp, writeFile, readFile } from 'node:fs/promises';
 import { resolve, join } from 'node:path';
-import { execFile } from 'node:child_process';
+import { execFile, spawnSync } from 'node:child_process';
 import { promisify } from 'node:util';
 import { createHash } from 'node:crypto';
 
+if (!process.argv.includes('--legacy-public-screen')) {
+  if (process.argv.includes('--portable'))
+    throw new Error(
+      'The old --portable matrix requires explicit --legacy-public-screen. Current validation uses --task/--evidence/--executable.',
+    );
+  const result = spawnSync(
+    process.execPath,
+    [
+      resolve('tools/test/desktop/verify-host-only-native.mjs'),
+      ...process.argv.slice(2),
+    ],
+    {
+      stdio: 'inherit',
+      windowsHide: true,
+      env: { ...process.env, TABLEMAX_AUTO_MAINTENANCE: '0' },
+    },
+  );
+  if (result.error) throw result.error;
+  process.exit(result.status ?? 1);
+}
 const { io } = createRequire(resolve('apps/web/package.json'))(
   'socket.io-client',
 );
-const portable = process.argv.includes('--portable');
-let executablePath = portable ? '' : desktopExecutable;
+const legacyExecutable = process.argv
+  .find((arg) => arg.startsWith('--executable='))
+  ?.slice(13);
+if (!legacyExecutable && !process.argv.includes('--portable'))
+  throw new Error(
+    'Legacy public-screen validation requires an explicit frozen --executable or the old --portable archive option.',
+  );
+const portable =
+  process.argv.includes('--portable') || Boolean(legacyExecutable);
+let executablePath = legacyExecutable
+  ? resolve(legacyExecutable)
+  : portable
+    ? ''
+    : desktopExecutable;
 const output = resolve('artifacts/phase-03-04/verification');
 await mkdir(output, { recursive: true });
 await mkdir('tmp', { recursive: true });
 let archive;
 let archiveSha256;
-if (portable) {
+if (portable && !legacyExecutable) {
   const project = JSON.parse(await readFile('package.json', 'utf8'));
   archive = resolve(
     `artifacts/phase-01/TableMax-${project.version}-win-x64.zip`,
@@ -109,6 +141,7 @@ async function capture(desktop, page, file, size) {
 for (let run = 0; run < 2; run++) {
   const desktop = await launchDesktop({
     executablePath,
+    legacyPublicWindow: true,
     args,
     env,
     timeout: 30_000,

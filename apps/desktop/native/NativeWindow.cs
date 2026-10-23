@@ -41,6 +41,7 @@ namespace TableMax.Desktop
         public bool Managed { get; }
         public bool AudioReady { get; set; }
         public bool InteractionAudioReady { get; set; }
+        private int blockedFrameNavigations;
         public DisplayPreferences Preferences { get; set; }
         public string Url => !IsDisposed && browser.CoreWebView2 != null ? browser.CoreWebView2.Source : "";
         protected override bool ShowWithoutActivation => context?.Testing == true || context?.Background == true;
@@ -52,8 +53,8 @@ namespace TableMax.Desktop
         {
             this.context = context; Id = id; Role = role; Managed = managed; this.profile = profile; this.approvedOrigin = approvedOrigin; this.lanPhone = lanPhone;
             initialWidth = width; initialHeight = height;
-            Preferences = context.Displays.Read(role);
-            Text = role == "public" ? "TableMax · 公共屏" : "TableMax";
+            Preferences = context.Displays.Read();
+            Text = "TableMax";
             Icon = applicationIcon;
             AutoScaleMode = AutoScaleMode.None;
             StartPosition = FormStartPosition.Manual;
@@ -62,7 +63,7 @@ namespace TableMax.Desktop
             if (context.Background) { FormBorderStyle = FormBorderStyle.None; ShowInTaskbar = false; Location = new Point(-20000, -20000); }
             else
             {
-                var screen = role == "public" ? Screen.AllScreens.FirstOrDefault(item => !item.Primary) ?? Screen.PrimaryScreen : Screen.PrimaryScreen;
+                var screen = Screen.PrimaryScreen;
                 Location = new Point(screen.WorkingArea.X + 30, screen.WorkingArea.Y + 30);
             }
             if (context.Background) MaximumSize = new Size(BackgroundMaximumPixels, BackgroundMaximumPixels);
@@ -110,13 +111,8 @@ namespace TableMax.Desktop
             core.NavigationStarting += (_, args) =>
             {
                 if (!AllowedNavigation(args.Uri)) { args.Cancel = true; return; }
-                if (Managed && Role == "host" && context.Allowed(args.Uri, "public"))
-                {
-                    args.Cancel = true;
-                    context.Post(async () => { try { await context.OpenPublic(new Uri(args.Uri).AbsolutePath); } catch (Exception cause) { context.Log(cause.Message); } });
-                }
             };
-            core.FrameNavigationStarting += (_, args) => { if (args.Uri != "about:blank" && !AllowedNavigation(args.Uri)) args.Cancel = true; };
+            core.FrameNavigationStarting += (_, args) => { if (args.Uri != "about:blank" && !AllowedNavigation(args.Uri)) { args.Cancel = true; if (context.Testing) blockedFrameNavigations++; } };
             core.SourceChanged += (_, args) =>
             {
                 // Only a committed document clears the old game audio membership.
@@ -149,7 +145,6 @@ namespace TableMax.Desktop
                 var initialScale = NativeMethods.Scale(Handle);
                 ClientSize = new Size((int)Math.Round(initialWidth * initialScale), (int)Math.Round(initialHeight * initialScale));
             }
-            if (Role == "public" && Managed && !context.Background && Screen.AllScreens.Length > 1) ToggleFullscreen();
             ApplyDisplay();
         }
         private async void OnWebMessage(object sender, CoreWebView2WebMessageReceivedEventArgs args)
@@ -181,7 +176,7 @@ namespace TableMax.Desktop
         {
             // No arbitrary popup, player frame or link can launch a desktop URL.
             args.Handled = true;
-            if (!Managed || IsDisposed || (Role != "host" && Role != "public") || !args.IsUserInitiated) return;
+            if (!Managed || IsDisposed || Role != "host" || !args.IsUserInitiated) return;
             var sourceFrame = args.OriginalSourceFrameInfo;
             var source = sourceFrame?.Source;
             var documentUrl = Url;
@@ -288,11 +283,6 @@ namespace TableMax.Desktop
             };
             var program = new ToolStripMenuItem("程序(&P)");
             program.DropDownItems.Add("打开房主管理", null, (_, __) => context.Post(async () => { await context.ShowHost(); }));
-            program.DropDownItems.Add("打开公共屏", null, (_, __) => context.Post(async () =>
-            {
-                try { await context.OpenPublic(Uri.TryCreate(Url, UriKind.Absolute, out var current) && current.AbsolutePath.EndsWith("/game", StringComparison.Ordinal) ? "/public/game" : "/public"); }
-                catch (Exception cause) { context.Log(cause.Message); }
-            }));
             if (Managed && Role == "host") program.DropDownItems.Add("存储设置…", null, (_, __) => ShowStorageSettings());
             program.DropDownItems.Add("打开日志目录", null, (_, __) =>
             {
@@ -401,7 +391,7 @@ namespace TableMax.Desktop
         {
             var ratio = NativeMethods.Scale(Handle);
             var bounds = Bounds;
-            return new { id = Id, role = Role, managed = Managed, url = Url, visible = Visible && !context.Background, rendered = Visible, audioMuted = browser.CoreWebView2.IsMuted, content = new[] { (int)Math.Round(browser.ClientSize.Width / ratio), (int)Math.Round(browser.ClientSize.Height / ratio) }, fullscreen, mode = windowMode, borderStyle = FormBorderStyle.ToString(), showInTaskbar = ShowInTaskbar, foregroundTest = context.ForegroundTest, windowState = WindowState.ToString(), restoreBounds = DesktopContext.RectangleValue(RestoreBounds), zoom = browser.ZoomFactor, bounds = DesktopContext.RectangleValue(bounds), display = ApplyDisplay(), bridgeSourcePath = lastMessageSourcePath, bridgeCurrentPath = lastMessageCurrentPath, externalJoin = context.Testing ? new { url = capturedJoinUrl, count = capturedJoinCount } : null, externalRepository = context.Testing ? new { url = capturedRepositoryUrl, count = capturedRepositoryCount } : null };
+            return new { id = Id, role = Role, managed = Managed, url = Url, visible = Visible && !context.Background, rendered = Visible, audioMuted = browser.CoreWebView2.IsMuted, content = new[] { (int)Math.Round(browser.ClientSize.Width / ratio), (int)Math.Round(browser.ClientSize.Height / ratio) }, fullscreen, mode = windowMode, borderStyle = FormBorderStyle.ToString(), showInTaskbar = ShowInTaskbar, foregroundTest = context.ForegroundTest, windowState = WindowState.ToString(), restoreBounds = DesktopContext.RectangleValue(RestoreBounds), zoom = browser.ZoomFactor, bounds = DesktopContext.RectangleValue(bounds), display = ApplyDisplay(), blockedFrameNavigations = blockedFrameNavigations, bridgeSourcePath = lastMessageSourcePath, bridgeCurrentPath = lastMessageCurrentPath, externalJoin = context.Testing ? new { url = capturedJoinUrl, count = capturedJoinCount } : null, externalRepository = context.Testing ? new { url = capturedRepositoryUrl, count = capturedRepositoryCount } : null };
         }
         public async Task<object> TestOperation(Dictionary<string, object> parameters)
         {
@@ -421,7 +411,10 @@ namespace TableMax.Desktop
                     ProcessCmdKey(ref keyMessage, Keys.F11); break;
                 case "menu-fullscreen": ((ToolStripMenuItem)((ToolStripMenuItem)menu.Items[0]).DropDownItems[0]).PerformClick(); break;
                 case "window-state":
-                    WindowState = Json.String(parameters, "value") == "Maximized" ? FormWindowState.Maximized : FormWindowState.Normal; break;
+                    var state = Json.String(parameters, "value");
+                    WindowState = state == "Minimized" ? FormWindowState.Minimized : state == "Maximized" ? FormWindowState.Maximized : FormWindowState.Normal;
+                    context.UpdatePower(); break;
+                case "menu-items": return menu.Items.OfType<ToolStripMenuItem>().SelectMany(item => item.DropDownItems.OfType<ToolStripMenuItem>()).Select(item => item.Text).ToArray();
                 case "close": Close(); return true;
                 case "hide": if (!context.Background) Hide(); return true;
                 case "show": Show(); break;

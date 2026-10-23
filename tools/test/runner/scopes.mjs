@@ -61,6 +61,8 @@ const unitScopes = {
   'apps/desktop/src/runtime-guard.test.ts': ['shared'],
   'apps/web/src/components/player-frame.test.ts': ['shared'],
   'apps/web/src/components/WindowModeSettings.test.ts': ['shared'],
+  'apps/web/src/navigation.test.ts': ['shared'],
+  'apps/web/src/App.test.ts': ['shared'],
   'packages/web-host/src/preferences/sound-preference.test.ts': ['shared'],
   'apps/web/src/game-clients/styles.test.ts': ['shared'],
   'apps/web/src/interactions/model.test.ts': ['shared'],
@@ -347,6 +349,16 @@ const verificationScopes = {
   'tools/test/support/screenshots.test.mjs': ['tooling'],
   'tools/test/support/installation-fixture.test.mjs': ['tooling'],
   'tools/test/desktop/verify-service-stop.mjs': ['shared', 'tooling'],
+  'tools/test/desktop/verify-host-only-native.mjs': [
+    'box',
+    'shared',
+    'game:uno',
+  ],
+  'tools/test/platform/verify-public-screen-retirement-ui.mjs': [
+    'box',
+    'shared',
+    ...gameScopes,
+  ],
   'tools/test/desktop/verify-shutdown.mjs': ['box', 'shared', 'tooling'],
   'tools/maintenance/coordinator.test.mjs': ['tooling'],
   'tools/analysis/storage/space-analysis.test.mjs': ['tooling'],
@@ -556,6 +568,11 @@ export function scopedVitestIncludes(root, value, args = []) {
 
 export function verificationTestScopes(item) {
   const script = item.script.replaceAll('\\', '/');
+  if (
+    script === 'tools/test/platform/verify-public-screen-retirement-ui.mjs' &&
+    item.args.includes('--review-only')
+  )
+    return ['tooling'];
   if (script === 'tools/test/platform/verify-installed-games.mjs') {
     const only = item.args.filter((arg) => arg.startsWith('--only='));
     if (
