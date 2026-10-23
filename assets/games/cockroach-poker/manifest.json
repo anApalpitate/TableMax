@@ -2188,23 +2188,24 @@
       "file": "runtime/library-cover.webp",
       "sourceFile": "library-cover.png",
       "sourceSha256": "b56ac2e98bf207efa159d5275f67f37cabb69f26e7000d18f951fd5ef6ee29cc",
-      "sha256": "22b0ad828214718c5b11bbe32adbb1152244512f837330fb37a533380edb1da9",
-      "bytes": 36798,
-      "width": 441,
-      "height": 480,
-      "alpha": true
+      "sha256": "f20e2515424bfde10ae8d81ebf56fc6ee45241a051a2ce87954e553b1a013655",
+      "bytes": 19358,
+      "width": 294,
+      "height": 320,
+      "alpha": true,
+      "processing": "Round2 narrow capacity optimization: source pixels decoded; Lanczos maximum edge320; WebP q62 method6 exact=True; no content edits; alpha retained"
     },
     {
       "file": "runtime/cover-reference.webp",
       "sourceFile": "cover.svg",
       "sourceSha256": "69e440ebdbfcdcd629c95fb14168e8260968ed6bd0c215fb75bbb0c6d49804c7",
       "embeddedImageSha256": "9b90b84e6eea3e5d15feb7f247cd2806eebba1370042739e8ea0fc1875dab277",
-      "sha256": "28b15c9b00e40a4d83ac31a318b0ac8178f0823b9c6dc9ffa21c573cde3be9f7",
-      "bytes": 30144,
-      "width": 600,
-      "height": 249,
+      "sha256": "838a163911c91fcbb4a24270bd4bee1a4f1a8ca3660cd335350e678faa6e2ed4",
+      "bytes": 21112,
+      "width": 480,
+      "height": 199,
       "alpha": true,
-      "processing": "Extracted PNG embedded in source SVG; proportional Lanczos maximum edge600, WebP q72 method6 exact=True; no crop/repaint/content editing; transparent alpha retained",
+      "processing": "Round2 narrow capacity optimization: source pixels decoded; Lanczos maximum edge480; WebP q62 method6 exact=True; no content edits; alpha retained",
       "qa": "Original900x373 montage and encoded600x249 image visually reviewed; all eight animal faces and stack retained and recognizable"
     }
   ],
@@ -2223,11 +2224,13 @@
     "alpha": "Preserved; WebP alpha encoded losslessly",
     "sourceMetadata": "Decoded pixel content only; source EXIF and trailing bytes not copied",
     "originalPolicy": "All original files and original manifest records retained unchanged",
-    "bytes": 599418,
+    "bytes": 572946,
     "qa": "All64 poker faces, eight salad faces and both backs visually reviewed on contact sheets; covers and representative original/derivative comparisons reviewed at encoded dimensions. Shapes, color families, corner identities, taboo crosses and cover titles remain legible. Slight lossy texture smoothing accepted within task budget. UI integration and installer acceptance are separate.",
-    "evidence": "E:\\Proj\\TMP\\TableMaxMaterial\\exports\\installer-art-20261023\\qa.json",
+    "evidence": "E:\\Proj\\TMP\\TableMaxMaterial\\exports\\installer-art-20261023-r2\\qa.json",
     "exceptions": {
-      "runtime/cover-reference.webp": "maximum edge600; embedded-image extraction; other derivatives maximum edge480"
-    }
+      "runtime/library-cover.webp": "Round2 narrow capacity optimization: source pixels decoded; Lanczos maximum edge320; WebP q62 method6 exact=True; no content edits; alpha retained",
+      "runtime/cover-reference.webp": "Round2 narrow capacity optimization: source pixels decoded; Lanczos maximum edge480; WebP q62 method6 exact=True; no content edits; alpha retained"
+    },
+    "round2": "First-start capacity measured only5716 bytes above ceiling. Narrow optimization changes only three covers/reference images; all74 remaining runtime files retain round1 exact SHA. Comparison previews reviewed; primary package titles, animal/vegetable identity, montage composition and alpha retained. Fine print and textures are softer at reduced cover size."
   }
 }

@@ -328,11 +328,12 @@
       "file": "runtime/cover-physical.webp",
       "sourceFile": "cover-physical.png",
       "sourceSha256": "9c8eb9431b267df695e7a8182cb036f7bddd036b8dd9195157b9b1fbdb038d5f",
-      "sha256": "a63f4b505d36d5d921c3a99413a2586577c18b98a01342f74301058d853f938b",
-      "bytes": 40446,
-      "width": 441,
-      "height": 480,
-      "alpha": true
+      "sha256": "94771a6ae831c8be8eb809ba9c09df01d691d7eb4517cd4f76b6a67d2207b1f7",
+      "bytes": 21232,
+      "width": 294,
+      "height": 320,
+      "alpha": true,
+      "processing": "Round2 narrow capacity optimization: source pixels decoded; Lanczos maximum edge320; WebP q62 method6 exact=True; no content edits; alpha retained"
     }
   ],
   "runtimeProcessing": {
@@ -350,8 +351,12 @@
     "alpha": "Preserved; WebP alpha encoded losslessly",
     "sourceMetadata": "Decoded pixel content only; source EXIF and trailing bytes not copied",
     "originalPolicy": "All original files and original manifest records retained unchanged",
-    "bytes": 121714,
+    "bytes": 102500,
     "qa": "All64 poker faces, eight salad faces and both backs visually reviewed on contact sheets; covers and representative original/derivative comparisons reviewed at encoded dimensions. Shapes, color families, corner identities, taboo crosses and cover titles remain legible. Slight lossy texture smoothing accepted within task budget. UI integration and installer acceptance are separate.",
-    "evidence": "E:\\Proj\\TMP\\TableMaxMaterial\\exports\\installer-art-20261023\\qa.json"
+    "evidence": "E:\\Proj\\TMP\\TableMaxMaterial\\exports\\installer-art-20261023-r2\\qa.json",
+    "exceptions": {
+      "runtime/cover-physical.webp": "Round2 narrow capacity optimization: source pixels decoded; Lanczos maximum edge320; WebP q62 method6 exact=True; no content edits; alpha retained"
+    },
+    "round2": "First-start capacity measured only5716 bytes above ceiling. Narrow optimization changes only three covers/reference images; all74 remaining runtime files retain round1 exact SHA. Comparison previews reviewed; primary package titles, animal/vegetable identity, montage composition and alpha retained. Fine print and textures are softer at reduced cover size."
   }
 }
