@@ -33,7 +33,7 @@
     "bot": "games/cockroach-poker/bot/index.ts",
     "web": "games/cockroach-poker/web/index.tsx"
   },
-  "cover": "assets/games/cockroach-poker/library-cover.png",
+  "cover": "assets/games/cockroach-poker/runtime/library-cover.webp",
   "details": "web/details.json",
   "introduction": {
     "tagline": "相信它，还是把麻烦传下去？",
@@ -41,7 +41,7 @@
     "steps": [
       {
         "icon": "cards",
-        "illustration": "assets/games/cockroach-poker/cover.svg",
+        "illustration": "assets/games/cockroach-poker/runtime/cover-reference.webp",
         "title": "选牌、选人、声明",
         "text": "从手中选一张牌，交给任意其他玩家，声明一种动物。可以说真话，也可以诈唬。"
       },

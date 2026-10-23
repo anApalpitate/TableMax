@@ -34,6 +34,7 @@ export async function buildProject(args = process.argv.slice(2)) {
     const units = await unitsFor(
       only === 'platform' ? [] : modules,
       inputPhase,
+      { production: args.includes('--production') },
     );
     timings.discoveryMs = performance.now() - started;
     const part = args.find((v) => v.startsWith('--part='))?.slice(7);

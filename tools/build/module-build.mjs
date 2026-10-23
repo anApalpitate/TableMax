@@ -886,6 +886,7 @@ export async function buildUnit(
 export async function unitsFor(
   modules,
   phase = createReadPhase('unit-discovery'),
+  { production = false } = {},
 ) {
   const units = [
     {
@@ -962,7 +963,11 @@ export async function unitsFor(
         ...(await introductionResourceInputs(item)),
       ]),
     ];
-    units.push(...(await gameResourceUnits(item, media)));
+    units.push(
+      ...(await gameResourceUnits(item, media, root, {
+        includeUnreferenced: !production,
+      })),
+    );
   }
   return units;
 }
@@ -993,12 +998,15 @@ export async function gameResourceUnits(
   item,
   importedMedia = [],
   workspace = root,
+  { includeUnreferenced = true } = {},
 ) {
   const namespace = resolve(workspace, 'assets/games', item.id);
   const discovered = (await discoverGameMedia(item, workspace)).map((path) =>
     posix(relative(root, resolve(workspace, path))),
   );
-  const media = [...new Set([...importedMedia, ...discovered])].sort();
+  const media = [
+    ...new Set([...importedMedia, ...(includeUnreferenced ? discovered : [])]),
+  ].sort();
   for (const file of media) {
     const location = relative(namespace, resolve(root, file));
     if (
@@ -1021,14 +1029,18 @@ export async function gameResourceUnits(
             module: item,
             inputs,
             resourceRoot: posix(relative(root, namespace)),
-            resourceDiscovery: {
-              mediaNamespace: item.id,
-              workspace: posix(relative(root, resolve(workspace))) || '.',
-              part,
-              matches: discovered.filter(
-                (path) => resourcePart(path, item.id, workspace) === part,
-              ),
-            },
+            ...(includeUnreferenced
+              ? {
+                  resourceDiscovery: {
+                    mediaNamespace: item.id,
+                    workspace: posix(relative(root, resolve(workspace))) || '.',
+                    part,
+                    matches: discovered.filter(
+                      (path) => resourcePart(path, item.id, workspace) === part,
+                    ),
+                  },
+                }
+              : {}),
           },
         ]
       : [];

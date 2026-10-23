@@ -47,16 +47,26 @@ describe('cockroach poker authorized UI', () => {
         sha256: string;
         originalSha256?: string;
       }[];
+      runtimeAssets: {
+        file: string;
+        cardId?: number;
+        sha256: string;
+        sourceFile: string;
+        sourceSha256: string;
+      }[];
     };
     const paths = new Set<string>(),
       hashes = new Set<string>();
     for (let card = 0; card < 64; card++) {
       const file = cardAssetFile(card);
       expect(file).toBe(
-        `cards/${sources[Math.floor(card / 8)]}-${(card % 8) + 1}.jpg`,
+        `runtime/cards/${sources[Math.floor(card / 8)]}-${(card % 8) + 1}.webp`,
       );
-      const record = manifest.assets.find((a) => a.cardId === card)!;
+      const record = manifest.runtimeAssets.find((a) => a.cardId === card)!;
+      const original = manifest.assets.find((a) => a.cardId === card)!;
       expect(record.file).toBe(file);
+      expect(record.sourceFile).toBe(original.file);
+      expect(record.sourceSha256).toBe(original.sha256);
       const bytes = readFileSync(
         new URL(
           `../../../assets/games/cockroach-poker/${file}`,
@@ -65,7 +75,7 @@ describe('cockroach poker authorized UI', () => {
       );
       const hash = createHash('sha256').update(bytes).digest('hex');
       expect(hash).toBe(record.sha256);
-      expect(hash).toBe(record.originalSha256);
+      expect(record.sourceSha256).toBe(original.originalSha256);
       expect(asset(file)).toBeTruthy();
       paths.add(file);
       hashes.add(hash);
@@ -78,7 +88,7 @@ describe('cockroach poker authorized UI', () => {
     expect(() => cardAssetFile(-1)).toThrow();
     expect(() => cardAssetFile(64)).toThrow();
     const back = renderToStaticMarkup(createElement(Back));
-    expect(back).toContain('back-photo.jpg');
+    expect(back).toContain('runtime/back-photo.webp');
     expect(back).toContain('非平整扫描');
     expect(back).not.toContain('card-back.jpg');
   });

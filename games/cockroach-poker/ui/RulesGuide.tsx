@@ -13,7 +13,7 @@ export function PokerRules() {
           content: (
             <>
               <img
-                src={asset('cover.svg')}
+                src={asset('runtime/cover-reference.webp')}
                 alt="经典40829实体八类牌面与灰色牌背组件照"
               />
               <p>

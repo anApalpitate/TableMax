@@ -196,6 +196,20 @@ test(
     const initialUnits = await resourceUnits();
     assert.equal(initialUnits.length, 2);
     assert.equal(new Set(initialUnits.flatMap((unit) => unit.inputs)).size, 3);
+    // Production freezes the declared import/glob/illustration closure only.
+    // Development discovery must not pull unused full-size art into installers.
+    const productionUnits = await gameResourceUnits(
+      module,
+      [join(assets, 'card.svg'), join(assets, 'tap.wav')],
+      workspace,
+      { includeUnreferenced: false },
+    );
+    assert.equal(productionUnits.length, 1);
+    assert.deepEqual(productionUnits[0].inputs, [
+      join(assets, 'card.svg'),
+      join(assets, 'tap.wav'),
+    ]);
+    assert.equal(productionUnits[0].resourceDiscovery, undefined);
     const first = await buildUnit(
       initialUnits.find((unit) => unit.id.endsWith('-common')),
       false,

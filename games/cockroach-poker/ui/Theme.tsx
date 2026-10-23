@@ -1,8 +1,13 @@
 /* eslint-disable react-refresh/only-export-components -- Asset resolution belongs with this game-owned theme. */
 import { kinds, kindOf, names, type Kind } from '../rules/cards';
-// Literal recursive glob freezes physical card originals and local UI media.
+// Freeze the runtime derivatives; retain physical originals outside this glob.
 const files = import.meta.glob<string>(
-  '../../../assets/games/cockroach-poker/**/*.{svg,wav,jpg,png}',
+  [
+    '../../../assets/games/cockroach-poker/**/*.{svg,wav}',
+    '!../../../assets/games/cockroach-poker/cover.svg',
+    '!../../../assets/games/cockroach-poker/card-reference.svg',
+    '../../../assets/games/cockroach-poker/runtime/**/*.webp',
+  ],
   { eager: true, query: '?url', import: 'default' },
 );
 export function asset(file: string): string {
@@ -14,7 +19,7 @@ export function cardAssetFile(card: number): string {
   if (!Number.isInteger(card) || card < 0 || card >= 64)
     throw new Error('Invalid card image ID');
   const sourceKind = kindOf(card) === 'stinkbug' ? 'stink-bug' : kindOf(card);
-  return `cards/${sourceKind}-${(card % 8) + 1}.jpg`;
+  return `runtime/cards/${sourceKind}-${(card % 8) + 1}.webp`;
 }
 export function Critter({ kind }: { kind: Kind }) {
   return (
@@ -40,7 +45,7 @@ export function Back() {
           </clipPath>
         </defs>
         <image
-          href={asset('back-photo.jpg')}
+          href={asset('runtime/back-photo.webp')}
           width="1024"
           height="768"
           clipPath="url(#cp-back-photo-clip)"

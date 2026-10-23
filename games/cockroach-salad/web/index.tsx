@@ -25,13 +25,16 @@ import {
 import { SavedFeedback, SoundControl } from '../ui/SavedFeedback';
 import '../ui/style.css';
 const imageResources = import.meta.glob<string>(
-  '../../../assets/games/cockroach-salad/*.png',
+  '../../../assets/games/cockroach-salad/runtime/*.webp',
   { eager: true, query: '?url', import: 'default' },
 );
 function resourceUrl(id: string): string {
-  if (!/^cockroach-salad\/[a-z0-9-]+\.png$/.test(id))
+  if (!/^cockroach-salad\/[a-z0-9-]+\.webp$/.test(id))
     throw new Error('Invalid salad resource ID');
-  const url = imageResources[`../../../assets/games/${id}`];
+  const url =
+    imageResources[
+      `../../../assets/games/${id.replace('cockroach-salad/', 'cockroach-salad/runtime/')}`
+    ];
   if (typeof url !== 'string') throw new Error('Missing salad resource: ' + id);
   return url;
 }
@@ -40,7 +43,7 @@ function Face({ value }: { value: Card | null }) {
     <figure className={`salad-card ${value.taboo ? 'salad-taboo' : ''}`}>
       <img
         src={resourceUrl(
-          `cockroach-salad/${value.taboo ? 'taboo' : 'normal'}-${value.vegetable}.png`,
+          `cockroach-salad/${value.taboo ? 'taboo' : 'normal'}-${value.vegetable}.webp`,
         )}
         alt={`${names[value.vegetable]}${value.taboo ? '禁忌牌' : '普通牌'}`}
       />
@@ -126,7 +129,7 @@ function Rulebook() {
               <span>{label}</span>
               <div className="salad-rule-flow-vegetable">
                 <img
-                  src={resourceUrl(`cockroach-salad/normal-${vegetable}.png`)}
+                  src={resourceUrl(`cockroach-salad/normal-${vegetable}.webp`)}
                   alt=""
                 />
                 <strong>{names[vegetable]}</strong>
@@ -265,8 +268,8 @@ function Screen({ session }: { session: GameHost }) {
                         <img
                           src={resourceUrl(
                             answer === 'cockroach'
-                              ? 'cockroach-salad/back.png'
-                              : `cockroach-salad/normal-${answer}.png`,
+                              ? 'cockroach-salad/back.webp'
+                              : `cockroach-salad/normal-${answer}.webp`,
                           )}
                           alt=""
                         />
@@ -309,7 +312,7 @@ function Screen({ session }: { session: GameHost }) {
                   <strong>{name(id)}</strong>
                   <div className="salad-seat-deck">
                     <img
-                      src={resourceUrl('cockroach-salad/back.png')}
+                      src={resourceUrl('cockroach-salad/back.webp')}
                       alt="未翻开的个人牌堆"
                     />
                     <span>{game.counts[id]} 张</span>

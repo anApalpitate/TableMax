@@ -169,7 +169,7 @@ async function decodeResources(page, origin, release, catalog) {
     ]),
   ].filter((path) => /\.(svg|png|jpe?g|webp|gif|wav)$/i.test(path));
   assert.ok(
-    resources.some((path) => /\.svg$/i.test(path)),
+    resources.some((path) => /\.(svg|png|jpe?g|webp)$/i.test(path)),
     'Frozen image inventory required',
   );
   assert.ok(
@@ -353,7 +353,18 @@ try {
     const assetManifest = JSON.parse(
       await bound(`assets/games/${gameId}/manifest.json`),
     );
-    const assetFiles = assetManifest.assets ?? assetManifest.files;
+    const originals = assetManifest.assets ?? assetManifest.files;
+    const assetFiles = assetManifest.runtimeAssets
+      ? [
+          ...assetManifest.runtimeAssets,
+          ...originals.filter(
+            (asset) =>
+              gameId === 'cockroach-poker' &&
+              /\.(svg|wav)$/i.test(asset.file) &&
+              !['cover.svg', 'card-reference.svg'].includes(asset.file),
+          ),
+        ]
+      : originals;
     assert.ok(Array.isArray(assetFiles) && assetFiles.length > 0);
     assert.deepEqual(
       Object.keys(release.resourceMap).sort(),

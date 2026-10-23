@@ -212,7 +212,18 @@ try {
     const manifest = JSON.parse(
       await bind(`assets/games/${gameId}/manifest.json`),
     );
-    const assets = manifest.assets ?? manifest.files;
+    const originals = manifest.assets ?? manifest.files;
+    const assets = manifest.runtimeAssets
+      ? [
+          ...manifest.runtimeAssets,
+          ...originals.filter(
+            (asset) =>
+              gameId === 'cockroach-poker' &&
+              /\.(svg|wav)$/i.test(asset.file) &&
+              !['cover.svg', 'card-reference.svg'].includes(asset.file),
+          ),
+        ]
+      : originals;
     assert.ok(assets.length >= (gameId === 'cockroach-poker' ? 65 : 9));
     const item = { gameId, release, resources: [], rendered: [] };
     report.games.push(item);

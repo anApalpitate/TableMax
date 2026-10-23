@@ -171,7 +171,10 @@ try {
       assert.deepEqual(
         await page.evaluate(() => window.pokerArtFiles),
         kinds.flatMap((kind) =>
-          Array.from({ length: 8 }, (_, i) => `cards/${kind}-${i + 1}.jpg`),
+          Array.from(
+            { length: 8 },
+            (_, i) => `runtime/cards/${kind}-${i + 1}.webp`,
+          ),
         ),
         'Stable physical card IDs must select the corresponding eight illustrations',
       );
@@ -189,7 +192,7 @@ try {
       assert.equal(images.length, 64);
       assert.equal(new Set(images.map((image) => image.src)).size, 64);
       assert(
-        images.every((image) => image.width === 450 && image.height === 720),
+        images.every((image) => image.width === 300 && image.height === 480),
       );
       report.checks.push({
         id: 'physical-poker-image-details',
@@ -201,15 +204,15 @@ try {
       const resources = [
         ...['normal', 'taboo'].flatMap((type) =>
           ['tomato', 'lettuce', 'cauliflower', 'pepper'].map(
-            (vegetable) => `${type}-${vegetable}.png`,
+            (vegetable) => `${type}-${vegetable}.webp`,
           ),
         ),
-        'back.png',
+        'back.webp',
       ];
       const results = await page.evaluate(async (files) => {
         const results = [];
         for (const file of files) {
-          const url = `/assets/games/cockroach-salad/${file}`;
+          const url = `/assets/games/cockroach-salad/runtime/${file}`;
           const response = await fetch(url);
           const image = new Image();
           image.src = url;
@@ -227,8 +230,8 @@ try {
         results.every(
           (result) =>
             result.status === 200 &&
-            result.width === 316 &&
-            result.height === 600,
+            result.width === 253 &&
+            result.height === 480,
         ),
         JSON.stringify(results),
       );

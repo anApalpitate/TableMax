@@ -92,15 +92,15 @@ test('local rule illustrations accept PNG, JPEG, WebP and GIF alongside SVG', as
   );
 });
 
-test('current salad PNG illustrations join their frozen resource inputs', async () => {
+test('current salad runtime illustrations join their frozen resource inputs', async () => {
   const module = JSON.parse(
     await readFile('games/cockroach-salad/game-module.json', 'utf8'),
   );
   const paths = await introductionResourceInputs(module);
   assert.deepEqual(paths, [
-    'assets/games/cockroach-salad/back.png',
-    'assets/games/cockroach-salad/normal-tomato.png',
-    'assets/games/cockroach-salad/taboo-pepper.png',
+    'assets/games/cockroach-salad/runtime/back.webp',
+    'assets/games/cockroach-salad/runtime/normal-tomato.webp',
+    'assets/games/cockroach-salad/runtime/taboo-pepper.webp',
   ]);
 });
 
