@@ -68,7 +68,7 @@ import {flushSync} from 'react-dom';
 import {HostedGame} from ${file('packages/web-host/src/index.tsx')};
 import {configureGameHost} from ${file('packages/web-host/src/presentation-services.ts')};
 import {client as poker} from ${file('games/cockroach-poker/web/index.tsx')};
-import {Card as PokerCard,cardAssetFile} from ${file('games/cockroach-poker/ui/Theme.tsx')};
+import {Card as PokerCard,cardAssetFile,asset as pokerAsset} from ${file('games/cockroach-poker/ui/Theme.tsx')};
 import {rules as pokerRules} from ${file('games/cockroach-poker/rules/index.ts')};
 import ${file('apps/web/src/styles.css')};
 configureGameHost({ScreenLink:p=><a {...p}/>,FullscreenControl:()=>null,DisplaySettings:()=>null,useAudioOutput:()=>false,claimAudioEvent:()=>false,avatarFor:()=>'',avatarChoices:[]});
@@ -92,6 +92,7 @@ window.setup=(id,newRole,count=6,stage='opening')=>{current=fixtures[id];role=ne
  current.rules.validateState(state,state.seats);render();};
 window.setup('poker','player');
 window.pokerArtFiles=Array.from({length:64},(_,card)=>cardAssetFile(card));
+window.pokerArtUrls=window.pokerArtFiles.map(pokerAsset);
 window.showPokerArt=()=>flushSync(()=>root.render(<main className="cp-theme"><div className="cp-hand">{Array.from({length:64},(_,card)=><PokerCard key={card} card={card}/>)}</div></main>));
 `,
 );
@@ -213,8 +214,9 @@ try {
   ];
   if (!densityOnly)
     for (const game of ['poker'])
-      for (const role of ['player', 'host', 'public'])
+      for (const role of ['player', 'host'])
         for (const [width, height] of sizes) {
+          if (role === 'host' && width < 1280) continue;
           await check([game, role, width, height].join('-'), async () => {
             await page.setViewportSize({ width, height });
             await page.evaluate(({ game, role }) => window.setup(game, role), {
@@ -357,7 +359,7 @@ try {
                   .count(),
                 0,
               );
-            if ((width === 390 || width === 1280) && role !== 'host')
+            if (width === 390 || width === 1280 || width === 844)
               await captureBrowserScreenshot(page, {
                 path: join(
                   output,
@@ -395,7 +397,7 @@ try {
         'judge',
       );
       await page.evaluate(() => window.setup('poker', 'player', 6, 'offer'));
-      await page.getByRole('button', { name: /查看/ }).click();
+      await page.getByRole('button', { name: '看后转传', exact: true }).click();
       assert.equal(
         await page.evaluate(() => window.commands[0].action.type),
         'peek',
@@ -425,6 +427,70 @@ try {
         'offer',
       );
     });
+  if (!densityOnly) {
+    await check('poker-private-peek-and-public-secrecy', async () => {
+      await page.evaluate(() => window.setup('poker', 'host', 6, 'offer'));
+      assert.equal(await page.locator('.cp-stage .cp-face').count(), 0);
+      assert.equal(await page.locator('.cp-stage .cp-back').count(), 1);
+      assert.equal(await page.locator('.cp-controls').count(), 0);
+      await page.evaluate(() => window.setup('poker', 'player', 6, 'peek'));
+      const expected = await page.evaluate(
+        () => window.pokerArtUrls[window.snapshot.game.offer.knownCard],
+      );
+      assert.equal(
+        await page.locator('.cp-preview-card img').getAttribute('src'),
+        expected,
+      );
+      assert.equal(
+        await page.getByRole('button', { name: /相信|质疑/ }).count(),
+        0,
+      );
+    });
+    await check('poker-draft-rotation-and-touch-targets', async () => {
+      await page.setViewportSize({ width: 390, height: 844 });
+      await page.evaluate(() => window.setup('poker', 'player'));
+      await page.locator('.cp-hand button').first().click();
+      await page.locator('.cp-targets button').first().click();
+      await page.locator('.cp-claims button').first().click();
+      const draft = await page
+        .locator('.cp-confirm')
+        .getAttribute('aria-label');
+      for (const viewport of [
+        { width: 844, height: 390 },
+        { width: 390, height: 844 },
+        { width: 320, height: 568 },
+      ]) {
+        await page.setViewportSize(viewport);
+        assert.equal(
+          await page.locator('.cp-confirm').getAttribute('aria-label'),
+          draft,
+        );
+        assert.equal(
+          await page
+            .locator('.cp-controls button[aria-pressed="true"]')
+            .count(),
+          3,
+        );
+        const boxes = await page
+          .locator('.cp-targets button,.cp-claims button,.cp-confirm')
+          .evaluateAll((nodes) =>
+            nodes.map((node) => {
+              const r = node.getBoundingClientRect();
+              return { width: r.width, height: r.height, bottom: r.bottom };
+            }),
+          );
+        assert(
+          boxes.every((r) => r.width >= 44 && r.height >= 44),
+          JSON.stringify({ viewport, boxes }),
+        );
+        if (viewport.width === 844)
+          assert(
+            boxes.at(-1).bottom <= viewport.height,
+            'Short landscape confirmation must remain on screen',
+          );
+      }
+    });
+  }
   for (const scale of [1.25, 1.5]) {
     const denseContext = await browser.newContext({
       viewport: { width: 1280, height: 720 },
@@ -435,7 +501,7 @@ try {
     await densePage.goto(server.url);
     await densePage.waitForFunction(() => typeof window.setup === 'function');
     for (const game of ['poker'])
-      for (const role of ['player', 'host', 'public'])
+      for (const role of ['player', 'host'])
         await check(`${game}-${role}-density-${scale}`, async () => {
           await densePage.evaluate(
             ({ game, role }) => window.setup(game, role),

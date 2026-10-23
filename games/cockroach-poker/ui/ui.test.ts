@@ -107,7 +107,9 @@ describe('cockroach poker authorized UI', () => {
     expect(html).toContain('声明是什么');
     expect(html).toContain('玩家乙');
     expect(html).toContain('玩家丙');
-    expect(html).toContain('选好牌、接收者与声明');
+    expect(html).toContain('aria-label="传牌确认"');
+    expect(html).toContain('aria-label="尚未选择接收者"');
+    expect(html).not.toContain('选好牌、接收者与声明');
     expect(html).toContain('aria-pressed="false"');
   });
   it('peeked view renders the known card and pass-only controls without believe/challenge buttons', () => {
@@ -145,7 +147,8 @@ describe('cockroach poker authorized UI', () => {
     expect(html).toContain('公开收牌区');
     expect(html).not.toContain('你的手牌');
     expect(html).not.toContain('·');
-    expect(html).toContain('<h3>玩家甲</h3>');
+    expect(html).toContain('title="玩家甲"');
+    expect(html).toContain('aria-label="蟑螂0/4"');
     expect(html).toContain('class="cp-seat-stats"');
     const guide = renderToStaticMarkup(createElement(PokerRules));
     expect(guide).toContain('双人是五张');
@@ -172,7 +175,8 @@ describe('cockroach poker authorized UI', () => {
     expect(html.indexOf('aria-label="本人操作"')).toBeLessThan(
       html.indexOf('aria-label="公开收牌区"'),
     );
-    expect(html).not.toContain('尚未收牌');
+    expect(html).toContain('aria-label="尚未收牌"');
+    expect(html).not.toContain('>尚未收牌<');
   });
   it('saved feedback deduplicates same revision, suppresses initial sync and distinguishes branch', () => {
     const f = {

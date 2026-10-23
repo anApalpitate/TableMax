@@ -51,7 +51,6 @@ export function Back() {
           clipPath="url(#cp-back-photo-clip)"
         />
       </svg>
-      <figcaption>经典牌背实拍</figcaption>
     </figure>
   );
 }
@@ -63,7 +62,6 @@ export function Card({ card }: { card: number }) {
         src={asset(cardAssetFile(card))}
         alt={`${names[kindOf(card)]}第${(card % 8) + 1}种实体插画`}
       />
-      <strong>{names[kindOf(card)]}</strong>
     </span>
   );
 }

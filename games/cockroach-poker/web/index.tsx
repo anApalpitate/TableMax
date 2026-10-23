@@ -7,6 +7,7 @@ import {
   RoomManagement,
   OverlayPanel,
   DisplaySettings,
+  avatarFor,
   PlayModeControl,
   type GameClient,
   type GameHost,
@@ -25,10 +26,14 @@ function Screen({ session }: { session: GameHost }) {
   const names = Object.fromEntries(
     (view?.seats ?? []).map((s) => [s.id, s.name]),
   );
+  const avatars = Object.fromEntries(
+    (view?.seats ?? []).map((s) => [s.id, avatarFor(s.avatarId)]),
+  );
   const choose = (action: Action) => {
     if (
       view?.decisionId &&
       !session.locked &&
+      !session.awaitingConfirmation &&
       session.connected &&
       view.status === 'playing' &&
       !view.paused
@@ -43,16 +48,38 @@ function Screen({ session }: { session: GameHost }) {
   return (
     <main className={`cp-game cp-${role}`}>
       <header className="cp-toolbar">
-        <ScreenLink href={`/${role}`}>‹ 盒子</ScreenLink>
+        <ScreenLink
+          href={`/${role}`}
+          aria-label="返回盒子"
+          className="cp-icon-button"
+        >
+          ↩
+        </ScreenLink>
         <h1>德国小强</h1>
-        <button onClick={() => setPanel('rules')}>图文规则</button>
-        <button onClick={() => setPanel('menu')}>管理与设置</button>
+        <button
+          aria-label="图文规则"
+          className="cp-icon-button"
+          onClick={() => setPanel('rules')}
+        >
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M12 5C8 2 4 3 2 4v15c3-1 7-1 10 1 3-2 7-2 10-1V4c-2-1-6-2-10 1Zm0 0v15" />
+          </svg>
+        </button>
+        <button
+          aria-label="管理与设置"
+          className="cp-icon-button"
+          onClick={() => setPanel('menu')}
+        >
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M4 6h16M4 12h16M4 18h16" />
+          </svg>
+        </button>
       </header>
       <SessionFeedback session={session} />
       <Effects session={session} />
       {game ? (
         <>
-          <Table game={game} names={names}>
+          <Table game={game} names={names} avatars={avatars}>
             {role === 'player' && (
               <PlayerControls
                 key={boundary}
@@ -60,12 +87,14 @@ function Screen({ session }: { session: GameHost }) {
                 actions={(view?.actions ?? []) as unknown as Action[]}
                 disabled={
                   session.locked ||
+                  session.awaitingConfirmation ||
                   !session.connected ||
                   view?.status !== 'playing' ||
                   !!view.paused
                 }
                 choose={choose}
                 names={names}
+                avatars={avatars}
               />
             )}
           </Table>

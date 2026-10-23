@@ -1,5 +1,5 @@
 import { RulesGuide } from '@tablemax/web-host';
-import { asset } from './Theme';
+import { asset, Card } from './Theme';
 export function PokerRules() {
   return (
     <RulesGuide
@@ -54,7 +54,7 @@ export function PokerRules() {
           title: '先承诺转传，再秘密查看',
           content: (
             <p>
-              选择“秘密查看，并承诺转传”，之后必须传给从未看过它的另一人，声明可保持或改变。不能看后改为判断。最后一位未看过者必须判断。双人不能转传。
+              选择“看后转传”，之后必须传给从未看过它的另一人，声明可保持或改变。不能看后改为判断。最后一位未看过者必须判断。双人不能转传。
             </p>
           ),
         },
@@ -63,9 +63,19 @@ export function PokerRules() {
           label: '结束',
           title: '四张同类就输；双人是五张',
           content: (
-            <p>
-              3–6人中，收下第4张同类立即失败；双人是第5张。或轮到某人开始新一轮，而其手牌已空，此人失败。打出最后一张本身不会立即失败。其余玩家共同获胜。
-            </p>
+            <>
+              <div className="cp-rule-threshold" aria-label="四张同类">
+                <span aria-hidden="true">
+                  {[0, 1, 2, 3].map((card) => (
+                    <Card key={card} card={card} />
+                  ))}
+                </span>
+                <strong>4</strong>
+              </div>
+              <p>
+                3–6人中，收下第4张同类立即失败；双人是第5张。或轮到某人开始新一轮，而其手牌已空，此人失败。打出最后一张本身不会立即失败。其余玩家共同获胜。
+              </p>
+            </>
           ),
         },
       ]}

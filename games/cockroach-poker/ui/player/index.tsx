@@ -3,53 +3,37 @@ import type { Action } from '../../rules';
 import type { PokerView } from '../view';
 import { kinds, names as labels, type Kind } from '../../rules/cards';
 import { Card, Critter } from '../Theme';
+import { PlayerBadge } from '../public';
 export function PlayerControls({
   game,
   actions,
   disabled,
   choose,
   names,
+  avatars = {},
 }: {
   game: PokerView;
   actions: Action[];
   disabled: boolean;
   choose(a: Action): void;
   names: Record<string, string>;
+  avatars?: Record<string, string>;
 }) {
-  const [card, setCard] = useState<number | null>(null);
-  const [target, setTarget] = useState('');
-  const [claim, setClaim] = useState<Kind | null>(null);
-  const hand = useRef<HTMLDivElement>(null);
-  const [overflow, setOverflow] = useState(false);
-  useEffect(() => {
-    const element = hand.current;
-    if (!element) return;
-    const measure = () =>
-      setOverflow(element.scrollWidth > element.clientWidth + 1);
-    measure();
-    const observer =
-      typeof ResizeObserver === 'undefined'
-        ? null
-        : new ResizeObserver(measure);
-    observer?.observe(element);
-    window.addEventListener('resize', measure);
-    return () => {
-      observer?.disconnect();
-      window.removeEventListener('resize', measure);
-    };
-  }, [game.ownHand.length]);
+  const [card, setCard] = useState<number | null>(null),
+    [target, setTarget] = useState(''),
+    [claim, setClaim] = useState<Kind | null>(null);
   const selecting = actions.some(
     (a) => a.type === 'offer' || a.type === 'pass',
   );
-  const type = game.offer?.passing ? 'pass' : 'offer';
+  const passing = game.offer?.passing ?? false;
   const candidate: Action | null =
-    target && claim && (type === 'pass' || card !== null)
-      ? type === 'pass'
-        ? { type, claim, target }
-        : { type, claim, target, card: card! }
+    target && claim && (passing || card !== null)
+      ? passing
+        ? { type: 'pass', target, claim }
+        : { type: 'offer', target, claim, card: card! }
       : null;
   const allowed =
-    candidate &&
+    !!candidate &&
     actions.some((a) =>
       Object.keys(a).every(
         (k) =>
@@ -64,75 +48,102 @@ export function PlayerControls({
       ),
     ),
   ];
+  const known = game.offer?.knownCard;
+  const hand = useRef<HTMLDivElement>(null);
+  const [overflow, setOverflow] = useState(false);
+  useEffect(() => {
+    const element = hand.current;
+    if (!element) return;
+    const measure = () =>
+      setOverflow(element.scrollWidth > element.clientWidth + 1);
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(element);
+    return () => observer.disconnect();
+  }, [game.ownHand.length]);
   return (
-    <section className="cp-controls" aria-label="本人操作">
-      <div className="cp-hand-heading">
-        <h2>{actions.length ? '轮到你' : '你的手牌'}</h2>
-        {overflow && <span className="cp-hand-hint">↔ 左右滑动看牌</span>}
-      </div>
-      {game.offer?.knownCard !== null &&
-        game.offer?.knownCard !== undefined && (
-          <p className="cp-known">
-            你已看过此牌：
-            <Card card={game.offer.knownCard} />
-          </p>
-        )}
-      <div className="cp-hand" ref={hand}>
-        {game.ownHand.map((c) => (
-          <button
-            type="button"
-            key={c}
-            disabled={disabled || !actions.some((a) => a.type === 'offer')}
-            aria-pressed={card === c}
-            onClick={() => setCard(c)}
-          >
-            <Card card={c} />
-          </button>
-        ))}
-      </div>
+    <section
+      className={`cp-controls ${selecting ? 'cp-composing' : ''}`}
+      aria-label="本人操作"
+    >
       {selecting && (
-        <>
-          <fieldset>
-            <legend>交给谁</legend>
-            {targets.map((t) => (
+        <div className="cp-composer">
+          <fieldset className="cp-targets">
+            <legend className="cp-sr">交给谁</legend>
+            {targets.map((id) => (
               <button
+                key={id}
                 type="button"
-                key={t}
                 disabled={disabled}
-                aria-pressed={target === t}
-                onClick={() => setTarget(t)}
+                aria-pressed={target === id}
+                aria-label={`交给${names[id]}`}
+                onClick={() => setTarget(id)}
               >
-                {names[t]}
+                <PlayerBadge name={names[id]} avatar={avatars[id]} />
               </button>
             ))}
           </fieldset>
-          <fieldset>
-            <legend>声明是什么</legend>
+          <fieldset className="cp-claim-picker">
+            <legend className="cp-sr">声明是什么</legend>
             <div className="cp-claims">
-              {kinds.map((k) => (
+              {kinds.map((kind) => (
                 <button
+                  key={kind}
                   type="button"
-                  key={k}
                   disabled={disabled}
-                  aria-pressed={claim === k}
-                  onClick={() => setClaim(k)}
+                  aria-pressed={claim === kind}
+                  aria-label={labels[kind]}
+                  title={labels[kind]}
+                  onClick={() => setClaim(kind)}
                 >
-                  <Critter kind={k} />
-                  {labels[k]}
+                  <Critter kind={kind} />
                 </button>
               ))}
             </div>
           </fieldset>
-          <button
-            className="cp-confirm"
-            disabled={disabled || !allowed}
-            onClick={() => candidate && choose(candidate)}
-          >
-            {target && claim
-              ? `向 ${names[target]} 声明“${labels[claim]}”`
-              : '选好牌、接收者与声明'}
-          </button>
-        </>
+          <div className="cp-draft-preview" aria-label="传牌确认">
+            <span
+              className="cp-preview-card"
+              aria-label={passing && known != null ? '你已看过此牌' : undefined}
+            >
+              {passing && known != null ? (
+                <Card card={known} />
+              ) : card !== null ? (
+                <Card card={card} />
+              ) : (
+                <span aria-hidden="true">▤</span>
+              )}
+            </span>
+            <span className="cp-arrow" aria-hidden="true">
+              →
+            </span>
+            {target ? (
+              <PlayerBadge name={names[target]} avatar={avatars[target]} />
+            ) : (
+              <span className="cp-empty-choice" aria-label="尚未选择接收者">
+                ?
+              </span>
+            )}
+            {claim && (
+              <span className="cp-preview-claim">
+                <Critter kind={claim} />
+              </span>
+            )}
+            <button
+              type="button"
+              className="cp-confirm"
+              disabled={disabled || !allowed}
+              aria-label={
+                target && claim
+                  ? `向 ${names[target]} 声明“${labels[claim]}”`
+                  : '传出'
+              }
+              onClick={() => candidate && choose(candidate)}
+            >
+              传出 <span aria-hidden="true">↗</span>
+            </button>
+          </div>
+        </div>
       )}
       {actions.some((a) => a.type === 'judge') && (
         <div className="cp-judgments">
@@ -140,31 +151,63 @@ export function PlayerControls({
             disabled={disabled}
             onClick={() => choose({ type: 'judge', belief: true })}
           >
+            <span aria-hidden="true">✓</span>
             <strong>相信</strong>
-            <span>声明是真的</span>
           </button>
           <button
             disabled={disabled}
             onClick={() => choose({ type: 'judge', belief: false })}
           >
+            <span aria-hidden="true">✕</span>
             <strong>质疑</strong>
-            <span>声明是假的</span>
           </button>
-          {actions.some((a) => a.type === 'peek') ? (
+          {actions.some((a) => a.type === 'peek') && (
             <button
+              className="cp-peek"
               disabled={disabled}
               onClick={() => choose({ type: 'peek' })}
+              title="查看后必须转传"
             >
-              秘密查看，并承诺转传
+              <span aria-hidden="true">↝</span>
+              <strong>看后转传</strong>
             </button>
-          ) : (
-            <p>已无未看过的其他玩家，必须判断。</p>
           )}
         </div>
       )}
-      {game.offer?.passing && actions.length > 0 && (
-        <p>你已经选择转传；请交给尚未看过此牌的人。</p>
+      {known != null && !selecting && (
+        <div className="cp-known" aria-label="你已看过此牌">
+          <Card card={known} />
+          <span aria-hidden="true">◉</span>
+        </div>
       )}
+      <div className="cp-hand-heading">
+        <h2>{actions.length ? '轮到你' : '你的手牌'}</h2>
+        <span
+          className={overflow ? 'cp-hand-hint' : 'cp-hand-count'}
+          aria-label={overflow ? '横向浏览手牌' : '手牌张数'}
+        >
+          ↔ {game.ownHand.length}
+        </span>
+      </div>
+      <div className="cp-hand" ref={hand} aria-label="本人手牌">
+        {kinds
+          .flatMap((kind) =>
+            game.ownHand.filter(
+              (c) => Math.floor(c / 8) === kinds.indexOf(kind),
+            ),
+          )
+          .map((c) => (
+            <button
+              type="button"
+              key={c}
+              disabled={disabled || !actions.some((a) => a.type === 'offer')}
+              aria-pressed={card === c}
+              onClick={() => setCard(c)}
+            >
+              <Card card={c} />
+            </button>
+          ))}
+      </div>
     </section>
   );
 }
