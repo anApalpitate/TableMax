@@ -1,0 +1,342 @@
+{
+  "taskId": "pokemon-small-seats-20261024-01",
+  "result": "passed",
+  "uniquePassed": 92,
+  "evidence": [
+    "after/report.json",
+    "expansion-fixed/report.json"
+  ],
+  "firstRound": {
+    "passed": 53,
+    "failed": 10,
+    "notRun": 29,
+    "stopAfterFailures": 10
+  },
+  "correction": "Expansion BoardGrid places Card directly under card-slot; move aspect-ratio constraint from nonexistent card-surface to actual card. Only low-count host selector changed.",
+  "secondRound": {
+    "passed": 39,
+    "reusedUnaffected": 53
+  },
+  "boundaries": [
+    "Real production React components and host feedback slots with validated rule fixtures in hidden, muted Edge on 127.0.0.1.",
+    "Browser viewport / DPR simulation only; no installer, physical phone, native Windows DPI, network persistence or natural-game proof."
+  ],
+  "renderings": [
+    {
+      "path": "tmp/pokemon-small-seats-20261024-01/before/original-host-1280-2p-draw.png",
+      "kind": "actual-rendering",
+      "role": "host",
+      "viewport": "1280x720"
+    },
+    {
+      "path": "tmp/pokemon-small-seats-20261024-01/after/original-host-1280-2p-draw.png",
+      "kind": "actual-rendering",
+      "role": "host",
+      "viewport": "1280x720"
+    },
+    {
+      "path": "tmp/pokemon-small-seats-20261024-01/before/original-host-1280-3p-draw.png",
+      "kind": "actual-rendering",
+      "role": "host",
+      "viewport": "1280x720"
+    },
+    {
+      "path": "tmp/pokemon-small-seats-20261024-01/after/original-host-1280-3p-draw.png",
+      "kind": "actual-rendering",
+      "role": "host",
+      "viewport": "1280x720"
+    },
+    {
+      "path": "tmp/pokemon-small-seats-20261024-01/before/expansion-host-1280-2p-draw.png",
+      "kind": "actual-rendering",
+      "role": "host",
+      "viewport": "1280x720"
+    },
+    {
+      "path": "tmp/pokemon-small-seats-20261024-01/expansion-fixed/expansion-host-1280-2p-draw.png",
+      "kind": "actual-rendering",
+      "role": "host",
+      "viewport": "1280x720"
+    },
+    {
+      "path": "tmp/pokemon-small-seats-20261024-01/before/expansion-host-1280-3p-draw.png",
+      "kind": "actual-rendering",
+      "role": "host",
+      "viewport": "1280x720"
+    },
+    {
+      "path": "tmp/pokemon-small-seats-20261024-01/expansion-fixed/expansion-host-1280-3p-draw.png",
+      "kind": "actual-rendering",
+      "role": "host",
+      "viewport": "1280x720"
+    }
+  ],
+  "preview": "tmp/pokemon-small-seats-20261024-01/index.html",
+  "cleanup": "artifacts/maintenance/pokemon-small-seats-20261024-01/cleanup.cmd",
+  "geometry": [
+    {
+      "id": "original-host-1280-2p-draw",
+      "overflow": 0,
+      "card": {
+        "x": 51.5,
+        "y": 181.40625,
+        "width": 134,
+        "height": 187.59375,
+        "bottom": 369
+      }
+    },
+    {
+      "id": "original-host-1280-2p-initial",
+      "overflow": 0,
+      "card": {
+        "x": 51.5,
+        "y": 181.40625,
+        "width": 134,
+        "height": 187.59375,
+        "bottom": 369
+      }
+    },
+    {
+      "id": "original-host-1280-2p-place",
+      "overflow": 0,
+      "card": {
+        "x": 51.5,
+        "y": 181.40625,
+        "width": 134,
+        "height": 187.59375,
+        "bottom": 369
+      }
+    },
+    {
+      "id": "original-host-1280-2p-result",
+      "overflow": 0,
+      "card": {
+        "x": 51.5,
+        "y": 140.40625,
+        "width": 134,
+        "height": 187.59375,
+        "bottom": 328
+      }
+    },
+    {
+      "id": "original-host-1920-2p-draw",
+      "overflow": 0,
+      "card": {
+        "x": 211.5,
+        "y": 361.40625,
+        "width": 134,
+        "height": 187.59375,
+        "bottom": 549
+      }
+    },
+    {
+      "id": "original-host-4k-2p-draw",
+      "overflow": 0,
+      "card": {
+        "x": 211.5,
+        "y": 361.40625,
+        "width": 134,
+        "height": 187.59375,
+        "bottom": 549
+      }
+    },
+    {
+      "id": "original-host-1280-3p-draw",
+      "overflow": 0,
+      "card": {
+        "x": 32,
+        "y": 237.09375,
+        "width": 94.21875,
+        "height": 131.90625,
+        "bottom": 369
+      }
+    },
+    {
+      "id": "original-host-1280-3p-initial",
+      "overflow": 0,
+      "card": {
+        "x": 32,
+        "y": 237.09375,
+        "width": 94.21875,
+        "height": 131.90625,
+        "bottom": 369
+      }
+    },
+    {
+      "id": "original-host-1280-3p-place",
+      "overflow": 0,
+      "card": {
+        "x": 32,
+        "y": 237.09375,
+        "width": 94.21875,
+        "height": 131.90625,
+        "bottom": 369
+      }
+    },
+    {
+      "id": "original-host-1280-3p-result",
+      "overflow": 0,
+      "card": {
+        "x": 32,
+        "y": 196.09375,
+        "width": 94.21875,
+        "height": 131.90625,
+        "bottom": 328
+      }
+    },
+    {
+      "id": "original-host-1920-3p-draw",
+      "overflow": 0,
+      "card": {
+        "x": 79,
+        "y": 361.40625,
+        "width": 134,
+        "height": 187.59375,
+        "bottom": 549
+      }
+    },
+    {
+      "id": "original-host-4k-3p-draw",
+      "overflow": 0,
+      "card": {
+        "x": 79,
+        "y": 361.40625,
+        "width": 134,
+        "height": 187.59375,
+        "bottom": 549
+      }
+    },
+    {
+      "id": "expansion-host-1280-2p-draw",
+      "overflow": 0,
+      "card": {
+        "x": 80.21875,
+        "y": 172,
+        "width": 107.84375,
+        "height": 150.96875,
+        "bottom": 322.96875
+      }
+    },
+    {
+      "id": "expansion-host-1280-2p-initial",
+      "overflow": 0,
+      "card": {
+        "x": 76,
+        "y": 160.09375,
+        "width": 110.65625,
+        "height": 154.90625,
+        "bottom": 315
+      }
+    },
+    {
+      "id": "expansion-host-1280-2p-place",
+      "overflow": 0,
+      "card": {
+        "x": 80.21875,
+        "y": 172,
+        "width": 107.84375,
+        "height": 150.96875,
+        "bottom": 322.96875
+      }
+    },
+    {
+      "id": "expansion-host-1280-2p-result",
+      "overflow": 0,
+      "card": {
+        "x": 173.21875,
+        "y": 190,
+        "width": 97.84375,
+        "height": 136.96875,
+        "bottom": 326.96875
+      }
+    },
+    {
+      "id": "expansion-host-1920-2p-draw",
+      "overflow": 0,
+      "card": {
+        "x": 236,
+        "y": 346.09375,
+        "width": 110.65625,
+        "height": 154.90625,
+        "bottom": 501
+      }
+    },
+    {
+      "id": "expansion-host-4k-2p-draw",
+      "overflow": 0,
+      "card": {
+        "x": 236,
+        "y": 346.09375,
+        "width": 110.65625,
+        "height": 154.90625,
+        "bottom": 501
+      }
+    },
+    {
+      "id": "expansion-host-1280-3p-draw",
+      "overflow": 0,
+      "card": {
+        "x": 19,
+        "y": 197.359375,
+        "width": 95.765625,
+        "height": 134.0625,
+        "bottom": 331.421875
+      }
+    },
+    {
+      "id": "expansion-host-1280-3p-initial",
+      "overflow": 0,
+      "card": {
+        "x": 19,
+        "y": 191.359375,
+        "width": 95.765625,
+        "height": 134.0625,
+        "bottom": 325.421875
+      }
+    },
+    {
+      "id": "expansion-host-1280-3p-place",
+      "overflow": 0,
+      "card": {
+        "x": 19,
+        "y": 197.359375,
+        "width": 95.765625,
+        "height": 134.0625,
+        "bottom": 331.421875
+      }
+    },
+    {
+      "id": "expansion-host-1280-3p-result",
+      "overflow": 0,
+      "card": {
+        "x": 67.875,
+        "y": 190,
+        "width": 97.84375,
+        "height": 136.96875,
+        "bottom": 326.96875
+      }
+    },
+    {
+      "id": "expansion-host-1920-3p-draw",
+      "overflow": 0,
+      "card": {
+        "x": 103.328125,
+        "y": 346.09375,
+        "width": 110.65625,
+        "height": 154.90625,
+        "bottom": 501
+      }
+    },
+    {
+      "id": "expansion-host-4k-3p-draw",
+      "overflow": 0,
+      "card": {
+        "x": 103.328125,
+        "y": 346.09375,
+        "width": 110.65625,
+        "height": 154.90625,
+        "bottom": 501
+      }
+    }
+  ]
+}

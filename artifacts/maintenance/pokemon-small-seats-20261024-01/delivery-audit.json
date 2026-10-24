@@ -1,0 +1,12 @@
+{
+  "taskId": "pokemon-small-seats-20261024-01",
+  "type": "visual-change",
+  "checkedFiles": 9,
+  "failed": true,
+  "failures": [
+    {
+      "reason": "Cleanup controls must belong to this task"
+    }
+  ],
+  "limits": "Static references and inventory only; no rendering, provenance or cleanup execution proved."
+}

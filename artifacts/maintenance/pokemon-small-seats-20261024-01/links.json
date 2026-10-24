@@ -1,0 +1,158 @@
+{
+  "checked": 162,
+  "failures": [],
+  "warnings": [
+    {
+      "file": "docs/archive/acceptance-2026-10-01-to-04.md",
+      "line": 1,
+      "title": "交付与验收历史：2026-10-01 至 2026-10-04",
+      "reason": "long-section",
+      "bytes": 153124,
+      "detail": "Review whether this section answers one independent question; size alone does not require splitting"
+    },
+    {
+      "file": "docs/archive/acceptance-2026-10-05-to-08.md",
+      "line": 1,
+      "title": "交付与验收历史：2026-10-05 至 2026-10-08",
+      "reason": "long-section",
+      "bytes": 161547,
+      "detail": "Review whether this section answers one independent question; size alone does not require splitting"
+    },
+    {
+      "file": "docs/archive/development-2026-10-01-to-04.md",
+      "line": 1,
+      "title": "开发与验证历史：2026-10-01 至 2026-10-04",
+      "reason": "long-section",
+      "bytes": 35576,
+      "detail": "Review whether this section answers one independent question; size alone does not require splitting"
+    },
+    {
+      "file": "docs/archive/pokemon-encounters-expansion-2026-10-05-to-06.md",
+      "line": 1,
+      "title": "宝可梦扩展开发历史：2026-10-05 至 2026-10-06",
+      "reason": "long-section",
+      "bytes": 91922,
+      "detail": "Review whether this section answers one independent question; size alone does not require splitting"
+    },
+    {
+      "file": "docs/archive/validation-before-consolidation-2026-10-23.md",
+      "line": 7,
+      "title": "验证范围与证据",
+      "reason": "long-section",
+      "bytes": 78464,
+      "detail": "Review whether this section answers one independent question; size alone does not require splitting"
+    },
+    {
+      "file": "docs/games/pokemon-encounters/assets.md",
+      "line": 1,
+      "title": "本地资源、卡牌映射与声音",
+      "reason": "long-section",
+      "bytes": 58023,
+      "detail": "Review whether this section answers one independent question; size alone does not require splitting"
+    },
+    {
+      "file": "docs/games/pokemon-encounters/expansion-design.md",
+      "line": 1,
+      "title": "宝可梦奇遇扩展版设计基线",
+      "reason": "long-section",
+      "bytes": 52762,
+      "detail": "Review whether this section answers one independent question; size alone does not require splitting"
+    },
+    {
+      "file": "docs/games/pokemon-encounters/interaction.md",
+      "line": 1,
+      "title": "交互与动效规格",
+      "reason": "long-section",
+      "bytes": 50134,
+      "detail": "Review whether this section answers one independent question; size alone does not require splitting"
+    },
+    {
+      "file": "docs/games/pokemon-encounters/validation-scenarios.md",
+      "line": 1,
+      "title": "验证场景与交接",
+      "reason": "long-section",
+      "bytes": 53479,
+      "detail": "Review whether this section answers one independent question; size alone does not require splitting"
+    },
+    {
+      "file": "docs/reference/acceptance.md",
+      "line": 1,
+      "title": "当前交付与验收",
+      "reason": "long-section",
+      "bytes": 48717,
+      "detail": "Review whether this section answers one independent question; size alone does not require splitting"
+    },
+    {
+      "file": "docs/reference/acceptance.md",
+      "line": 50,
+      "title": "历史验收入口",
+      "reason": "long-section",
+      "bytes": 35766,
+      "detail": "Review whether this section answers one independent question; size alone does not require splitting"
+    },
+    {
+      "file": "docs/reference/art-preferences.md",
+      "line": 1,
+      "title": "用户美术偏好",
+      "reason": "long-section",
+      "bytes": 83391,
+      "detail": "Review whether this section answers one independent question; size alone does not require splitting"
+    },
+    {
+      "file": "docs/reference/art-preferences.md",
+      "line": 230,
+      "title": "来源与核验",
+      "reason": "long-section",
+      "bytes": 31234,
+      "detail": "Review whether this section answers one independent question; size alone does not require splitting"
+    },
+    {
+      "file": "docs/reference/phase-02-platform-spec.md",
+      "line": 1,
+      "title": "通用平台交互与交接规格",
+      "reason": "long-section",
+      "bytes": 83279,
+      "detail": "Review whether this section answers one independent question; size alone does not require splitting"
+    },
+    {
+      "file": "docs/reference/phase-02-platform-spec.md",
+      "line": 13,
+      "title": "身份、房主与信息权限",
+      "reason": "long-section",
+      "bytes": 26437,
+      "detail": "Review whether this section answers one independent question; size alone does not require splitting"
+    },
+    {
+      "file": "docs/requirements.md",
+      "line": 1,
+      "title": "TableMax 需求文档",
+      "reason": "long-section",
+      "bytes": 73722,
+      "detail": "Review whether this section answers one independent question; size alone does not require splitting"
+    }
+  ],
+  "selectedDocuments": [
+    "docs/archive/acceptance-2026-10-01-to-04.md",
+    "docs/archive/acceptance-2026-10-05-to-08.md",
+    "docs/archive/development-2026-10-01-to-04.md",
+    "docs/archive/maintenance-2026-10-01-to-03.md",
+    "docs/archive/phase-02-rules-and-interaction.md",
+    "docs/archive/pokemon-encounters-expansion-2026-10-05-to-06.md",
+    "docs/archive/validation-before-consolidation-2026-10-23.md",
+    "docs/decisions/002-host-public-screen-and-debug.md",
+    "docs/games/pokemon-encounters/README.md",
+    "docs/games/pokemon-encounters/assets.md",
+    "docs/games/pokemon-encounters/expansion-design.md",
+    "docs/games/pokemon-encounters/interaction.md",
+    "docs/games/pokemon-encounters/validation-scenarios.md",
+    "docs/reference/acceptance.md",
+    "docs/reference/art-preferences.md",
+    "docs/reference/development.md",
+    "docs/reference/phase-02-platform-spec.md",
+    "docs/requirements.md",
+    "docs/subagent/visual-review.md",
+    "docs/tasks/bug-assessment-2026-10-19.md",
+    "docs/tasks/fixed-canvas-visual-validation.md",
+    "docs/tasks/pokemon-encounters-expansion.md"
+  ]
+}

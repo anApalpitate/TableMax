@@ -1,0 +1,8 @@
+{
+  "taskId": "pokemon-small-seats-20261024-01",
+  "type": "visual-change",
+  "checkedFiles": 766,
+  "failed": false,
+  "failures": [],
+  "limits": "Static references and inventory only; no rendering, provenance or cleanup execution proved."
+}

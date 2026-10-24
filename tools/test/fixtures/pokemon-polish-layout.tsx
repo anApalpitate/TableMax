@@ -29,6 +29,7 @@ type Scene =
   | 'round-result'
   | 'match-result';
 type Setting = {
+  seats: number;
   scene: Scene;
   role: 'player' | 'host' | 'public';
   connected: boolean;
@@ -61,16 +62,19 @@ declare global {
     pokemonCommands: FixtureCommand[];
   }
 }
-const seatIds = ['S1', 'S2', 'S3', 'S4', 'S5', 'S6'];
-const context = { seats: seatIds, random: { next: () => 0.4 } };
+const allSeatIds = ['S1', 'S2', 'S3', 'S4', 'S5', 'S6'];
 
 function apply(state: State, action: Action, seat = state.turnSeat) {
+  const seatIds = state.seatOrder;
+  const context = { seats: seatIds, random: { next: () => 0.4 } };
   const next = rules.apply(state, action, seat, context).state as State;
   return validateState(next, seatIds);
 }
 
 /** Verification-only complete deck permutation; every later transition uses production rules. */
-function make(scene: Scene): FixtureState {
+function make(scene: Scene, count = 6): FixtureState {
+  const seatIds = allSeatIds.slice(0, count);
+  const context = { seats: seatIds, random: { next: () => 0.4 } };
   let state = rules.initialize({
     ...context,
     random: { next: () => 0 },
@@ -141,6 +145,7 @@ function make(scene: Scene): FixtureState {
 }
 
 const initialSetting: Setting = {
+  seats: 6,
   scene: 'initial',
   role: 'player',
   connected: true,
@@ -165,7 +170,7 @@ function Fixture() {
     window.pokemonCommands = [];
     flushSync(() => {
       setSetting((prior) => ({ ...updated, serial: prior.serial + 1 }));
-      setCurrent(make(updated.scene));
+      setCurrent(make(updated.scene, updated.seats));
     });
   };
   window.updatePokemonSession = (next) => {
@@ -179,7 +184,7 @@ function Fixture() {
     role: setting.role === 'player' ? 'player' : 'public',
     seatId: current.self,
   }) as PokemonView;
-  const seats = seatIds.map((id, index) => ({
+  const seats = current.state.seatOrder.map((id, index) => ({
     id,
     name:
       index === 0

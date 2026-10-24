@@ -57,6 +57,12 @@ for (const variant of ['original', 'expansion']) {
     add('host-1280', scene);
   add('host-1920', 'draw');
   add('host-4k', 'draw');
+  for (const seats of [2, 3]) {
+    for (const scene of ['draw', 'initial', 'place', 'result'])
+      add('host-1280', `${seats}p-${scene}`, { scene, seats });
+    for (const device of ['host-1920', 'host-4k'])
+      add(device, `${seats}p-draw`, { scene: 'draw', seats });
+  }
   for (const scene of [
     'draw',
     'initial',
@@ -212,6 +218,7 @@ try {
       const settings =
         item.variant === 'original'
           ? {
+              seats: item.seats ?? 6,
               role,
               scene:
                 {
@@ -225,6 +232,7 @@ try {
               longTargets: true,
             }
           : {
+              seats: item.seats ?? 6,
               role,
               scenario:
                 scene === 'vote'
@@ -350,6 +358,13 @@ try {
           const boards = Array.from(main.querySelectorAll('.pokemon-board'))
             .filter(visible)
             .map(rect);
+          const boardCards = Array.from(
+            main.querySelectorAll(
+              '.game-seat .pokemon-board .pokemon-card, .ex-player .pokemon-board .pokemon-card',
+            ),
+          )
+            .filter(visible)
+            .map(rect);
           const controls = Array.from(
             main.querySelectorAll(
               '.confirm-action, .ex-submit > button, .ex-held-options > button',
@@ -390,6 +405,7 @@ try {
             main: rect(main),
             grids,
             boards,
+            boardCards,
             cards,
             controls,
             nameIssues,
@@ -421,6 +437,15 @@ try {
           if (!condition) check.failures.push(reason);
         };
         const g = check.geometry;
+        if (item.seats) {
+          expect(g.boards.length === item.seats, 'Unexpected seat count');
+          expect(
+            g.boardCards.every(
+              (r) => Math.abs(r.height / r.width - 1.4) < 0.035,
+            ),
+            'Low-player cards stretched out of 5:7 proportion',
+          );
+        }
         expect(
           g.horizontalOverflow <= 1,
           `Horizontal overflow ${g.horizontalOverflow}`,

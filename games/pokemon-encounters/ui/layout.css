@@ -152,6 +152,46 @@
   margin: 0 auto;
   align-self: stretch;
 }
+/* A single seat row must not stretch its cards to the full table height. */
+.pokemon-screen:not(.player)
+  .game-table:is([data-seats='2'], [data-seats='3'])
+  .game-seats {
+  container-type: size;
+}
+.pokemon-screen:not(.player)
+  .game-table:is([data-seats='2'], [data-seats='3'])
+  .game-seat {
+  align-self: center;
+  justify-self: center;
+  max-width: 460px;
+  height: auto;
+  grid-template-rows: 34px auto;
+}
+.pokemon-screen:not(.player)
+  .game-table:is([data-seats='2'], [data-seats='3'])
+  .game-seat:has(.score-detail) {
+  grid-template-rows: 34px auto 44px;
+}
+.pokemon-screen:not(.player)
+  .game-table:is([data-seats='2'], [data-seats='3'])
+  .pokemon-board {
+  /* Two rows of 5:7 cards, plus numbering; reserve result/header space. */
+  max-width: min(410px, calc((100cqh - 140px) * 1.0714286 + 8px));
+  height: auto;
+  grid-template-rows: repeat(2, auto);
+}
+.pokemon-screen:not(.player)
+  .game-table:is([data-seats='2'], [data-seats='3'])
+  .card-slot {
+  height: auto;
+  grid-template-rows: auto 18px;
+}
+.pokemon-screen:not(.player)
+  .game-table:is([data-seats='2'], [data-seats='3'])
+  .card-surface {
+  height: auto;
+  aspect-ratio: 5 / 7;
+}
 .pokemon-screen .card-slot {
   display: grid;
   grid-template-rows: minmax(0, 1fr) 18px;

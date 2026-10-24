@@ -1,0 +1,69 @@
+{
+  "type": "visual-change",
+  "preview": {
+    "limitations": "Browser viewport/DPR simulation only; no native DPI, physical phone or installer proof.",
+    "before": "Four actual before/after pairs from identical legal 2/3-seat fixtures, captured before production edits.",
+    "renderings": [
+      {
+        "path": "tmp/pokemon-small-seats-20261024-01/before/original-host-1280-2p-draw.png",
+        "kind": "actual-rendering",
+        "role": "host",
+        "viewport": "1280x720"
+      },
+      {
+        "path": "tmp/pokemon-small-seats-20261024-01/after/original-host-1280-2p-draw.png",
+        "kind": "actual-rendering",
+        "role": "host",
+        "viewport": "1280x720"
+      },
+      {
+        "path": "tmp/pokemon-small-seats-20261024-01/before/original-host-1280-3p-draw.png",
+        "kind": "actual-rendering",
+        "role": "host",
+        "viewport": "1280x720"
+      },
+      {
+        "path": "tmp/pokemon-small-seats-20261024-01/after/original-host-1280-3p-draw.png",
+        "kind": "actual-rendering",
+        "role": "host",
+        "viewport": "1280x720"
+      },
+      {
+        "path": "tmp/pokemon-small-seats-20261024-01/before/expansion-host-1280-2p-draw.png",
+        "kind": "actual-rendering",
+        "role": "host",
+        "viewport": "1280x720"
+      },
+      {
+        "path": "tmp/pokemon-small-seats-20261024-01/expansion-fixed/expansion-host-1280-2p-draw.png",
+        "kind": "actual-rendering",
+        "role": "host",
+        "viewport": "1280x720"
+      },
+      {
+        "path": "tmp/pokemon-small-seats-20261024-01/before/expansion-host-1280-3p-draw.png",
+        "kind": "actual-rendering",
+        "role": "host",
+        "viewport": "1280x720"
+      },
+      {
+        "path": "tmp/pokemon-small-seats-20261024-01/expansion-fixed/expansion-host-1280-3p-draw.png",
+        "kind": "actual-rendering",
+        "role": "host",
+        "viewport": "1280x720"
+      }
+    ],
+    "html": "tmp/pokemon-small-seats-20261024-01/index.html"
+  },
+  "taskId": "pokemon-small-seats-20261024-01",
+  "temporary": {
+    "cleanup": {
+      "manifest": "artifacts/maintenance/pokemon-small-seats-20261024-01/cleanup-manifest.json",
+      "script": "artifacts/maintenance/pokemon-small-seats-20261024-01/cleanup.ps1",
+      "launcher": "artifacts/maintenance/pokemon-small-seats-20261024-01/cleanup.cmd",
+      "manifestSha256": "66bedd9047189322d80c7a076d61b74fc86af8ee1e3ae56c7705217efc969493"
+    },
+    "root": "tmp/pokemon-small-seats-20261024-01"
+  },
+  "version": 1
+}

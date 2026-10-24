@@ -1,0 +1,9 @@
+{
+  "sourceTypecheck": 0,
+  "fixtureTypecheck": 0,
+  "lint": 0,
+  "fixtureNativeCliAttempt": {
+    "cause": "Native TypeScript realpath fails on readable Windows pnpm junctions; rerun with existing project compilerRealpath wrapper.",
+    "exitCode": 2
+  }
+}
