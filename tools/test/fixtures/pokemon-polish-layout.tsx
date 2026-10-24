@@ -4,6 +4,7 @@ import { flushSync } from 'react-dom';
 import { client } from '../../../apps/web/src/game-clients/PokemonScreen';
 import { BoxScreen } from '../../../apps/web/src/screens/BoxScreen';
 import type { RoomSession } from '../../../apps/web/src/session/useRoomSession';
+import type { PokemonView } from '../../../games/pokemon-encounters/rules/project';
 import { rules, type Action } from '../../../games/pokemon-encounters/rules';
 import {
   validateState,
@@ -38,12 +39,18 @@ type Setting = {
   animate: boolean;
   longTargets: boolean;
   surface: 'game' | 'box';
+  message: string;
+  messageKind: 'saved' | 'error' | null;
+  busy: boolean;
+  admissionPending: boolean;
+  awaitingConfirmation: boolean;
 };
 type FixtureState = { state: State; self: string };
 type FixtureCommand = { type: 'game'; decisionId: string; action: Action };
 declare global {
   interface Window {
     setPokemonFixture(setting: Partial<Omit<Setting, 'serial'>>): void;
+    updatePokemonSession(setting: Partial<Setting>): void;
     pokemonFixture: {
       phase: string;
       step: number;
@@ -144,6 +151,11 @@ const initialSetting: Setting = {
   animate: false,
   longTargets: false,
   surface: 'game',
+  message: '',
+  messageKind: null,
+  busy: false,
+  admissionPending: false,
+  awaitingConfirmation: false,
 };
 function Fixture() {
   const [setting, setSetting] = useState(initialSetting);
@@ -156,6 +168,9 @@ function Fixture() {
       setCurrent(make(updated.scene));
     });
   };
+  window.updatePokemonSession = (next) => {
+    flushSync(() => setSetting((prior) => ({ ...prior, ...next })));
+  };
   Object.defineProperty(document, 'fullscreenEnabled', {
     configurable: true,
     get: () => setting.fullscreenSupported,
@@ -163,14 +178,14 @@ function Fixture() {
   const game = rules.project(current.state, {
     role: setting.role === 'player' ? 'player' : 'public',
     seatId: current.self,
-  });
+  }) as PokemonView;
   const seats = seatIds.map((id, index) => ({
     id,
     name:
       index === 0
-        ? '首席宝可梦玩家甲'
+        ? '首席宝可梦玩家'
         : setting.longTargets
-          ? `昵称朋友${index + 1}ABCDEFG`
+          ? `朋友${index + 1}ABCDEFGH`
           : `朋友 ${index + 1}`,
     controller: 'human',
     ready: true,
@@ -240,16 +255,18 @@ function Fixture() {
       setting.role === 'player'
         ? seats.find((seat) => seat.id === current.self)
         : null,
-    message: '',
+    message: setting.message,
+    messageKind: setting.messageKind,
     motion: setting.animate
       ? game.roundResult
         ? ['@saved', '@result']
         : ['@saved', ...(game.coin ? ['@coin'] : [])]
       : [],
     feedback: null,
-    busy: false,
-    admissionPending: false,
-    awaitingConfirmation: false,
+    busy: setting.busy,
+    admissionPending: setting.admissionPending,
+    awaitingConfirmation: setting.awaitingConfirmation,
+    retryAdmission() {},
     errorId: '',
     command(command: FixtureCommand) {
       if (

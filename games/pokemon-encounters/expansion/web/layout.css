@@ -1,0 +1,1194 @@
+/* One responsive geometry authority for the expansion, above the art layer. */
+main.expansion-screen {
+  --pile-width: 80px;
+  --pile-height: 112px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  height: 100dvh;
+  min-height: 0;
+  max-width: none;
+  width: 100%;
+  box-sizing: border-box;
+  padding: max(6px, env(safe-area-inset-top))
+    max(12px, env(safe-area-inset-right)) max(6px, env(safe-area-inset-bottom))
+    max(12px, env(safe-area-inset-left));
+}
+.expansion-screen .ex-toolbar {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 6px;
+  min-height: 44px;
+  height: 44px;
+  margin: 0;
+  align-items: center;
+  flex: 0 0 44px;
+}
+.expansion-screen .ex-toolbar h1 {
+  margin: 0 auto 0 0;
+  font-size: 20px;
+  line-height: 24px;
+}
+.expansion-screen .ex-toolbar button,
+.expansion-screen .ex-toolbar a {
+  font-size: 18px;
+  min-height: 44px;
+  padding: 6px 10px;
+}
+.expansion-screen .ex-round-banner {
+  flex-shrink: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 12px;
+  padding: 4px 10px;
+  margin: 0;
+  line-height: 22px;
+  min-height: 0;
+  font-size: 16px;
+}
+.expansion-screen .ex-round-banner > strong {
+  display: block;
+  font-size: 18px;
+  white-space: normal;
+}
+.expansion-screen .ex-current-actor {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px;
+  min-width: 0;
+  max-width: 100%;
+  margin-left: auto;
+  font-size: 16px;
+  white-space: normal;
+  overflow: visible;
+}
+.expansion-screen .ex-actor-identity {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 16px;
+}
+.expansion-screen .ex-actor-identity img {
+  width: 24px;
+  height: 24px;
+}
+.expansion-screen
+  .ex-current-actor[data-simultaneous='true']
+  .ex-actor-identity
+  > span {
+  display: none;
+}
+.expansion-screen .ex-turn-progress {
+  flex: 0 0 100%;
+  height: 8px;
+  margin: 0;
+  padding: 0;
+}
+.expansion-screen .ex-turn-step {
+  font-size: 16px;
+}
+.expansion-screen .ex-turn-step > span {
+  display: none;
+}
+.expansion-screen .ex-table-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 300px;
+  grid-template-rows: minmax(0, 1fr);
+  flex: 1 1 0;
+  min-height: 0;
+  width: 100%;
+  height: auto;
+  gap: 12px;
+  margin: 0;
+}
+.expansion-screen .ex-players {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-rows: repeat(2, minmax(0, 1fr));
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  gap: 8px;
+  margin: 0;
+  overflow: visible;
+}
+.expansion-screen[data-players='2'] .ex-players {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-rows: minmax(0, 1fr);
+}
+.expansion-screen[data-players='3'] .ex-players {
+  grid-template-rows: minmax(0, 1fr);
+}
+.expansion-screen[data-players='4'] .ex-players {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.expansion-screen .ex-player {
+  display: grid;
+  grid-column: auto;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: 32px minmax(0, 1fr);
+  gap: 4px;
+  min-width: 0;
+  min-height: 0;
+  padding: 6px;
+  margin: 0;
+}
+.expansion-screen .ex-player:has(.ex-score) {
+  grid-template-rows: 32px minmax(0, 1fr) 44px;
+}
+.expansion-screen .ex-player > header {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+  margin: 0;
+  height: 32px;
+}
+.expansion-screen .ex-player > header img {
+  width: 28px;
+  height: 28px;
+}
+.expansion-screen .ex-player > header h2 {
+  font-size: 16px;
+  line-height: 18px;
+  margin: 0;
+  min-width: 0;
+  flex: 1;
+  white-space: normal;
+  overflow: visible;
+  text-overflow: clip;
+  overflow-wrap: anywhere;
+}
+.expansion-screen .ex-player > header .win-track {
+  flex: none;
+  padding: 0;
+  width: 56px;
+  background: none;
+}
+.expansion-screen .ex-player > header .win-pips i {
+  width: 18px;
+  height: 22px;
+  font-size: 18px;
+  line-height: 22px;
+}
+.expansion-screen .ex-seat-number {
+  width: 20px;
+  height: 20px;
+  font-size: 16px;
+  flex-shrink: 0;
+}
+.expansion-screen .win-pips {
+  margin: 0;
+  gap: 1px;
+  flex-shrink: 0;
+}
+.expansion-screen .win-pips svg {
+  width: 18px;
+  height: 18px;
+}
+.expansion-screen .pokemon-board {
+  display: grid;
+  grid-template-rows: repeat(3, minmax(0, 1fr));
+  gap: 4px;
+  width: 100%;
+  height: 100%;
+  max-width: 440px;
+  min-height: 0;
+  margin: 0 auto;
+  padding: 0;
+}
+.expansion-screen .card-slot {
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) 16px;
+  min-height: 0;
+  min-width: 0;
+  padding: 0;
+  margin: 0;
+  height: 100%;
+  background: none;
+  border: 0;
+  gap: 1px;
+}
+.expansion-screen .slot-index {
+  position: static;
+  height: 16px;
+  min-height: 0;
+  width: auto;
+  justify-self: center;
+  font-size: 16px;
+  line-height: 16px;
+}
+.expansion-screen .slot-index .ex-circular-badge {
+  width: 16px;
+  height: 16px;
+  font-size: 16px;
+}
+.expansion-screen .pokemon-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr) auto;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  aspect-ratio: auto;
+  padding: 0;
+  box-sizing: border-box;
+}
+.expansion-screen .pokemon-card.back {
+  display: grid;
+  place-items: center;
+}
+.expansion-screen .pokemon-card .card-heading {
+  position: absolute;
+  inset: 0 0 auto;
+  display: flex;
+  justify-content: flex-end;
+  min-height: 0;
+  height: 24px;
+  padding: 0;
+  z-index: 1;
+}
+.expansion-screen .card-value {
+  font-size: 22px;
+  line-height: 24px;
+  padding: 0 3px;
+}
+.expansion-screen .pokemon-card > img,
+.expansion-screen .pokemon-card > .card-portrait {
+  position: static;
+  grid-column: 1;
+  grid-row: 1;
+  display: block;
+  width: 100%;
+  height: 100%;
+  aspect-ratio: auto;
+  min-height: 0;
+  object-fit: contain;
+  padding: 4px;
+  max-height: none;
+}
+.expansion-screen .card-name {
+  display: block;
+  grid-column: 1;
+  grid-row: 2;
+  position: static;
+  padding: 1px;
+  margin: 0;
+  width: 100%;
+  min-height: 20px;
+  font-size: 16px;
+  line-height: 18px;
+  white-space: normal;
+  overflow: visible;
+}
+.expansion-screen .card-name-text {
+  font-size: inherit;
+  line-height: inherit;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  overflow: visible;
+  text-overflow: clip;
+}
+.expansion-screen .ex-score-source {
+  font-size: 16px;
+  line-height: 18px;
+}
+.expansion-screen .ex-score {
+  min-height: 44px;
+  height: 44px;
+  padding: 2px 6px;
+  margin: 0;
+  font-size: 16px;
+}
+.expansion-screen .ex-score strong {
+  font-size: 18px;
+}
+.expansion-screen .ex-score-summary {
+  display: flex;
+  gap: 4px;
+  font-size: 16px;
+}
+.expansion-screen .ex-supply {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  padding: 8px;
+  overflow: visible;
+}
+.expansion-screen .ex-supply-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 6px;
+}
+.expansion-screen .ex-supply-heading h2 {
+  margin: 0;
+  font-size: 20px;
+}
+.expansion-screen .ex-supply-heading span {
+  font-size: 16px;
+}
+.expansion-screen .ex-public-piles {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+}
+.expansion-screen .ex-public-piles:has([data-pile='discard-second']) {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+.expansion-screen .ex-public-piles section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+}
+.expansion-screen .ex-public-piles section > header {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 3px;
+  height: 40px;
+  font-size: 16px;
+  line-height: 20px;
+}
+.expansion-screen .ex-public-piles .pokemon-card,
+.expansion-screen .ex-empty-pile {
+  flex: none;
+  width: var(--pile-width);
+  height: var(--pile-height);
+  min-height: 0;
+}
+.expansion-screen .ex-public-held {
+  display: grid;
+  grid-template-columns: var(--pile-width) minmax(0, 1fr);
+  align-items: center;
+  gap: 6px;
+  height: calc(var(--pile-height) + 12px);
+  min-height: 0;
+  margin: 0;
+  padding: 6px;
+}
+.expansion-screen .ex-public-held .pokemon-card,
+.expansion-screen .ex-public-held > svg {
+  width: var(--pile-width);
+  height: var(--pile-height);
+  min-height: 0;
+}
+.expansion-screen .ex-public-held strong {
+  display: block;
+  font-size: 18px;
+  white-space: normal;
+}
+.expansion-screen .ex-public-held p,
+.expansion-screen .ex-public-held span {
+  font-size: 16px;
+  line-height: 20px;
+  margin: 2px 0;
+}
+.expansion-screen .ex-last-action {
+  margin: 0;
+  padding: 6px;
+  font-size: 16px;
+  line-height: 20px;
+  min-height: 64px;
+}
+.expansion-screen .ex-last-action p {
+  margin: 0;
+  font-size: 16px;
+}
+.expansion-screen .ex-active-research {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+}
+.expansion-screen .ex-research-strip {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+}
+.expansion-screen .ex-research-summary {
+  min-height: 44px;
+  padding: 4px;
+  font-size: 16px;
+}
+.expansion-screen .ex-research-summary > img,
+.expansion-screen .ex-research-summary > svg {
+  width: 32px;
+  height: 32px;
+}
+.expansion-screen .ex-research-summary strong {
+  font-size: 18px;
+}
+.expansion-screen .ex-paused,
+.expansion-screen .feedback {
+  margin: 0;
+  padding: 4px;
+  font-size: 16px;
+}
+.expansion-screen .ex-event-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 32px;
+  height: 32px;
+  flex: none;
+  padding: 4px 10px;
+  margin: 0;
+  font-size: 16px;
+  line-height: 22px;
+}
+.expansion-screen .ex-event-status strong {
+  font-size: 18px;
+}
+.expansion-screen .ex-event-status img {
+  height: 24px;
+  width: 24px;
+  object-fit: contain;
+}
+.expansion-screen .ex-coin-result {
+  min-height: 32px;
+  height: 32px;
+  margin: 0;
+  font-size: 16px;
+}
+.expansion-screen .coin-face {
+  width: 28px;
+  height: 28px;
+}
+.expansion-screen .ex-victory {
+  padding: 6px 10px;
+  margin: 0;
+  gap: 8px;
+}
+.expansion-screen .ex-victory p {
+  font-size: 16px;
+  margin: 0;
+}
+.expansion-screen .ex-victory h2 {
+  font-size: 20px;
+  margin: 0;
+}
+.expansion-screen .ex-victory button {
+  min-height: 44px;
+  font-size: 18px;
+}
+.expansion-screen:has(.ex-victory) .ex-table-layout {
+  grid-template-columns: minmax(0, 1fr);
+}
+.expansion-screen > .ex-vote {
+  flex: 1;
+  min-height: 0;
+  overflow: visible;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.expansion-screen .ex-vote-options {
+  min-height: 0;
+}
+.expansion-screen:not(.player) .ex-vote-options {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  flex: 1;
+}
+.expansion-screen:not(.player) .ex-vote .ex-mission-option {
+  display: flex;
+  flex-direction: column;
+  padding: 8px;
+  min-height: 0;
+}
+.expansion-screen:not(.player) .ex-vote .ex-research-card {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  height: auto;
+  padding: 0;
+}
+.expansion-screen:not(.player) .ex-vote .ex-research-art {
+  height: 120px;
+  min-height: 0;
+  flex: none;
+  margin: 0;
+}
+.expansion-screen:not(.player) .ex-vote .ex-research-diagram {
+  display: none;
+}
+.expansion-screen:not(.player) .ex-vote .ex-research-copy {
+  padding: 0;
+}
+.expansion-screen:not(.player) .ex-vote .ex-research-copy p {
+  font-size: 16px;
+  line-height: 22px;
+  margin: 6px 0;
+}
+.expansion-screen:not(.player) .ex-vote .ex-research-title h3 {
+  font-size: 20px;
+  margin: 0;
+}
+.expansion-screen:not(.player) .ex-vote .ex-mission-option > button {
+  margin-top: auto;
+  min-height: 44px;
+  font-size: 18px;
+}
+.expansion-screen .ex-voter-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.expansion-screen .ex-voter-list > span {
+  padding: 4px;
+  min-width: 0;
+  font-size: 16px;
+}
+.expansion-screen .ex-voter-list img {
+  width: 24px;
+  height: 24px;
+}
+
+/* Player decisions use one compact source/held band above the nine-card board. */
+main.expansion-screen.player {
+  --pile-width: 72px;
+  --pile-height: 100px;
+  padding-inline: max(8px, env(safe-area-inset-left));
+  gap: 3px;
+}
+.expansion-screen.player .ex-toolbar {
+  justify-content: center;
+  gap: 4px;
+}
+.expansion-screen.player .ex-toolbar h1 {
+  display: none;
+}
+.expansion-screen.player .ex-round-banner {
+  padding: 3px 6px;
+  gap: 2px 6px;
+  font-size: 16px;
+}
+.expansion-screen.player .ex-current-actor {
+  flex-wrap: nowrap;
+  max-width: 100%;
+}
+.expansion-screen.player .ex-actor-identity img {
+  width: 22px;
+  height: 22px;
+}
+.expansion-screen.player .ex-table-layout {
+  display: block;
+  width: min(100%, 430px);
+  margin: 0 auto;
+  flex: none;
+  height: auto;
+}
+.expansion-screen.player .ex-actions {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  min-width: 0;
+  min-height: 0;
+  height: auto;
+  padding: 6px;
+  margin: 0;
+  gap: 4px;
+}
+.expansion-screen.player .ex-action-heading {
+  display: none;
+  flex-shrink: 0;
+  align-items: center;
+  min-height: 24px;
+  height: 24px;
+  margin: 0;
+  gap: 4px;
+}
+.expansion-screen.player .ex-action-heading h2 {
+  margin: 0;
+  font-size: 16px;
+  line-height: 20px;
+  width: auto;
+  min-width: 0;
+  flex: 1;
+  white-space: normal;
+  overflow: visible;
+  text-overflow: clip;
+}
+.expansion-screen.player .ex-action-heading img {
+  width: 24px;
+  height: 24px;
+}
+.expansion-screen.player .ex-actions .pokemon-board {
+  width: min(100%, 310px);
+  height: clamp(210px, calc(100dvh - 412px), 336px);
+  margin: 0 auto;
+}
+.expansion-screen.player:is(
+    [data-phase='mew-other'],
+    [data-phase='mewtwo-target']
+  )
+  .ex-actions
+  .pokemon-board {
+  height: clamp(180px, calc(100dvh - 460px), 336px);
+}
+.expansion-screen.player:has(> .ex-event-status) .ex-actions .pokemon-board {
+  height: clamp(186px, calc(100dvh - 448px), 336px);
+}
+.expansion-screen.player .ex-target-board,
+.expansion-screen.player .ex-row-choice {
+  margin: 0;
+  padding: 0;
+  min-width: 0;
+}
+.expansion-screen.player .ex-target-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 2px 8px;
+  margin: 0;
+  font-size: 16px;
+  line-height: 20px;
+}
+.expansion-screen.player .ex-target-heading > strong {
+  font-size: 16px;
+}
+.expansion-screen.player .ex-target-heading > span {
+  font-size: 16px;
+}
+.expansion-screen.player .ex-draw-options {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 4px;
+  margin: 0;
+}
+.expansion-screen.player .ex-source {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: start;
+  gap: 2px;
+  min-width: 0;
+  min-height: 0;
+  padding: 3px 1px;
+  font-size: 16px;
+  line-height: 20px;
+}
+.expansion-screen.player .ex-source > strong {
+  font-size: 16px;
+  line-height: 20px;
+}
+.expansion-screen.player .ex-source-face {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: start;
+  width: 100%;
+  gap: 0;
+  margin: 0;
+}
+.expansion-screen.player .ex-source .pokemon-card,
+.expansion-screen.player .ex-source .ex-empty-source,
+.expansion-screen.player .ex-source .ex-buffer-empty {
+  display: grid;
+  width: var(--pile-width);
+  height: var(--pile-height);
+  min-height: 0;
+  margin: 0;
+}
+.expansion-screen.player
+  .ex-source-face
+  > span:not(.pokemon-card):not(.ex-empty-source):not(.ex-buffer-empty):not(
+    .ex-swap-mark
+  ) {
+  display: none;
+}
+.expansion-screen.player .ex-source.ex-reposition-source {
+  grid-column: 1 / -1;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  height: 44px;
+  min-height: 44px;
+  padding: 2px 8px;
+}
+.expansion-screen.player .ex-reposition-source .ex-source-face {
+  width: 44px;
+}
+.expansion-screen.player .ex-swap-mark {
+  display: block;
+  height: 32px;
+  width: 32px;
+}
+.expansion-screen.player .ex-swap-mark svg {
+  height: 32px;
+  width: 32px;
+}
+.expansion-screen.player .ex-held {
+  position: relative;
+  display: grid;
+  grid-template-columns: var(--pile-width) minmax(0, 1fr);
+  align-items: center;
+  gap: 6px;
+  min-height: 0;
+  height: 112px;
+  width: 100%;
+  margin: 0;
+  padding: 6px;
+}
+.expansion-screen.player .ex-held .pokemon-card {
+  width: var(--pile-width);
+  height: var(--pile-height);
+  min-height: 0;
+}
+.expansion-screen.player .ex-held strong {
+  display: block;
+  font-size: 18px;
+  line-height: 20px;
+}
+.expansion-screen.player .ex-held p,
+.expansion-screen.player .ex-held span {
+  margin: 0;
+  font-size: 16px;
+  line-height: 20px;
+}
+.expansion-screen.player .ex-held .ex-source-label-compact {
+  display: inline;
+}
+.expansion-screen.player .ex-held .ex-source-label-full {
+  display: none;
+}
+.expansion-screen.player .ex-held details {
+  position: absolute;
+  right: 4px;
+  top: 4px;
+}
+.expansion-screen.player .ex-held details summary {
+  min-height: 44px;
+  width: 44px;
+  font-size: 0;
+}
+.expansion-screen.player .ex-held details summary::after {
+  content: 'ⓘ';
+  font-size: 22px;
+}
+.expansion-screen.player .ex-held > div > strong {
+  display: none;
+}
+.expansion-screen.player .ex-held:has(details) .ex-held-label {
+  padding-right: 44px;
+}
+.expansion-screen.player .ex-held details[open] p {
+  top: 44px;
+  position: absolute;
+  z-index: 6;
+  right: 0;
+  width: min(290px, 78vw);
+  padding: 10px;
+  background: #fffdf1;
+  border: 1px solid #b6bf9d;
+  border-radius: 8px;
+  box-shadow: 0 4px 14px #243a2830;
+}
+.expansion-screen.player .ex-target-list {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 4px;
+  min-height: 44px;
+  max-width: 100%;
+  overflow-x: auto;
+  margin: 0;
+}
+.expansion-screen.player .ex-target-list button {
+  flex: 0 0 auto;
+  min-height: 44px;
+  font-size: 16px;
+  padding: 4px 8px;
+  white-space: nowrap;
+}
+.expansion-screen.player .ex-submit,
+.expansion-screen.player .ex-simple-actions,
+.expansion-screen.player .ex-held-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+}
+.expansion-screen.player .ex-submit button,
+.expansion-screen.player .ex-simple-actions button,
+.expansion-screen.player .ex-held-options button {
+  min-width: 0;
+  min-height: 44px;
+  font-size: 18px;
+  line-height: 22px;
+  padding: 4px 8px;
+  flex: 1;
+}
+.expansion-screen.player .ex-simple-actions:empty,
+.expansion-screen.player .ex-held-options:empty {
+  display: none;
+}
+@media (orientation: portrait) {
+  .expansion-screen.player[data-phase='place'] .ex-actions {
+    position: relative;
+    padding-bottom: 54px;
+  }
+  .expansion-screen.player[data-phase='place'] .ex-held {
+    height: 161px;
+  }
+  .expansion-screen.player[data-phase='place'] .ex-actions .ex-submit {
+    position: absolute;
+    bottom: 6px;
+    left: 6px;
+    width: calc(100% - 12px);
+  }
+  .expansion-screen.player[data-phase='place']
+    .ex-actions:has(> .ex-held-options)
+    .ex-submit {
+    width: calc(33.333% - 6px);
+  }
+  .expansion-screen.player[data-phase='place'] .ex-held-options {
+    position: absolute;
+    bottom: 6px;
+    right: 6px;
+    width: calc(66.667% - 10px);
+  }
+}
+.expansion-screen.player .ex-wait {
+  margin: 0;
+  font-size: 16px;
+  line-height: 20px;
+}
+.expansion-screen.player > .ex-active-research {
+  flex-direction: row;
+  width: min(100%, 430px);
+  margin: 0 auto;
+  gap: 4px;
+}
+.expansion-screen.player > .ex-research-strip {
+  display: flex;
+  flex-direction: row;
+  flex: none;
+  width: min(100%, 430px);
+  margin: 0 auto;
+  gap: 4px;
+}
+.expansion-screen.player .ex-research-strip .ex-research-summary > span > span {
+  display: none;
+}
+.expansion-screen .ex-buffer-card {
+  display: grid;
+  grid-template-columns: 32px minmax(0, 1fr);
+  align-items: center;
+  gap: 6px;
+  height: 44px;
+  min-height: 44px;
+  padding: 3px 6px;
+  margin: 0;
+}
+.expansion-screen .ex-buffer-card > div {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0 6px;
+  font-size: 16px;
+  line-height: 18px;
+}
+.expansion-screen .ex-buffer-card strong,
+.expansion-screen .ex-buffer-card .ex-buffer-label,
+.expansion-screen .ex-buffer-card .ex-buffer-state {
+  font-size: 16px;
+  line-height: 18px;
+}
+.expansion-screen .ex-buffer-card.empty .ex-buffer-state {
+  display: none;
+}
+.expansion-screen .ex-buffer-card .ex-buffer-portrait,
+.expansion-screen .ex-buffer-card .ex-buffer-empty {
+  height: 32px;
+  width: 32px;
+  min-height: 0;
+  font-size: 24px;
+}
+.expansion-screen .ex-buffer-portrait img {
+  height: 32px;
+  width: 32px;
+  object-fit: contain;
+}
+.expansion-screen .ex-buffer-portrait b {
+  font-size: 18px;
+}
+.expansion-screen.player .ex-research-summary {
+  flex: 1;
+  min-width: 0;
+  min-height: 44px;
+  max-height: 44px;
+  padding: 3px 6px;
+}
+.expansion-screen.player
+  .ex-research-summary
+  > .ex-research-summary-copy
+  > span {
+  display: none;
+}
+.expansion-screen.player .ex-research-summary > img,
+.expansion-screen.player .ex-research-summary > svg {
+  display: none;
+}
+.expansion-screen.player .ex-research-summary strong {
+  font-size: 16px;
+}
+.expansion-screen.player .ex-private-peek {
+  margin: 0;
+  padding: 4px;
+}
+.expansion-screen.player .ex-actions:has(.ex-private-peek) .ex-own-board {
+  display: none;
+}
+.expansion-screen.player .ex-private-peek h3 {
+  font-size: 18px;
+  margin: 0 0 4px;
+}
+.expansion-screen.player .ex-private-peek .pokemon-card {
+  width: 72px;
+  height: 100px;
+}
+.expansion-screen.player .ex-private-peek > div {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+}
+.expansion-screen.player .ex-private-peek section {
+  font-size: 16px;
+}
+.expansion-screen.player .ex-own-preview {
+  margin: 0;
+  font-size: 16px;
+}
+.expansion-screen.player .ex-own-preview summary {
+  min-height: 44px;
+}
+.expansion-screen.player .ex-own-preview[open] .pokemon-board {
+  height: 240px;
+}
+.expansion-screen.player .ex-vote {
+  margin: 0;
+  padding: 6px;
+  width: min(100%, 430px);
+  align-self: center;
+}
+.expansion-screen.player .ex-vote-options {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.expansion-screen.player .ex-vote .ex-mission-option {
+  padding: 6px;
+  margin: 0;
+}
+.expansion-screen.player .ex-vote-choice {
+  display: flex;
+  align-items: start;
+  gap: 6px;
+  width: 100%;
+  min-height: 44px;
+  padding: 6px;
+  background: #fff9e6;
+  color: #204d40;
+}
+.expansion-screen.player .ex-vote-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.expansion-screen.player .ex-vote-copy strong {
+  font-size: 18px;
+  line-height: 22px;
+}
+.expansion-screen.player .ex-vote-copy b,
+.expansion-screen.player .ex-vote-copy .ex-research-risk {
+  font-size: 16px;
+  line-height: 20px;
+}
+.expansion-screen.player .ex-vote .ex-research-details {
+  min-height: 44px;
+  font-size: 16px;
+  width: 100%;
+}
+.expansion-screen.player .ex-vote-option {
+  padding: 8px;
+  font-size: 16px;
+  min-height: 44px;
+}
+.expansion-screen.player .ex-vote-option h3 {
+  font-size: 18px;
+}
+.expansion-screen.player .ex-vote-status {
+  font-size: 16px;
+}
+.expansion-screen.player .ex-victory .ex-winner-emblem {
+  display: none;
+}
+.expansion-screen.player:has(.ex-victory) .ex-player {
+  max-width: 430px;
+}
+.expansion-screen.player:has(.ex-victory) .ex-players {
+  grid-template-columns: 1fr;
+  grid-template-rows: 1fr;
+}
+.expansion-screen.player:has(.ex-victory) .ex-player .pokemon-board {
+  height: 280px;
+}
+
+@media (orientation: landscape) and (min-width: 640px) {
+  .expansion-screen.player .ex-table-layout {
+    width: 100%;
+    max-width: 1320px;
+    flex: 1;
+    min-height: 0;
+  }
+  .expansion-screen.player .ex-actions {
+    --decision-column: calc((100% - 24px) * 0.473684);
+    position: relative;
+    display: grid;
+    grid-template-columns: minmax(240px, 0.9fr) minmax(0, 1fr);
+    grid-template-rows: 24px minmax(0, 1fr);
+    height: 100%;
+    gap: 4px 10px;
+  }
+  .expansion-screen.player .ex-action-heading {
+    display: flex;
+    grid-column: 1;
+    grid-row: 1;
+  }
+  .expansion-screen.player .ex-target-board,
+  .expansion-screen.player .ex-row-choice {
+    grid-column: 2;
+    grid-row: 1 / 3;
+  }
+  .expansion-screen.player .ex-actions .pokemon-board {
+    height: min(290px, calc(100dvh - 190px));
+  }
+  .expansion-screen.player .ex-draw-options,
+  .expansion-screen.player .ex-held,
+  .expansion-screen.player .ex-wait {
+    grid-column: 1;
+    grid-row: 1 / 3;
+    align-self: start;
+  }
+  .expansion-screen.player .ex-simple-actions {
+    grid-column: 1;
+    grid-row: 2;
+    align-self: end;
+  }
+  .expansion-screen.player .ex-target-board .ex-submit {
+    position: absolute;
+    left: 6px;
+    bottom: 6px;
+    width: var(--decision-column);
+  }
+  .expansion-screen.player .ex-actions:has(> .ex-held-options) .ex-submit {
+    width: calc(var(--decision-column) / 3);
+  }
+  .expansion-screen.player .ex-held-options {
+    position: absolute;
+    bottom: 6px;
+    left: calc(10px + var(--decision-column) / 3);
+    width: calc(var(--decision-column) * 2 / 3 - 4px);
+  }
+  .expansion-screen.player .ex-target-list {
+    grid-column: 1;
+    grid-row: 2;
+    align-self: end;
+  }
+  .expansion-screen.player .ex-private-peek {
+    grid-column: 1;
+    grid-row: 2;
+    align-self: end;
+  }
+  .expansion-screen.player .ex-target-list ~ .ex-private-peek {
+    align-self: center;
+  }
+  .expansion-screen.player > .ex-active-research {
+    width: 100%;
+    max-width: 1320px;
+  }
+  .expansion-screen.player .ex-actions.ex-observing > .pokemon-board {
+    grid-column: 2;
+    grid-row: 2;
+  }
+  .expansion-screen.player .ex-vote {
+    width: 100%;
+    max-width: 1320px;
+  }
+  .expansion-screen.player .ex-vote-options {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 6px;
+  }
+}
+@media (max-width: 359px), (max-height: 575px) and (orientation: portrait) {
+  main.expansion-screen.player {
+    height: auto;
+    min-height: 100dvh;
+  }
+}
+@media (max-width: 1100px) and (min-width: 761px) {
+  .expansion-screen:not(.player) .ex-table-layout {
+    grid-template-columns: minmax(0, 1fr) 260px;
+    gap: 6px;
+  }
+}
+
+.dialog-surface.pokemon-expansion-friends-panel {
+  width: min(96vw, 1100px);
+  max-height: 94dvh;
+  padding: 12px;
+  overflow-y: auto;
+}
+.pokemon-expansion-friends-panel .panel-heading {
+  margin-bottom: 8px;
+}
+.pokemon-expansion-friends-panel .panel-heading h2 {
+  font-size: 20px;
+}
+.expansion-screen.ex-friends {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  height: auto;
+  min-height: 0;
+  padding: 0;
+}
+.expansion-screen.ex-friends .ex-player {
+  grid-column: auto;
+  grid-template-rows: 32px 270px;
+  gap: 4px;
+  padding: 6px;
+}
+.expansion-screen.ex-friends .pokemon-board {
+  width: min(100%, 270px);
+  height: 270px;
+}
+.expansion-screen.ex-friends .ex-player:has(.ex-score) {
+  grid-template-rows: 32px 270px 44px;
+}
+@media (max-width: 999px) and (orientation: landscape) {
+  .expansion-screen.ex-friends {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (orientation: portrait) {
+  .expansion-screen.ex-friends {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

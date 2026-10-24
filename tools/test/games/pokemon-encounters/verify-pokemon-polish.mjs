@@ -17,6 +17,11 @@ import { launchTestBrowser } from '../../support/browser-test.mjs';
 import { serveFixture } from '../../support/fixture-server.mjs';
 import { verificationOutput } from '../../support/verification-output.mjs';
 
+if (process.argv.includes('--layout-debug')) {
+  await import('./pokemon-layout-debug.mjs');
+  process.exit(process.exitCode ?? 0);
+}
+
 const evidenceName =
   process.argv.find((arg) => arg.startsWith('--evidence='))?.slice(11) ??
   'source';

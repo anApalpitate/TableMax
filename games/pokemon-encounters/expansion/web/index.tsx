@@ -54,12 +54,8 @@ import {
   ExpansionPresentation,
   useExpansionPresentation,
 } from './PresentationContext';
-import './style.css';
-import './redesign.css';
-import './refinement.css';
-import './player-flow.css';
-import './player-wide.css';
-import './preference-refinement.css';
+import './legacy.css';
+import './layout.css';
 
 const poseDurations = Object.fromEntries(
   Object.entries(poseSequences).map(([id, sequence]) => [
@@ -81,7 +77,7 @@ const phaseText: Record<View['phase'], string> = {
   'mew-other': '梦幻：选择对手一张牌',
   'mew-self': '梦幻：换入本人场地',
   'rocket-meowth': '火箭队：选择换入位置',
-  'rocket-pikachu': '火箭队：选择全桌同一位置',
+  'rocket-pikachu': '火箭队：选择同一牌位',
   'zapdos-direction': '闪电鸟：选择传牌方向',
   'zapdos-self': '闪电鸟：选择换入位置',
   'zapdos-receive': '闪电鸟：接力换入',
@@ -553,7 +549,7 @@ function Actions({
                 ? '本回合交换这两格'
                 : selectedType === 'swap'
                   ? '交换这两格'
-                  : '换入这个位置';
+                  : '换入这里';
   const heldOptions =
     game.held &&
     actions.some(
@@ -574,7 +570,7 @@ function Actions({
               disabled={locked}
               onClick={() => choose(a)}
             >
-              {a.type === 'discard-held' ? '弃到牌堆' : '存入本人缓冲'}
+              {a.type === 'discard-held' ? '弃到牌堆' : '存入缓冲'}
             </button>
           ))}
       </div>
@@ -713,6 +709,7 @@ function Actions({
                 <p>{game.held.abilityText}</p>
               </details>
             )}
+            <BufferCard game={game} seat={self} />
           </div>
         </div>
       )}
@@ -1020,7 +1017,9 @@ function Actions({
             </button>
           ))}
       </div>
-      {game.phase !== 'draw' && <BufferCard game={game} seat={self} />}
+      {game.phase !== 'draw' && !game.held && (
+        <BufferCard game={game} seat={self} />
+      )}
     </section>
   );
 }
@@ -1472,7 +1471,10 @@ function ScreenBody({ session, game }: { session: GameHost; game: View }) {
             ? '超梦：私看对手一张'
             : phaseText[game.phase]}
         </strong>
-        <span className="ex-current-actor">
+        <span
+          className="ex-current-actor"
+          data-simultaneous={pendingSeats.length > 1}
+        >
           {game.phase === 'research-vote' && (
             <span className="ex-actor-progress">
               投票 {game.votedSeats.length}/{game.seatOrder.length}
@@ -1489,6 +1491,8 @@ function ScreenBody({ session, game }: { session: GameHost; game: View }) {
                 return (
                   <span
                     className="ex-actor-identity"
+                    title={names[id] ?? '玩家'}
+                    aria-label={names[id] ?? '玩家'}
                     data-actor-seat={id}
                     key={id}
                   >
@@ -1505,10 +1509,7 @@ function ScreenBody({ session, game }: { session: GameHost; game: View }) {
         <TurnProgress game={game} />
       </div>
       <EventStatus game={game} />
-      {((session.message && session.message !== '已保存') ||
-        !session.connected ||
-        session.admissionPending ||
-        session.awaitingConfirmation) && <SessionFeedback session={session} />}
+      <SessionFeedback session={session} mode="messages" />
       {session.view?.paused && (
         <div className="ex-paused" role="status">
           对局已暂停，当前牌面与研究保留。
@@ -1592,6 +1593,12 @@ function ScreenBody({ session, game }: { session: GameHost; game: View }) {
               {game.researchCandidates.map((t) => (
                 <article className="ex-mission-option" key={t.id}>
                   <ResearchCard task={t} profile={profile} />
+                  <button
+                    className="secondary"
+                    onClick={() => showResearch(t.id)}
+                  >
+                    条件与图解
+                  </button>
                 </article>
               ))}
             </div>
@@ -1636,6 +1643,9 @@ function ScreenBody({ session, game }: { session: GameHost; game: View }) {
       />
       {panel && (
         <OverlayPanel
+          {...(panel === 'friends'
+            ? { className: 'pokemon-expansion-friends-panel' }
+            : {})}
           title={
             panel === 'rules' ? (
               '扩展版图文规则'
@@ -1758,7 +1768,7 @@ function Screen({ session }: { session: GameHost }) {
     return (
       <main className="expansion-screen">
         <p>正在连接扩展牌桌…</p>
-        <SessionFeedback session={session} />
+        <SessionFeedback session={session} mode="messages" />
       </main>
     );
   return (

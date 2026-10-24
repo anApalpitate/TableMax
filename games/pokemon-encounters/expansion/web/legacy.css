@@ -1,0 +1,7 @@
+/* Preserve the established art; layout.css owns responsive geometry. */
+@import './style.css' layer(pokemon-expansion-theme);
+@import './redesign.css' layer(pokemon-expansion-theme);
+@import './refinement.css' layer(pokemon-expansion-theme);
+@import './player-flow.css' layer(pokemon-expansion-theme);
+@import './player-wide.css' layer(pokemon-expansion-theme);
+@import './preference-refinement.css' layer(pokemon-expansion-theme);

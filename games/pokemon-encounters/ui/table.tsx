@@ -146,49 +146,51 @@ export function GameTable({
               trailAnchors={readTrailAnchors}
             />
           )}
-          {!game.roundResult && (
-            <TableStatus
-              view={game}
-              names={names}
-              portraits={portraits}
-              drawActions={paused || locked ? [] : actions}
-              onDraw={selfId ? choose : undefined}
-            />
-          )}
-          <ActivityFeed game={game} names={names} />
-          {game.roundResult && (
-            <section
-              className={`round-banner ${motion.includes('@phase') ? 'saved-motion' : ''}`}
-              aria-label="本局结果"
-            >
-              <span className="winner-emblem" aria-hidden="true">
-                {game.matchWinners.length ? '♛' : '✦'}
-              </span>
-              <div>
-                <p className="eyebrow">
-                  {game.matchWinners.length
-                    ? '三胜达成 大局赢家'
-                    : `第 ${game.roundNumber} 小局 最低分获胜`}
-                </p>
-                <h2>{winners.map((seat) => names[seat]).join('、')}</h2>
-                <p>
-                  {winners.length > 1
-                    ? '并列获胜，一起记一胜。'
-                    : '这一胜，属于你。'}
-                </p>
-              </div>
-              {nextRound && (
-                <button disabled={locked} onClick={nextRound}>
-                  开始下一局
-                </button>
-              )}
-              {playAgain && (
-                <button disabled={locked} onClick={playAgain}>
-                  再玩一局
-                </button>
-              )}
-            </section>
-          )}
+          <aside className="table-side" aria-label="当前局面与最近行动">
+            {!game.roundResult && (
+              <TableStatus
+                view={game}
+                names={names}
+                portraits={portraits}
+                drawActions={paused || locked ? [] : actions}
+                onDraw={selfId ? choose : undefined}
+              />
+            )}
+            <ActivityFeed game={game} names={names} />
+            {game.roundResult && (
+              <section
+                className={`round-banner ${motion.includes('@phase') ? 'saved-motion' : ''}`}
+                aria-label="本局结果"
+              >
+                <span className="winner-emblem" aria-hidden="true">
+                  {game.matchWinners.length ? '♛' : '✦'}
+                </span>
+                <div>
+                  <p className="eyebrow">
+                    {game.matchWinners.length
+                      ? '三胜达成 大局赢家'
+                      : `第 ${game.roundNumber} 小局 最低分获胜`}
+                  </p>
+                  <h2>{winners.map((seat) => names[seat]).join('、')}</h2>
+                  <p>
+                    {winners.length > 1
+                      ? '并列获胜，一起记一胜。'
+                      : '这一胜，属于你。'}
+                  </p>
+                </div>
+                {nextRound && (
+                  <button disabled={locked} onClick={nextRound}>
+                    开始下一局
+                  </button>
+                )}
+                {playAgain && (
+                  <button disabled={locked} onClick={playAgain}>
+                    再玩一局
+                  </button>
+                )}
+              </section>
+            )}
+          </aside>
           <div className="game-seats">
             {seats.map((seat) => (
               <article

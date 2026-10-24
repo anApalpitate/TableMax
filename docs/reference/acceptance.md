@@ -1,5 +1,7 @@
 # 当前交付与验收
 
+2026-10-24宝可梦原版／扩展版完成本次紧凑布局源码整改，68个场景与定向类型／Lint检查通过，详情见[游戏源码验收](../games/pokemon-encounters/validation-scenarios.md#紧凑布局源码验收2026-10-24)。范围为六人管理首屏、玩家360×640及横屏、朋友浮窗、完整牌名与稳定尺寸、普通成功提示隐藏；未生成新安装器，不能据此认为现有current或实体设备已更新。
+
 本页只维护当前状态及进入原证明的索引，不维护验证政策或可复制操作命令。政策与复用条件见[验证范围与证据](validation.md)，安装必须证明什么见[安装验收要求](installation-validation.md)，具体CLI见[测试工具](../../tools/test/README.md)。历史原文、失败、候选与旧SHA见[整理前记录](../archive/acceptance-before-consolidation-2026-10-23.md)，24处历史地址的可用性见[逐项核查](../archive/historical-evidence-audit-2026-10-23.md)。
 
 ## 当前源码与本地交付

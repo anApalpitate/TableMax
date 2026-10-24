@@ -1,0 +1,4 @@
+/* Theme and animation rules stay intact; layout has one unlayered authority. */
+@import './screen.css' layer(pokemon-theme);
+@import './style.css' layer(pokemon-theme);
+@import './player-wide.css' layer(pokemon-theme);

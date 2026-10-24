@@ -25,6 +25,20 @@ const item = (script, args = []) => ({
 });
 const plan = (...tests) => ({ version: 1, tests });
 
+test('Pokemon layout mode is isolated without registering the legacy full polish matrix', () => {
+  const script =
+    'tools/test/games/pokemon-encounters/verify-pokemon-polish.mjs';
+  const selected = plan(item(script, ['--layout-debug']));
+  assert.doesNotThrow(() =>
+    validateBatchScope(selected, 'game:pokemon-encounters'),
+  );
+  assert.throws(() => validateBatchScope(selected, 'game:uno'), /outside/);
+  assert.throws(
+    () => validateBatchScope(plan(item(script)), 'game:pokemon-encounters'),
+    /outside/,
+  );
+});
+
 test('Manila checks are isolated from every other game and shared product scope', () => {
   for (const file of [
     'games/manila/rules/rules.test.ts',

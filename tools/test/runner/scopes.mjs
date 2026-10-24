@@ -569,6 +569,12 @@ export function scopedVitestIncludes(root, value, args = []) {
 export function verificationTestScopes(item) {
   const script = item.script.replaceAll('\\', '/');
   if (
+    script ===
+      'tools/test/games/pokemon-encounters/verify-pokemon-polish.mjs' &&
+    item.args.includes('--layout-debug')
+  )
+    return ['game:pokemon-encounters'];
+  if (
     script === 'tools/test/platform/verify-public-screen-retirement-ui.mjs' &&
     item.args.includes('--review-only')
   )

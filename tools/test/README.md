@@ -36,6 +36,12 @@
 
 `box/verify-box-repository.mjs --require-medium --run=<独立名称>`使用当前原路径开发EXE，读取实际进程令牌并断言非提权Medium，按待迁移的旧主机／公共屏矩阵验证可信“打开网址”和GitHub目标；实际默认浏览器启动仅捕获已批准目标，另用隐藏静音Edge访问回环加入地址并确认网页玩家盒子。`--native-fixture`补同一文档切换`/host`与`/host/game`，并保留合成点击、过期请求、错误焦点、恶意网址、同URL子frame和玩家路由的拒绝检查。通过`box`批次计划执行；默认仅127.0.0.1、独立临时数据，不等同系统默认浏览器关联、实体手机或安装器验收。管理兼展示的管理员边界及旧公共屏路由退出尚须随工具补验。
 
+## 宝可梦紧凑布局源码验证
+
+`node tools/test/games/pokemon-encounters/verify-pokemon-polish.mjs --layout-debug --task=tmp/<安全任务名> --evidence=<全新轮名> [--phase=before|after] [--only=<case-id,...>]`为两版定向模式，真实注册范围为`game:pokemon-encounters`，通过现有version 1／2显式计划运行。`before`只观察改前行为，`after`核对页面／牌桌滚动、完整牌名、正背尺寸、成功提示隐藏与错误保留、朋友浮窗关闭及焦点；案例ID来自源码内明确矩阵，不接受未知ID。两版夹具使用当前`PlatformGame`消息槽与合法规则投影，不进入其他游戏或历史public矩阵。
+
+默认后台、静音、127.0.0.1，bundle、profile和截图集中于该任务根，报告及源码／图片SHA留`artifacts/maintenance/<任务名>/<轮名>/report.json`。默认至多10个失败场景即停止后续项，失败和未执行项保留；修复后使用新轮名及真实`--only`定向复验。4K项使用1920×1080 CSS区域与DPR 2，明确属于浏览器缩放模拟，不证明物理DPI、实体手机、网络保存或安装器。完整自然整局与规则行为另验，不从布局通过推定。
+
 ## 设置与保存标记源码验证
 
 `tools/test/platform/verify-settings-and-save-layout.mjs --evidence=<独立安全名称>`构建当前源码夹具，当前源码角色循环为管理与玩家的盒子／玩法设置入口、同源页面／iframe声音同步、手机全屏成功／拒绝／不支持、保存前后几何不变、文字碰撞及18／20／22px矢量角标；本轮只执行统一源码UI矩阵及独立Web／原生专项，不声称重跑本脚本全部组。`effects`使用真实规则保存事件验证原版／扩展蓝绿色轨迹、减少动态静态落点及恢复不重播。`--only=box,settings,save-layout,sound,mobile,icons,effects`可按实际受影响组筛选，`--games=manila`等可限制游戏专属用例；不传时运行全部。通过现有批次计划执行，范围为`box,shared`及七个正式游戏，默认隐藏、静音、127.0.0.1。证据位于`artifacts/maintenance/settings-and-save-20261020/<名称>`，绑定实际源码与脚本哈希；属于合法规则投影的源码组件夹具，不证明服务端事务、原生系统窗口或实体手机。

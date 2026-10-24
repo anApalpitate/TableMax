@@ -9,9 +9,8 @@ import { SoundControl } from '../ui/audio';
 import { SavedMotion, savedChanges, savedMotionDuration } from '../ui/motion';
 import type { GameClient, GameHost as RoomSession } from '@tablemax/web-host';
 import { useAudioOutput } from '@tablemax/web-host';
-import '../ui/screen.css';
-import '../ui/style.css';
-import '../ui/player-wide.css';
+import '../ui/legacy.css';
+import '../ui/layout.css';
 import { avatarFor } from '@tablemax/web-host';
 import { ScreenLink } from '@tablemax/web-host';
 import { SessionFeedback } from '@tablemax/web-host';
@@ -98,7 +97,6 @@ function PokemonScreen({ session }: { session: RoomSession }) {
             )}
           </span>
 
-          <SessionFeedback session={session} mode="saved" />
           {role === 'player' && (
             <button
               className="secondary toolbar-friends"
@@ -251,6 +249,9 @@ function PokemonScreen({ session }: { session: RoomSession }) {
         )}
         {panel && (
           <OverlayPanel
+            {...(panel === 'friends'
+              ? { className: 'pokemon-friends-panel' }
+              : {})}
             title={
               panel === 'rules' ? (
                 <>
@@ -268,7 +269,9 @@ function PokemonScreen({ session }: { session: RoomSession }) {
             {panel === 'rules' ? (
               <RulesGuide {...pokemonRulebook} initialChapter={ruleChapter} />
             ) : panel === 'friends' ? (
-              <div className={`pokemon-screen pokemon-panel ${role}`}>
+              <div
+                className={`pokemon-screen pokemon-panel pokemon-friends ${role}`}
+              >
                 {view?.seats
                   .filter((seat) => seat.id !== self?.id)
                   .map((seat) => (

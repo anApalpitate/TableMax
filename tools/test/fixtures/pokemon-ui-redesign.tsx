@@ -1,6 +1,6 @@
 import { createRoot } from 'react-dom/client';
 import { flushSync } from 'react-dom';
-import { HostedGame } from '../../../packages/web-host/src';
+import { PlatformGame } from '../../../apps/web/src/session/gameHostAdapter';
 import type { RoomSession } from '../../../apps/web/src/session/useRoomSession';
 import { client } from '../../../games/pokemon-encounters/expansion/web';
 import { ResearchCard } from '../../../games/pokemon-encounters/expansion/web/ResearchCard';
@@ -15,6 +15,10 @@ import {
   type Action,
 } from '../../../games/pokemon-encounters/expansion/state';
 import { RandomSource } from '../../../packages/platform-core/src/random';
+import {
+  eventKinds,
+  type EventKind,
+} from '../../../games/pokemon-encounters/expansion/events';
 import '../../../apps/web/src/styles.css';
 
 type Settings = {
@@ -31,6 +35,15 @@ type Settings = {
   commonWinner?: boolean;
   emptyDiscard?: boolean;
   waiting?: boolean;
+  message?: string;
+  messageKind?: 'saved' | 'error' | null;
+  busy?: boolean;
+  initial?: boolean;
+  targetStage?: boolean;
+  event?: EventKind;
+  buffer?: 'occupied' | 'take';
+  admissionPending?: boolean;
+  awaitingConfirmation?: boolean;
 };
 declare global {
   interface Window {
@@ -40,6 +53,7 @@ declare global {
       privateCards: string[];
     };
     redesignResearch(creature: string): void;
+    redesignUpdate(settings: Partial<Settings>): void;
     expansionTimelines: typeof poseSequences;
     redesignCommands: { action: string; before: string; after: string }[];
   }
@@ -53,7 +67,9 @@ function fixture(settings: Settings) {
     settings.seats ?? 6,
   );
   window.redesignCommands = [];
-  const ctx = { seats, random: new RandomSource(1060651) };
+  const random = new RandomSource(1060651);
+  let eventRandom: number | undefined;
+  const ctx = { seats, random: { next: () => eventRandom ?? random.next() } };
   let state = rules.initialize(ctx);
   if (settings.commonWinner) state.researchCandidates = ['R01', 'R02', 'R03'];
   const apply = (action: Action) => {
@@ -72,13 +88,14 @@ function fixture(settings: Settings) {
         seat,
         ctx,
       ).state;
-    for (const seat of seats)
-      state = rules.apply(
-        state,
-        { type: 'initial-flip', slot: 0 },
-        seat,
-        ctx,
-      ).state;
+    if (!settings.initial)
+      for (const seat of seats)
+        state = rules.apply(
+          state,
+          { type: 'initial-flip', slot: 0 },
+          seat,
+          ctx,
+        ).state;
   }
   const actor = state.turnSeat;
   const swapInstance = (wanted: string, replacement: string) => {
@@ -129,12 +146,14 @@ function fixture(settings: Settings) {
     state.boards[actor]![8]!.faceUp = false;
   }
   if (settings.scenario === 'draw') {
-    ['special-rayquaza#01', 'special-ditto#01'].forEach((wanted, i) => {
-      const index = state.discard.length - 1 - i,
-        previous = state.discard[index]!;
-      if (wanted !== previous) swapInstance(wanted, previous);
-      state.discard[index] = wanted;
-    });
+    ['special-rayquaza#01', 'special-ditto#01']
+      .slice(0, state.discard.length)
+      .forEach((wanted, i) => {
+        const index = state.discard.length - 1 - i,
+          previous = state.discard[index]!;
+        if (wanted !== previous) swapInstance(wanted, previous);
+        state.discard[index] = wanted;
+      });
   }
   if (settings.emptyDiscard) {
     state.deck.push(...state.discard);
@@ -149,6 +168,22 @@ function fixture(settings: Settings) {
       top = state.deck.at(-1)!;
     if (wanted !== top) swapInstance(wanted, top);
     state.deck[state.deck.length - 1] = wanted;
+    if (settings.event) {
+      // Construct and validate the protected-turn boundary; the event itself is
+      // resolved by the production draw transaction, not patched into a view.
+      placeReference(actor, 0, 'ordinary-4');
+      state.normalTurnsBySeat = Object.fromEntries(
+        seats.map((seat) => [seat, 2]),
+      );
+      state.randomEvent = {
+        markerInstanceId: wanted,
+        kind: null,
+        triggered: false,
+        protected: false,
+      };
+      eventRandom =
+        (eventKinds.indexOf(settings.event) + 0.5) / eventKinds.length;
+    }
     validateState(state, seats);
 
     apply({ type: 'draw', source: 'deck' });
@@ -162,12 +197,16 @@ function fixture(settings: Settings) {
     };
     if (!settings.ordinary) {
       const creature = settings.creature ?? 'mewtwo';
-      if (creature === 'mew') take('mew-target');
-      else if (creature === 'mewtwo') {
-        take('mewtwo-target');
-        take('mewtwo-exchange');
-      } else if (creature === 'zapdos') take('pass-direction');
-      else if (creature !== 'team-rocket') {
+      if (creature === 'mew') {
+        if (!settings.targetStage) take('mew-target');
+      } else if (creature === 'mewtwo') {
+        if (!settings.targetStage) {
+          take('mewtwo-target');
+          take('mewtwo-exchange');
+        }
+      } else if (creature === 'zapdos') {
+        if (!settings.targetStage) take('pass-direction');
+      } else if (creature !== 'team-rocket') {
         apply({ type: 'replace', slot: settings.terminal ? 8 : 1 });
         const choices: Record<string, Action['type']> = {
           charizard: 'peek',
@@ -194,6 +233,20 @@ function fixture(settings: Settings) {
 
     if (settings.scenario === 'result') apply({ type: 'replace', slot: 8 });
   }
+  if (settings.buffer) {
+    apply({ type: 'store-buffer' });
+    for (let i = 1; i < seats.length; i++) {
+      const index = state.deck.findIndex((id) => id.startsWith('ordinary-'));
+      const top = state.deck.length - 1;
+      [state.deck[index], state.deck[top]] = [
+        state.deck[top]!,
+        state.deck[index]!,
+      ];
+      apply({ type: 'draw', source: 'deck' });
+      apply({ type: 'replace', slot: 1 });
+    }
+    if (settings.buffer === 'take') apply({ type: 'draw-buffer' });
+  }
   validateState(state, seats);
   const role = settings.role ?? 'host';
   const viewerSeat = settings.waiting
@@ -201,12 +254,19 @@ function fixture(settings: Settings) {
     : actor;
   const game = rules.project(
     state,
-    role === 'player' ? { role, seatId: viewerSeat } : { role },
+    role === 'player' ? { role, seatId: viewerSeat } : { role: 'public' },
   );
   const changed = client.savedChanges(before, game);
   const currentSeats = seats.map((id, i) => ({
     id,
-    name: `玩家${i + 1}`,
+    name: [
+      '首席宝可梦玩家',
+      'ABCDEFGHIJKLMNOP',
+      '朋友三ABCDEFG',
+      '朋友四',
+      '朋友五',
+      '朋友六',
+    ][i]!,
     avatarId: AVATAR_PRESETS[i]!.id,
     controller: 'human' as const,
     ready: true,
@@ -260,10 +320,12 @@ function fixture(settings: Settings) {
     canControl: false,
     isHost: role === 'host',
     name: '',
-    message: '',
-    admissionPending: false,
-    awaitingConfirmation: false,
-    busy: false,
+    message: settings.message ?? '',
+    messageKind: settings.messageKind ?? null,
+    admissionPending: settings.admissionPending ?? false,
+    awaitingConfirmation: settings.awaitingConfirmation ?? false,
+    retryAdmission() {},
+    busy: settings.busy ?? false,
     errorId: '',
     credential: role === 'player' ? 'fixture-owner' : null,
     motion: settings.animate === false ? [] : changed,
@@ -279,6 +341,33 @@ function fixture(settings: Settings) {
         before,
         after: state.phase,
       });
+      const gameView = rules.project(
+        state,
+        role === 'player' ? { role, seatId: viewerSeat } : { role: 'public' },
+      );
+      const nextDecision = decisionId(state, state.turnSeat);
+      flushSync(() =>
+        root.render(
+          <PlatformGame
+            key={mountedSerial}
+            session={{
+              ...session,
+              view: {
+                ...session.view!,
+                gameView,
+                actions:
+                  role === 'player'
+                    ? [...rules.legalActions(state, viewerSeat)]
+                    : [],
+                decisionId: nextDecision,
+                selectionToken: nextDecision,
+              },
+              motion: [],
+            }}
+            client={client}
+          />,
+        ),
+      );
     },
     setName() {},
     join() {},
@@ -286,18 +375,29 @@ function fixture(settings: Settings) {
   } as unknown as RoomSession;
   return { session, state, game, events };
 }
-window.redesignShow = (settings) => {
+let lastSettings: Settings = {};
+let mountedSerial = 0;
+function renderFixture(settings: Settings, remount: boolean) {
+  lastSettings = settings;
   const { session, game, events } = fixture(settings);
+  if (remount) mountedSerial++;
   document.body.className = '';
   flushSync(() =>
-    root.render(<HostedGame key={serial} session={session} client={client} />),
+    root.render(
+      <PlatformGame key={mountedSerial} session={session} client={client} />,
+    ),
   );
   window.scrollTo(0, 0);
   return {
     phase: game.phase,
     events,
+    currentEvent: game.currentEvent,
     privateCards: game.peek?.cards.map((card) => card.card.categoryId) ?? [],
   };
+}
+window.redesignShow = (settings) => renderFixture(settings, true);
+window.redesignUpdate = (settings) => {
+  renderFixture({ ...lastSettings, ...settings }, false);
 };
 window.expansionTimelines = poseSequences;
 window.redesignResearch = (id) => {
