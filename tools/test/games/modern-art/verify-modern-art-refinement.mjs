@@ -8,16 +8,23 @@ import { captureBrowserScreenshot } from '../../support/screenshots.mjs';
 const arg = (n) =>
   process.argv.find((v) => v.startsWith(`--${n}=`))?.slice(n.length + 3);
 assertWorkspaceRoot();
-const task = resolve(arg('task') ?? 'tmp/modern-art-layout-refine-20261023-c1');
+const fixedCanvas = process.argv.includes('--fixed-canvas');
+const task = resolve(
+  arg('task') ??
+    (fixedCanvas
+      ? 'tmp/fixed-canvas-20261025-02/modern-art'
+      : 'tmp/modern-art-layout-refine-20261023-c1'),
+);
 const out = resolve(
   arg('output') ??
-    'artifacts/maintenance/modern-art-layout-refine-20261023-c1/visual-r01',
+    (fixedCanvas
+      ? 'artifacts/maintenance/fixed-canvas-20261025-02/modern-art/refinement-r01'
+      : 'artifacts/maintenance/modern-art-layout-refine-20261023-c1/visual-r01'),
 );
 assert.ok(task.startsWith(resolve('tmp') + '\\'));
 assert.ok(out.startsWith(resolve('artifacts') + '\\'));
 const phases = arg('phase') ? [arg('phase')] : ['before', 'after'];
 const only = (arg('only') ?? '').split(',').filter(Boolean);
-const fixedCanvas = process.argv.includes('--fixed-canvas');
 assert.ok(phases.every((p) => ['before', 'after'].includes(p)));
 assert.ok(
   !fixedCanvas || (phases.length === 1 && phases[0] === 'after'),
@@ -42,6 +49,7 @@ const report = {
   screenshots: [],
   inputs: [],
   fixedCanvas,
+  controlledUiStates: [],
   boundary:
     'Production components, legal role projections and controlled fixture transport. No physical device, live network, DPI or installer proof.',
 };
@@ -122,7 +130,7 @@ try {
             layout === 'host-landscape'
               ? [1280, 720]
               : layout === 'player-portrait'
-                ? [360, 640]
+                ? [360, 800]
                 : [640, 360];
           cases.push({
             id: `${layout}-${scene}`,
@@ -135,20 +143,59 @@ try {
           });
         }
       }
+      for (const [layout, width, height] of [
+        ['player-portrait', 360, 800],
+        ['player-landscape', 640, 360],
+      ]) {
+        for (const scenario of [
+          {
+            suffix: 'once-long-invalid-bid',
+            scene: 'auction-once-long-actor',
+            interaction: 'invalid-bid',
+          },
+          {
+            suffix: 'auction-once-long-waiting',
+            scene: 'auction-once-long-waiting',
+          },
+          {
+            suffix: 'auction-once-long-actor',
+            scene: 'auction-once-long-actor',
+          },
+        ])
+          cases.push({
+            id: `${layout}-${scenario.suffix}`,
+            ...scenario,
+            role: 'player',
+            width,
+            height,
+            wide: layout === 'player-landscape',
+            layout,
+          });
+      }
       for (const behavior of ['draft-switch', 'overlays', 'blocked-actions'])
         cases.push({
           id: `player-${behavior}`,
           scene: 'auction-open',
           role: 'player',
           width: 1280,
-          height: 720,
+          height: behavior === 'draft-switch' ? 900 : 720,
           wide: true,
           layout: 'player-landscape',
           behavior,
         });
+      cases.push({
+        id: 'player-saved-entrance',
+        scene: 'auction-open',
+        role: 'player',
+        width: 1280,
+        height: 1000,
+        wide: true,
+        layout: 'player-landscape',
+        behavior: 'saved-entrance',
+      });
       for (const [layout, role, width, height] of [
         ['host-landscape', 'host', 1280, 720],
-        ['player-portrait', 'player', 360, 640],
+        ['player-portrait', 'player', 360, 800],
         ['player-landscape', 'player', 640, 360],
       ])
         cases.push({
@@ -299,6 +346,11 @@ try {
                 }),
               item,
             );
+          if (item.interaction === 'invalid-bid') {
+            const input = frame.locator('#ma-bid-amount');
+            await input.fill('0');
+            await frame.locator('.ma-bid__invalid').waitFor();
+          }
           await frame.evaluate(() =>
             Promise.all(
               [...document.images]
@@ -432,7 +484,13 @@ try {
                 document.querySelector('.ma-auction__participants'),
               ],
             ];
-            if (window.__fixture?.scene === 'auction-once-leading')
+            if (
+              [
+                'auction-once-leading',
+                'auction-once-long-actor',
+                'auction-once-long-waiting',
+              ].includes(window.__fixture?.scene)
+            )
               semanticRoots.push([
                 'operations',
                 document.querySelector('.ma-player__operations'),
@@ -523,6 +581,7 @@ try {
                 return {
                   name: heading.textContent,
                   rect: box(element),
+                  painted: semanticPaint(element).clip,
                   nameRect: box(heading),
                   lines: [...range.getClientRects()].map((rect) => ({
                     x: rect.x,
@@ -530,6 +589,16 @@ try {
                     right: rect.right,
                     bottom: rect.bottom,
                   })),
+                  glyphs: (() => {
+                    const all = document.createRange();
+                    all.selectNodeContents(element);
+                    return [...all.getClientRects()].map((rect) => ({
+                      x: rect.x,
+                      y: rect.y,
+                      right: rect.right,
+                      bottom: rect.bottom,
+                    }));
+                  })(),
                 };
               });
             const handToggle = document.querySelector('.ma-hand-toggle');
@@ -708,6 +777,47 @@ try {
               onceTheme,
               onceNames,
               fixtureAuction: window.__fixture?.auction ?? null,
+              fixtureProjection: {
+                role: window.__fixture?.role,
+                selfSeatId: window.__currentView?.self?.seatId,
+                actionTypes: window.__fixture?.actions?.map(
+                  (action) => action.type,
+                ),
+                uiFlags: window.__fixture?.uiFlags,
+              },
+              bidInvalid: (() => {
+                const input = document.querySelector('#ma-bid-amount');
+                const error = document.querySelector('.ma-bid__invalid');
+                return {
+                  value: input?.value,
+                  minimum: input?.min,
+                  rangeUnderflow: input?.validity.rangeUnderflow,
+                  visible: Boolean(error && visible(error)),
+                  text: error?.textContent.trim(),
+                  actionDisabled: Boolean(
+                    document.querySelector('[data-ma-action="bid"]')?.disabled,
+                  ),
+                };
+              })(),
+              waiting: (() => {
+                const element = document.querySelector('.ma-waiting');
+                return element && visible(element)
+                  ? { text: element.textContent.trim(), rect: box(element) }
+                  : null;
+              })(),
+              actionTargets: [
+                ...document.querySelectorAll(
+                  '.ma-player__operations [data-ma-action],.ma-player__operations .ma-bid__step,.ma-player__operations #ma-bid-amount',
+                ),
+              ]
+                .filter(visible)
+                .map((element) => ({
+                  label:
+                    element.getAttribute('aria-label') ??
+                    element.textContent.trim(),
+                  rect: box(element),
+                  painted: painted(element),
+                })),
               primary: [
                 ...document.querySelectorAll(
                   '.ma-player__operations .ma-wallet,' +
@@ -716,7 +826,8 @@ try {
                     '.ma-player__operations .ma-controls__simple button,' +
                     '.ma-auction__label,.ma-auction__price,' +
                     '.ma-auction__participants,.ma-private-bid,' +
-                    '.ma-theme__once-price,.ma-theme--once > .ma-theme__lead,.ma-once-leader',
+                    '.ma-theme__once-price,.ma-theme--once > .ma-theme__lead,.ma-once-leader,' +
+                    '.ma-bid__invalid,.ma-waiting,.ma-market--summary',
                 ),
               ]
                 .filter(visible)
@@ -789,10 +900,16 @@ try {
               );
               assert.equal(
                 metrics.canvas?.rect.height,
-                item.layout === 'host-landscape' ? 720 : item.wide ? 360 : 640,
+                item.layout === 'host-landscape' ? 720 : item.wide ? 360 : 800,
               );
               assert.equal(metrics.canvas?.fitStatus, 'fits');
-              if (item.scene === 'auction-once-leading') {
+              if (
+                [
+                  'auction-once-leading',
+                  'auction-once-long-actor',
+                  'auction-once-long-waiting',
+                ].includes(item.scene)
+              ) {
                 assert.ok(
                   metrics.fixtureAuction?.currentBid > 0 &&
                     metrics.fixtureAuction.highBidder,
@@ -828,6 +945,97 @@ try {
                     name.expected,
                     'acting and leading names retain their complete legal text',
                   );
+                }
+                if (item.scene.startsWith('auction-once-long-')) {
+                  const actor = metrics.onceNames.find(
+                    (name) =>
+                      name.seatId === metrics.fixtureAuction.actingSeats[0],
+                  );
+                  assert.equal(
+                    actor.expected,
+                    'W'.repeat(16),
+                    'the acting player uses the legal longest English fixture name',
+                  );
+                  const leader = metrics.onceNames.find(
+                    (name) => name.seatId === metrics.fixtureAuction.highBidder,
+                  );
+                  assert.equal(
+                    leader.expected,
+                    `${'W'.repeat(15)}M`,
+                    'the same legal auction also retains a distinct maximum-length English leader name',
+                  );
+                }
+                if (item.scene === 'auction-once-long-waiting') {
+                  assert.notEqual(
+                    metrics.fixtureProjection.selfSeatId,
+                    metrics.fixtureAuction.actingSeats[0],
+                    'the waiting view is the real nonacting player projection',
+                  );
+                  assert.deepEqual(
+                    metrics.fixtureProjection.actionTypes,
+                    [],
+                    'the waiting player has no legal game action',
+                  );
+                  assert.ok(
+                    metrics.waiting?.text.includes('W'.repeat(16)),
+                    'the actual required waiting notice retains the complete acting player name',
+                  );
+                }
+                if (item.interaction === 'invalid-bid') {
+                  assert.equal(metrics.bidInvalid.value, '0');
+                  assert.equal(
+                    metrics.bidInvalid.rangeUnderflow,
+                    true,
+                    'native number input rejects the actual below-range user input',
+                  );
+                  assert.equal(
+                    metrics.bidInvalid.visible,
+                    true,
+                    'the production input error is visible',
+                  );
+                  assert.ok(
+                    metrics.bidInvalid.text.includes(
+                      metrics.bidInvalid.minimum,
+                    ) &&
+                      metrics.bidInvalid.text.includes('千元') &&
+                      metrics.bidInvalid.text.includes('输入已保留'),
+                    'the full error condition names the actual minimum, currency unit and retained draft',
+                  );
+                  assert.equal(
+                    metrics.bidInvalid.actionDisabled,
+                    true,
+                    'invalid input cannot submit a bid',
+                  );
+                  assert.equal(
+                    await frame.evaluate(() => window.__commands.length),
+                    0,
+                    'invalid editing submits no game command',
+                  );
+                }
+                if (item.layout === 'player-portrait') {
+                  assert.equal(
+                    metrics.marketCells.length,
+                    5,
+                    'the dense portrait retains all five necessary market comparisons',
+                  );
+                  for (const cell of metrics.marketCells) {
+                    assert.equal(
+                      cell.lines.length,
+                      1,
+                      `${cell.name} remains a complete English-name line`,
+                    );
+                    assert.deepEqual(
+                      cell.glyphs.filter(
+                        (rect) =>
+                          rect.x < cell.painted.x - 1 ||
+                          rect.right > cell.painted.right + 1 ||
+                          rect.y < cell.painted.y - 1 ||
+                          rect.bottom > cell.painted.bottom + 1,
+                      ),
+                      [],
+                      `${cell.name} and all its market figures stay inside the painted artist cell`,
+                    );
+                  }
                 }
               }
               if (item.wide && metrics.onceTheme) {
@@ -906,6 +1114,16 @@ try {
                   [],
                   'all necessary auction information, cash and bid actions are fully painted in the first canvas without scrolling',
                 );
+                assert.deepEqual(
+                  metrics.actionTargets.filter(
+                    (entry) =>
+                      !complete(entry) ||
+                      entry.rect.width < 44 ||
+                      entry.rect.height < 44,
+                  ),
+                  [],
+                  'all present main input and action targets are fully painted and at least44px in both dimensions',
+                );
                 if (['offer', 'auction-double'].includes(item.scene))
                   assert.ok(
                     metrics.handCards.some(complete),
@@ -940,6 +1158,8 @@ try {
                 'auction-open',
                 'auction-once',
                 'auction-once-leading',
+                'auction-once-long-actor',
+                'auction-once-long-waiting',
                 'auction-fixed',
                 'auction-sealed',
                 'sealed-submitted',
@@ -981,7 +1201,7 @@ try {
               const doc = await frame.evaluate(() => window.__documentId);
               if (fixedCanvas) {
                 // This exact viewport can contain both canvases at scale one.
-                if (item.width >= 640 && item.height >= 640) {
+                if (item.width >= 640 && item.height >= 800) {
                   const marker = await input.evaluate((element) => {
                     element.dataset.draftIdentity = crypto.randomUUID();
                     return element.dataset.draftIdentity;
@@ -1133,6 +1353,10 @@ try {
                 name: '显示布局',
                 exact: true,
               });
+              const controlIdentity = await control.evaluate((element) => {
+                element.dataset.layoutControlIdentity = crypto.randomUUID();
+                return element.dataset.layoutControlIdentity;
+              });
               await input.fill('9');
               const identity = await input.evaluate((element) => {
                 element.dataset.draftIdentity = crypto.randomUUID();
@@ -1149,7 +1373,140 @@ try {
                 .evaluateAll((elements) =>
                   elements.map((element) => element.dataset.cardId),
                 );
+              const handPosition = () =>
+                frame.locator('#ma-hand-gallery').evaluate((element) => {
+                  element.dataset.handIdentity ??= crypto.randomUUID();
+                  const rect = element.getBoundingClientRect();
+                  const canvas = element
+                    .closest('[data-fixed-canvas]')
+                    .getBoundingClientRect();
+                  const first = [
+                    ...element.querySelectorAll('.ma-hand__card'),
+                  ].find((card) => {
+                    const bounds = card.getBoundingClientRect();
+                    return (
+                      bounds.right > rect.x + 1 && bounds.x < rect.right - 1
+                    );
+                  });
+                  return {
+                    identity: element.dataset.handIdentity,
+                    scrollLeft: element.scrollLeft,
+                    clientWidth: element.clientWidth,
+                    scrollWidth: element.scrollWidth,
+                    rect: {
+                      x: rect.x,
+                      y: rect.y,
+                      width: rect.width,
+                      height: rect.height,
+                    },
+                    canvas: { width: canvas.width, height: canvas.height },
+                    firstVisible: first
+                      ? {
+                          cardId: first.dataset.cardId,
+                          offset: first.getBoundingClientRect().x - rect.x,
+                          rect: (() => {
+                            const card = first.getBoundingClientRect();
+                            return {
+                              x: card.x,
+                              y: card.y,
+                              right: card.right,
+                              bottom: card.bottom,
+                              width: card.width,
+                              height: card.height,
+                            };
+                          })(),
+                        }
+                      : null,
+                  };
+                });
+              const navigation = {
+                id,
+                initial: await handPosition(),
+                previousPages: [],
+                beforePage: null,
+                afterPage: null,
+              };
+              report.handPositionNavigation = navigation;
+              let beforePage = navigation.initial;
+              let atStableStart = false;
+              for (let attempt = 0; attempt <= order.length; attempt++) {
+                await frame
+                  .getByRole('button', { name: '上一页手牌', exact: true })
+                  .click();
+                await page.waitForTimeout(60);
+                const previousPage = await handPosition();
+                navigation.previousPages.push({
+                  before: beforePage,
+                  after: previousPage,
+                });
+                assert.ok(
+                  previousPage.scrollLeft <= beforePage.scrollLeft + 1,
+                  'the real previous-page action never navigates forward',
+                );
+                const stable =
+                  Math.abs(previousPage.scrollLeft - beforePage.scrollLeft) <=
+                  1;
+                beforePage = previousPage;
+                if (stable) {
+                  atStableStart = true;
+                  break;
+                }
+              }
+              navigation.beforePage = beforePage;
+              navigation.stableStart = atStableStart;
+              assert.ok(
+                atStableStart,
+                'bounded real previous-page navigation reaches a stable initial snap position',
+              );
+              assert.equal(
+                beforePage.firstVisible?.cardId,
+                order[0],
+                'the stable initial page starts with the actual first painting in the selected sort',
+              );
+              assert.ok(
+                beforePage.firstVisible.rect.x >= beforePage.rect.x - 1 &&
+                  beforePage.firstVisible.rect.right <=
+                    beforePage.rect.x + beforePage.rect.width + 1,
+                'the actual first sorted painting is fully inside the initial horizontal gallery',
+              );
+              await frame
+                .getByRole('button', { name: '下一页手牌', exact: true })
+                .click();
+              navigation.afterPage = await handPosition();
+              await writeFile(
+                join(out, 'report-running.json'),
+                JSON.stringify(report, null, 2),
+              );
+              await frame.waitForFunction(
+                (previous) =>
+                  document.querySelector('#ma-hand-gallery').scrollLeft >
+                  previous + 1,
+                beforePage.scrollLeft,
+              );
+              await page.waitForTimeout(60);
+              const wideHandPosition = await handPosition();
+              navigation.settledAfterPage = wideHandPosition;
+              assert.deepEqual(wideHandPosition.canvas, {
+                width: 640,
+                height: 360,
+              });
+              assert.ok(
+                wideHandPosition.scrollLeft > beforePage.scrollLeft + 1,
+                'the real next-page hand button advances the horizontal gallery',
+              );
+              assert.notEqual(
+                wideHandPosition.firstVisible?.cardId,
+                beforePage.firstVisible?.cardId,
+                'the next page exposes a different first visible painting',
+              );
               await frame.locator('.ma-hand-toggle').click();
+              await input.focus();
+              assert.ok(
+                await input.evaluate(
+                  (element) => element === document.activeElement,
+                ),
+                'the actual amount input has focus before nonbaseline resize',
+              );
               const geometry = () =>
                 frame.evaluate(() => {
                   const canvas = document
@@ -1180,21 +1537,54 @@ try {
                 initial,
                 'nonbaseline window changes only canvas offset',
               );
-              await page.setViewportSize({ width: 1280, height: 720 });
+              assert.ok(
+                await input.evaluate(
+                  (element) => element === document.activeElement,
+                ),
+                'nonbaseline resize retains actual amount-input focus',
+              );
+              assert.equal(
+                await input.getAttribute('data-draft-identity'),
+                identity,
+              );
+              assert.equal(await input.inputValue(), '9');
+              await page.setViewportSize({ width: 1280, height: 900 });
+              await control.focus();
               await control.selectOption('portrait');
               await frame
                 .locator(
                   "[data-fixed-canvas][data-canvas-layout='player-portrait']",
                 )
                 .waitFor();
+              assert.ok(
+                await control.evaluate(
+                  (element) => element === document.activeElement,
+                ),
+                'the real portrait selection retains select focus',
+              );
+              assert.equal(
+                await control.getAttribute('data-layout-control-identity'),
+                controlIdentity,
+              );
               await frame.locator('.ma-hand-toggle').click();
               await frame.locator('.ma-hand-toggle').click();
+              await control.focus();
               await control.selectOption('wide');
               await frame
                 .locator(
                   "[data-fixed-canvas][data-canvas-layout='player-landscape']",
                 )
                 .waitFor();
+              assert.ok(
+                await control.evaluate(
+                  (element) => element === document.activeElement,
+                ),
+                'the real landscape selection retains select focus',
+              );
+              assert.equal(
+                await control.getAttribute('data-layout-control-identity'),
+                controlIdentity,
+              );
               assert.equal(await input.inputValue(), '9');
               assert.equal(
                 await input.getAttribute('data-draft-identity'),
@@ -1212,10 +1602,388 @@ try {
                 order,
                 'manual sort survives layout changes',
               );
+              await page.waitForTimeout(60);
+              const restoredHandPosition = await handPosition();
+              const handScrollDelta = Math.abs(
+                restoredHandPosition.scrollLeft - wideHandPosition.scrollLeft,
+              );
+              const sameHandAnchor = Boolean(
+                wideHandPosition.firstVisible?.cardId &&
+                restoredHandPosition.firstVisible?.cardId ===
+                  wideHandPosition.firstVisible.cardId,
+              );
+              report.handPositionPreservation = {
+                id,
+                beforePage,
+                wide: wideHandPosition,
+                restored: restoredHandPosition,
+                scrollDelta: handScrollDelta,
+                sameAnchor: sameHandAnchor,
+              };
+              assert.deepEqual(restoredHandPosition.canvas, {
+                width: 640,
+                height: 360,
+              });
+              assert.equal(
+                restoredHandPosition.identity,
+                wideHandPosition.identity,
+                'the same hand gallery DOM instance survives closing and both layout changes',
+              );
+              assert.ok(
+                handScrollDelta <= 1 || sameHandAnchor,
+                'returning to the same logical landscape preserves hand scroll within1px or its first visible painting anchor',
+              );
               assert.equal(
                 await frame.evaluate(() => window.__commands.length),
                 0,
                 'layout, sorting and gallery browsing submit no game command',
+              );
+              await frame.evaluate(() =>
+                window.renderModernArt({
+                  scene: 'auction-once-long-actor',
+                  role: 'player',
+                }),
+              );
+              await control.selectOption('wide');
+              const onceControlIdentity = await control.evaluate((element) => {
+                element.dataset.onceControlIdentity = crypto.randomUUID();
+                return element.dataset.onceControlIdentity;
+              });
+              const onceInput = frame.locator('#ma-bid-amount');
+              await onceInput.fill('9');
+              const onceIdentity = await onceInput.evaluate((element) => {
+                element.dataset.onceDraftIdentity = crypto.randomUUID();
+                return element.dataset.onceDraftIdentity;
+              });
+              for (const preference of ['portrait', 'wide']) {
+                await control.focus();
+                await control.selectOption(preference);
+                await frame
+                  .locator(
+                    `[data-fixed-canvas][data-canvas-layout='player-${preference === 'wide' ? 'landscape' : 'portrait'}']`,
+                  )
+                  .waitFor();
+                assert.ok(
+                  await control.evaluate(
+                    (element) => element === document.activeElement,
+                  ),
+                  'once layout selection retains actual select focus',
+                );
+                assert.equal(
+                  await control.getAttribute('data-once-control-identity'),
+                  onceControlIdentity,
+                );
+                assert.equal(await onceInput.inputValue(), '9');
+                assert.equal(
+                  await onceInput.getAttribute('data-once-draft-identity'),
+                  onceIdentity,
+                  'the same once-auction amount input survives compact/full metadata changes',
+                );
+                assert.equal(await frame.locator('#ma-bid-amount').count(), 1);
+              }
+              assert.equal(
+                await frame.evaluate(() => window.__commands.length),
+                0,
+                'once-auction metadata reflow submits no command and preserves the bid draft',
+              );
+              await onceInput.focus();
+              await page.setViewportSize({ width: 800, height: 450 });
+              await page.waitForTimeout(200);
+              assert.ok(
+                await onceInput.evaluate(
+                  (element) => element === document.activeElement,
+                ),
+                'once amount focus survives a nonbaseline resize after real layout selection',
+              );
+              assert.equal(
+                await onceInput.getAttribute('data-once-draft-identity'),
+                onceIdentity,
+              );
+              assert.equal(await onceInput.inputValue(), '9');
+              assert.equal(
+                await frame.evaluate(() => window.__commands.length),
+                0,
+              );
+              report.onceDraftSwitch = {
+                id,
+                scene: 'auction-once-long-actor',
+                value: '9',
+                inputInstancePreserved: true,
+              };
+            }
+            if (fixedCanvas && item.behavior === 'saved-entrance') {
+              const proof = {
+                id,
+                boundary:
+                  'Actual legal RoomCoordinator source offer/feedback and production saved consumer; controlled GameHost delivery, not useRoomSession transport/timer, real network or persistence acceptance.',
+                subchecks: [],
+                anchors: [],
+                source: await frame.evaluate(() => ({
+                  feedback: window.__savedEntrance.feedback,
+                  beforeRevision: window.__savedEntrance.before.player.revision,
+                  afterRevision: window.__savedEntrance.after.player.revision,
+                  motion: window.__savedEntrance.motion,
+                })),
+              };
+              report.savedEntrance = proof;
+              const check = async (name, run) => {
+                try {
+                  await run();
+                  proof.subchecks.push({ name, result: 'passed' });
+                } catch (error) {
+                  proof.subchecks.push({
+                    name,
+                    result: 'failed',
+                    error: error.message,
+                  });
+                }
+              };
+              const render = (projection, feedback, preserve, disabled = '') =>
+                frame.evaluate(
+                  (args) => {
+                    const fixture = window.__savedEntrance;
+                    const view = structuredClone(
+                      fixture[args.projection].player,
+                    );
+                    if (args.disabled === 'paused') view.paused = true;
+                    window.renderModernArt({
+                      scene: 'saved-entrance',
+                      role: 'player',
+                      suppliedView: view,
+                      feedback: args.feedback ? fixture.feedback : null,
+                      motion:
+                        args.feedback && args.preserve ? fixture.motion : [],
+                      savedMessage: args.feedback ? '已保存' : '',
+                      preserve: args.preserve,
+                      connected: args.disabled !== 'disconnected',
+                    });
+                  },
+                  { projection, feedback, preserve, disabled },
+                );
+              const entrance = frame.locator('[data-auction-entrance]');
+              await page.emulateMedia({ reducedMotion: 'no-preference' });
+              await check(
+                'actual-source-and-initial-snapshot-is-consumed',
+                async () => {
+                  assert.ok(proof.source.motion.length > 0);
+                  assert.equal(
+                    proof.source.feedback.revision,
+                    proof.source.afterRevision,
+                  );
+                  assert.ok(
+                    proof.source.afterRevision > proof.source.beforeRevision,
+                  );
+                  await render('after', true, false);
+                  await page.waitForTimeout(60);
+                  assert.equal(
+                    await entrance.count(),
+                    0,
+                    'restoring a snapshot with initial feedback never replays an entrance',
+                  );
+                },
+              );
+              await render('before', false, false);
+              const control = frame.getByRole('combobox', {
+                name: '显示布局',
+                exact: true,
+              });
+              await control.selectOption('wide');
+              const screenIdentity = await frame
+                .locator('.ma-screen')
+                .evaluate((element) => {
+                  element.dataset.savedScreenIdentity = crypto.randomUUID();
+                  return element.dataset.savedScreenIdentity;
+                });
+              await render('after', true, true);
+              await check('null-to-new-legal-feedback-plays-once', async () => {
+                await entrance.waitFor({ state: 'visible' });
+                assert.equal(
+                  await frame.locator('.ma-screen.ma-saved').count(),
+                  1,
+                  'actual client.savedChanges motion drives saved presentation',
+                );
+                proof.entranceIdentity = await entrance.evaluate((element) => {
+                  element.dataset.savedEntranceIdentity = crypto.randomUUID();
+                  return element.dataset.savedEntranceIdentity;
+                });
+              });
+              const anchor = async (label) => {
+                const geometry = await frame.evaluate(() => {
+                  const canvas = document.querySelector('[data-fixed-canvas]');
+                  const entrance = document.querySelector(
+                    '[data-auction-entrance]',
+                  );
+                  const canvasStyle = getComputedStyle(canvas);
+                  const game = window.__currentView.gameView;
+                  const rect = (element) => {
+                    const box = element.getBoundingClientRect();
+                    return {
+                      x: box.x,
+                      y: box.y,
+                      width: box.width,
+                      height: box.height,
+                    };
+                  };
+                  return {
+                    layout: canvas.dataset.canvasLayout,
+                    logicalSize: {
+                      width: parseFloat(
+                        canvasStyle.getPropertyValue('--tablemax-canvas-width'),
+                      ),
+                      height: parseFloat(
+                        canvasStyle.getPropertyValue(
+                          '--tablemax-canvas-height',
+                        ),
+                      ),
+                    },
+                    viewport: {
+                      width: innerWidth,
+                      height: innerHeight,
+                      visual: visualViewport
+                        ? {
+                            width: visualViewport.width,
+                            height: visualViewport.height,
+                            offsetLeft: visualViewport.offsetLeft,
+                            offsetTop: visualViewport.offsetTop,
+                            scale: visualViewport.scale,
+                          }
+                        : null,
+                    },
+                    game: {
+                      phase: game.phase,
+                      auctionKind: game.auction?.kind ?? null,
+                      latestVerb: game.latest?.verb ?? null,
+                    },
+                    scene:
+                      game.phase === 'auction'
+                        ? `auction-${game.auction.kind}`
+                        : game.phase === 'double'
+                          ? 'auction-double'
+                          : game.phase,
+                    canvas: rect(canvas),
+                    entrance: entrance ? rect(entrance) : null,
+                  };
+                });
+                proof.anchors.push({ label, ...geometry });
+                const path = join(out, `${id}-live-${label}.png`);
+                await captureBrowserScreenshot(page, {
+                  path,
+                  fullPage: false,
+                  animations: 'allow',
+                });
+                report.screenshots.push({
+                  ...item,
+                  id: `${item.id}-live-${label}`,
+                  setupScene: item.scene,
+                  scene: geometry.scene,
+                  layout: geometry.layout,
+                  wide: geometry.layout === 'player-landscape',
+                  width: geometry.viewport.width,
+                  height: geometry.viewport.height,
+                  logicalSize: geometry.logicalSize,
+                  viewport: geometry.viewport,
+                  game: geometry.game,
+                  canvas: geometry.canvas,
+                  phase,
+                  path,
+                  label: 'actual legal saved entrance',
+                });
+                assert.ok(
+                  geometry.canvas.x > 0 && geometry.canvas.y > 0,
+                  'the live saved sample has actual nonbaseline canvas offsets',
+                );
+                assert.ok(
+                  geometry.entrance,
+                  'the actual saved entrance remains mounted during its presentation',
+                );
+                for (const property of ['x', 'y', 'width', 'height'])
+                  assert.ok(
+                    Math.abs(
+                      geometry.entrance[property] - geometry.canvas[property],
+                    ) <= 1,
+                    `live entrance ${property} follows its logical canvas instead of the window`,
+                  );
+              };
+              await page.waitForTimeout(180);
+              await check('nonbaseline-landscape-anchor', () =>
+                anchor('landscape'),
+              );
+              await check(
+                'same-event-does-not-replace-live-entrance',
+                async () => {
+                  await render('after', true, true);
+                  assert.equal(
+                    await entrance.getAttribute('data-saved-entrance-identity'),
+                    proof.entranceIdentity,
+                  );
+                },
+              );
+              await check(
+                'layout-switch-preserves-live-instance-and-portrait-anchor',
+                async () => {
+                  await control.focus();
+                  await control.selectOption('portrait');
+                  await frame
+                    .locator(
+                      "[data-fixed-canvas][data-canvas-layout='player-portrait']",
+                    )
+                    .waitFor();
+                  assert.equal(
+                    await frame
+                      .locator('.ma-screen')
+                      .getAttribute('data-saved-screen-identity'),
+                    screenIdentity,
+                  );
+                  assert.equal(
+                    await entrance.getAttribute('data-saved-entrance-identity'),
+                    proof.entranceIdentity,
+                  );
+                  await anchor('portrait');
+                },
+              );
+              await check(
+                'same-event-and-layout-switch-never-replay-after-expiry',
+                async () => {
+                  await entrance.waitFor({ state: 'detached', timeout: 2500 });
+                  await control.focus();
+                  await control.selectOption('wide');
+                  await render('after', true, true);
+                  await page.waitForTimeout(60);
+                  assert.equal(await entrance.count(), 0);
+                  assert.equal(
+                    await frame
+                      .locator('.ma-screen')
+                      .getAttribute('data-saved-screen-identity'),
+                    screenIdentity,
+                  );
+                },
+              );
+              for (const disabled of ['paused', 'disconnected'])
+                await check(
+                  `${disabled}-arrival-is-consumed-without-catch-up`,
+                  async () => {
+                    await render('before', false, false, disabled);
+                    await render('after', true, true, disabled);
+                    await page.waitForTimeout(60);
+                    assert.equal(await entrance.count(), 0);
+                    await render('after', true, true);
+                    await page.waitForTimeout(60);
+                    assert.equal(
+                      await entrance.count(),
+                      0,
+                      'reenabling a controlled disabled renderer cannot replay the consumed legal event',
+                    );
+                  },
+                );
+              assert.equal(
+                await frame.evaluate(() => window.__commands.length),
+                0,
+              );
+              await page.emulateMedia({ reducedMotion: 'reduce' });
+              assert.deepEqual(
+                proof.subchecks.filter((entry) => entry.result !== 'passed'),
+                [],
+                'all actual saved-entrance source, anchor and once-only consumer subchecks pass',
               );
             }
             if (fixedCanvas && item.behavior === 'overlays') {
@@ -1299,6 +2067,16 @@ try {
                     locked: state === 'locked',
                   });
                 }, state);
+                report.controlledUiStates.push({
+                  id,
+                  state,
+                  flags: await frame.evaluate(() => ({
+                    ...window.__fixture.uiFlags,
+                    paused: window.__fixture.paused,
+                  })),
+                  boundary:
+                    'Controlled fixture UI flags only; no real network, authorization transition or authoritative pause proof.',
+                });
                 assert.ok(
                   await input.isDisabled(),
                   `${state} disables amount input`,

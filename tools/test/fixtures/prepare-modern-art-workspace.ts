@@ -4,7 +4,11 @@ import { prepare } from './prepare-modern-art-polish';
 import { SqliteSaveRepository } from '../../../apps/server/src/save-repository';
 import { RoomCoordinator } from '../../../packages/platform-core/src/room';
 import { rules, bot } from '../../../games/modern-art';
-import type { RoomView } from '../../../packages/protocol/src';
+import {
+  RoomFeedbackSchema,
+  type RoomFeedback,
+  type RoomView,
+} from '../../../packages/protocol/src';
 import type { Action, ModernArtView } from '../../../games/modern-art/ui/view';
 import {
   playerNameError,
@@ -101,6 +105,83 @@ export async function prepareLayout(work: string, fixedNames = false) {
           error: playerNameError(name),
         })),
       });
+      if (fixedNames && entry.id === 'offer') {
+        const action =
+          (playerView.actions as Action[]).find(
+            (candidate) =>
+              candidate.type === 'offer' &&
+              gameView(playerView).self?.hand.some(
+                (card) =>
+                  card.id === candidate.cardId && card.auctionKind !== 'double',
+              ),
+          ) ??
+          (playerView.actions as Action[]).find(
+            (candidate) => candidate.type === 'offer',
+          );
+        if (!action) throw new Error('No legal saved-entrance offer action');
+        const feedbacks: RoomFeedback[] = [];
+        const unsubscribe = room.subscribe((feedback) => {
+          if (feedback) feedbacks.push(RoomFeedbackSchema.parse(feedback));
+        });
+        try {
+          const reply = await room.command(player.token, {
+            actionId: crypto.randomUUID(),
+            instanceId: playerView.instanceId,
+            revision: playerView.revision,
+            branch: playerView.branch,
+            command: {
+              type: 'game',
+              decisionId: playerView.decisionId!,
+              action,
+            },
+          });
+          if (!reply.ok)
+            throw new Error('Authoritative saved-entrance offer failed');
+        } finally {
+          unsubscribe();
+        }
+        const after = {
+          host: room.view(room.hostToken),
+          public: room.view(),
+          player: room.view(player.token),
+        };
+        const feedback = feedbacks.find(
+          (item) =>
+            item.instanceId === after.host.instanceId &&
+            item.branch === after.host.branch &&
+            item.revision === after.host.revision,
+        );
+        if (!feedback || gameView(after.player).latest?.verb !== 'offer')
+          throw new Error(
+            'Saved entrance lacks the matching actual committed public offer feedback',
+          );
+        const savedOffer = repository.load()!;
+        rules.validateState(
+          savedOffer.snapshot!.state,
+          savedOffer.seats.map((seat) => seat.id),
+        );
+        await mkdir(work, { recursive: true });
+        await writeFile(
+          join(work, 'saved-entrance.json'),
+          JSON.stringify({
+            before: { host, public: publicView, player: playerView },
+            after,
+            feedback,
+            boundary:
+              'Actual legal RoomCoordinator source event/projections; controlled renderer transport, no real network or persistence acceptance.',
+          }),
+        );
+        proof.push({
+          id: 'saved-entrance',
+          submittedLegalAction: action,
+          source: 'RoomCoordinator.subscribe after legal offer command',
+          beforeRevision: playerView.revision,
+          afterRevision: after.player.revision,
+          feedback,
+          boundary:
+            'Legal source fixture only; no real network or persistence acceptance.',
+        });
+      }
       if (fixedNames && entry.id === 'auction-once') {
         const active = room.view(player.token);
         const action = (active.actions as Action[]).find(
@@ -161,6 +242,106 @@ export async function prepareLayout(work: string, fixedNames = false) {
           hostHasPrivateSelf: Boolean(leadingGame.self),
           playerActionCount: room.view(next.token).actions.length,
         });
+        const longestName = 'W'.repeat(16);
+        const actorName = leadingHost.seats.find(
+          (seat) => seat.id === next.id,
+        )!.name;
+        const previousLongest = leadingHost.seats.find(
+          (seat) => seat.name === longestName,
+        );
+        const longLeaderName = `${'W'.repeat(15)}M`;
+        const renamedSeats: { seatId: string; name: string }[] = [];
+        if (previousLongest && previousLongest.id !== next.id)
+          renamedSeats.push({
+            seatId: previousLongest.id,
+            name: '英文昵称换位',
+          });
+        renamedSeats.push({ seatId: next.id, name: longestName });
+        if (previousLongest && previousLongest.id !== next.id)
+          renamedSeats.push({ seatId: previousLongest.id, name: actorName });
+        renamedSeats.push({
+          seatId: leadingGame.auction.highBidder,
+          name: longLeaderName,
+        });
+        for (const renamedSeat of renamedSeats) {
+          if (playerNameError(renamedSeat.name))
+            throw new Error('Invalid dense fixture nickname');
+          const current = room.view(room.hostToken);
+          const renamed = await room.command(room.hostToken, {
+            actionId: crypto.randomUUID(),
+            instanceId: current.instanceId,
+            revision: current.revision,
+            branch: current.branch,
+            command: { type: 'set-seat-name', ...renamedSeat },
+          });
+          if (!renamed.ok)
+            throw new Error('Authoritative dense nickname change failed');
+        }
+        const denseHost = room.view(room.hostToken);
+        const denseGame = gameView(denseHost);
+        const denseActor = room.view(next.token);
+        if (denseGame.auction?.kind !== 'once' || !denseGame.auction.highBidder)
+          throw new Error(
+            'Dense once fixture lost its active auction or leader',
+          );
+        const denseAuction = denseGame.auction;
+        const waiter = fixture.players.find(
+          (candidate) => candidate.id === denseAuction.highBidder,
+        );
+        if (!waiter)
+          throw new Error('Dense once leader has no real player credential');
+        const denseWaiting = room.view(waiter.token);
+        if (
+          denseGame.auction.currentBid <= 0 ||
+          denseGame.auction.actingSeats[0] !== next.id ||
+          denseWaiting.actions.length ||
+          denseActor.seats.find((seat) => seat.id === next.id)?.name !==
+            longestName
+        )
+          throw new Error(
+            'Dense once fixture lost its authoritative actor/leader/waiting boundary',
+          );
+        const denseSaved = repository.load()!;
+        rules.validateState(
+          denseSaved.snapshot!.state,
+          denseSaved.seats.map((seat) => seat.id),
+        );
+        for (const [id, projectedPlayer] of [
+          ['auction-once-long-actor', denseActor],
+          ['auction-once-long-waiting', denseWaiting],
+        ] as const) {
+          snapshots[id] = {
+            host: denseHost,
+            public: room.view(),
+            player: projectedPlayer,
+          };
+          proof.push({
+            id,
+            count: 5,
+            phase: denseGame.phase,
+            legalPreparationSteps: entry.steps + 1,
+            sourceScene: 'auction-once-leading',
+            submittedLegalAction: action,
+            administrativeNicknameCommands:
+              leadingHost.seats.length + renamedSeats.length,
+            nicknameCommands: renamedSeats,
+            actor: next.id,
+            actorName: longestName,
+            highBidder: denseGame.auction.highBidder,
+            highBidderName: longLeaderName,
+            currentBid: denseGame.auction.currentBid,
+            projectedPlayer: projectedPlayer.self.seatId,
+            playerActionCount: projectedPlayer.actions.length,
+            waitingProjection: id === 'auction-once-long-waiting',
+            publicHasPrivateSelf: Boolean(gameView(room.view()).self),
+            hostHasPrivateSelf: Boolean(denseGame.self),
+            nicknameInputs: denseHost.seats.map(({ name }) => ({
+              name,
+              length: playerNameLength(name),
+              error: playerNameError(name),
+            })),
+          });
+        }
       }
       if (entry.id === 'auction-double') {
         const actor = fixture.players.find((p) =>

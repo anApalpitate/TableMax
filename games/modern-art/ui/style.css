@@ -1,10 +1,25 @@
+.ma-layout-surface {
+  display: contents;
+}
+
+/* Direct legacy renderers have no platform canvas. Current clients use its
+   stable logical container; the extra container is only a legacy fallback. */
+.ma-layout-surface--legacy {
+  display: block;
+  container: tablemax-game / size;
+  width: 100%;
+  height: 100dvh;
+}
+
 .ma-screen {
+  --ma-canvas-width: var(--tablemax-canvas-width, 100vw);
+  --ma-canvas-height: var(--tablemax-canvas-height, 100dvh);
   --ma-ink: #302b26;
   --ma-paper: #fff9ed;
   --ma-gold: #9a6425;
-  --ma-card-size: clamp(118px, 17vh, 230px);
+  --ma-card-size: clamp(118px, calc(var(--ma-canvas-height) * 0.17), 230px);
   width: 100%;
-  min-height: 100dvh;
+  min-height: calc(var(--ma-canvas-height) * 1);
   padding: 10px 16px 14px;
   color: var(--ma-ink);
   font-size: 16px;
@@ -22,7 +37,8 @@
     linear-gradient(100deg, #c69b6e, #ead0ac 45%, #d1a67d);
 }
 
-.ma-screen .ma-toolbar .ma-menu-entry {
+.ma-screen .ma-toolbar .ma-menu-entry,
+.ma-screen .ma-toolbar .game-rulebook-entry {
   display: inline-grid;
   place-items: center;
   width: 44px;
@@ -36,7 +52,7 @@
   height: 24px;
 }
 .ma-screen:not(.player):not(.ma-panel) {
-  height: 100dvh;
+  height: calc(var(--ma-canvas-height) * 1);
   overflow: hidden;
 }
 .ma-screen button,
@@ -104,6 +120,13 @@
 }
 .ma-screen.player .ma-round {
   margin-right: auto;
+  padding-inline: 6px;
+  font-size: 18px;
+}
+.ma-screen.player .tablemax-layout-control select {
+  width: 64px;
+  padding: 4px;
+  font-size: 18px;
 }
 .ma-screen.player .ma-toolbar .ma-back-link {
   display: grid;
@@ -125,7 +148,7 @@
 }
 .ma-screen .ma-brand strong {
   font-family: Georgia, 'Times New Roman', serif;
-  font-size: clamp(24px, 2vw, 34px);
+  font-size: clamp(24px, calc(var(--ma-canvas-width) * 0.02), 34px);
   letter-spacing: -0.04em;
   white-space: nowrap;
 }
@@ -160,7 +183,7 @@
   align-content: start;
   flex: 1;
   min-height: 0;
-  gap: clamp(10px, 1.2vw, 20px);
+  gap: clamp(10px, calc(var(--ma-canvas-width) * 0.012), 20px);
   width: 100%;
   max-width: 2800px;
   margin: 0 auto;
@@ -178,7 +201,7 @@
 }
 .ma-screen .ma-market {
   position: relative;
-  padding: clamp(10px, 1.2vw, 22px);
+  padding: clamp(10px, calc(var(--ma-canvas-width) * 0.012), 22px);
   align-self: start;
 }
 .ma-screen .ma-section-heading {
@@ -189,7 +212,7 @@
   margin-bottom: 10px;
 }
 .ma-screen .ma-section-heading h2 {
-  font-size: clamp(20px, 1.5vw, 28px);
+  font-size: clamp(20px, calc(var(--ma-canvas-width) * 0.015), 28px);
 }
 .ma-screen .ma-section-heading > span {
   color: #6f5840;
@@ -199,7 +222,7 @@
 .ma-screen .ma-market__columns {
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));
-  gap: clamp(5px, 0.7vw, 12px);
+  gap: clamp(5px, calc(var(--ma-canvas-width) * 0.007), 12px);
 }
 .ma-screen .ma-market__explanation {
   margin: 0 0 10px;
@@ -240,7 +263,7 @@
   height: 24px;
 }
 .ma-screen .ma-artist h3 {
-  font-size: clamp(16px, 1.05vw, 22px);
+  font-size: clamp(16px, calc(var(--ma-canvas-width) * 0.0105), 22px);
   line-height: 1.25;
   overflow-wrap: normal;
 }
@@ -259,7 +282,7 @@
   margin-bottom: 6px;
 }
 .ma-screen .ma-artist__pips i {
-  width: clamp(7px, 0.65vw, 12px);
+  width: clamp(7px, calc(var(--ma-canvas-width) * 0.0065), 12px);
   height: 8px;
   border-radius: 2px;
   background: #ddcfb9;
@@ -269,7 +292,7 @@
 }
 .ma-screen .ma-artist__value {
   display: block;
-  font-size: clamp(32px, 3vw, 58px);
+  font-size: clamp(32px, calc(var(--ma-canvas-width) * 0.03), 58px);
   line-height: 1.1;
   font-family: Georgia, serif;
   font-variant-numeric: tabular-nums;
@@ -349,7 +372,7 @@
   min-width: 0;
 }
 .ma-screen .ma-auction {
-  padding: clamp(10px, 1.2vw, 20px);
+  padding: clamp(10px, calc(var(--ma-canvas-width) * 0.012), 20px);
   display: grid;
   grid-template-columns: auto minmax(0, 1fr);
   align-items: center;
@@ -364,7 +387,7 @@
   gap: 10px;
 }
 .ma-screen .ma-auction__label h2 {
-  font-size: clamp(20px, 1.6vw, 28px);
+  font-size: clamp(20px, calc(var(--ma-canvas-width) * 0.016), 28px);
 }
 .ma-screen .ma-auction__label p {
   font-size: 16px;
@@ -398,7 +421,7 @@
   width: auto;
 }
 .ma-screen .ma-auction__paintings > .ma-card {
-  width: clamp(112px, 9vw, 220px);
+  width: clamp(112px, calc(var(--ma-canvas-width) * 0.09), 220px);
   transform: rotate(-2deg);
 }
 .ma-screen .ma-auction__paintings > .ma-card:nth-child(2) {
@@ -511,7 +534,7 @@
   overflow-wrap: anywhere;
 }
 .ma-screen .ma-auction__price strong {
-  font-size: clamp(24px, 2.4vw, 40px);
+  font-size: clamp(24px, calc(var(--ma-canvas-width) * 0.024), 40px);
   line-height: 1.25;
 }
 .ma-screen .ma-auction__participants {
@@ -605,7 +628,7 @@
   display: grid;
   grid-template-columns: repeat(var(--ma-seats), minmax(0, 1fr));
   align-items: start;
-  gap: clamp(8px, 1vw, 16px);
+  gap: clamp(8px, calc(var(--ma-canvas-width) * 0.01), 16px);
   min-width: 0;
   min-height: 0;
 }
@@ -661,7 +684,7 @@
   gap: 8px;
   overflow-x: hidden;
   overflow-y: auto;
-  max-height: 38dvh;
+  max-height: calc(var(--ma-canvas-height) * 0.38);
   min-width: 0;
   padding: 2px 1px 6px;
   align-items: flex-start;
@@ -1040,7 +1063,7 @@
   grid-template-columns: repeat(auto-fill, minmax(max(130px, 20%), 1fr));
   overflow-y: auto;
   overflow-x: hidden;
-  max-height: 62dvh;
+  max-height: calc(var(--ma-canvas-height) * 0.62);
   overscroll-behavior-y: contain;
   padding: 5px;
   gap: 10px;
@@ -1091,6 +1114,7 @@
 .ma-screen.ma-panel .ma-museums {
   grid-template-columns: minmax(0, 1fr);
 }
+/* Portalled detail panels use the window's independent scroll surface. */
 @media (max-width: 600px) {
   .ma-screen.ma-panel .ma-market .ma-section-heading {
     flex-wrap: wrap;
@@ -1153,16 +1177,16 @@
     box-shadow: 0 0 0 0 #f6d78200;
   }
 }
-@media (max-width: 1400px) {
+@container tablemax-game (max-width: 1400px) {
   .ma-screen .ma-brand span,
   .ma-screen .ma-toolbar .connection,
   .ma-screen .ma-museum__number {
     display: none;
   }
 }
-@media (min-width: 701px) and (max-height: 800px) {
+@container tablemax-game (min-width: 701px) and (max-height: 800px) {
   .ma-screen {
-    --ma-card-size: clamp(86px, 15vh, 116px);
+    --ma-card-size: clamp(86px, calc(var(--ma-canvas-height) * 0.15), 116px);
     padding: 8px 10px 10px;
     gap: 6px;
   }
@@ -1250,7 +1274,7 @@
     margin: 4px 0 7px;
   }
 }
-@media (min-width: 701px) and (max-height: 600px) {
+@container tablemax-game (min-width: 701px) and (max-height: 600px) {
   .ma-screen {
     --ma-card-size: 82px;
     padding: 6px 8px 8px;
@@ -1332,12 +1356,10 @@
     display: none;
   }
 }
-@media (max-width: 700px) {
+@container tablemax-game (max-width: 700px) {
   .ma-screen {
     --ma-card-size: 128px;
-    padding: max(6px, env(safe-area-inset-top))
-      max(8px, env(safe-area-inset-right))
-      max(10px, env(safe-area-inset-bottom)) max(8px, env(safe-area-inset-left));
+    padding: max(6px, env(safe-area-inset-top)) 8px 10px 8px;
     gap: 6px;
   }
   .ma-screen .ma-toolbar {
@@ -1558,11 +1580,10 @@
   flex: 1;
   min-width: 0;
   max-width: 100%;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  overflow-wrap: anywhere;
+  white-space: normal;
 }
-@media (min-width: 701px) and (max-height: 600px) {
+@container tablemax-game (min-width: 701px) and (max-height: 600px) {
   .ma-screen .ma-latest__copy p:first-child {
     flex-wrap: nowrap;
   }
@@ -1673,12 +1694,11 @@
   font-size: 18px;
 }
 .ma-screen .ma-auction__label p {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  max-width: 240px;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  max-width: none;
 }
-@media (min-width: 701px) and (max-height: 600px) {
+@container tablemax-game (min-width: 701px) and (max-height: 600px) {
   .ma-screen .ma-market {
     padding: 6px 8px;
   }
@@ -1778,7 +1798,7 @@
     max-width: 170px;
   }
 }
-@media (max-width: 700px) {
+@container tablemax-game (max-width: 700px) {
   .ma-screen .ma-artist {
     grid-template-columns: minmax(0, 1fr) auto;
   }
@@ -1850,7 +1870,7 @@
   margin-top: 12px;
   text-align: right;
 }
-@media (max-width: 700px) {
+@container tablemax-game (max-width: 700px) {
   .ma-screen .ma-market-history table {
     font-size: 16px;
   }
@@ -1862,7 +1882,7 @@
     padding: 8px 2px;
   }
 }
-@media (min-width: 701px) {
+@container tablemax-game (min-width: 701px) {
   .ma-screen .ma-table--featured-auction {
     grid-template-rows: minmax(0, 1fr) auto auto;
   }
@@ -1934,7 +1954,7 @@
 .ma-screen .ma-self-collection .ma-museum__collection {
   grid-template-columns: repeat(auto-fill, minmax(max(120px, 20%), 1fr));
 }
-@media (max-width: 700px) {
+@container tablemax-game (max-width: 700px) {
   .ma-screen .ma-hand,
   .ma-screen .ma-self-collection .ma-museum__collection {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1966,6 +1986,11 @@
   background: radial-gradient(ellipse, #21161fe8, #21161f75 65%, transparent);
   animation: ma-entrance-fade 1.6s both;
 }
+/* The inline entrance uses FixedCanvasFrame's existing positioned canvas.
+   The display-contents layout surface adds no containing block of its own. */
+.ma-layout-surface[data-canvas-layout] > .ma-screen > .ma-entrance {
+  position: absolute;
+}
 .ma-entrance__rays {
   position: absolute;
   inset: -60%;
@@ -1982,7 +2007,7 @@
   z-index: 1;
   display: grid;
   place-items: center;
-  width: clamp(90px, 18vw, 190px);
+  width: clamp(90px, calc(var(--ma-canvas-width) * 0.18), 190px);
   aspect-ratio: 1;
   border-radius: 24%;
   color: #fff8e3;
@@ -2017,12 +2042,12 @@
 }
 .ma-entrance__banner strong {
   display: block;
-  font-size: clamp(36px, 6vw, 90px);
+  font-size: clamp(36px, calc(var(--ma-canvas-width) * 0.06), 90px);
   font-weight: 900;
   text-shadow: 3px 4px #21161f88;
 }
 .ma-entrance__banner p {
-  font-size: clamp(18px, 2vw, 28px);
+  font-size: clamp(18px, calc(var(--ma-canvas-width) * 0.02), 28px);
   margin: 6px 0 0;
 }
 .ma-entrance__sweep {
@@ -2164,19 +2189,17 @@
   display: flex;
   align-items: center;
   gap: 7px;
-  height: 36px;
+  min-height: 36px;
   margin-top: 6px;
   color: #725631;
   min-width: 0;
-  overflow: hidden;
 }
 .ma-screen .ma-market-tips > span {
   flex: 0 0 auto;
 }
 .ma-screen .ma-market-tips p {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  overflow-wrap: anywhere;
+  white-space: normal;
   font-size: 16px;
   animation: ma-tip-enter 250ms ease-out;
 }
@@ -2341,7 +2364,21 @@
   align-self: center;
 }
 .ma-screen .ma-theme > strong {
-  font-size: clamp(24px, 2.4vw, 40px);
+  font-size: clamp(24px, calc(var(--ma-canvas-width) * 0.024), 40px);
+}
+[data-canvas-layout='host-landscape']
+  .ma-screen:not(.player)
+  .ma-theme--once
+  > strong {
+  min-block-size: 1.4em;
+  line-height: 1.4;
+}
+[data-canvas-layout='host-landscape']
+  .ma-screen:not(.player)
+  .ma-auction[data-auction-kind='once']
+  .ma-auction__participants
+  > span {
+  line-height: 26px;
 }
 .ma-screen .ma-theme > span,
 .ma-screen .ma-theme__caption {
@@ -2486,7 +2523,7 @@
   color: #77552c;
 }
 .ma-screen .ma-theme__price-tag > strong {
-  font-size: clamp(24px, 2.4vw, 40px);
+  font-size: clamp(24px, calc(var(--ma-canvas-width) * 0.024), 40px);
 }
 .ma-screen .ma-theme__pair {
   display: flex;
@@ -2513,7 +2550,7 @@
   border-style: dashed;
   background: transparent;
 }
-@media (max-width: 700px) {
+@container tablemax-game (max-width: 700px) {
   .ma-screen .ma-artist__identity {
     gap: 4px;
   }
@@ -2558,7 +2595,7 @@
   }
 }
 /* Short desktop reserves width for artist identities and height for paintings. */
-@media (min-width: 701px) and (max-height: 600px) {
+@container tablemax-game (min-width: 701px) and (max-height: 600px) {
   .ma-screen .ma-table {
     grid-template-columns: minmax(0, 2.3fr) minmax(0, 1fr);
   }
@@ -2581,7 +2618,7 @@
     flex-wrap: nowrap;
   }
 }
-@media (min-width: 701px) and (max-height: 600px) {
+@container tablemax-game (min-width: 701px) and (max-height: 600px) {
   .ma-screen .ma-artist {
     display: grid;
     grid-template-columns: minmax(0, 1fr) auto;
@@ -2613,7 +2650,7 @@
     white-space: nowrap;
   }
 }
-@media (min-width: 701px) and (max-height: 600px) {
+@container tablemax-game (min-width: 701px) and (max-height: 600px) {
   .ma-screen .ma-auction {
     gap: 4px 8px;
   }
@@ -2702,7 +2739,7 @@
 .ma-screen .ma-theme__lead > .ma-theme__identity {
   flex: 0 1 auto;
 }
-@media (min-width: 701px) and (max-height: 600px) {
+@container tablemax-game (min-width: 701px) and (max-height: 600px) {
   .ma-screen .ma-theme__ring {
     height: 60px;
   }
@@ -2721,7 +2758,7 @@
     flex: 1;
   }
 }
-@media (min-width: 701px) and (max-height: 600px) {
+@container tablemax-game (min-width: 701px) and (max-height: 600px) {
   .ma-screen .ma-auction__paintings .ma-card__foot {
     display: none;
   }
@@ -2753,7 +2790,7 @@
   }
 }
 /* Settlement replaces empty galleries; short desktops keep lifecycle controls visible. */
-@media (min-width: 701px) and (max-height: 600px) {
+@container tablemax-game (min-width: 701px) and (max-height: 600px) {
   .ma-screen:not(.player) .ma-table:has(.ma-results) {
     grid-template-columns: minmax(0, 1fr);
     grid-template-rows: auto auto auto;
@@ -2823,7 +2860,7 @@
     z-index: 1;
   }
 }
-@media (min-width: 701px) and (max-height: 600px) {
+@container tablemax-game (min-width: 701px) and (max-height: 600px) {
   .ma-screen:not(.player) .ma-results--ended .ma-results__income > div {
     grid-template-columns: minmax(0, 1fr) auto auto;
     align-items: center;
@@ -2908,8 +2945,9 @@
 
 /* During an auction the two existing columns follow their content height.
    The galleries keep their original second-row scroll area. */
-@media (min-width: 701px) {
+@container tablemax-game (min-width: 701px) {
   .ma-screen:not(.player) .ma-table[data-auction-active='true'] {
+    grid-template-columns: minmax(0, 0.82fr) minmax(0, 1.18fr);
     grid-template-rows: auto minmax(0, 1fr) auto;
   }
   .ma-screen:not(.player) .ma-table[data-auction-active='true'] > .ma-center {
@@ -2922,13 +2960,13 @@
     grid-template-rows: auto auto auto;
     align-items: start;
     align-content: start;
-    row-gap: 18px;
+    row-gap: 10px;
   }
   .ma-screen:not(.player)
     .ma-table[data-auction-active='true']
     .ma-auction:has(.ma-auction__countdown) {
     grid-template-rows: auto auto auto auto;
-    row-gap: 18px;
+    row-gap: 10px;
   }
   .ma-screen:not(.player)
     .ma-table[data-auction-active='true']
@@ -2943,7 +2981,7 @@
     .ma-table[data-auction-active='true']
     .ma-auction__paintings
     > .ma-card {
-    width: min(100%, clamp(140px, 14vw, 340px));
+    width: min(100%, clamp(140px, calc(var(--ma-canvas-width) * 0.14), 340px));
     min-width: 0;
     flex-shrink: 1;
     transform: none;
@@ -2952,7 +2990,7 @@
     .ma-table[data-auction-active='true']
     .ma-auction__paintings:has(> :nth-child(2))
     > .ma-card {
-    width: min(48%, clamp(112px, 10vw, 250px));
+    width: min(48%, clamp(112px, calc(var(--ma-canvas-width) * 0.1), 250px));
   }
   .ma-screen:not(.player) .ma-table[data-auction-active='true'] .ma-theme {
     align-self: start;
@@ -2972,8 +3010,17 @@
     white-space: normal;
     overflow-wrap: anywhere;
   }
+  .ma-screen:not(.player)
+    .ma-table[data-auction-active='true']
+    .ma-auction__participants
+    > span {
+    display: grid;
+    grid-template-columns: 28px minmax(0, 1fr) 18px;
+    align-items: start;
+    line-height: 1.2;
+  }
 }
-@media (min-width: 701px) and (max-height: 600px) {
+@container tablemax-game (min-width: 701px) and (max-height: 600px) {
   .ma-screen:not(.player) .ma-table[data-auction-active='true'] .ma-auction {
     row-gap: 16px;
   }

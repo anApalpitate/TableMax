@@ -4,6 +4,7 @@ import type { JsonValue } from '@tablemax/game-sdk';
 import type { Action, ModernArtView } from '../ui/view';
 import {
   AuctionStage,
+  AuctionParticipants,
   MarketBoard,
   MarketHistory,
   Museums,
@@ -34,8 +35,10 @@ import { useAudioOutput } from '@tablemax/web-host';
 import { modernArtRulebook } from '../ui/RulesGuide';
 import { RulesGuide } from '@tablemax/web-host';
 import { AuctionEntrance } from '../ui/AuctionEntrance';
+import { PlayerLayoutControl, useGameLayout } from '@tablemax/web-host';
 
 function ModernArtScreen({ session }: { session: RoomSession }) {
+  const layout = useGameLayout();
   const { role, view, connected, command, locked, canControl, motion } =
     session;
   const game = view?.gameView as ModernArtView | null;
@@ -139,6 +142,24 @@ function ModernArtScreen({ session }: { session: RoomSession }) {
         )}
       </div>
     ) : null;
+  const footerParticipants = Boolean(
+    role === 'player' &&
+    layout?.layout === 'player-landscape' &&
+    game?.phase === 'auction' &&
+    (game.auction?.kind === 'once' || game.auction?.kind === 'fixed'),
+  );
+  const structuredOnce = footerParticipants && game?.auction?.kind === 'once';
+  const leaderSeat = structuredOnce ? game?.auction?.highBidder : null;
+  const onceLeader =
+    leaderSeat && game ? (
+      <div className="ma-once-leader" aria-label="当前领拍者">
+        <span>领拍</span>
+        <b className="ma-seat-number" data-seat-id={leaderSeat}>
+          {game.seatOrder.indexOf(leaderSeat) + 1}
+        </b>
+        <strong>{names[leaderSeat] ?? '玩家'}</strong>
+      </div>
+    ) : undefined;
   const playerStage =
     game && view ? (
       <div className="ma-center">
@@ -151,6 +172,9 @@ function ModernArtScreen({ session }: { session: RoomSession }) {
             portraits={portraits}
             activityMessage={activityMessage}
             waitingNotice={mergedPausedOffer ? notice : undefined}
+            showParticipants={!footerParticipants}
+            structuredOnce={structuredOnce}
+            leaderOutside={Boolean(onceLeader)}
             countdown={
               clock && (
                 <DecisionProgress
@@ -192,260 +216,305 @@ function ModernArtScreen({ session }: { session: RoomSession }) {
       </div>
     ) : null;
   return (
-    <main
-      className={`ma-screen ${role} ${saved ? 'ma-saved' : ''}`}
-      data-play-mode={view?.playMode ?? 'play'}
-      data-player-layout-contract={role === 'player' ? 'three-v1' : undefined}
+    <div
+      className={`ma-layout-surface${layout ? '' : ' ma-layout-surface--legacy'}`}
+      data-canvas-layout={layout?.layout}
     >
-      <header className="ma-toolbar">
-        <ScreenLink
-          className="button secondary ma-back-link"
-          href={`/${role}`}
-          aria-label="返回盒子"
-        >
-          <span aria-hidden="true">‹</span>
-          <span className="ma-box-label">盒子</span>
-        </ScreenLink>
-        <div className="ma-brand">
-          <strong>MODERN ART</strong>
-          <span>现代艺术</span>
-        </div>
-        <span className="ma-round">第 {game?.round ?? 1} / 4 轮</span>
-        {!game?.latest && <SessionFeedback session={session} mode="saved" />}
-        <span
-          className={`connection ${connected ? 'online' : ''}`}
-          role="status"
-        >
-          {connected ? '本地已连接' : '正在连接'}
-        </span>
+      <main
+        className={`ma-screen ${role} ${saved ? 'ma-saved' : ''}`}
+        data-play-mode={view?.playMode ?? 'play'}
+        data-player-layout-contract={
+          role === 'player' && layout ? 'fixed-v1' : undefined
+        }
+      >
+        <header className="ma-toolbar">
+          <ScreenLink
+            className="button secondary ma-back-link"
+            href={`/${role}`}
+            aria-label="返回盒子"
+          >
+            <span aria-hidden="true">‹</span>
+            <span className="ma-box-label">盒子</span>
+          </ScreenLink>
+          <div className="ma-brand">
+            <strong>MODERN ART</strong>
+            <span>现代艺术</span>
+          </div>
+          <span
+            className="ma-round"
+            aria-label={`第 ${game?.round ?? 1} 轮，共 4 轮`}
+          >
+            {game?.round ?? 1}/4轮
+          </span>
+          {!game?.latest && <SessionFeedback session={session} mode="saved" />}
+          <span
+            className={`connection ${connected ? 'online' : ''}`}
+            role="status"
+          >
+            {connected ? '本地已连接' : '正在连接'}
+          </span>
 
-        {role !== 'player' && (
-          <PaintingSortControl
-            value={collectionSort}
-            change={setCollectionSort}
-            label="全局收藏排序"
-          />
-        )}
-        <PlayModeBadge mode={view?.playMode} />
-        <div className="ma-toolbar-tools">
-          {role === 'player' && (
-            <button
-              className="secondary ma-market-entry"
-              onClick={() => setPanel('market')}
-            >
-              行情
-            </button>
+          {role !== 'player' && (
+            <PaintingSortControl
+              value={collectionSort}
+              change={setCollectionSort}
+              label="全局收藏排序"
+            />
           )}
-          <ModernArtSoundControl
-            feedback={session.feedback}
-            game={game}
-            errorId={session.errorId}
-            disabled={view?.playMode === 'test' || view?.paused || !connected}
-            canPlay={canPlay}
-            localOnly={role === 'player'}
-            timer={
-              clock && view
-                ? {
-                    key: `${view.instanceId}:${view.branch}:modern-art-time-elapsed:${clock.id}`,
-                    remainingMs,
-                    running: clock.running,
-                  }
-                : null
-            }
-          />
-          <button
-            className="secondary game-rulebook-entry"
-            onClick={() => setPanel('rules')}
-          >
-            规则
-          </button>
-          <button
-            className="secondary ma-menu-entry"
-            aria-label="菜单"
-            title="菜单"
-            onClick={() => setPanel('menu')}
-          >
-            <svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true">
-              <g
-                transform="translate(1.5 0)"
+          <PlayModeBadge mode={view?.playMode} />
+          <div className="ma-toolbar-tools">
+            {role === 'player' && <PlayerLayoutControl />}
+            {role === 'player' && (
+              <button
+                className="secondary ma-market-entry"
+                onClick={() => setPanel('market')}
+              >
+                行情
+              </button>
+            )}
+            <ModernArtSoundControl
+              feedback={session.feedback}
+              game={game}
+              errorId={session.errorId}
+              disabled={view?.playMode === 'test' || view?.paused || !connected}
+              canPlay={canPlay}
+              localOnly={role === 'player'}
+              timer={
+                clock && view
+                  ? {
+                      key: `${view.instanceId}:${view.branch}:modern-art-time-elapsed:${clock.id}`,
+                      remainingMs,
+                      running: clock.running,
+                    }
+                  : null
+              }
+            />
+            <button
+              className="secondary game-rulebook-entry"
+              aria-label="规则"
+              title="图文规则"
+              onClick={() => setPanel('rules')}
+            >
+              <svg
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
                 fill="none"
                 stroke="currentColor"
                 strokeWidth="1.8"
-                strokeLinecap="round"
+                aria-hidden="true"
               >
-                <path d="M8 6h12M8 12h12M8 18h12" />
-                <path d="m3 4 2 2-2 2-2-2Zm0 6 2 2-2 2-2-2Zm0 6 2 2-2 2-2-2Z" />
-              </g>
-            </svg>
-          </button>
-        </div>
-      </header>
-      {showSessionFeedback && (
-        <SessionFeedback session={session} mode="messages" />
-      )}
-      {!game || !view ? (
-        <div className="ma-unavailable">
-          <h1>等待拍卖开始</h1>
-          <p>{connected ? '回到盒子入座并准备。' : '正在恢复本地牌桌。'}</p>
-          <ScreenLink className="button" href={`/${role}`}>
-            回到盒子
-          </ScreenLink>
-        </div>
-      ) : (
-        <>
-          {role === 'player' && !mergedPausedOffer && notice}
-          <div
-            data-phase={game.phase}
-            data-auction-active={
-              role !== 'player' &&
-              connected &&
-              view.status === 'playing' &&
-              !view.paused &&
-              !view.botError &&
-              (game.phase === 'auction' || game.phase === 'double')
-                ? true
-                : undefined
-            }
-            data-hand-action={
-              (view.actions as Action[]).some((action) => 'cardId' in action) ||
-              undefined
-            }
-            className={`ma-table ${featuredAuction ? 'ma-table--featured-auction' : ''} ${featuredAuction && game.auction && game.auction.cards.length > 1 ? 'ma-table--paired-auction' : ''}`}
-          >
-            <MarketBoard
-              view={game}
-              showHistory={() => setPanel('market')}
-              compact={role === 'player'}
-            />
-            {role !== 'player' && playerStage}
-            {role !== 'player' && (!ended || notice) && (
-              <div className="ma-table-footer">
-                {!ended && <SavedAction view={game} names={names} />}
-                {notice}
-              </div>
-            )}
-            {role === 'player' && game.self && (
-              <PlayerControls
-                stage={playerStage}
-                view={game}
-                actions={(view.actions ?? []) as Action[]}
-                locked={locked || view.paused || view.status !== 'playing'}
-                selectionKey={`${view.instanceId}:${view.branch}:${game.auction?.id ?? view.selectionToken ?? 'none'}`}
-                names={names}
-                activityMessage={activityMessage}
-                choose={choose}
-              />
-            )}
-            {role !== 'player' && !emptyFinalMuseums && (
-              <Museums
-                view={game}
-                names={names}
-                portraits={portraits}
-                selfId={null}
-                sort={collectionSort}
-              />
-            )}
-            {role === 'player' && (
-              <div className="ma-player-footer">
-                {!ended && <SavedAction view={game} names={names} />}
-                <button
-                  className="secondary ma-record-control"
-                  onClick={() => setPanel('log')}
+                <path d="M12 5c-3-2-6-2-9-1v15c3-1 6-1 9 1 3-2 6-2 9-1V4c-3-1-6-1-9 1Zm0 0v15" />
+              </svg>
+            </button>
+            <button
+              className="secondary ma-menu-entry"
+              aria-label="菜单"
+              title="菜单"
+              onClick={() => setPanel('menu')}
+            >
+              <svg
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                aria-hidden="true"
+              >
+                <g
+                  transform="translate(1.5 0)"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.8"
+                  strokeLinecap="round"
                 >
-                  记录
-                </button>
-                <button
-                  className="secondary ma-museums-control"
-                  onClick={() => setPanel('museums')}
-                >
-                  各家收藏
-                </button>
-              </div>
-            )}
+                  <path d="M8 6h12M8 12h12M8 18h12" />
+                  <path d="m3 4 2 2-2 2-2-2Zm0 6 2 2-2 2-2-2Zm0 6 2 2-2 2-2-2Z" />
+                </g>
+              </svg>
+            </button>
           </div>
-        </>
-      )}
-      {panel && (
-        <OverlayPanel
-          title={
-            panel === 'museums' ? (
-              '各家博物馆'
-            ) : panel === 'market' ? (
-              '历轮行情'
-            ) : panel === 'log' ? (
-              '已保存的拍卖记录'
-            ) : panel === 'rules' ? (
-              <>
-                <span className="rules-guide__title-part">现代艺术</span>
-                <span className="rules-guide__title-part">图文规则</span>
-              </>
-            ) : (
-              '拍卖行菜单'
-            )
-          }
-          close={() => setPanel(null)}
-        >
-          {panel === 'rules' ? (
-            <RulesGuide {...modernArtRulebook} />
-          ) : panel === 'museums' && game ? (
-            <div className="ma-screen ma-panel">
-              <div className="ma-hand-tools">
-                <span>公开收藏</span>
-                <PaintingSortControl
-                  value={collectionSort}
-                  change={setCollectionSort}
-                  label="各家公开收藏排序"
+        </header>
+        {showSessionFeedback && (
+          <SessionFeedback session={session} mode="messages" />
+        )}
+        {!game || !view ? (
+          <div className="ma-unavailable">
+            <h1>等待拍卖开始</h1>
+            <p>{connected ? '回到盒子入座并准备。' : '正在恢复本地牌桌。'}</p>
+            <ScreenLink className="button" href={`/${role}`}>
+              回到盒子
+            </ScreenLink>
+          </div>
+        ) : (
+          <>
+            {role === 'player' && !mergedPausedOffer && notice}
+            <div
+              data-phase={game.phase}
+              data-auction-active={
+                role !== 'player' &&
+                connected &&
+                view.status === 'playing' &&
+                !view.paused &&
+                !view.botError &&
+                (game.phase === 'auction' || game.phase === 'double')
+                  ? true
+                  : undefined
+              }
+              data-hand-action={
+                (view.actions as Action[]).some(
+                  (action) => 'cardId' in action,
+                ) || undefined
+              }
+              className={`ma-table ${featuredAuction ? 'ma-table--featured-auction' : ''} ${featuredAuction && game.auction && game.auction.cards.length > 1 ? 'ma-table--paired-auction' : ''}`}
+            >
+              <MarketBoard
+                view={game}
+                showHistory={() => setPanel('market')}
+                compact={role === 'player'}
+              />
+              {role !== 'player' && playerStage}
+              {role !== 'player' && (!ended || notice) && (
+                <div className="ma-table-footer">
+                  {!ended && <SavedAction view={game} names={names} />}
+                  {notice}
+                </div>
+              )}
+              {role === 'player' && game.self && (
+                <PlayerControls
+                  stage={playerStage}
+                  leader={onceLeader}
+                  compactBidHeader={structuredOnce}
+                  layoutKey={layout?.layout ?? 'legacy'}
+                  view={game}
+                  actions={(view.actions ?? []) as Action[]}
+                  locked={locked || view.paused || view.status !== 'playing'}
+                  selectionKey={`${view.instanceId}:${view.branch}:${game.auction?.id ?? view.selectionToken ?? 'none'}`}
+                  names={names}
+                  activityMessage={activityMessage}
+                  choose={choose}
+                />
+              )}
+              {role !== 'player' && !emptyFinalMuseums && (
+                <Museums
+                  view={game}
+                  names={names}
+                  portraits={portraits}
+                  selfId={null}
+                  sort={collectionSort}
+                />
+              )}
+              {role === 'player' && (
+                <div className="ma-player-footer">
+                  {!ended && <SavedAction view={game} names={names} compact />}
+                  {footerParticipants && (
+                    <AuctionParticipants
+                      view={game}
+                      names={names}
+                      activityMessage={activityMessage}
+                    />
+                  )}
+                  <button
+                    className="secondary ma-record-control"
+                    onClick={() => setPanel('log')}
+                  >
+                    记录
+                  </button>
+                  <button
+                    className="secondary ma-museums-control"
+                    onClick={() => setPanel('museums')}
+                  >
+                    各家收藏
+                  </button>
+                </div>
+              )}
+            </div>
+          </>
+        )}
+        {panel && (
+          <OverlayPanel
+            title={
+              panel === 'museums' ? (
+                '各家博物馆'
+              ) : panel === 'market' ? (
+                '历轮行情'
+              ) : panel === 'log' ? (
+                '已保存的拍卖记录'
+              ) : panel === 'rules' ? (
+                <>
+                  <span className="rules-guide__title-part">现代艺术</span>
+                  <span className="rules-guide__title-part">图文规则</span>
+                </>
+              ) : (
+                '拍卖行菜单'
+              )
+            }
+            close={() => setPanel(null)}
+          >
+            {panel === 'rules' ? (
+              <RulesGuide {...modernArtRulebook} />
+            ) : panel === 'museums' && game ? (
+              <div className="ma-screen ma-panel">
+                <div className="ma-hand-tools">
+                  <span>公开收藏</span>
+                  <PaintingSortControl
+                    value={collectionSort}
+                    change={setCollectionSort}
+                    label="各家公开收藏排序"
+                  />
+                </div>
+                <Museums
+                  view={game}
+                  names={names}
+                  portraits={portraits}
+                  selfId={game.self?.seatId ?? null}
+                  sort={collectionSort}
                 />
               </div>
-              <Museums
-                view={game}
-                names={names}
-                portraits={portraits}
-                selfId={game.self?.seatId ?? null}
-                sort={collectionSort}
-              />
-            </div>
-          ) : panel === 'market' && game ? (
-            <div className="ma-screen ma-panel">
-              <MarketBoard view={game} showHistory={() => setPanel(null)} />
-              <MarketHistory view={game} />
-            </div>
-          ) : panel === 'log' && game ? (
-            <div className="ma-screen ma-panel">
-              <PublicLog view={game} names={names} />
-            </div>
-          ) : (
-            <>
-              <div className="dialog-actions game-menu-settings">
-                <CountdownSettings session={session} />
-                <DisplaySettings role={role} />
+            ) : panel === 'market' && game ? (
+              <div className="ma-screen ma-panel">
+                <MarketBoard view={game} showHistory={() => setPanel(null)} />
+                <MarketHistory view={game} />
               </div>
-              {canControl && (
-                <RoomManagement session={session} lifecycleLabel="开始下一轮" />
-              )}
-              {game && (
-                <>
-                  <h3>已保存的拍卖记录</h3>
-                  <div className="ma-screen ma-panel">
-                    <PublicLog view={game} names={names} />
-                  </div>
-                </>
-              )}
-            </>
-          )}
-        </OverlayPanel>
-      )}
-      <AuctionEntrance
-        feedback={session.feedback}
-        game={game}
-        disabled={view?.playMode === 'test' || view?.paused || !connected}
-      />
-      <PlayModeControl session={session} />
-    </main>
+            ) : panel === 'log' && game ? (
+              <div className="ma-screen ma-panel">
+                <PublicLog view={game} names={names} />
+              </div>
+            ) : (
+              <>
+                <div className="dialog-actions game-menu-settings">
+                  <CountdownSettings session={session} />
+                  <DisplaySettings role={role} />
+                </div>
+                {canControl && (
+                  <RoomManagement
+                    session={session}
+                    lifecycleLabel="开始下一轮"
+                  />
+                )}
+                {game && (
+                  <>
+                    <h3>已保存的拍卖记录</h3>
+                    <div className="ma-screen ma-panel">
+                      <PublicLog view={game} names={names} />
+                    </div>
+                  </>
+                )}
+              </>
+            )}
+          </OverlayPanel>
+        )}
+        <AuctionEntrance
+          feedback={session.feedback}
+          game={game}
+          disabled={view?.playMode === 'test' || view?.paused || !connected}
+        />
+        <PlayModeControl session={session} />
+      </main>
+    </div>
   );
 }
 
 export const client: GameClient = {
+  layout: { contract: 'fixed-v1' },
   Screen: ModernArtScreen,
   savedChanges: (before, after) => {
     const previous = before as ModernArtView;

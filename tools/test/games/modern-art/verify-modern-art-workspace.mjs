@@ -41,7 +41,12 @@ assert.ok(
   !fixedCanvas || phase === 'after',
   'Fixed canvas uses current source',
 );
-const task = resolve(arg('task') ?? 'tmp/modern-art-player-layout-20261023-b1');
+const task = resolve(
+  arg('task') ??
+    (fixedCanvas
+      ? 'tmp/fixed-canvas-20261025-02/modern-art'
+      : 'tmp/modern-art-player-layout-20261023-b1'),
+);
 assert.ok(
   task.startsWith(resolve('tmp') + sep),
   'Task directory must remain inside workspace tmp',
@@ -53,7 +58,9 @@ process.env.TMP = browserTemp;
 const { launchTestBrowser } = await import('../../support/browser-test.mjs');
 const output = resolve(
   arg('output') ??
-    `artifacts/maintenance/modern-art-player-layout-20261023-b1/${phase}`,
+    (fixedCanvas
+      ? `artifacts/maintenance/fixed-canvas-20261025-02/modern-art/build-${phase}`
+      : `artifacts/maintenance/modern-art-player-layout-20261023-b1/${phase}`),
 );
 assert.ok(
   output.startsWith(resolve('artifacts') + sep),
@@ -221,6 +228,9 @@ try {
   }
   const game = join(sourceRoot, 'games/modern-art/web/index.tsx');
   const frame = join(sourceRoot, 'apps/web/src/components/PlayerFrame.tsx');
+  const savedEntrance = fixedCanvas
+    ? JSON.parse(await readFile(join(data, 'saved-entrance.json'), 'utf8'))
+    : null;
   const tracked = [
     game,
     frame,
@@ -241,6 +251,7 @@ try {
       preparationSource,
       resolve('tools/test/fixtures/prepare-modern-art-polish.ts'),
       join(data, 'preparation-proof.json'),
+      join(data, 'saved-entrance.json'),
     );
     tracked.splice(0, tracked.length, ...new Set(tracked));
   }
@@ -286,16 +297,18 @@ import{PlayerFrame}from ${JSON.stringify(frame)};
 import ${JSON.stringify(resolve('apps/web/src/styles.css'))};
 import ${JSON.stringify(resolve('apps/web/src/scrollbars.css'))};
 const snapshots=${JSON.stringify(snapshots)};
+window.__savedEntrance=${JSON.stringify(savedEntrance)};
+if(window.__savedEntrance)window.__savedEntrance.motion=client.savedChanges(window.__savedEntrance.before.player.gameView,window.__savedEntrance.after.player.gameView);
 configureGameHost({ScreenLink:p=><a {...p}/>,FullscreenControl:()=>null,DisplaySettings:()=>null,useAudioOutput:()=>false,claimAudioEvent:()=>true,avatarFor,avatarChoices});
 const root=createRoot(document.getElementById('root'));let sequence=0,currentKey='initial';
 window.__commands=[];window.__documentId=crypto.randomUUID();
-window.renderModernArt=({scene='auction-open',role='player',preserve=false,view:providedView,suppliedView,connected=true,savedMessage='',locked=false,awaitingConfirmation=false,admissionPending=false}={})=>{
+window.renderModernArt=({scene='auction-open',role='player',preserve=false,view:providedView,suppliedView,connected=true,savedMessage='',locked=false,awaitingConfirmation=false,admissionPending=false,feedback=null,motion=[]}={})=>{
  const view=structuredClone(suppliedView??providedView??snapshots[scene][role]);
  if(view.decisionClock)view.decisionClock={...view.decisionClock,running:false,serverTime:Date.now()};
  const self=role==='player'?view.seats.find(s=>s.id===view.self?.seatId):undefined;
- const session={role,view,self,connected,locked:locked||!connected||awaitingConfirmation||admissionPending,canControl:role==='host'||Boolean(view.self?.capabilities?.control),message:savedMessage,messageKind:savedMessage?'saved':'none',admissionPending,awaitingConfirmation,feedback:null,errorId:'',motion:[],command:c=>window.__commands.push(c)};
+ const session={role,view,self,connected,locked:locked||!connected||awaitingConfirmation||admissionPending,canControl:role==='host'||Boolean(view.self?.capabilities?.control),message:savedMessage,messageKind:savedMessage?'saved':'none',admissionPending,awaitingConfirmation,feedback,errorId:'',motion,command:c=>window.__commands.push(c)};
  window.__currentView=view;
- window.__fixture={scene,role,revision:view.revision,decisionId:view.decisionId,actions:view.actions,paused:view.paused,connected,publicHasSelf:role!=='player'&&Boolean(view.gameView?.self),auction:view.gameView?.auction?{kind:view.gameView.auction.kind,currentBid:view.gameView.auction.currentBid,highBidder:view.gameView.auction.highBidder,actingSeats:view.gameView.auction.actingSeats}:null};
+ window.__fixture={scene,role,revision:view.revision,decisionId:view.decisionId,actions:view.actions,paused:view.paused,connected,uiFlags:{connected,locked,awaitingConfirmation,admissionPending,boundary:'controlled fixture UI flags; no real network/authentication proof'},publicHasSelf:role!=='player'&&Boolean(view.gameView?.self),auction:view.gameView?.auction?{kind:view.gameView.auction.kind,currentBid:view.gameView.auction.currentBid,highBidder:view.gameView.auction.highBidder,actingSeats:view.gameView.auction.actingSeats}:null};
  if(!preserve)currentKey=String(++sequence);
  flushSync(()=>root.render(<HostedGame key={currentKey} session={session} client={client} presentation={{management:()=>null,feedback:p=><SessionFeedback session={session}{...p}/>,playMode:()=>null,countdown:()=>null}}/>));
  return window.__fixture;
