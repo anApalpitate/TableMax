@@ -84,6 +84,12 @@ export const fixedCanvasCases = [
     boundary: 'platform-video',
     platform: true,
   },
+  {
+    ...fixedCanvasLayouts[1],
+    id: 'adapter-player-portrait-browser-zoom',
+    layer: 'adapter',
+    boundary: 'browser-zoom',
+  },
   ...['content', 'integration'].flatMap((layer) =>
     Object.keys(fixedCanvasVariants).flatMap((variant) =>
       fixedCanvasLayouts.map((layout) => ({
@@ -91,6 +97,7 @@ export const fixedCanvasCases = [
         id: `${layer}-${variant}-${layout.layout}`,
         layer,
         variant,
+        playerFrame: layer === 'integration' && layout.role === 'player',
       })),
     ),
   ),
@@ -122,6 +129,8 @@ export function selectFixedCanvasCases(args) {
     : cases;
   const variants = [...new Set(selected.flatMap((item) => item.variant ?? []))];
   const platform = selected.some((item) => item.platform);
+  const playerFrame = selected.some((item) => item.playerFrame);
+  const browserZoom = selected.some((item) => item.boundary === 'browser-zoom');
   return {
     version: fixedCanvasVersion,
     layer,
@@ -130,6 +139,8 @@ export function selectFixedCanvasCases(args) {
     cases: selected,
     variants,
     platform,
+    playerFrame,
+    browserZoom,
     scopes: [
       ...(platform ? ['box'] : []),
       'shared',
@@ -139,13 +150,37 @@ export function selectFixedCanvasCases(args) {
       ? {
           inputs: {
             ...fixedCanvasAdapterInputs,
+            complete: !browserZoom && fixedCanvasAdapterInputs.complete,
             files: [
               ...fixedCanvasAdapterInputs.files,
               ...(platform ? fixedCanvasPlatformInputFiles : []),
+              ...(browserZoom
+                ? ['tools/test/platform/fixed-canvas-browser-zoom.mjs']
+                : []),
             ],
             directories: [...fixedCanvasAdapterInputs.directories],
           },
         }
-      : {}),
+      : {
+          inputs: {
+            complete: false,
+            files: [
+              ...fixedCanvasAdapterInputs.files,
+              'apps/web/src/session/gameHostAdapter.tsx',
+              'packages/platform-core/src/room.ts',
+              'packages/platform-core/src/game-actions.ts',
+              'tools/test/fixtures/prepare-public-screen-retirement.ts',
+              ...variants.flatMap((id) => [
+                `${fixedCanvasVariants[id].path}/web/index.tsx`,
+                `${fixedCanvasVariants[id].path}/${fixedCanvasVariants[id].rules}`,
+                `${fixedCanvasVariants[id].path}/${fixedCanvasVariants[id].bot}`,
+              ]),
+              ...(playerFrame
+                ? ['apps/web/src/components/PlayerFrame.tsx']
+                : []),
+            ],
+            directories: [...fixedCanvasAdapterInputs.directories],
+          },
+        }),
   };
 }

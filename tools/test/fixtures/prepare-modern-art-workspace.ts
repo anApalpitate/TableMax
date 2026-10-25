@@ -6,10 +6,14 @@ import { RoomCoordinator } from '../../../packages/platform-core/src/room';
 import { rules, bot } from '../../../games/modern-art';
 import type { RoomView } from '../../../packages/protocol/src';
 import type { Action, ModernArtView } from '../../../games/modern-art/ui/view';
+import {
+  playerNameError,
+  playerNameLength,
+} from '../../../packages/protocol/src/names';
 type FixtureViews = Record<'host' | 'public' | 'player', RoomView>;
 const gameView = (view: RoomView) => view.gameView as ModernArtView;
 
-export async function prepareLayout(work: string) {
+export async function prepareLayout(work: string, fixedNames = false) {
   const fixture = await prepare(work, 5, true, [
     'open',
     'once',
@@ -23,6 +27,31 @@ export async function prepareLayout(work: string) {
     const repository = new SqliteSaveRepository(entry.dataDir);
     try {
       const room = new RoomCoordinator(rules, bot, repository);
+      if (fixedNames) {
+        const names = [
+          '画廊玩家甲乙丙丁',
+          'WWWWWWWWWWWWWWWW',
+          '朋友WWWWWWWWWWWW',
+          '画廊玩家戊己庚辛',
+          'GalleryEFGHIJKLM',
+        ];
+        const seats = room.view(room.hostToken).seats;
+        for (const [index, seat] of seats.entries()) {
+          const name = names[index]!;
+          if (playerNameError(name))
+            throw new Error('Invalid fixture nickname');
+          const current = room.view(room.hostToken);
+          const renamed = await room.command(room.hostToken, {
+            actionId: crypto.randomUUID(),
+            instanceId: current.instanceId,
+            revision: current.revision,
+            branch: current.branch,
+            command: { type: 'set-seat-name', seatId: seat.id, name },
+          });
+          if (!renamed.ok)
+            throw new Error('Authoritative nickname change failed');
+        }
+      }
       const before = room.view(room.hostToken);
       if (before.paused && entry.id !== 'paused') {
         const reply = await room.command(room.hostToken, {
@@ -59,13 +88,80 @@ export async function prepareLayout(work: string) {
         count: 5,
         phase: entry.phase,
         legalPreparationSteps: entry.steps,
+        administrativeNicknameCommands: fixedNames ? host.seats.length : 0,
         revision: host.revision,
         actor: player.id,
         paused: host.paused,
         publicHasPrivateSelf: Boolean(gameView(publicView)?.self),
         hostHasPrivateSelf: Boolean(gameView(host)?.self),
         playerActionCount: playerView.actions.length,
+        nicknameInputs: host.seats.map(({ name }) => ({
+          name,
+          length: playerNameLength(name),
+          error: playerNameError(name),
+        })),
       });
+      if (fixedNames && entry.id === 'auction-once') {
+        const active = room.view(player.token);
+        const action = (active.actions as Action[]).find(
+          (candidate) => candidate.type === 'bid',
+        );
+        if (!action) throw new Error('Once auction has no legal opening bid');
+        const reply = await room.command(player.token, {
+          actionId: crypto.randomUUID(),
+          instanceId: active.instanceId,
+          revision: active.revision,
+          branch: active.branch,
+          command: { type: 'game', decisionId: active.decisionId!, action },
+        });
+        if (!reply.ok) throw new Error('Legal once-auction bid failed');
+        const leadingHost = room.view(room.hostToken);
+        const leadingGame = gameView(leadingHost);
+        if (
+          leadingGame.phase !== 'auction' ||
+          leadingGame.auction?.kind !== 'once' ||
+          !leadingGame.auction.highBidder ||
+          leadingGame.auction.currentBid <= 0
+        )
+          throw new Error(
+            'Expected an unfinished once auction with a high bidder',
+          );
+        const next = fixture.players.find((candidate) =>
+          room
+            .view(candidate.token)
+            .actions.some((item) => (item as Action).type === 'bid'),
+        );
+        if (!next || next.id === player.id)
+          throw new Error('Expected a distinct next once-auction decision');
+        const leadingSaved = repository.load()!;
+        rules.validateState(
+          leadingSaved.snapshot!.state,
+          leadingSaved.seats.map((seat) => seat.id),
+        );
+        snapshots['auction-once-leading'] = {
+          host: leadingHost,
+          public: room.view(),
+          player: room.view(next.token),
+        };
+        proof.push({
+          id: 'auction-once-leading',
+          count: 5,
+          phase: leadingGame.phase,
+          legalPreparationSteps: entry.steps + 1,
+          administrativeNicknameCommands: leadingHost.seats.length,
+          submittedLegalAction: action,
+          bidder: player.id,
+          actor: next.id,
+          revisionBefore: active.revision,
+          revision: leadingHost.revision,
+          currentBid: leadingGame.auction.currentBid,
+          highBidder: leadingGame.auction.highBidder,
+          actingSeats: leadingGame.auction.actingSeats,
+          publicHasPrivateSelf: Boolean(gameView(room.view()).self),
+          hostHasPrivateSelf: Boolean(leadingGame.self),
+          playerActionCount: room.view(next.token).actions.length,
+        });
+      }
       if (entry.id === 'auction-double') {
         const actor = fixture.players.find((p) =>
           room
@@ -113,8 +209,9 @@ export async function prepareLayout(work: string) {
     join(work, 'preparation-proof.json'),
     JSON.stringify(
       {
-        method:
-          'Existing prepare-modern-art-polish; authoritative RoomCoordinator legal commands and production state validation; no state fabrication.',
+        method: fixedNames
+          ? 'Existing prepare-modern-art-polish; authoritative RoomCoordinator legal game commands and set-seat-name commands for valid Chinese, ASCII and mixed boundary names; production state validation; no state fabrication.'
+          : 'Existing prepare-modern-art-polish; authoritative RoomCoordinator legal commands and production state validation; no state fabrication.',
         steps: fixture.steps,
         cases: proof,
       },

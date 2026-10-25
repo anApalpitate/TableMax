@@ -23,7 +23,10 @@ import {
   readControlledCanvasFonts,
   controlledCanvasFontFaces,
 } from '../support/msedge-runtime.mjs';
-import { selectFixedCanvasCases } from '../platform/fixed-canvas-contract.mjs';
+import {
+  fixedCanvasCases,
+  selectFixedCanvasCases,
+} from '../platform/fixed-canvas-contract.mjs';
 
 function fixture(t) {
   const taskTmp = resolve(
@@ -200,7 +203,21 @@ test(
 );
 
 test('fixed adapter declarations close the generated entry imports and production overlay styles', () => {
-  const args = ['--layout-contract=fixed-v1', '--layer=adapter'];
+  const ids = fixedCanvasCases
+    .filter(
+      (item) => item.layer === 'adapter' && item.boundary !== 'browser-zoom',
+    )
+    .map((item) => item.id);
+  assert.equal(
+    ids.length,
+    36,
+    'This regression explicitly covers the closed 36 source adapter cases',
+  );
+  const args = [
+    '--layout-contract=fixed-v1',
+    '--layer=adapter',
+    '--only=' + ids.join(','),
+  ];
   const binding = fingerprint(process.cwd(), {
     runtime: 'node',
     script: 'tools/test/platform/verify-public-screen-retirement-ui.mjs',
@@ -233,6 +250,21 @@ test('fixed adapter declarations close the generated entry imports and productio
       'Missing actual generated-entry dependency: ' + path,
     );
   assert.equal(binding.reusable, true, binding.value.gaps.join('; '));
+});
+
+test('real browser zoom stays uncached until its changing display environment has a complete binding', () => {
+  const selected = selectFixedCanvasCases([
+    '--layout-contract=fixed-v1',
+    '--layer=adapter',
+    '--only=adapter-player-portrait-browser-zoom',
+  ]);
+  assert.deepEqual(selected.scopes, ['shared']);
+  assert.equal(selected.inputs.complete, false);
+  assert(
+    selected.inputs.files.includes(
+      'tools/test/platform/fixed-canvas-browser-zoom.mjs',
+    ),
+  );
 });
 
 test('an exact shared adapter selection keeps platform runtime entries out of its input closure', () => {

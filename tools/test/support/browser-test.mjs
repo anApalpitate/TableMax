@@ -21,3 +21,19 @@ export function launchTestBrowser({ soundEnabled = false, ...options } = {}) {
     args: [...(options.args ?? []), ...(!enabled ? ['--mute-audio'] : [])],
   });
 }
+
+export function launchPersistentTestBrowser(
+  userDataDir,
+  { soundEnabled = false, ...options } = {},
+) {
+  scheduleMaintenance();
+  const enabled = soundEnabled === true;
+  return chromium.launchPersistentContext(userDataDir, {
+    ...options,
+    ignoreDefaultArgs:
+      enabled && options.ignoreDefaultArgs !== true
+        ? [...(options.ignoreDefaultArgs ?? []), '--mute-audio']
+        : options.ignoreDefaultArgs,
+    args: [...(options.args ?? []), ...(!enabled ? ['--mute-audio'] : [])],
+  });
+}
