@@ -9,7 +9,7 @@
   --interaction-orb-initial-y: 0;
   --interaction-orb-scroll-with-page: 1;
 }
-@media (max-width: 799px) {
+@container tablemax-game (max-width: 799px) {
   .expansion-screen.player .ex-toolbar > h1 {
     padding-right: 64px;
     min-height: 54px;
@@ -18,7 +18,7 @@
     justify-content: center;
   }
 }
-@media (min-width: 800px) {
+@container tablemax-game (min-width: 800px) {
   .expansion-screen.player .ex-toolbar {
     padding-right: 64px;
   }
@@ -30,7 +30,7 @@
 [data-player-display='wide'] .expansion-screen.player .ex-table-layout {
   grid-template-columns: minmax(0, 1fr);
 }
-@media (min-width: 960px) {
+@container tablemax-game (min-width: 960px) {
   [data-player-display='wide'] .expansion-screen.player {
     padding: 16px 24px;
   }
@@ -76,7 +76,11 @@
     margin: 8px auto;
   }
   [data-player-display='wide'] .expansion-screen.player .ex-actions .ex-card {
-    height: clamp(132px, calc((100dvh - 230px) / 3), 186px);
+    height: clamp(
+      132px,
+      calc((calc(var(--tablemax-canvas-height) * 1) - 230px) / 3),
+      186px
+    );
     min-height: 132px;
   }
   [data-player-display='wide'] .expansion-screen.player .ex-draw-options {
@@ -133,7 +137,7 @@
 .expansion-screen.player .ex-simple-actions {
   flex-direction: row;
 }
-@media (orientation: landscape) and (max-height: 500px) {
+@container tablemax-game (orientation: landscape) and (max-height: 500px) {
   .expansion-screen.player .ex-actions {
     display: grid;
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
@@ -162,7 +166,7 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
-@media (min-width: 960px) and (max-height: 760px) {
+@container tablemax-game (min-width: 960px) and (max-height: 760px) {
   [data-player-display='wide'] .expansion-screen.player .ex-toolbar {
     margin-bottom: 6px;
   }
@@ -199,7 +203,11 @@
     height: 20px;
   }
   [data-player-display='wide'] .expansion-screen.player .ex-actions .ex-card {
-    height: clamp(90px, calc((100dvh - 360px) / 3), 132px);
+    height: clamp(
+      90px,
+      calc((calc(var(--tablemax-canvas-height) * 1) - 360px) / 3),
+      132px
+    );
     min-height: 90px;
   }
 }

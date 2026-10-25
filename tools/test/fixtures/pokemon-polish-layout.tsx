@@ -7,27 +7,13 @@ import type { RoomSession } from '../../../apps/web/src/session/useRoomSession';
 import type { PokemonView } from '../../../games/pokemon-encounters/rules/project';
 import { rules, type Action } from '../../../games/pokemon-encounters/rules';
 import {
-  validateState,
-  type State,
-} from '../../../games/pokemon-encounters/rules/state';
+  applyPokemonOriginalState as apply,
+  makePokemonOriginalState as make,
+  type PokemonOriginalScene,
+} from './pokemon-original-state';
 import '../../../apps/web/src/styles.css';
 
-type Scene =
-  | 'initial'
-  | 'waiting'
-  | 'draw'
-  | 'place'
-  | 'discard-place'
-  | 'snorlax'
-  | 'charizard'
-  | 'peek'
-  | 'mew-other'
-  | 'mew-self'
-  | 'rocket'
-  | 'zapdos-self'
-  | 'zapdos-receive'
-  | 'round-result'
-  | 'match-result';
+type Scene = PokemonOriginalScene;
 type Setting = {
   seats: number;
   scene: Scene;
@@ -46,7 +32,6 @@ type Setting = {
   admissionPending: boolean;
   awaitingConfirmation: boolean;
 };
-type FixtureState = { state: State; self: string };
 type FixtureCommand = { type: 'game'; decisionId: string; action: Action };
 declare global {
   interface Window {
@@ -61,87 +46,6 @@ declare global {
     };
     pokemonCommands: FixtureCommand[];
   }
-}
-const allSeatIds = ['S1', 'S2', 'S3', 'S4', 'S5', 'S6'];
-
-function apply(state: State, action: Action, seat = state.turnSeat) {
-  const seatIds = state.seatOrder;
-  const context = { seats: seatIds, random: { next: () => 0.4 } };
-  const next = rules.apply(state, action, seat, context).state as State;
-  return validateState(next, seatIds);
-}
-
-/** Verification-only complete deck permutation; every later transition uses production rules. */
-function make(scene: Scene, count = 6): FixtureState {
-  const seatIds = allSeatIds.slice(0, count);
-  const context = { seats: seatIds, random: { next: () => 0.4 } };
-  let state = rules.initialize({
-    ...context,
-    random: { next: () => 0 },
-  }) as State;
-  const category =
-    scene === 'snorlax'
-      ? 'special-snorlax'
-      : scene === 'charizard' || scene === 'peek'
-        ? 'special-charizard'
-        : scene.startsWith('mew')
-          ? 'special-mew'
-          : scene === 'rocket'
-            ? 'special-team-rocket'
-            : scene.startsWith('zapdos')
-              ? 'special-zapdos'
-              : 'ordinary-6';
-  const wanted = `${category}#01`;
-  const top = state.deck.length - 1;
-  const displaced = state.deck[top]!;
-  const deckIndex = state.deck.indexOf(wanted);
-  if (deckIndex >= 0) state.deck[deckIndex] = displaced;
-  else {
-    const slot = Object.values(state.boards)
-      .flat()
-      .find((entry) => entry.instanceId === wanted);
-    if (!slot) throw new Error(`Missing fixture card ${wanted}`);
-    slot.instanceId = displaced;
-  }
-  state.deck[top] = wanted;
-  validateState(state, seatIds);
-  if (scene === 'initial') return { state, self: 'S1' };
-  for (const seat of seatIds) {
-    state = apply(state, { type: 'initial-flip', slot: 0 }, seat);
-    if (scene === 'waiting') return { state, self: 'S1' };
-  }
-  if (scene === 'draw') return { state, self: 'S1' };
-  if (scene === 'round-result' || scene === 'match-result') {
-    if (scene === 'match-result')
-      state.winsBySeat = Object.fromEntries(seatIds.map((seat) => [seat, 2]));
-    for (let step = 0; step < 1000 && !state.roundResult; step++) {
-      const actor =
-        state.phase === 'zapdos-receive'
-          ? state.recipientQueue[state.recipientIndex]!
-          : state.turnSeat;
-      const choices = rules.legalActions(state, actor) as Action[];
-      const reveal = choices.find(
-        (action) =>
-          action.type === 'replace' &&
-          !state.boards[actor]![action.slot]!.faceUp,
-      );
-      state = apply(state, reveal ?? choices[0]!, actor);
-    }
-    if (!state.roundResult) throw new Error('Result fixture did not finish');
-    return { state, self: 'S1' };
-  }
-  state = apply(state, { type: 'draw', source: 'deck' });
-  if (scene === 'discard-place') {
-    state = apply(state, { type: 'discard-held' });
-    state = apply(state, { type: 'draw', source: 'discard' });
-    return { state, self: 'S2' };
-  }
-  if (['snorlax', 'charizard', 'peek', 'zapdos-receive'].includes(scene))
-    state = apply(state, { type: 'replace', slot: 1 });
-  if (scene === 'peek') state = apply(state, { type: 'peek', slot: 2 });
-  if (scene === 'mew-self')
-    state = apply(state, { type: 'mew-target', seat: 'S2', slot: 1 });
-  return { state, self: scene === 'zapdos-receive' ? 'S2' : 'S1' };
 }
 
 const initialSetting: Setting = {

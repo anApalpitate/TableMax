@@ -84,9 +84,12 @@ export function decisionGuidance(
     (view.held && view.held.categoryId !== active
       ? summary(view.held, view.held.categoryId, true)
       : null);
+  const canDiscardHeld = actions.some(
+    (action) => action.type === 'discard-held',
+  );
   let instruction = decisionInstructions[view.phase] ?? '按当前步骤完成操作。';
   if (view.phase === 'place')
-    instruction = actions.some((action) => action.type === 'discard-held')
+    instruction = canDiscardHeld
       ? '可换入一格或弃掉；换入牌朝上，换出的牌公开弃掉。'
       : '弃牌顶取到的牌必须换入；换出的牌公开弃掉。';
   const endsRound =
@@ -99,5 +102,20 @@ export function decisionGuidance(
     : abilityPhases[view.phase]
       ? '完整能力处理后，才检查是否有人全明并结算。'
       : null;
-  return { instruction, ability, target, notice };
+  const condition = endsRound
+    ? canDiscardHeld
+      ? '换入后，能力完成即结算'
+      : '必须换入 · 能力后即结算'
+    : view.phase === 'place'
+      ? canDiscardHeld
+        ? '换入或弃掉 · 换出公开弃掉'
+        : '弃牌必须换入 · 换出公开弃掉'
+      : ability
+        ? `${ability.trigger}${abilityPhases[view.phase] ? ' · 完成后检查全明' : ''}`
+        : view.phase === 'initial-flip'
+          ? '初翻不发动能力'
+          : view.phase === 'draw'
+            ? '弃牌顶必须使用'
+            : null;
+  return { instruction, ability, target, notice, condition };
 }

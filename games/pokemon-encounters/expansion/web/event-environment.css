@@ -2,7 +2,7 @@
   isolation: isolate;
 }
 .ex-event-environment {
-  position: fixed;
+  position: absolute;
   inset: 0;
   z-index: -1;
   pointer-events: none;
@@ -108,7 +108,7 @@
   margin: 4px 0;
 }
 .ex-event-entrance {
-  position: fixed;
+  position: absolute;
   inset: 0;
   z-index: 70;
   display: grid;
@@ -145,7 +145,7 @@
   animation: ex-event-impact var(--event-ms) ease-out both;
 }
 .ex-event-announcement {
-  max-width: min(680px, calc(100vw - 32px));
+  max-width: min(680px, calc(calc(var(--tablemax-canvas-width) * 1) - 32px));
   padding: 16px 24px;
   border-block: 2px solid var(--event-color);
   border-radius: 12px;
@@ -161,7 +161,7 @@
 .ex-event-announcement > strong {
   display: block;
   margin: 4px 0 8px;
-  font-size: clamp(26px, 5vw, 56px);
+  font-size: clamp(26px, calc(var(--tablemax-canvas-width) * 0.05), 56px);
   line-height: 1.15;
 }
 .ex-event-announcement p {
@@ -316,7 +316,7 @@
 }
 @keyframes ex-event-cut-in {
   from {
-    translate: -12vw 0;
+    translate: calc(var(--tablemax-canvas-width) * -0.12) 0;
     opacity: 0;
   }
   20%,
@@ -325,7 +325,7 @@
     opacity: 1;
   }
   to {
-    translate: 5vw 0;
+    translate: calc(var(--tablemax-canvas-width) * 0.05) 0;
     opacity: 0;
   }
 }
@@ -346,10 +346,10 @@
 .expansion-screen[data-play-mode='test'] .ex-environment-drift {
   animation: none;
 }
-@media (max-height: 440px) {
+@container tablemax-game (max-height: 440px) {
   .ex-event-announcement {
     padding: 8px 16px;
-    max-width: min(680px, calc(100vw - 48px));
+    max-width: min(680px, calc(calc(var(--tablemax-canvas-width) * 1) - 48px));
   }
   .ex-event-announcement > strong {
     font-size: 26px;

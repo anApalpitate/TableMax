@@ -5,6 +5,7 @@ import {
   type ReactNode,
 } from 'react';
 import './anime-entrance.css';
+import { useGameLayout } from '@tablemax/web-host';
 
 export type EntranceDefinition = {
   id: string;
@@ -25,6 +26,7 @@ export function AbilityEntrance({
   image: string | undefined;
   character?: ReactNode;
 }) {
+  const layout = useGameLayout();
   const surface = useRef<HTMLDivElement>(null);
   useLayoutEffect(() => {
     const scene = surface.current;
@@ -32,26 +34,49 @@ export function AbilityEntrance({
       scene?.closest('.expansion-screen') ?? scene?.closest('.pokemon-screen');
     if (!scene || !screen) return;
     const measure = () => {
+      const screenRect = screen.getBoundingClientRect();
+      const origin = layout?.logicalToClient({ x: 0, y: 0 }) ?? {
+        x: screenRect.x,
+        y: screenRect.y,
+      };
+      const heightLimit = layout?.logicalSize.height ?? screen.clientHeight;
+      const localY = (y: number) =>
+        layout?.clientToLogical({ x: origin.x, y }).y ?? y - origin.y;
       const dashboard = screen
         .querySelector('.pokemon-status, .ex-round-banner')
         ?.getBoundingClientRect();
       const toolbar = screen
-        .querySelector('.game-toolbar')
+        .querySelector('.game-toolbar, .ex-toolbar')
         ?.getBoundingClientRect();
       const actions = screen
-        .querySelector('.player-action-bar, .ex-confirm-bar')
+        .querySelector('.player-action-bar, .ex-confirm-bar, .ex-submit')
         ?.getBoundingClientRect();
-      const top = Math.max(toolbar?.bottom ?? 0, dashboard?.bottom ?? 0) + 8;
+      const top =
+        Math.max(
+          toolbar ? localY(toolbar.bottom) : 0,
+          dashboard ? localY(dashboard.bottom) : 0,
+        ) + 8;
       const bottom =
-        actions && actions.bottom > top && actions.top < innerHeight
-          ? Math.max(top, actions.top - 8)
-          : innerHeight - 12;
+        actions &&
+        localY(actions.bottom) > top &&
+        localY(actions.top) < heightLimit
+          ? Math.max(top, localY(actions.top) - 8)
+          : heightLimit - 12;
       const height = Math.max(0, bottom - top);
+      // A window-painted decorative layer is bounded to the actual canvas.
+      // Targets enter logical coordinates once; no browser/DPI divisor is used.
+      scene.style.position = 'fixed';
+      scene.style.left = `${origin.x}px`;
+      scene.style.top = `${origin.y}px`;
+      scene.style.width = `${layout?.logicalSize.width ?? screen.clientWidth}px`;
+      scene.style.height = `${heightLimit}px`;
+      scene.style.right = 'auto';
+      scene.style.bottom = 'auto';
       scene.style.setProperty('--entrance-top', `${top}px`);
       scene.style.setProperty('--entrance-height', `${height}px`);
       scene.style.setProperty(
         '--cutin-height',
-        `${Math.min(height * 0.65, innerHeight * 0.37, 420)}px`,
+        `${Math.min(height * 0.65, heightLimit * 0.37, 420)}px`,
       );
     };
     measure();
@@ -64,7 +89,7 @@ export function AbilityEntrance({
       window.removeEventListener('resize', measure);
       window.removeEventListener('scroll', measure);
     };
-  }, []);
+  }, [layout]);
   return (
     <div
       ref={surface}

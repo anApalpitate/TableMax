@@ -73,7 +73,114 @@ test('fixed canvas selection binds only its actual layer and migrated variants',
   assert.equal(selected.cases.length, 1);
   assert.equal(selected.cases[0].width, 360);
   assert.equal(selected.cases[0].height, 800);
-  assert.equal(selected.expectedCaseIds.length, 3);
+  assert.equal(
+    selected.expectedCaseIds.filter((id) =>
+      id.startsWith('content-modern-art-'),
+    ).length,
+    3,
+  );
+});
+
+test('Pokemon fixed variants share their real game scope and prepare only selected fixture keys', () => {
+  const script = 'tools/test/platform/verify-public-screen-retirement-ui.mjs';
+  const args = [
+    '--layout-contract=fixed-v1',
+    '--layer=integration',
+    '--only=integration-pokemon-encounters-player-landscape-n6-mew-target-selected,integration-expansion-player-landscape-n6-reposition-selected',
+  ];
+  const selected = selectFixedCanvasCases(args);
+  assert.deepEqual(selected.scopes, ['shared', 'game:pokemon-encounters']);
+  assert.deepEqual(verificationTestScopes(item(script, args)), selected.scopes);
+  assert.doesNotThrow(() =>
+    validateBatchScope(
+      plan(item(script, args)),
+      'shared,game:pokemon-encounters',
+    ),
+  );
+  assert.throws(
+    () => validateBatchScope(plan(item(script, args)), 'shared'),
+    /outside/,
+  );
+  assert.deepEqual(selected.variants, ['pokemon-encounters', 'expansion']);
+  assert.equal(selected.fixtureRequests.length, 2);
+  assert(selected.fixtureRequests.every((request) => request.seats === 6));
+  assert(
+    selected.cases.every((scene) => scene.gameId === 'pokemon-encounters'),
+  );
+  assert.equal(selected.inputs.complete, false);
+  const one = selectFixedCanvasCases([
+    '--layout-contract=fixed-v1',
+    '--layer=content',
+    '--only=content-expansion-host-n6-held,content-expansion-player-portrait-n6-held,content-expansion-player-landscape-n6-held',
+  ]);
+  assert.deepEqual(one.variants, ['expansion']);
+  assert.deepEqual(one.fixtureRequests, [
+    { key: 'expansion-n6-held', variant: 'expansion', seats: 6, state: 'held' },
+  ]);
+  assert(
+    one.inputs.files.includes('tools/test/fixtures/pokemon-expansion-state.ts'),
+  );
+  assert(
+    !one.inputs.files.includes('tools/test/fixtures/pokemon-original-state.ts'),
+  );
+  assert(
+    !one.inputs.files.some((path) => path.startsWith('games/modern-art/')),
+  );
+  for (const extra of [
+    '--only=content-expansion-player-landscape-n6-unknown-state',
+    '--only=content-expansion-host-n4-held',
+    '--variant=expansion',
+    '--layer=adapter',
+  ])
+    assert.throws(() =>
+      selectFixedCanvasCases([
+        '--layout-contract=fixed-v1',
+        '--layer=content',
+        extra,
+      ]),
+    );
+});
+
+test('Pokemon generated entries preserve selection before product imports or preparation', async () => {
+  const { fixedCanvasVariants } =
+    await import('../platform/fixed-canvas-contract.mjs');
+  const { fixtureEntry, preparationEntry } =
+    await import('../platform/verify-fixed-canvas-contract.mjs');
+  const { default: ts } = await import('typescript');
+  const selected = selectFixedCanvasCases([
+    '--layout-contract=fixed-v1',
+    '--layer=integration',
+    '--only=integration-expansion-player-landscape-n6-reposition-selected',
+  ]);
+  const browser = fixtureEntry(selected);
+  const preparation = preparationEntry(
+    selected.variants.map((key) => ({ key, ...fixedCanvasVariants[key] })),
+    selected,
+    'tmp/fixed-canvas-20261025-02/pokemon/static-code',
+  );
+  assert(
+    browser
+      .replaceAll(String.fromCharCode(92, 92), '/')
+      .includes('/games/pokemon-encounters/expansion/web/index.tsx'),
+  );
+  assert(preparation.includes('preparePokemonExpansionFixedState'));
+  assert(preparation.includes('pokemonExpansion as r0'));
+  assert(preparation.includes('expansion-n6-reposition-selected'));
+  assert(!preparation.includes('preparePokemonOriginalFixedState'));
+  assert(!preparation.includes('preparePublicScreenRetirement'));
+  for (const source of [browser, preparation]) {
+    const normalized = source.replaceAll(String.fromCharCode(92, 92), '/');
+    assert(!normalized.includes('games/modern-art/'));
+    assert(!normalized.includes('games/uno/'));
+    const parsed = ts.createSourceFile(
+      'fixture.tsx',
+      source,
+      ts.ScriptTarget.Latest,
+      true,
+      ts.ScriptKind.TSX,
+    );
+    assert.equal(parsed.parseDiagnostics.length, 0);
+  }
 });
 
 test('fixed canvas rejects unknown IDs, unmigrated games and legacy arguments', () => {
@@ -638,5 +745,106 @@ test('menu-only validation requires shared and precisely the affected game scope
         'full',
       ),
     /mutually exclusive/,
+  );
+});
+
+test('Pokemon dynamic cases select only their legal preparation and internal runtime methods', async () => {
+  const args = [
+    '--layout-contract=fixed-v1',
+    '--layer=integration',
+    '--only=integration-expansion-player-landscape-n6-saved-sequence',
+  ];
+  const selected = selectFixedCanvasCases(args);
+  assert.deepEqual(selected.variants, ['expansion']);
+  assert.deepEqual(selected.scopes, ['shared', 'game:pokemon-encounters']);
+  assert.deepEqual(selected.fixtureRequests, [
+    {
+      key: 'expansion-n6-saved-sequence',
+      variant: 'expansion',
+      seats: 6,
+      state: 'saved-sequence',
+    },
+  ]);
+  assert.equal(selected.eventProof, true);
+  assert.equal(selected.guidanceProof, false);
+  const { fixtureEntry, preparationEntry } =
+    await import('../platform/verify-fixed-canvas-contract.mjs');
+  const { fixedCanvasVariants } =
+    await import('../platform/fixed-canvas-contract.mjs');
+  const { pokemonSavedFixtureCode } =
+    await import('../games/pokemon-encounters/fixed-canvas-pokemon-fixture.mjs');
+  assert.throws(() => fixtureEntry(selected), /renderer/);
+  const browser = fixtureEntry(selected, { saved: pokemonSavedFixtureCode() });
+  assert(browser.includes('installPokemonSavedFixture'));
+  assert(!browser.includes('decisionGuidance'));
+  assert(!browser.includes('/games/modern-art/'));
+  const entry = { key: 'expansion', ...fixedCanvasVariants.expansion };
+  const preparation = preparationEntry(
+    [entry],
+    selected,
+    'tmp/fixed-canvas-20261025-02/pokemon/static-code',
+  );
+  assert(preparation.includes('preparePokemonExpansionFixedState'));
+  assert(!preparation.includes('preparePokemonOriginalFixedState'));
+  for (const invalid of [
+    [
+      '--layout-contract=fixed-v1',
+      '--layer=content',
+      '--only=integration-expansion-player-landscape-n6-saved-sequence',
+    ],
+    [...args, '--events=saved'],
+  ])
+    assert.throws(() => selectFixedCanvasCases(invalid));
+});
+
+test('the real host board event selects its existing legal transaction without importing PlayerFrame', async () => {
+  const args = [
+    '--layout-contract=fixed-v1',
+    '--layer=integration',
+    '--only=integration-expansion-host-n6-saved-board',
+  ];
+  const selected = selectFixedCanvasCases(args);
+  assert.deepEqual(selected.scopes, ['shared', 'game:pokemon-encounters']);
+  assert.deepEqual(selected.variants, ['expansion']);
+  assert.equal(selected.playerFrame, false);
+  assert.equal(selected.eventProof, true);
+  assert.equal(selected.inputs.complete, false);
+  assert.equal(selected.cases[0].eventRole, 'host-board');
+  assert.equal(
+    selected.cases[0].fixtureInitialProjection,
+    'savedTransactions[2].before.host',
+  );
+  assert.deepEqual(selected.fixtureRequests, [
+    {
+      key: 'expansion-n6-saved-sequence',
+      variant: 'expansion',
+      seats: 6,
+      state: 'saved-sequence',
+    },
+  ]);
+  assert(
+    !selected.inputs.files.includes('apps/web/src/components/PlayerFrame.tsx'),
+  );
+  assert(
+    !selected.inputs.files.includes(
+      'tools/test/fixtures/pokemon-original-state.ts',
+    ),
+  );
+  const { fixtureEntry } =
+    await import('../platform/verify-fixed-canvas-contract.mjs');
+  const { pokemonSavedFixtureCode } =
+    await import('../games/pokemon-encounters/fixed-canvas-pokemon-fixture.mjs');
+  const code = fixtureEntry(selected, { saved: pokemonSavedFixtureCode() });
+  assert(!code.includes('ProductionPlayerFrame'));
+  assert(!code.includes('PlayerFrameHarness'));
+  const together = selectFixedCanvasCases([
+    '--layout-contract=fixed-v1',
+    '--layer=integration',
+    '--only=integration-expansion-player-landscape-n6-saved-sequence,integration-expansion-host-n6-saved-board',
+  ]);
+  assert.equal(
+    together.fixtureRequests.length,
+    1,
+    'Both projections share the same actual prepared RoomCoordinator transaction sequence',
   );
 });

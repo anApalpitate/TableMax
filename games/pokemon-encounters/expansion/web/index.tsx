@@ -4,6 +4,8 @@ import type { GameClient, GameHost } from '@tablemax/web-host';
 import {
   avatarFor,
   useAudioOutput,
+  useGameLayout,
+  PlayerLayoutControl,
   OverlayPanel,
   RulesGuide,
   ScreenLink,
@@ -650,7 +652,11 @@ function Actions({
       </section>
     );
   return (
-    <section className="ex-actions" aria-label="本人操作">
+    <section
+      className="ex-actions"
+      aria-label="本人操作"
+      data-local-mode={mode || undefined}
+    >
       <header className="ex-action-heading">
         <img src={avatarFor(session.self?.avatarId ?? 'builtin-1')} alt="" />
         <h2 title={session.self?.name ?? '本人'}>
@@ -693,7 +699,9 @@ function Actions({
                   : 'ex-held-summary'
               }
             >
-              {game.held.abilityUsed && game.held.ability ? (
+              {game.phase === 'mewtwo-choice' ? (
+                '已私看，可交换或放弃'
+              ) : game.held.abilityUsed && game.held.ability ? (
                 <>
                   能力已使用
                   <span className="ex-placement-reminder">，选择位置换入</span>
@@ -824,13 +832,14 @@ function Actions({
           {game.phase === 'draw' && (
             <button
               className={`ex-source ex-reposition-source ${mode === 'reposition' ? 'selected' : ''}`}
+              aria-label={mode === 'reposition' ? '取消换位' : undefined}
               disabled={locked || !actions.some((a) => a.type === 'reposition')}
               onClick={() => {
                 setMode(mode === 'reposition' ? '' : 'reposition');
                 setSlots([]);
               }}
             >
-              <strong>卡牌换位</strong>
+              <strong>{mode === 'reposition' ? '取消' : '卡牌换位'}</strong>
               <div className="ex-source-face">
                 <span className="ex-swap-mark" aria-hidden="true">
                   <svg viewBox="0 0 72 90">
@@ -865,7 +874,7 @@ function Actions({
           ))}
         </div>
       )}
-      {working.some((a) => a.type === 'row-target') ? (
+      {game.peek ? null : working.some((a) => a.type === 'row-target') ? (
         <div className="ex-row-choice">
           <p>
             与 {names[chosenSeat]} 交换第{' '}
@@ -965,6 +974,9 @@ function Actions({
       {game.peek && (
         <div className="ex-private-peek">
           <h3>仅本人可见</h3>
+          <p className="ex-private-owner">
+            {names[game.peek.seat] ?? game.peek.seat}的场地
+          </p>
           <div>
             {game.peek.cards.map((p) => (
               <section key={p.slot}>
@@ -1244,6 +1256,7 @@ function Rulebook({ profile }: { profile: RulesProfile }) {
   );
 }
 function ScreenBody({ session, game }: { session: GameHost; game: View }) {
+  const layout = useGameLayout();
   const canPlay = useAudioOutput();
   const frame = useRef<HTMLElement>(null);
   useLayoutEffect(() => {
@@ -1380,9 +1393,11 @@ function ScreenBody({ session, game }: { session: GameHost; game: View }) {
       data-phase={game.phase}
       data-play-mode={session.view?.playMode}
       data-rules-profile={profile}
+      data-pokemon-layout={layout?.layout}
     >
       <EventEnvironment game={game} />
       <header className="ex-toolbar">
+        <PlayerLayoutControl />
         <ScreenLink href={`/${session.role}`} className="secondary">
           ‹ 盒子
         </ScreenLink>
@@ -1778,6 +1793,7 @@ function Screen({ session }: { session: GameHost }) {
   );
 }
 export const client: GameClient = {
+  layout: { contract: 'fixed-v1' },
   Screen,
   savedChanges: (before, after) => {
     if (!before || !after) return [];

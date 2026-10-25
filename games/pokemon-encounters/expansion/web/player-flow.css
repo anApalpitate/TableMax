@@ -326,7 +326,7 @@
   margin: 8px 0;
   font-size: 18px;
 }
-@media (max-width: 760px) {
+@container tablemax-game (max-width: 760px) {
   .expansion-screen.player .ex-held-options > .ex-store-action {
     min-width: 0;
     padding-inline: 8px;
@@ -368,7 +368,7 @@
   }
 }
 /* Keep the first placement row within a short phone without shrinking cards. */
-@media (max-width: 430px) and (max-height: 650px) {
+@container tablemax-game (max-width: 430px) and (max-height: 650px) {
   .expansion-screen.player[data-phase='place'] .ex-actions:not(.ex-observing) {
     display: flex;
     flex-direction: column;
@@ -447,7 +447,7 @@
     margin: 0 0 4px;
   }
 }
-@media (min-width: 761px) {
+@container tablemax-game (min-width: 761px) {
   .expansion-screen:not(.player) .ex-player {
     grid-template-columns: minmax(0, 1fr);
   }
@@ -528,7 +528,7 @@
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
-@media (min-width: 761px) and (max-height: 800px) {
+@container tablemax-game (min-width: 761px) and (max-height: 800px) {
   .expansion-screen:not(.player) .ex-supply {
     padding: 10px;
   }
@@ -545,7 +545,7 @@
 }
 
 /* Six-seat short displays share one supply row before the public buffers. */
-@media (min-width: 761px) and (max-height: 800px) {
+@container tablemax-game (min-width: 761px) and (max-height: 800px) {
   .expansion-screen[data-players='6']:is(
       [data-rules-profile='research-buffer-v2'],
       [data-rules-profile='events-research-v3']

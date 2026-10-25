@@ -1,0 +1,231 @@
+{
+  "status": "stopped-unverified-source-backup",
+  "branch": "codex/fixed-canvas-migration-backup-20261025",
+  "preMigrationBaseline": "6f8040e1810018a1764c17afa11fe347ad9ffa88",
+  "backupBaseHead": "932793930278c39d3260ae643e6284ccf0085303",
+  "candidate": "r8",
+  "candidateSourceSha256": "11832d62f210f233f24b97e0356aac310d4b5811786103aa5b4a2933c44e16ac",
+  "latestProductRuns": [
+    "0212112b-34be-4653-bba1-d9dc599177a8",
+    "f10fb04a-c628-4d45-86e1-d765e6169370"
+  ],
+  "validationBoundary": "Partial pilot only; original event and host6 passed, expansion player passed, host-board failed. Remaining gates unexecuted. No installer or release.",
+  "uncommittedTaskFiles": [
+    {
+      "path": "docs/tasks/fixed-canvas-visual-validation.md",
+      "bytes": 33639,
+      "sha256": "b647cced7770c81a036e3978d16eae78c5963030bee8e2402cc3c90f57e62f66"
+    },
+    {
+      "path": "games/pokemon-encounters/expansion/web/BoardEffects.tsx",
+      "bytes": 6699,
+      "sha256": "5b44bd68b4fff31381decff2698fcf469b38950b3cd0bf896bc71b59221872e3"
+    },
+    {
+      "path": "games/pokemon-encounters/expansion/web/event-environment.css",
+      "bytes": 7444,
+      "sha256": "04bd2061197c3d5abb5efec40f2258290a0b5f6b157457464cd3e8171b97b0b7"
+    },
+    {
+      "path": "games/pokemon-encounters/expansion/web/index.tsx",
+      "bytes": 66855,
+      "sha256": "b88a7c468ddb55b5a5f8e25ebc4811f5ac3e28f8ea501c2565e8b1c351d5ae20"
+    },
+    {
+      "path": "games/pokemon-encounters/expansion/web/layout.css",
+      "bytes": 39701,
+      "sha256": "99cb482b3780303510bbf958344edaececcb67763175c6c149c3194ecab2bca0"
+    },
+    {
+      "path": "games/pokemon-encounters/expansion/web/player-flow.css",
+      "bytes": 22191,
+      "sha256": "01dcbb2d800f72d1353e04a39ba3643ad954fe85f7c21af715fbaccb4d57eedf"
+    },
+    {
+      "path": "games/pokemon-encounters/expansion/web/player-wide.css",
+      "bytes": 5706,
+      "sha256": "de6a6d8c38a732897ba30489ef0ef92aa081fbc3255f899fbf950b51a5c2b88d"
+    },
+    {
+      "path": "games/pokemon-encounters/expansion/web/preference-refinement.css",
+      "bytes": 4808,
+      "sha256": "cf9f2d0ec53c8fe7c5300c44c934e89139071275e448a3fb199bddbffe519f3b"
+    },
+    {
+      "path": "games/pokemon-encounters/expansion/web/redesign.css",
+      "bytes": 25138,
+      "sha256": "7cd20323eeb512d7c02fa3890c06f18b493ceb4945f6a0d500f3307f07cbc22f"
+    },
+    {
+      "path": "games/pokemon-encounters/expansion/web/refinement.css",
+      "bytes": 25977,
+      "sha256": "da593350e941d765c46955716c5675641c3adf188e4dc4572796da6941182294"
+    },
+    {
+      "path": "games/pokemon-encounters/expansion/web/SavedEffects.tsx",
+      "bytes": 14089,
+      "sha256": "2a48e1792002dba592684d56ff6bf3a669d372d71135db17fbc7a58ebce7f271"
+    },
+    {
+      "path": "games/pokemon-encounters/expansion/web/style.css",
+      "bytes": 19489,
+      "sha256": "ee1dba227469ff0693afd422927ded5235b6eb676a6866a615a081847a4f24b8"
+    },
+    {
+      "path": "games/pokemon-encounters/ui/AbilityEntrance.tsx",
+      "bytes": 6000,
+      "sha256": "d8838d6075727d8f0f1a4435b5905be21aa572deb28440d61d5d525aeee669df"
+    },
+    {
+      "path": "games/pokemon-encounters/ui/anime-entrance.css",
+      "bytes": 8038,
+      "sha256": "79a70f08604bc194487b516640827e60df8b41606ee7712d84770978a4b9be32"
+    },
+    {
+      "path": "games/pokemon-encounters/ui/decision-guidance.ts",
+      "bytes": 4179,
+      "sha256": "fa0d3a2e9c4eb36dd89fb8a2f73d2eeaab17a830e774f7f9cd1dae0d1c13194c"
+    },
+    {
+      "path": "games/pokemon-encounters/ui/DecisionHint.tsx",
+      "bytes": 2946,
+      "sha256": "fff9e946207ed9f27712bbe9d1d64839473f158045fb2e9d24812fa56d903f07"
+    },
+    {
+      "path": "games/pokemon-encounters/ui/effects.css",
+      "bytes": 6962,
+      "sha256": "31ee0a0bfa50b027cf7c70eb8330d0d8a7ca6f6e9979b3d40036906cfe45ebe8"
+    },
+    {
+      "path": "games/pokemon-encounters/ui/effects.tsx",
+      "bytes": 19370,
+      "sha256": "ea38d94fb247ed882a43935bc1e1af86223bb032b4f316a646d8e06956ca6982"
+    },
+    {
+      "path": "games/pokemon-encounters/ui/guidance.css",
+      "bytes": 2318,
+      "sha256": "028ecdda6c768ecfde5edc0b53ce021047f93db3ea3579a95f32fa4d0b3e98c0"
+    },
+    {
+      "path": "games/pokemon-encounters/ui/layout.css",
+      "bytes": 31491,
+      "sha256": "d05fa8e0f2964a0d2e2dfc555f51d6626b26588f6a09b69ce46841edcae8c082"
+    },
+    {
+      "path": "games/pokemon-encounters/ui/player-wide.css",
+      "bytes": 6179,
+      "sha256": "3f8aea1ad8227ea70164376cfc593c6bba2ec4676328f859e600249c85d8594e"
+    },
+    {
+      "path": "games/pokemon-encounters/ui/player/index.tsx",
+      "bytes": 11425,
+      "sha256": "a87d608f88f786ad8973858c4d7c0aa9849ccbbe3ce50047f9f0fec54b602823"
+    },
+    {
+      "path": "games/pokemon-encounters/ui/screen.css",
+      "bytes": 14296,
+      "sha256": "ac3083e3b92f4e2532a3599f3dc886aac75bbca8c369f5cf688787bd11d0ead5"
+    },
+    {
+      "path": "games/pokemon-encounters/ui/style.css",
+      "bytes": 54148,
+      "sha256": "da7d27e9e6850316d80adc704edd4a96dc98d23a1e63c8344b51c5ac05bd4a0b"
+    },
+    {
+      "path": "games/pokemon-encounters/web/index.tsx",
+      "bytes": 12041,
+      "sha256": "b80f2094b480261e03cc702d158ca69277861949978655d168da7fba9f0ac8ad"
+    },
+    {
+      "path": "tools/test/fixtures/pokemon-expansion-state.ts",
+      "bytes": 11600,
+      "sha256": "43cc194d04a47c6b5fc3f534bb12ede4f0d6eef85940544ebc3381887a89d12d"
+    },
+    {
+      "path": "tools/test/fixtures/pokemon-original-state.ts",
+      "bytes": 8953,
+      "sha256": "8547c0f5436b49ed4a9ca5cde7ed2588818429f866e0e113af11324e382f59fa"
+    },
+    {
+      "path": "tools/test/fixtures/pokemon-polish-layout.tsx",
+      "bytes": 5947,
+      "sha256": "f90d4aee1bb9365b7f69d4aacbb26cec97ce8afba055451b52eb2ed7d99ce127"
+    },
+    {
+      "path": "tools/test/fixtures/pokemon-ui-redesign.tsx",
+      "bytes": 7369,
+      "sha256": "f937d8cbe4b75e8dd6a885c97beb738c25ae49058016647d769fd9b57d8e2cf9"
+    },
+    {
+      "path": "tools/test/fixtures/prepare-pokemon-fixed.ts",
+      "bytes": 15948,
+      "sha256": "2d6070b2d4ccfa591e9a48e9267088096c7787d1455a96f57726b81d063c877f"
+    },
+    {
+      "path": "tools/test/games/pokemon-encounters/fixed-canvas-pokemon-events.mjs",
+      "bytes": 48460,
+      "sha256": "96ba1b63506ac7391e7894a16ed38a2da93a6f792c7d523654506ea5bf245c01"
+    },
+    {
+      "path": "tools/test/games/pokemon-encounters/fixed-canvas-pokemon-fixture.mjs",
+      "bytes": 8859,
+      "sha256": "f9c9bb975bee95442381d7e6ffb99da82cc27efe861fa8688e345a2627853af3"
+    },
+    {
+      "path": "tools/test/games/pokemon-encounters/fixed-canvas-pokemon-guidance.mjs",
+      "bytes": 15283,
+      "sha256": "06ca5960df67fe9facd01adcbed7b72600cb0bb4d2a199e9707c283d883ec7ba"
+    },
+    {
+      "path": "tools/test/games/pokemon-encounters/fixed-canvas-pokemon.mjs",
+      "bytes": 39857,
+      "sha256": "c30760107532b93c5f38e0257f61d25363cc11b15fbc494543ce85fb4697256d"
+    },
+    {
+      "path": "tools/test/games/pokemon-encounters/verify-pokemon-ui-redesign.mjs",
+      "bytes": 22109,
+      "sha256": "22d4bee99e9ae760fb76bad15aac3c8b125dcb7ff66da19cc469a1e494ada805"
+    },
+    {
+      "path": "tools/test/platform/fixed-canvas-contract.mjs",
+      "bytes": 12667,
+      "sha256": "cdc4a4e486362489d8d72ac4468053f5e7596533d561aa0635eef69e2ed15d01"
+    },
+    {
+      "path": "tools/test/platform/verify-fixed-canvas-contract.mjs",
+      "bytes": 102029,
+      "sha256": "5c7ed6b43a40ffa517d5b4a1263256a6ef4e64615dfb9cf328a4d17985b66128"
+    },
+    {
+      "path": "tools/test/runner/evidence.test.mjs",
+      "bytes": 18563,
+      "sha256": "e996a352547453e8808b14087d49d0bb130dc51f3eea1727b091161008487449"
+    },
+    {
+      "path": "tools/test/runner/scopes.test.mjs",
+      "bytes": 27446,
+      "sha256": "a26d0df40d4133dc4475d4fbb0856e673e5148d5c141fc43df16b76f7f4bb109"
+    }
+  ],
+  "unrelatedPreservedOutsideBackupCommit": [
+    {
+      "path": "docs/archive/manila-board-redesign-2026-10-17.md",
+      "sha256": "4078b781005adfaada6390d321869aee48d17992dd6c2069c289dcddb204ee1b"
+    },
+    {
+      "path": "docs/games/rummikub/interaction.md",
+      "sha256": "798caea3b78c80de963dcec46009a57ef96653bad7d3beb3d0e8eaf69c57db7e"
+    },
+    {
+      "path": "assets/retired-rule-images-20261023.json",
+      "sha256": "e55868924d924e3b1c1ead71555dcb419b28b48da9c86f4d2a39430bde57dcdb"
+    }
+  ],
+  "localEvidencePreserved": [
+    "artifacts/maintenance/fixed-canvas-20261025-01",
+    "artifacts/maintenance/fixed-canvas-20261025-02",
+    "artifacts/maintenance/test-history",
+    "tmp/fixed-canvas-20261025-01",
+    "tmp/fixed-canvas-20261025-02"
+  ]
+}

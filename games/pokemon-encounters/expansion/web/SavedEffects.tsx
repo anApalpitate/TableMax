@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, type CSSProperties } from 'react';
 import type { GameHost } from '@tablemax/web-host';
+import { useGameLayout } from '@tablemax/web-host';
 import {
   categoriesForProfile,
   abilityTextForProfile,
@@ -66,6 +67,7 @@ function MotionPose({
 
 /** Lightweight, distinct themes around a newly drawn public card, not hidden slots. */
 function OrdinaryBurst({ theme }: { theme: OrdinaryTheme }) {
+  const layout = useGameLayout();
   const ref = useRef<SVGSVGElement>(null);
   useEffect(() => {
     const svg = ref.current;
@@ -77,10 +79,17 @@ function OrdinaryBurst({ theme }: { theme: OrdinaryTheme }) {
       ) ?? document.querySelector<HTMLElement>('.ex-held, .ex-supply');
     if (!anchor) return;
     const rect = anchor.getBoundingClientRect();
-    svg.style.left = `${rect.x + rect.width / 2}px`;
-    svg.style.top = `${rect.y + rect.height / 2}px`;
+    const point = layout?.clientToLogical({
+      x: rect.x + rect.width / 2,
+      y: rect.y + rect.height / 2,
+    }) ?? {
+      x: rect.x + rect.width / 2,
+      y: rect.y + rect.height / 2,
+    };
+    svg.style.left = `${point.x}px`;
+    svg.style.top = `${point.y}px`;
     svg.style.visibility = 'visible';
-  }, [theme]);
+  }, [theme, layout]);
   const water = ['magikarp', 'piplup', 'psyduck'].includes(theme);
   return (
     <svg

@@ -4,7 +4,7 @@
   --tm-scroll-thumb: #567b69;
   --tm-scroll-hover: #234e40;
 }
-@media (min-width: 960px) {
+@container tablemax-game (min-width: 960px) {
   [data-player-display='wide'] .pokemon-screen.player {
     padding: 16px 24px;
   }
@@ -60,7 +60,11 @@
     .pokemon-screen.player
     .game-table
     .pokemon-board {
-    max-width: clamp(270px, calc((100dvh - 340px) * 0.95), 430px);
+    max-width: clamp(
+      270px,
+      calc((calc(var(--tablemax-canvas-height) * 1) - 340px) * 0.95),
+      430px
+    );
     width: 100%;
     margin: 8px auto;
   }
@@ -227,7 +231,7 @@
   }
 }
 
-@media (min-width: 960px) {
+@container tablemax-game (min-width: 960px) {
   @container pokemon-wide-status (max-width: 400px) {
     [data-player-display='wide']
       .pokemon-screen.player

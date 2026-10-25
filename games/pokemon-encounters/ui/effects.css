@@ -2,8 +2,8 @@
 .pokemon-screen .saved-action-trails {
   position: fixed;
   inset: 0;
-  width: 100vw;
-  height: 100vh;
+  width: calc(var(--tablemax-canvas-width) * 1);
+  height: calc(var(--tablemax-canvas-height) * 1);
   z-index: 34;
   overflow: hidden;
   pointer-events: none;
@@ -227,7 +227,7 @@
     rotate: 0deg;
   }
 }
-@media (max-width: 600px) {
+@container tablemax-game (max-width: 600px) {
   .pokemon-screen .saved-trail {
     stroke-width: 2;
   }

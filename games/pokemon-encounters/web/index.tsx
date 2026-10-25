@@ -8,7 +8,11 @@ import { GameTable } from '../ui/table';
 import { SoundControl } from '../ui/audio';
 import { SavedMotion, savedChanges, savedMotionDuration } from '../ui/motion';
 import type { GameClient, GameHost as RoomSession } from '@tablemax/web-host';
-import { useAudioOutput } from '@tablemax/web-host';
+import {
+  useAudioOutput,
+  useGameLayout,
+  PlayerLayoutControl,
+} from '@tablemax/web-host';
 import '../ui/legacy.css';
 import '../ui/layout.css';
 import { avatarFor } from '@tablemax/web-host';
@@ -26,6 +30,7 @@ import { BeginnerGuidanceSetting } from '@tablemax/web-host';
 import { useGuidancePreference } from '@tablemax/web-host';
 
 function PokemonScreen({ session }: { session: RoomSession }) {
+  const layout = useGameLayout();
   const {
     view,
     role,
@@ -71,8 +76,10 @@ function PokemonScreen({ session }: { session: RoomSession }) {
       <main
         className={`pokemon-screen game-screen ${role} ${view?.playMode !== 'test' && feedback?.events.at(-1)?.kind === 'round-result' && motion.length ? 'saved-result' : ''}`}
         data-play-mode={view?.playMode ?? 'play'}
+        data-pokemon-layout={layout?.layout}
       >
         <header className="game-toolbar">
+          <PlayerLayoutControl />
           <ScreenLink
             className="button secondary back-to-box"
             href={`/${role}`}
@@ -312,6 +319,7 @@ function PokemonScreen({ session }: { session: RoomSession }) {
 }
 
 export const client: GameClient = {
+  layout: { contract: 'fixed-v1' },
   Screen: PokemonScreen,
   savedChanges: (before, after) =>
     savedChanges(before as PokemonView, after as PokemonView),

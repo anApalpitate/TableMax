@@ -1,5 +1,6 @@
 import { useEffect, useId, useState, type CSSProperties } from 'react';
 import { createPortal } from 'react-dom';
+import { useGameLayout } from '@tablemax/web-host';
 import type { BoardEffects as Effects } from './presentation';
 import { discardLanding } from '../../ui/discard-feedback';
 import type { DiscardSource } from '../../shared/discard-trails';
@@ -20,14 +21,20 @@ export function BoardEffects({
   winners?: readonly string[];
   savedDiscardSources?: readonly DiscardSource[] | undefined;
 }) {
+  const layout = useGameLayout();
   const prefix = useId().replaceAll(':', '');
   const [rects, setRects] = useState<Record<string, Rect>>({});
   useEffect(() => {
     const measure = () => {
+      const logicalRect = (r: Rect): Rect => ({
+        ...(layout?.clientToLogical({ x: r.x, y: r.y }) ?? { x: r.x, y: r.y }),
+        width: r.width,
+        height: r.height,
+      });
       const next: Record<string, Rect> = Object.fromEntries(
         Object.entries(anchors).map(([id, r]) => [
           id,
-          { ...r, x: r.x - scrollX, y: r.y - scrollY },
+          logicalRect({ ...r, x: r.x - scrollX, y: r.y - scrollY }),
         ]),
       );
       document
@@ -40,12 +47,12 @@ export function BoardEffects({
             next[
               slot.dataset.slot ??
                 `@${slot.dataset.pile}${slot.dataset.pile === 'buffer' ? ':' + slot.dataset.seat : ''}`
-            ] = {
+            ] = logicalRect({
               x: rect.x,
               y: rect.y,
               width: rect.width,
               height: rect.height,
-            };
+            });
           if (
             slot.dataset.pile === 'discard' &&
             slot.checkVisibility({
@@ -53,12 +60,12 @@ export function BoardEffects({
               checkVisibilityCSS: true,
             })
           )
-            next['@visible-discard'] = {
+            next['@visible-discard'] = logicalRect({
               x: rect.x,
               y: rect.y,
               width: rect.width,
               height: rect.height,
-            };
+            });
         });
       setRects(next);
     };
@@ -73,7 +80,7 @@ export function BoardEffects({
       window.removeEventListener('scroll', measure, true);
       observer.disconnect();
     };
-  }, [anchors]);
+  }, [anchors, layout]);
   const center = (id: string) => {
     const rect = rects[id];
     return rect
@@ -83,14 +90,25 @@ export function BoardEffects({
   const landing = discardLanding(
     savedDiscardSources,
     rects['@visible-discard'] ?? null,
-    { width: innerWidth, height: innerHeight },
+    layout?.logicalSize ?? { width: innerWidth, height: innerHeight },
   );
+  const origin = layout?.logicalToClient({ x: 0, y: 0 });
   return createPortal(
     <svg
       className="ex-board-effects"
       aria-hidden="true"
       style={
         {
+          ...(origin && layout
+            ? {
+                left: origin.x,
+                top: origin.y,
+                width: layout.logicalSize.width,
+                height: layout.logicalSize.height,
+                right: 'auto',
+                bottom: 'auto',
+              }
+            : {}),
           '--ex-delay': `${delay}ms`,
           '--ex-duration': `${winners.length ? 1400 : 540}ms`,
         } as CSSProperties

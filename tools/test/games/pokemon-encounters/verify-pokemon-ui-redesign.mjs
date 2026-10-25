@@ -321,7 +321,7 @@ try {
   assert.equal(await page.locator('.ex-source').count(), 4);
   assert.deepEqual(
     await page.locator('.ex-source > strong').allTextContents(),
-    ['摸牌堆', '可选弃牌1', '可选弃牌2', '调位'],
+    ['摸牌堆', '可选弃牌1', '可选弃牌2', '卡牌换位'],
   );
   assert.equal(await page.locator('.pokemon-board').count(), 1);
   assert.ok(

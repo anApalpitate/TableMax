@@ -265,6 +265,43 @@ test('real browser zoom stays uncached until its changing display environment ha
   );
 });
 
+test('Pokemon scene inputs declare the selected runtime entries and never close random source fixtures', () => {
+  const selected = selectFixedCanvasCases([
+    '--layout-contract=fixed-v1',
+    '--layer=integration',
+    '--only=integration-expansion-player-landscape-n6-reposition-selected',
+  ]);
+  assert.equal(selected.inputs.complete, false);
+  for (const path of [
+    'games/pokemon-encounters/expansion/web/index.tsx',
+    'games/pokemon-encounters/expansion/index.ts',
+    'games/pokemon-encounters/expansion/bot/index.ts',
+    'tools/test/fixtures/pokemon-expansion-state.ts',
+    'tools/test/fixtures/prepare-pokemon-fixed.ts',
+    'tools/test/games/pokemon-encounters/fixed-canvas-pokemon.mjs',
+    'apps/web/src/components/PlayerFrame.tsx',
+  ])
+    assert(
+      selected.inputs.files.includes(path),
+      'Missing selected dynamic entry: ' + path,
+    );
+  assert(
+    !selected.inputs.files.includes(
+      'tools/test/fixtures/pokemon-original-state.ts',
+    ),
+  );
+  assert(
+    !selected.inputs.files.some((path) => path.startsWith('games/modern-art/')),
+  );
+  const adapter = selectFixedCanvasCases([
+    '--layout-contract=fixed-v1',
+    '--layer=adapter',
+    '--only=adapter-host-minimum',
+  ]);
+  assert.equal(adapter.inputs.complete, true);
+  assert(!adapter.inputs.files.some((path) => path.includes('pokemon')));
+});
+
 test('an exact shared adapter selection keeps platform runtime entries out of its input closure', () => {
   const args = [
     '--layout-contract=fixed-v1',
@@ -421,4 +458,61 @@ test('legacy audit requires hash-bound original method/environment instead of in
   assert.throws(() => localFile(root, '../outside'), /escapes/);
   assert.throws(() => atomicJson(root, '../outside.json', {}), /escapes/);
   assert.ok(readFileSync(join(root, 'audit.json')).length);
+});
+
+test('selected Pokemon event and guidance entry closures stay explicit and incomplete', () => {
+  const selected = (id) =>
+    selectFixedCanvasCases([
+      '--layout-contract=fixed-v1',
+      '--layer=integration',
+      '--only=' + id,
+    ]);
+  const event = selected(
+    'integration-expansion-player-landscape-n6-saved-sequence',
+  );
+  const guidance = selected(
+    'integration-pokemon-encounters-player-landscape-n6-guidance-settings',
+  );
+  for (const path of [
+    'tools/test/games/pokemon-encounters/fixed-canvas-pokemon-events.mjs',
+    'tools/test/games/pokemon-encounters/fixed-canvas-pokemon-fixture.mjs',
+  ])
+    assert(event.inputs.files.includes(path));
+  assert(
+    !event.inputs.files.some((path) =>
+      path.endsWith('fixed-canvas-pokemon-guidance.mjs'),
+    ),
+  );
+  for (const path of [
+    'tools/test/games/pokemon-encounters/fixed-canvas-pokemon-guidance.mjs',
+    'tools/test/games/pokemon-encounters/fixed-canvas-pokemon-fixture.mjs',
+    'games/pokemon-encounters/ui/decision-guidance.ts',
+  ])
+    assert(guidance.inputs.files.includes(path));
+  assert(
+    !guidance.inputs.files.some((path) =>
+      path.endsWith('fixed-canvas-pokemon-events.mjs'),
+    ),
+  );
+  for (const selection of [event, guidance]) {
+    assert.equal(selection.inputs.complete, false);
+    assert.deepEqual(selection.scopes, ['shared', 'game:pokemon-encounters']);
+  }
+  const ordinary = selectFixedCanvasCases([
+    '--layout-contract=fixed-v1',
+    '--layer=content',
+    '--only=content-expansion-player-landscape-n6-target-private-peek',
+  ]);
+  assert(
+    !ordinary.inputs.files.some((path) =>
+      /fixed-canvas-pokemon-(events|fixture|guidance)\.mjs$/.test(path),
+    ),
+  );
+  const adapter = selectFixedCanvasCases([
+    '--layout-contract=fixed-v1',
+    '--layer=adapter',
+    '--only=adapter-host-minimum',
+  ]);
+  assert.equal(adapter.inputs.complete, true);
+  assert(!adapter.inputs.files.some((path) => path.includes('pokemon')));
 });

@@ -60,7 +60,7 @@
   width: 100%;
   box-sizing: border-box;
 }
-@media (max-width: 600px) {
+@container tablemax-game (max-width: 600px) {
   .pokemon-screen .decision-guidance {
     padding: 6px 8px;
   }
@@ -70,4 +70,37 @@
   .pokemon-screen.player .submit-choice:has(+ .decision-guidance) {
     position: static;
   }
+}
+
+.pokemon-screen.player .decision-guidance.guidance-compact {
+  position: relative;
+  min-height: 44px;
+  height: auto;
+  padding: 0 48px 0 0;
+}
+.pokemon-screen.player .guidance-primary {
+  margin: 0;
+  font-size: 16px;
+  line-height: 24px;
+}
+.pokemon-screen.player
+  .decision-guidance[data-pending='true']
+  .guidance-primary {
+  font-size: 18px;
+}
+.pokemon-guidance-dialog {
+  overflow: auto;
+}
+.pokemon-guidance-dialog :is(p, h3) {
+  overflow-wrap: anywhere;
+}
+.pokemon-guidance-dialog p {
+  font-size: 16px;
+  line-height: 24px;
+}
+.pokemon-guidance-dialog .guidance-full-summary {
+  margin-block: 16px;
+}
+.pokemon-guidance-dialog .guidance-full-summary h3 {
+  font-size: 20px;
 }

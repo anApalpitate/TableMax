@@ -1,6 +1,6 @@
 .pokemon-screen {
   max-width: none;
-  min-height: 100dvh;
+  min-height: calc(var(--tablemax-canvas-height) * 1);
   display: flex;
   flex-direction: column;
   padding: max(8px, env(safe-area-inset-top))
@@ -31,7 +31,7 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-@media (min-width: 1001px) and (max-height: 760px) {
+@container tablemax-game (min-width: 1001px) and (max-height: 760px) {
   .pokemon-screen:not(.player) {
     padding-top: 6px;
     padding-bottom: 4px;
@@ -50,9 +50,12 @@
     padding: 8px 10px;
   }
 }
-@media (min-width: 1001px) and (max-height: 900px) {
+@container tablemax-game (min-width: 1001px) and (max-height: 900px) {
   .pokemon-screen:not(.player) .game-table:not([data-seats='6']) .game-seat {
-    max-width: min(340px, max(190px, calc((100dvh - 460px) * 0.95)));
+    max-width: min(
+      340px,
+      max(190px, calc((calc(var(--tablemax-canvas-height) * 1) - 460px) * 0.95))
+    );
   }
   .pokemon-screen:not(.player) .table-notice {
     gap: 12px;
@@ -112,7 +115,7 @@
   flex: 1;
   display: grid;
   grid-template-columns: repeat(var(--seat-count), minmax(0, 1fr));
-  gap: clamp(12px, 2vw, 28px);
+  gap: clamp(12px, calc(var(--tablemax-canvas-width) * 0.02), 28px);
   align-items: center;
   justify-items: center;
   align-self: center;
@@ -120,7 +123,10 @@
 }
 .pokemon-screen .game-seat {
   width: 100%;
-  max-width: min(460px, max(190px, calc((100dvh - 380px) * 1.02)));
+  max-width: min(
+    460px,
+    max(190px, calc((calc(var(--tablemax-canvas-height) * 1) - 380px) * 1.02))
+  );
   background: #fffaf0e6;
   border: 2px solid #d6d5b7;
   padding: 10px;
@@ -306,7 +312,7 @@
   margin-top: 16px;
   padding-top: 12px;
 }
-@media (max-width: 1000px) and (min-width: 701px) {
+@container tablemax-game (max-width: 1000px) and (min-width: 701px) {
   :where(.pokemon-screen) .game-seats {
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 14px;
@@ -319,7 +325,7 @@
     font-size: 14px;
   }
 }
-@media (max-width: 700px) {
+@container tablemax-game (max-width: 700px) {
   .pokemon-screen {
     padding: max(4px, env(safe-area-inset-top))
       max(6px, env(safe-area-inset-right)) max(8px, env(safe-area-inset-bottom))
@@ -418,7 +424,10 @@
   .pokemon-screen.player .pokemon-player > .pokemon-board,
   .pokemon-screen.player .game-seat > .pokemon-board,
   .pokemon-screen.player .target-board .pokemon-board {
-    max-width: min(100%, max(230px, calc((100dvh - 390px) * 0.95)));
+    max-width: min(
+      100%,
+      max(230px, calc((calc(var(--tablemax-canvas-height) * 1) - 390px) * 0.95))
+    );
     margin: 8px auto;
   }
   .pokemon-screen.player .game-seats {
@@ -473,7 +482,7 @@
     transition: none;
   }
 }
-@media (orientation: landscape) and (max-height: 550px) and (min-width: 560px) {
+@container tablemax-game (orientation: landscape) and (max-height: 550px) and (min-width: 560px) {
   .pokemon-screen.player .game-table {
     display: grid;
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
@@ -512,7 +521,7 @@
     font-size: 14px;
   }
   .pokemon-screen.player .submit-choice {
-    position: fixed;
+    position: absolute;
     bottom: max(12px, env(safe-area-inset-bottom));
     left: max(20px, env(safe-area-inset-left));
     width: calc(50% - 40px);
@@ -552,7 +561,7 @@
     grid-row: 2 / span 3;
   }
 }
-@media (min-width: 1001px) and (max-width: 1300px) {
+@container tablemax-game (min-width: 1001px) and (max-width: 1300px) {
   :where(.pokemon-screen) .game-table[data-seats='5'] {
     padding: 12px 8px 10px;
   }

@@ -393,7 +393,7 @@
   width: 100%;
   height: 1px;
 }
-@media (min-width: 761px) and (max-width: 1100px) {
+@container tablemax-game (min-width: 761px) and (max-width: 1100px) {
   .expansion-screen .ex-supply {
     display: grid;
     grid-template-columns: 300px minmax(0, 1fr);
@@ -414,7 +414,7 @@
     border: 0;
   }
 }
-@media (min-width: 761px) {
+@container tablemax-game (min-width: 761px) {
   .expansion-screen .ex-toolbar button,
   .expansion-screen .ex-toolbar .secondary {
     padding: 6px 10px;
@@ -447,7 +447,7 @@
     border-radius: 9px;
   }
 }
-@media (min-width: 761px) and (max-height: 800px) {
+@container tablemax-game (min-width: 761px) and (max-height: 800px) {
   .expansion-screen .ex-toolbar button,
   .expansion-screen .ex-toolbar .secondary {
     padding: 6px 10px;
@@ -488,7 +488,7 @@
     padding: 2px 8px;
   }
 }
-@media (max-width: 760px) {
+@container tablemax-game (max-width: 760px) {
   .expansion-screen .ex-card {
     aspect-ratio: 0.82;
   }
@@ -673,15 +673,17 @@
     transform: scale(1.3);
   }
 }
-@media (min-width: 761px) {
+@container tablemax-game (min-width: 761px) {
   .expansion-screen:not(.player):not(.ex-friends):not(.ex-score-detail):not(
       .ex-research-detail
     ):not(.ex-research-reference) {
     display: flex;
     flex-direction: column;
-    height: 100dvh;
+    height: calc(var(--tablemax-canvas-height) * 1);
     min-height: 0;
   }
+}
+@container tablemax-game (min-width: 761px) {
   .expansion-screen:not(.player) > .ex-toolbar,
   .expansion-screen:not(.player) > .ex-round-banner,
   .expansion-screen:not(.player) > .ex-victory,
@@ -836,7 +838,7 @@
     grid-template-columns: minmax(0, 1fr);
   }
 }
-@media (min-width: 761px) and (max-height: 800px) {
+@container tablemax-game (min-width: 761px) and (max-height: 800px) {
   .expansion-screen:not(.player) .ex-player {
     padding: 4px;
     gap: 2px;
@@ -884,7 +886,7 @@
     padding: 2px 1px;
   }
 }
-@media (max-width: 760px) {
+@container tablemax-game (max-width: 760px) {
   .expansion-screen.player .ex-actions {
     padding: 10px 8px;
   }
@@ -946,10 +948,10 @@
 }
 
 /* Use actual layout width so desktop zoom also triggers the same reflow. */
-@media (min-width: 761px) {
+@container tablemax-game (min-width: 761px) {
   .expansion-screen[data-narrow-table='true']:not(.player) {
     height: auto;
-    min-height: 100dvh;
+    min-height: calc(var(--tablemax-canvas-height) * 1);
   }
   .expansion-screen[data-narrow-table='true']:is(
       [data-players='4'],

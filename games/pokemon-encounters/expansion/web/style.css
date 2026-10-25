@@ -3,7 +3,7 @@
   --ex-green: #207d68;
   --ex-gold: #eeb64e;
   color: var(--ex-ink);
-  min-height: 100vh;
+  min-height: calc(var(--tablemax-canvas-height) * 1);
   padding: 18px;
   background:
     radial-gradient(ellipse at 20% 10%, #fff9dc 0, transparent 55%),
@@ -73,7 +73,7 @@
   }
 }
 .ex-original-effects.pokemon-screen {
-  position: fixed;
+  position: absolute;
   inset: 0;
   min-height: 0;
   padding: 0;
@@ -272,7 +272,7 @@
 }
 .ex-cinematic,
 .ex-research-reveal {
-  position: fixed;
+  position: absolute;
   inset: 0;
   z-index: 65;
   pointer-events: none;
@@ -286,7 +286,7 @@
   animation: ex-hero var(--ex-duration, 1650ms) ease-in-out both;
 }
 .ex-cinematic strong {
-  font-size: clamp(34px, 5vw, 80px);
+  font-size: clamp(34px, calc(var(--tablemax-canvas-width) * 0.05), 80px);
   text-shadow: 0 4px #102130;
   transform: skew(-7deg);
 }
@@ -294,8 +294,8 @@
   font-size: 20px;
 }
 .ex-cinematic-creature {
-  width: clamp(200px, 32vw, 400px);
-  height: 55vh;
+  width: clamp(200px, calc(var(--tablemax-canvas-width) * 0.32), 400px);
+  height: calc(var(--tablemax-canvas-height) * 0.55);
   max-height: 450px;
   transform: rotate(-10deg);
   animation: ex-creature var(--ex-duration) cubic-bezier(0.2, 0.8, 0.2, 1) both;
@@ -322,8 +322,12 @@
 }
 .ex-cinematic-rings {
   position: absolute;
-  width: 65vmin;
-  height: 65vmin;
+  width: calc(
+    min(var(--tablemax-canvas-width), var(--tablemax-canvas-height)) * 0.65
+  );
+  height: calc(
+    min(var(--tablemax-canvas-width), var(--tablemax-canvas-height)) * 0.65
+  );
   border: 14px double #ffefa66b;
   border-radius: 50%;
   box-shadow: 0 0 80px #ffeeb9;
@@ -371,7 +375,7 @@
   letter-spacing: 5px;
 }
 .ex-research-reveal strong {
-  font-size: clamp(30px, 5vw, 65px);
+  font-size: clamp(30px, calc(var(--tablemax-canvas-width) * 0.05), 65px);
   margin: 20px 0;
   color: #fff5b9;
 }
@@ -442,7 +446,8 @@
 }
 @keyframes ex-creature {
   0% {
-    transform: translateX(-110vw) rotate(-14deg) scale(0.7);
+    transform: translateX(calc(var(--tablemax-canvas-width) * -1.1))
+      rotate(-14deg) scale(0.7);
   }
   30% {
     transform: translateX(0) rotate(-5deg) scale(1.1);
@@ -454,7 +459,7 @@
     transform: rotate(-2deg) scale(1.08);
   }
   100% {
-    transform: translateX(70vw) scale(0.8);
+    transform: translateX(calc(var(--tablemax-canvas-width) * 0.7)) scale(0.8);
   }
 }
 @keyframes ex-ring {
@@ -506,7 +511,7 @@
     filter: none;
   }
 }
-@media (max-width: 1100px) {
+@container tablemax-game (max-width: 1100px) {
   .ex-card-name {
     bottom: 5px;
     left: 22px;
@@ -516,7 +521,7 @@
     font-size: 20px;
   }
 }
-@media (max-height: 780px) and (min-width: 760px) {
+@container tablemax-game (max-height: 780px) and (min-width: 760px) {
   .ex-toolbar {
     margin-bottom: 10px;
   }
@@ -526,6 +531,14 @@
   }
 }
 @media (max-width: 760px) {
+  .ex-rule-tasks {
+    grid-template-columns: 1fr;
+  }
+  .ex-friends {
+    grid-template-columns: 1fr;
+  }
+}
+@container tablemax-game (max-width: 760px) {
   .expansion-screen {
     padding: 10px;
   }
@@ -548,17 +561,11 @@
     font-size: 18px;
     flex-basis: 65%;
   }
-  .ex-rule-tasks {
-    grid-template-columns: 1fr;
-  }
   .ex-cinematic-creature {
-    width: 70vw;
+    width: calc(var(--tablemax-canvas-width) * 0.7);
   }
   .ex-research-reveal p {
     font-size: 20px;
-  }
-  .ex-friends {
-    grid-template-columns: 1fr;
   }
   .expansion-screen.player .ex-card-name {
     font-size: 16px;
@@ -594,7 +601,7 @@
 }
 
 .ex-local-ability {
-  position: fixed;
+  position: absolute;
   left: 50%;
   top: 45%;
   z-index: 64;
@@ -659,7 +666,7 @@
 .expansion-screen strong {
   text-decoration: none;
 }
-@media (max-height: 780px) and (min-width: 760px) {
+@container tablemax-game (max-height: 780px) and (min-width: 760px) {
   .expansion-screen:not(.player) .ex-card-name {
     bottom: 3px;
   }
@@ -670,7 +677,7 @@
   }
 }
 .ex-cinematic > span {
-  max-width: min(720px, 90vw);
+  max-width: min(720px, calc(var(--tablemax-canvas-width) * 0.9));
   text-align: center;
   line-height: 1.5;
 }
@@ -713,15 +720,19 @@
   filter: drop-shadow(0 8px 12px #12253b45) drop-shadow(0 0 18px #fff1b580);
 }
 .ex-cinematic-creature {
-  width: min(68vh, 62vw, 610px);
-  max-height: 62vh;
-  height: 62vh;
+  width: min(
+    calc(var(--tablemax-canvas-height) * 0.68),
+    calc(var(--tablemax-canvas-width) * 0.62),
+    610px
+  );
+  max-height: calc(var(--tablemax-canvas-height) * 0.62);
+  height: calc(var(--tablemax-canvas-height) * 0.62);
 }
 .ex-local-ability {
   background: radial-gradient(ellipse, #fff7dfe8, #fff7df00 72%);
   border: none;
   padding: 0;
-  width: min(320px, 68vw);
+  width: min(320px, calc(var(--tablemax-canvas-width) * 0.68));
   flex-direction: column;
   gap: 0;
   animation-duration: var(--ex-duration, 650ms);
@@ -729,7 +740,7 @@
 }
 .ex-local-ability .ex-cinematic-creature {
   width: 100%;
-  height: min(32vh, 240px);
+  height: min(calc(var(--tablemax-canvas-height) * 0.32), 240px);
   animation: none;
   transform: none;
 }
@@ -755,9 +766,9 @@
   background: #fff5d7;
 }
 .ex-ordinary-burst {
-  position: fixed;
-  width: clamp(130px, 20vw, 190px);
-  height: clamp(130px, 20vw, 190px);
+  position: absolute;
+  width: clamp(130px, calc(var(--tablemax-canvas-width) * 0.2), 190px);
+  height: clamp(130px, calc(var(--tablemax-canvas-width) * 0.2), 190px);
   z-index: 64;
   pointer-events: none;
   visibility: hidden;
@@ -854,13 +865,13 @@
     transform: scale(1.16);
   }
 }
-@media (max-width: 760px) {
+@container tablemax-game (max-width: 760px) {
   .ex-cinematic-creature {
-    width: 88vw;
-    height: min(52vh, 430px);
+    width: calc(var(--tablemax-canvas-width) * 0.88);
+    height: min(calc(var(--tablemax-canvas-height) * 0.52), 430px);
   }
   .ex-cinematic > span {
-    max-width: 92vw;
+    max-width: calc(var(--tablemax-canvas-width) * 0.92);
     text-align: center;
   }
 }
@@ -885,7 +896,7 @@
   }
 }
 /* A desktop table gives both player rows a share of the available height. */
-@media (min-width: 760px) {
+@container tablemax-game (min-width: 760px) {
   .expansion-screen:not(.player) .ex-toolbar,
   .expansion-screen:not(.player) .ex-round-banner,
   .expansion-screen:not(.player) .ex-paused {
@@ -896,7 +907,7 @@
     line-height: 1.2;
   }
 }
-@media (min-width: 760px) and (max-height: 600px) {
+@container tablemax-game (min-width: 760px) and (max-height: 600px) {
   .expansion-screen:not(.player) .ex-toolbar {
     flex-wrap: nowrap;
     gap: 4px;

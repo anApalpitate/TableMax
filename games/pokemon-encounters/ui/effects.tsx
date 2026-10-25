@@ -13,6 +13,7 @@ import {
 import { drawMotifs, effectScene, additionalEntrances } from './effect-scene';
 import { SavedMotion } from './motion';
 import type { PublicAction, RoomFeedback } from '@tablemax/web-host';
+import { useGameLayout } from '@tablemax/web-host';
 import { actionEffects } from './presentation-state';
 import './effects.css';
 import { AbilityEntrance } from './AbilityEntrance';
@@ -59,18 +60,32 @@ function SavedActionTrails({
   discardSources?: readonly DiscardSource[] | undefined;
   trailAnchors?: (() => TrailAnchors) | undefined;
 }) {
+  const layout = useGameLayout();
   const surface = useRef<SVGSVGElement>(null);
+  const primitives = useRef(new Map<string, SVGElement>());
+  const painted = useRef(false);
+  const staticOnly = useRef(false);
   const clipPrefix = useId().replace(/:/g, '');
   const theme = actionEffects(action, game).theme;
   useLayoutEffect(() => {
     const svg = surface.current;
     const table = svg?.closest('.game-table');
     if (!svg || !table) return;
-    svg.replaceChildren();
     if (
       table.closest<HTMLElement>('.pokemon-screen')?.dataset.playMode === 'test'
     )
       return;
+    if (layout) {
+      const origin = layout.logicalToClient({ x: 0, y: 0 });
+      Object.assign(svg.style, {
+        left: `${origin.x}px`,
+        top: `${origin.y}px`,
+        width: `${layout.logicalSize.width}px`,
+        height: `${layout.logicalSize.height}px`,
+        right: 'auto',
+        bottom: 'auto',
+      });
+    }
     const bounds = svg.getBoundingClientRect();
     if (!bounds.width || !bounds.height) return;
     svg.setAttribute('viewBox', `0 0 ${bounds.width} ${bounds.height}`);
@@ -99,24 +114,52 @@ function SavedActionTrails({
     const point = (element: Element | null | undefined): Point | null => {
       const rect = visibleRect(element);
       return rect
-        ? {
+        ? (layout?.clientToLogical({
+            x: rect.left + rect.width / 2,
+            y: rect.top + rect.height / 2,
+          }) ?? {
             x: rect.left + rect.width / 2 - bounds.left,
             y: rect.top + rect.height / 2 - bounds.top,
-          }
+          })
         : null;
     };
+    // The parent is keyed by the saved revision. A geometry refresh must not
+    // recreate CSS animation nodes or start effects for newly visible targets.
+    const initialPaint = !painted.current;
+    painted.current = true;
+    const measured = new Set<string>();
+    const finish = () => {
+      for (const [key, item] of primitives.current)
+        if (!measured.has(key)) item.style.visibility = 'hidden';
+    };
     const node = (
+      key: string,
       tag: string,
       attributes: Record<string, string | number>,
       parent: Element = svg,
     ) => {
-      const item = document.createElementNS(svgNamespace, tag);
+      let item = primitives.current.get(key);
+      if (!item) {
+        item = document.createElementNS(svgNamespace, tag);
+        if (initialPaint || key === 'discard-landing') {
+          primitives.current.set(key, item);
+          parent.append(item);
+        }
+      }
+      measured.add(key);
       for (const [name, value] of Object.entries(attributes))
-        item.setAttribute(name, String(value));
-      parent.append(item);
+        if (item.getAttribute(name) !== String(value))
+          item.setAttribute(name, String(value));
+      item.style.visibility = '';
       return item;
     };
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches)
+      staticOnly.current = true;
+    if (staticOnly.current) {
+      // Observe the existing layout-effect trigger; do not add a media listener.
+      // Once this event is reduced, returning to normal must not replay it.
+      for (const [key, item] of primitives.current)
+        if (key !== 'discard-landing') item.style.animation = 'none';
       const target = visibleRect(
         table.querySelector(
           '.card-piles > div:nth-child(2) .pokemon-card, .card-piles > div:nth-child(2) .empty-pile',
@@ -135,15 +178,17 @@ function SavedActionTrails({
         bounds,
       );
       if (landing)
-        node('rect', {
+        node('discard-landing', 'rect', {
           class: 'discarded-landing',
           'data-target': '@discard',
           ...landing,
           rx: 10,
         });
+      finish();
       return;
     }
     const trail = (
+      key: string,
       from: Point | null,
       to: Point | null,
       reverse = false,
@@ -154,7 +199,7 @@ function SavedActionTrails({
       if (distance < 8) return;
       const bend = Math.min(72, distance * 0.16) * (reverse ? -1 : 1);
       const control = { x: (from.x + to.x) / 2, y: (from.y + to.y) / 2 - bend };
-      node('path', {
+      node(`${key}:path`, 'path', {
         class: `saved-trail ${theme === 'zapdos' ? 'electric-trail' : ''}${discarded ? ' discarded-trail' : ''}`,
         d: `M ${from.x} ${from.y} Q ${control.x} ${control.y} ${to.x} ${to.y}`,
         pathLength: 1,
@@ -166,19 +211,23 @@ function SavedActionTrails({
           (1 - t) ** 2 * from.x + 2 * (1 - t) * t * control.x + t ** 2 * to.x;
         const y =
           (1 - t) ** 2 * from.y + 2 * (1 - t) * t * control.y + t ** 2 * to.y;
-        node('path', {
+        node(`${key}:glint:${i}`, 'path', {
           class: 'trail-glint',
           d: `M ${x - 4} ${y} H ${x + 4} M ${x} ${y - 4} V ${y + 4}`,
           style: `animation-delay:${i * 60 + 50}ms`,
         });
       }
     };
-    const burst = (element: Element | null | undefined, compact = false) => {
+    const burst = (
+      key: string,
+      element: Element | null | undefined,
+      compact = false,
+    ) => {
       const rect = visibleRect(element);
       if (!rect) return;
       const x = rect.left - bounds.left,
         y = rect.top - bounds.top;
-      node('rect', {
+      node(`${key}:impact`, 'rect', {
         class: 'target-impact',
         x: x - 3,
         y: y - 3,
@@ -194,7 +243,7 @@ function SavedActionTrails({
           y + rect.height / 2 + Math.sin(angle) * (rect.height / 2 + 6);
         const dx = Math.cos(angle) * (compact ? 12 : 20);
         const dy = Math.sin(angle) * (compact ? 12 : 20);
-        node('circle', {
+        node(`${key}:mote:${i}`, 'circle', {
           class: 'target-mote',
           cx: px,
           cy: py,
@@ -204,48 +253,58 @@ function SavedActionTrails({
       }
     };
     if (result) {
-      const defs = node('defs', {});
+      const defs = node('defs', 'defs', {});
       const gradient = node(
+        'shine',
         'linearGradient',
         { id: `${clipPrefix}-shine` },
         defs,
       );
       node(
+        'shine-start',
         'stop',
         { offset: '0', 'stop-color': '#fff7c5', 'stop-opacity': 0 },
         gradient,
       );
       node(
+        'shine-center',
         'stop',
         { offset: '.5', 'stop-color': '#fff7c5', 'stop-opacity': 0.65 },
         gradient,
       );
       node(
+        'shine-end',
         'stop',
         { offset: '1', 'stop-color': '#fff7c5', 'stop-opacity': 0 },
         gradient,
       );
-      for (const [index, board] of [
-        ...table.querySelectorAll('.game-seat.winner .pokemon-board'),
-      ].entries()) {
+      for (const board of table.querySelectorAll(
+        '.game-seat.winner .pokemon-board',
+      )) {
+        const seat = board.closest<HTMLElement>('[data-seat]')?.dataset.seat;
+        if (!seat) continue;
+        const key = `winner:${seat}`;
         const rect = visibleRect(board);
         if (!rect) continue;
         const x = rect.left - bounds.left,
           y = rect.top - bounds.top;
         const clip = node(
+          `${key}:clip`,
           'clipPath',
-          { id: `${clipPrefix}-winner-${index}` },
+          { id: `${clipPrefix}-winner-${seat}` },
           defs,
         );
         node(
+          `${key}:clip-rect`,
           'rect',
           { x, y, width: rect.width, height: rect.height, rx: 12 },
           clip,
         );
-        const clipped = node('g', {
-          'clip-path': `url(#${clipPrefix}-winner-${index})`,
+        const clipped = node(`${key}:clipped`, 'g', {
+          'clip-path': `url(#${clipPrefix}-winner-${seat})`,
         });
         node(
+          `${key}:sweep`,
           'rect',
           {
             class: 'winner-board-sweep',
@@ -258,7 +317,7 @@ function SavedActionTrails({
           },
           clipped,
         );
-        node('rect', {
+        node(`${key}:halo`, 'rect', {
           class: 'winner-board-halo',
           x: x - 4,
           y: y - 4,
@@ -271,13 +330,16 @@ function SavedActionTrails({
           [x, y],
           [x + rect.width, y + rect.height],
         ])
-          node('path', {
+          node(`${key}:corner:${sx === x ? 'start' : 'end'}`, 'path', {
             class: 'winner-corner-glint',
             d: `M ${sx! - 8} ${sy} H ${sx! + 8} M ${sx} ${sy! - 8} V ${sy! + 8}`,
           });
       }
     }
-    if (!action) return;
+    if (!action) {
+      finish();
+      return;
+    }
     const held =
       table.querySelector('.held-pile .pokemon-card') ??
       table.querySelector('.held-zone');
@@ -309,27 +371,33 @@ function SavedActionTrails({
     );
     const targets = action.targets
       .flatMap(({ seat, slots: positions }) =>
-        positions.map((slot) => slots.get(`${seat}:${slot}`)),
+        positions.map((slot) => ({
+          key: `${seat}:${slot}`,
+          element: slots.get(`${seat}:${slot}`),
+        })),
       )
-      .filter((target): target is Element => Boolean(target))
+      .filter((target): target is { key: string; element: Element } =>
+        Boolean(target.element),
+      )
       .slice(0, 6);
     switch (action.verb) {
       case 'draw':
-        if (action.source) trail(point(pile(action.source)), point(held));
-        burst(held, true);
+        if (action.source)
+          trail('draw', point(pile(action.source)), point(held));
+        burst('held', held, true);
         if (action.cardCategory && drawMotifs[action.cardCategory]) {
           const center = point(held);
           if (center)
             for (let i = 0; i < 7; i++) {
               const angle = (i / 7) * Math.PI * 2;
-              const mark = node('text', {
+              const mark = node(`draw-motif:${i}`, 'text', {
                 class: `draw-motif motif-${drawMotifs[action.cardCategory]}`,
                 x: center.x,
                 y: center.y,
                 'text-anchor': 'middle',
                 style: `--mote-x:${Math.cos(angle) * 44}px;--mote-y:${Math.sin(angle) * 44}px;animation-delay:${i * 18}ms`,
               });
-              mark.textContent =
+              const text =
                 (
                   {
                     electric: 'ϟ',
@@ -340,28 +408,39 @@ function SavedActionTrails({
                     mist: '✦',
                   } as Record<string, string>
                 )[drawMotifs[action.cardCategory]!] ?? '';
+              if (mark.textContent !== text) mark.textContent = text;
             }
         }
         break;
       case 'mew-target':
-        trail(point(targets[0]), heldPoint);
+        trail('mew-target', point(targets[0]?.element), heldPoint);
         break;
       case 'replace':
       case 'zapdos-pass':
-        trail(heldPoint, point(targets[0]));
+        trail('replace', heldPoint, point(targets[0]?.element));
         break;
       case 'discard':
         if (discardSources === undefined)
-          trail(heldPoint, discardPoint, false, true);
-        burst(pile('discard'), true);
+          trail('discard-held', heldPoint, discardPoint, false, true);
+        burst('discard', pile('discard'), true);
         break;
       case 'swap':
-        trail(point(targets[0]), point(targets[1]));
-        trail(point(targets[1]), point(targets[0]), true);
+        trail(
+          'swap-out',
+          point(targets[0]?.element),
+          point(targets[1]?.element),
+        );
+        trail(
+          'swap-back',
+          point(targets[1]?.element),
+          point(targets[0]?.element),
+          true,
+        );
         break;
     }
     for (const source of discardSources ?? [])
       trail(
+        `discard-source:${source === '@held' ? '@held' : `${source.seat}:${source.slot}`}`,
         source === '@held'
           ? heldPoint
           : point(slots.get(`${source.seat}:${source.slot}`)),
@@ -372,8 +451,22 @@ function SavedActionTrails({
     // Shared-slot Rocket refill uses only these bounded local impacts, never six long cross-table paths.
     if (theme || ['replace', 'zapdos-pass'].includes(action.verb))
       for (const target of targets)
-        burst(target, action.verb === 'rocket-refill');
-  }, [action, clipPrefix, discardSources, game, result, theme, trailAnchors]);
+        burst(
+          `target:${target.key}`,
+          target.element,
+          action.verb === 'rocket-refill',
+        );
+    finish();
+  }, [
+    action,
+    clipPrefix,
+    discardSources,
+    game,
+    result,
+    theme,
+    trailAnchors,
+    layout,
+  ]);
   return (
     <svg
       ref={surface}
