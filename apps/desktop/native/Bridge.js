@@ -15,6 +15,8 @@
     update: new Set(),
   };
   let sequence = 0;
+  let layoutGeneration = 0;
+  let layoutDocument;
   function request(method, params) {
     const id = ++sequence;
     return new Promise((resolve, reject) => {
@@ -52,9 +54,34 @@
     value: Object.freeze({
       read: (...args) => request('display.read', args),
       update: (...args) => request('display.update', args),
+      setLayoutProfile: async (...args) => {
+        const [profile, generation] = args;
+        if (
+          args.length !== 2 ||
+          !['legacy', 'fixed-host-1280-v1'].includes(profile) ||
+          !Number.isInteger(generation) ||
+          generation < 1 ||
+          generation > 2147483647 ||
+          generation <= layoutGeneration
+        )
+          throw new TypeError('显示布局参数无效或请求已过期。');
+        layoutGeneration = generation;
+        // This promise belongs to this document. Never fetch a new token to
+        // revive a delayed request after a native navigation reset.
+        layoutDocument ??= request('display.read', []).then(
+          (snapshot) => snapshot.layoutDocumentId,
+        );
+        const documentId = await layoutDocument;
+        if (generation !== layoutGeneration)
+          throw new Error('显示布局请求已过期。');
+        return request('display.setLayoutProfile', [
+          { profile, generation, documentId },
+        ]);
+      },
       subscribe: (listener) => subscribe('display', listener),
     }),
   });
+  // eslint-disable-next-line no-undef -- Replaced by the native window before injection.
   if (__UPDATE_ALLOWED__)
     Object.defineProperty(window, 'tablemaxUpdate', {
       value: Object.freeze({

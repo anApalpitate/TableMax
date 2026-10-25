@@ -28,6 +28,7 @@ export function PlayerFrame({ initialUrl }: { initialUrl: string }) {
     }
   });
   const [contract, setContract] = useState(false);
+  const [fixedCanvas, setFixedCanvas] = useState(false);
   const [space, setSpace] = useState(() =>
     workspaceSpace(window.innerWidth, window.innerHeight),
   );
@@ -39,11 +40,13 @@ export function PlayerFrame({ initialUrl }: { initialUrl: string }) {
         return 'portrait';
       }
     });
-  const mode = contract
-    ? workspaceLayout(space.width, space.height, workspacePreference)
-    : desktop && large
-      ? preferred
-      : 'mobile';
+  const mode = fixedCanvas
+    ? 'mobile'
+    : contract
+      ? workspaceLayout(space.width, space.height, workspacePreference)
+      : desktop && large
+        ? preferred
+        : 'mobile';
   const canSwitchWorkspace =
     workspaceLayout(space.width, space.height, 'wide') === 'wide';
   const displayPreference = contract ? workspacePreference : preferred;
@@ -57,13 +60,21 @@ export function PlayerFrame({ initialUrl }: { initialUrl: string }) {
         !playerFramePath(new URL(child.location.href), window.location.origin)
       )
         return;
-      child.document.documentElement.dataset.playerDisplay = mode;
-      if (contract) child.document.documentElement.dataset.playerLayout = mode;
-      else delete child.document.documentElement.dataset.playerLayout;
+      if (fixedCanvas) {
+        // The inner fixed canvas owns presentation. Its document still fills
+        // the real viewport so modal/popover and browser zoom remain usable.
+        delete child.document.documentElement.dataset.playerDisplay;
+        delete child.document.documentElement.dataset.playerLayout;
+      } else {
+        child.document.documentElement.dataset.playerDisplay = mode;
+        if (contract)
+          child.document.documentElement.dataset.playerLayout = mode;
+        else delete child.document.documentElement.dataset.playerLayout;
+      }
     } catch {
       /* An unrelated document does not receive player presentation. */
     }
-  }, [mode, contract]);
+  }, [mode, contract, fixedCanvas]);
   useEffect(() => {
     let previousWidth = window.innerWidth;
     const changed = () => {
@@ -113,7 +124,7 @@ export function PlayerFrame({ initialUrl }: { initialUrl: string }) {
       }
     };
     child.addEventListener('popstate', synchronize);
-    const detect = () =>
+    const detect = () => {
       setContract(
         Boolean(
           child.document.querySelector(
@@ -121,6 +132,14 @@ export function PlayerFrame({ initialUrl }: { initialUrl: string }) {
           ),
         ),
       );
+      setFixedCanvas(
+        Boolean(
+          child.document.querySelector(
+            '[data-player-layout-contract="fixed-v1"]',
+          ),
+        ),
+      );
+    };
     const observer = new MutationObserver(detect);
     observer.observe(child.document.documentElement, {
       subtree: true,
@@ -156,6 +175,7 @@ export function PlayerFrame({ initialUrl }: { initialUrl: string }) {
       className="player-frame"
       data-player-display={mode}
       data-workspace-layout={contract ? mode : undefined}
+      data-fixed-canvas-frame={fixedCanvas || undefined}
     >
       <div className="player-frame__scene" aria-hidden="true">
         <span className="player-frame__cards player-frame__cards--left" />
@@ -163,7 +183,7 @@ export function PlayerFrame({ initialUrl }: { initialUrl: string }) {
         <span className="player-frame__chip player-frame__chip--left" />
         <span className="player-frame__chip player-frame__chip--right" />
       </div>
-      {(contract ? canSwitchWorkspace : desktop && large) && (
+      {!fixedCanvas && (contract ? canSwitchWorkspace : desktop && large) && (
         <button
           type="button"
           className="player-frame__display"

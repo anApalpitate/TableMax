@@ -18,6 +18,14 @@
 
 相同入口的`--review-only --task=tmp/<安全任务名> --evidence=<新轮名>`精确归`tooling`，读取任务`review/review-source.json`绑定HTML与相对图片SHA，再检查离线解码、筛选、原始像素和窄屏页面。一次性HTML生成脚本留任务`work`，不登记为永久工具入口；审阅QA不另增产品场景统计。服务路由／权限、原生桥接、配置、声音和安装器均须各自证据。
 
+固定画布为同一入口的可选模式：`--layout-contract=fixed-v1 --layer=adapter|content|integration [--only=<稳定场景ID,...>]`，与旧`phase`、`task`、`evidence`、`review-only`参数互斥；默认旧模式及其主体不变断言保留。固定模式从`TABLEMAX_TASK_TMP`读取任务临时根，从父运行器的`TABLEMAX_TEST_OUTPUT_DIR`写`report.json`和带SHA的PNG；version 2计划使用`resultFile: "report.json"`，临时路径不加入命令参数指纹。先按[纯选择清单](platform/fixed-canvas-contract.mjs)校验场景，再只构建选中夹具／玩法。adapter登记为`shared`，内容／接入目前仅登记现代艺术三构图，为`shared,game:modern-art`；其它玩法不因同一工具入口取得迁移结论。
+
+稳定ID示例为`adapter-host-minimum`、`adapter-player-portrait-height-minus-one`、`content-modern-art-player-landscape`、`integration-modern-art-host`。adapter检查逻辑尺寸、空间不足／留白、CSS不缩放、显式布局选择、连续resize保留挂载／草稿及坐标命中／拖动终点；`max-scale`只检查扩大CSS视口后画布仍保持原尺寸，不证明原生最大倍率。两种玩家构图另有`safe-insets`（实际容器已知padding与扣减一次）、`focused-height-change`（真实聚焦、缩短视口、保留构图／草稿、滚动到输入／确认入口、blur后回退）及`unfocused-dynamic-height`（连续高度变化保留挂载）；这些均标为可控CSS视口／安全区模拟。`adapter-player-portrait-overlay-focus`实际调用生产`OverlayPanel`原生dialog／portal和`SettingHelp`原生popover，核验Escape与焦点恢复，保留打开时截图。
+
+游戏模式要求生产client真实声明`fixed-v1`，核验实际组件、图片与文字；integration同一挂载连续resize，记录连接／身份／revision和有实际输入框时的草稿保持。报告分别计声明、选中、执行、通过、失败、未执行及复用；父运行器仍以一次独立命令计数。当前模式不声称证明实体安全区、真实键盘／地址栏、物理DPI、实体设备、服务保存或安装器；必要项目继续使用各自证据。新工具能力也不等于已执行通过，实际结果以本轮报告为准。
+
+真实原生接线复用[verify-host-only-native.mjs](desktop/verify-host-only-native.mjs)的`--layout-profile=fixed-v1`模式，精确归`shared`；默认旧模式范围不变。父计划设置`TABLEMAX_TASK_TMP=tmp/<任务唯一ID>/native`，采用`resultFile: "report.json"`，父输出目录内写数字`failures`及`failureDetails`；内部源码构建、profile及缓存均在任务临时根下唯一目录，不将逐轮目录名放入语义参数。可用`--checks=<稳定检查ID,...>`定向复验，合法ID由既有scope选择器维护。该模式隔离编译真实生产WinForms/WebView2开发壳，在可信回环`/host`源界面核验profile、原生倍率、导航与权限，不读取／修改冻结current，不生成installer；临时壳的内部`packaged`标记由真实路径策略决定，不能作为是否已发布或源码来源的证明。
+
 ### 当前原生入口与历史矩阵
 
 [verify-host-only-native.mjs](desktop/verify-host-only-native.mjs)的参数为`--task=tmp/<安全任务名> --evidence=<新轮名> [--executable=<实际开发EXE>] [--foreground] [--checks=<真实检查id逗号列表>]`，通过`box,shared,game:uno`显式计划执行；默认13项，定向参数只选择已有检查，不重复累计原通过项。`verify-desktop.mjs`与`verify-display.mjs`默认在旧临时目录／解包副作用前转入此入口；这是实际管理窗口与合法UNO状态专项，不是旧多窗／全DPI矩阵。foreground与隐藏运行分别认定，不以后台截图冒充前台。

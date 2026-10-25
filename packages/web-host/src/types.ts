@@ -50,6 +50,8 @@ export interface GameSetupSettingsProps {
   onChange(value: JsonValue): void;
 }
 export interface GameClient {
+  /** Optional presentation capability; webHost 1 and legacy clients stay valid. */
+  layout?: { contract: 'fixed-v1' };
   SetupSettings?: ComponentType<GameSetupSettingsProps>;
   Screen: ComponentType<{ session: GameHost }>;
   savedChanges(before: unknown, after: unknown): string[];

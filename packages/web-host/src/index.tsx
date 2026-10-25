@@ -9,6 +9,20 @@ import {
 } from 'react';
 import type { GameHost, GameClient, GameHostSlots } from './types';
 import { presentationServices } from './presentation-services';
+import { FixedCanvasFrame } from './layout/FixedCanvas';
+export {
+  FixedCanvasFrame,
+  PlayerLayoutControl,
+  useGameLayout,
+  type GameLayout,
+} from './layout/FixedCanvas';
+export {
+  canvasSizes,
+  type CanvasLayout,
+  type CanvasPreference,
+  type CanvasRect,
+  type CanvasPoint,
+} from './layout/fixed-layout';
 export type {
   GameHost,
   GameClient,
@@ -148,7 +162,13 @@ export function HostedGame({
   const Screen = client.Screen;
   return (
     <Context.Provider value={presentation}>
-      <Screen session={host} />
+      {client.layout?.contract === 'fixed-v1' ? (
+        <FixedCanvasFrame role={session.role}>
+          <Screen session={host} />
+        </FixedCanvasFrame>
+      ) : (
+        <Screen session={host} />
+      )}
     </Context.Provider>
   );
 }

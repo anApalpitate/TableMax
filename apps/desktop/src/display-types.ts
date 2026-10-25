@@ -6,6 +6,8 @@ export interface DisplayPreferences {
   interfaceScale: 100 | 125 | 150;
 }
 
+export type DisplayLayoutProfile = 'legacy' | 'fixed-host-1280-v1';
+
 export interface DisplaySnapshot {
   preferences: DisplayPreferences;
   /** Unzoomed window content size in device-independent pixels. */
@@ -14,11 +16,20 @@ export interface DisplaySnapshot {
   screen: { width: number; height: number; scaleFactor: number };
   zoomFactor: number;
   limited: boolean;
+  /** Missing on legacy shells; presentation profiles are never persisted. */
+  layoutProfile?: DisplayLayoutProfile;
+  undersized?: boolean;
+  /** Used internally by the native bridge to reject an old document. */
+  layoutDocumentId?: string;
 }
 
 export interface TablemaxDisplay {
   read(): Promise<DisplaySnapshot>;
   update(preferences: DisplayPreferences): Promise<DisplaySnapshot>;
+  setLayoutProfile?(
+    profile: DisplayLayoutProfile,
+    generation: number,
+  ): Promise<DisplaySnapshot>;
   subscribe(listener: (snapshot: DisplaySnapshot) => void): () => void;
 }
 

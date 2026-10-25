@@ -14,7 +14,10 @@ import {
   selectUnitTests,
   unitTestScopes,
   validateBatchScope,
+  verificationTestScopes,
+  selectFixedNativeProfile,
 } from './scopes.mjs';
+import { selectFixedCanvasCases } from '../platform/fixed-canvas-contract.mjs';
 
 const root = process.cwd();
 const item = (script, args = []) => ({
@@ -24,6 +27,97 @@ const item = (script, args = []) => ({
   args,
 });
 const plan = (...tests) => ({ version: 1, tests });
+
+test('fixed canvas selection binds only its actual layer and migrated variants', () => {
+  assert.deepEqual(
+    unitTestScopes('packages/web-host/src/layout/fixed-layout.test.ts'),
+    ['shared'],
+  );
+  const script = 'tools/test/platform/verify-public-screen-retirement-ui.mjs';
+  const adapter = item(script, [
+    '--layout-contract=fixed-v1',
+    '--layer=adapter',
+    '--only=adapter-host-minimum',
+  ]);
+  assert.deepEqual(verificationTestScopes(adapter), ['shared']);
+  assert.doesNotThrow(() => validateBatchScope(plan(adapter), 'shared'));
+  assert.equal(
+    selectFixedCanvasCases([
+      '--layout-contract=fixed-v1',
+      '--layer=adapter',
+      '--only=adapter-player-portrait-safe-insets,adapter-player-landscape-focused-height-change,adapter-player-portrait-overlay-focus',
+    ]).cases.length,
+    3,
+  );
+  const content = item(script, [
+    '--layout-contract=fixed-v1',
+    '--layer=content',
+    '--only=content-modern-art-player-portrait',
+  ]);
+  assert.deepEqual(verificationTestScopes(content), [
+    'shared',
+    'game:modern-art',
+  ]);
+  assert.throws(() => validateBatchScope(plan(content), 'shared'), /outside/);
+  assert.doesNotThrow(() =>
+    validateBatchScope(plan(content), 'shared,game:modern-art'),
+  );
+  const selected = selectFixedCanvasCases(content.args);
+  assert.deepEqual(selected.variants, ['modern-art']);
+  assert.equal(selected.cases.length, 1);
+  assert.equal(selected.expectedCaseIds.length, 3);
+});
+
+test('fixed canvas rejects unknown IDs, unmigrated games and legacy arguments', () => {
+  const base = ['--layout-contract=fixed-v1', '--layer=content'];
+  for (const extra of [
+    ['--only=content-uno-host'],
+    ['--only=adapter-host-minimum'],
+    ['--only=content-modern-art-host,content-modern-art-host'],
+    ['--layer=content'],
+    ['--phase=after'],
+    ['--review-only'],
+  ])
+    assert.throws(() => selectFixedCanvasCases([...base, ...extra]));
+  assert.throws(() =>
+    selectFixedCanvasCases(['--layout-contract=fixed-v2', '--layer=content']),
+  );
+  assert.throws(() => selectFixedCanvasCases(['--layout-contract=fixed-v1']));
+});
+
+test('fixed native profile is shared while its default UNO host suite retains its scope', () => {
+  const script = 'tools/test/desktop/verify-host-only-native.mjs';
+  const fixed = item(script, ['--layout-profile=fixed-v1']);
+  assert.deepEqual(verificationTestScopes(fixed), ['shared']);
+  assert.doesNotThrow(() => validateBatchScope(plan(fixed), 'shared'));
+  assert.throws(
+    () => validateBatchScope(plan(item(script)), 'shared'),
+    /outside/,
+  );
+  assert.doesNotThrow(() =>
+    validateBatchScope(plan(item(script)), 'box,shared,game:uno'),
+  );
+  assert.deepEqual(
+    selectFixedNativeProfile([
+      '--layout-profile=fixed-v1',
+      '--checks=native-fixed-document-generation',
+    ]).checks,
+    ['native-fixed-document-generation'],
+  );
+  for (const args of [
+    ['--layout-profile=unknown'],
+    ['--layout-profile=fixed-v1', '--layout-profile=fixed-v1'],
+    ['--layout-profile=fixed-v1', '--executable=TableMax.exe'],
+    ['--layout-profile=fixed-v1', '--foreground'],
+    ['--layout-profile=fixed-v1', '--checks=unknown'],
+    [
+      '--layout-profile=fixed-v1',
+      '--checks=native-fixed-ui-size-and-canvas,native-fixed-ui-size-and-canvas',
+    ],
+    ['--layout-profile=fixed-v1', '--task=tmp/a', '--task=tmp/b'],
+  ])
+    assert.throws(() => verificationTestScopes(item(script, args)));
+});
 
 test('Pokemon layout mode is isolated without registering the legacy full polish matrix', () => {
   const script =

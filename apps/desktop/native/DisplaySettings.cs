@@ -24,10 +24,37 @@ namespace TableMax.Desktop
     {
         public static bool ContainsValue<T>(this T[] values, T value) => Array.IndexOf(values, value) >= 0;
     }
+    /** Per-document presentation only; never written with display preferences. */
+    internal sealed class DisplayLayoutState
+    {
+        public const string Legacy = "legacy";
+        public const string FixedHost = "fixed-host-1280-v1";
+        public string Profile { get; private set; } = Legacy;
+        public string DocumentId { get; private set; } = Guid.NewGuid().ToString("N");
+        public int Generation { get; private set; }
+        public void Reset()
+        {
+            Profile = Legacy;
+            DocumentId = Guid.NewGuid().ToString("N");
+            Generation = 0;
+        }
+        public void Select(object input)
+        {
+            var values = Json.Object(input);
+            var profile = Json.String(values, "profile");
+            var documentId = Json.String(values, "documentId");
+            var rawGeneration = Json.Value(values, "generation");
+            if (values.Count != 3 || !new[] { Legacy, FixedHost }.ContainsValue(profile) || !(rawGeneration is int generation) || generation < 1 || documentId != DocumentId)
+                throw new ArgumentException("显示布局参数无效或文档已过期。");
+            if (generation <= Generation) throw new InvalidOperationException("显示布局请求已过期。");
+            Profile = profile;
+            Generation = generation;
+        }
+    }
     internal sealed class DisplayGeometry
     {
         public double Width, Height, ScreenWidth, ScreenHeight, ScaleFactor;
-        public object Snapshot(DisplayPreferences preferences)
+        public object Snapshot(DisplayPreferences preferences, DisplayLayoutState layout = null)
         {
             var targetWidth = Width;
             var targetHeight = Height;
@@ -38,7 +65,12 @@ namespace TableMax.Desktop
                 targetHeight = double.Parse(parts[1]) / ScaleFactor;
             }
             var requested = Math.Max(1, Math.Min(targetWidth / 1920, targetHeight / 1080)) * preferences.InterfaceScale / 100;
-            var limit = Math.Max(1, Math.Min(Width / 1100, Height / 720));
+            // Native chrome is already excluded from Width/Height. The fixed
+            // profile puts all required controls inside its 1280x720 canvas;
+            // its CSS scale is one and mandatory outer insets are zero.
+            var layoutProfile = layout?.Profile ?? DisplayLayoutState.Legacy;
+            var minimumWidth = layoutProfile == DisplayLayoutState.FixedHost ? 1280 : 1100;
+            var limit = Math.Max(1, Math.Min(Width / minimumWidth, Height / 720));
             var factor = Math.Min(Math.Min(requested, limit), 3);
             return new
             {
@@ -46,7 +78,10 @@ namespace TableMax.Desktop
                 viewport = new { width = Width, height = Height },
                 screen = new { width = ScreenWidth, height = ScreenHeight, scaleFactor = ScaleFactor },
                 zoomFactor = factor,
-                limited = factor + 1e-9 < requested
+                limited = factor + 1e-9 < requested,
+                layoutProfile,
+                layoutDocumentId = layout?.DocumentId,
+                undersized = Width / factor + 1e-9 < minimumWidth || Height / factor + 1e-9 < 720
             };
         }
     }

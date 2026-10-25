@@ -12,6 +12,12 @@ import { launchTestBrowser } from '../support/browser-test.mjs';
 import { serveFixture } from '../support/fixture-server.mjs';
 
 process.env.TABLEMAX_AUTO_MAINTENANCE = '0';
+if (process.argv.some((arg) => arg.startsWith('--layout-contract'))) {
+  const { runFixedCanvasContract } =
+    await import('./verify-fixed-canvas-contract.mjs');
+  await runFixedCanvasContract(process.argv.slice(2));
+  process.exit(process.exitCode ?? 0);
+}
 const option = (name) =>
   process.argv
     .find((arg) => arg.startsWith(`--${name}=`))
