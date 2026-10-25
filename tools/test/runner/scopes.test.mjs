@@ -33,6 +33,12 @@ test('fixed canvas selection binds only its actual layer and migrated variants',
     unitTestScopes('packages/web-host/src/layout/fixed-layout.test.ts'),
     ['shared'],
   );
+  assert.deepEqual(
+    unitTestScopes(
+      'packages/web-host/src/layout/fixed-visible-viewport.test.ts',
+    ),
+    ['shared'],
+  );
   const script = 'tools/test/platform/verify-public-screen-retirement-ui.mjs';
   const adapter = item(script, [
     '--layout-contract=fixed-v1',
@@ -65,6 +71,8 @@ test('fixed canvas selection binds only its actual layer and migrated variants',
   const selected = selectFixedCanvasCases(content.args);
   assert.deepEqual(selected.variants, ['modern-art']);
   assert.equal(selected.cases.length, 1);
+  assert.equal(selected.cases[0].width, 360);
+  assert.equal(selected.cases[0].height, 800);
   assert.equal(selected.expectedCaseIds.length, 3);
 });
 
@@ -118,6 +126,23 @@ test('only platform overlay canvas cases add box scope and their generated-entry
     ),
   );
   assert.deepEqual(selectFixedCanvasCases(base).scopes, ['box', 'shared']);
+});
+
+test('controlled visual viewport uses the real player frame without importing a game', () => {
+  const selected = selectFixedCanvasCases([
+    '--layout-contract=fixed-v1',
+    '--layer=adapter',
+    '--only=adapter-player-portrait-visual-viewport',
+  ]);
+  assert.deepEqual(selected.scopes, ['shared']);
+  assert.deepEqual(selected.variants, []);
+  assert.equal(selected.playerFrame, true);
+  assert.equal(selected.controlledVisual, true);
+  assert.equal(selected.inputs.complete, false);
+  assert(
+    selected.inputs.files.includes('apps/web/src/components/PlayerFrame.tsx'),
+  );
+  assert(!selected.inputs.files.some((path) => path.startsWith('games/')));
 });
 
 test('fixed native profile is shared while its default UNO host suite retains its scope', () => {

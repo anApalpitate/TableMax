@@ -25,19 +25,22 @@ describe('fixed canvas presentation contract', () => {
   it('falls back at a one-pixel shortage without altering the explicit preference', () => {
     const preference = 'wide';
     expect(
-      selectCanvasLayout({ width: 640, height: 640 }, 'player', preference),
+      selectCanvasLayout({ width: 640, height: 800 }, 'player', preference),
     ).toMatchObject({ layout: 'player-landscape', fitStatus: 'fits' });
     expect(
-      selectCanvasLayout({ width: 639, height: 640 }, 'player', preference),
+      selectCanvasLayout({ width: 639, height: 800 }, 'player', preference),
     ).toMatchObject({ layout: 'player-portrait', fitStatus: 'fallback' });
     expect(
       selectCanvasLayout({ width: 640, height: 360 }, 'player', preference),
     ).toMatchObject({ layout: 'player-landscape', fitStatus: 'fits' });
+    expect(
+      selectCanvasLayout({ width: 640, height: 799 }, 'player', 'portrait'),
+    ).toMatchObject({ layout: 'player-landscape', fitStatus: 'fallback' });
   });
   it('does not claim a subminimum phone fits by shrinking it', () => {
     for (const space of [
-      { width: 359, height: 640 },
-      { width: 360, height: 639 },
+      { width: 359, height: 800 },
+      { width: 360, height: 799 },
     ])
       expect(selectCanvasLayout(space, 'player', 'portrait')).toMatchObject({
         layout: 'player-portrait',
@@ -46,7 +49,7 @@ describe('fixed canvas presentation contract', () => {
   });
   it('selects only a composition that fits instead of relying on orientation alone', () => {
     expect(
-      selectCanvasLayout({ width: 600, height: 650 }, 'player', 'auto'),
+      selectCanvasLayout({ width: 600, height: 850 }, 'player', 'auto'),
     ).toMatchObject({ layout: 'player-portrait', fitStatus: 'fits' });
     expect(
       selectCanvasLayout({ width: 650, height: 400 }, 'player', 'auto'),

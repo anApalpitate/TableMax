@@ -32,6 +32,8 @@
 
 `adapter-player-portrait-browser-zoom`为同一入口的单个shared场景，调用内部`fixed-canvas-browser-zoom.mjs`分别启动隔离persistent profile的100%／125%／150%真实浏览器zoom；不使用viewport或DPR模拟，三档实际PNG及黑字墨迹放大测量归同一父报告。普通mainpage截图仍可留作夹具对照，不能替代这三张真实截图。三档分别启动不证明同一文档切换；真实PlayerFrame连续resize／布局选择也不替代真实浏览器zoom。仅选中该场景时追加内部模块输入。当前msedge／字体provider没有绑定变化中的真实显示环境，因此zoom明确保持`inputs.complete:false`、不可自动缓存；36个已闭合source adapter须用精确非zoom ID清单单独选择，不用默认全adapter冒充全部可缓存。
 
+`adapter-player-portrait-visual-viewport`使用受控顶层`visualViewport` EventTarget与真实DOM遮挡，保持布局360×800，只将可见带改为高度400、上偏30；分别运行真实PlayerFrame与顶层直挂，核验实际滚动区、输入／确认真实命中、提示可见、恢复容纳状态、同节点草稿及滚动坐标revision。它不是操作系统键盘证据，也不使用CSS viewport resize替代该路径。该项只需`shared`，仅选中时导入PlayerFrame；输入保持`complete:false`。默认adapter现含36个闭合场景、真实zoom与该受控项共38项，不能整体声明可缓存。上下文可见矩形与画布偏移的约定见[通用视觉](../../docs/reference/visual-design.md#三类布局与宽高比适配)。
+
 adapter的内容绑定计划使用[纯清单](platform/fixed-canvas-contract.mjs)的`selectFixedCanvasCases(args).inputs`与`fixedCanvasAdapterClock`。选择结果在公共`fixedCanvasAdapterInputs`基础上，仅为平台样本追加四个实际入口及静态依赖／CSS；不选平台样本时仍保持原公共输入范围。计划同时声明`environmentProviders: ["msedge", "fixed-canvas-fonts"]`、`resultFile: "report.json"`，组合保留`kind: "source-ui"`、`layer: "adapter"`、`contract: "fixed-v1"`及固定时钟。`msedge`使用[公共运行时读取器](support/msedge-runtime.mjs)按锁定Playwright的实际安装优先顺序选择文件，绑定EXE／同版DLL的版本、路径及SHA；固定helper显式启动同一路径，核对实际browser版本并在结束时重核字节。WebView2 provider不能替代此Edge身份。
 
 `fixed-canvas-fonts`绑定系统字体目录中的`arial.ttf`／`arialbd.ttf`／`msyh.ttc`／`msyhbd.ttc`。仅adapter将这四个原文件复制到任务tmp的bundle，通过127.0.0.1以明确命名的常规／粗体font-face加载并检查成功；正式证据只记录字体来源、SHA和加载结果，不包含字体文件，也不据此证明系统字体映射或实体设备。缺浏览器、同版引擎、字体或必要版本时拒绝建立缓存。随机游戏局面仍保持`inputs.complete:false`；旧轮不会补字段追认为完整缓存证据。依赖审查闭合后先以全新轮次建立证据，再由原version 2选择报告确认reuse，复用不增加执行／通过统计。工具回归的临时文件接受`TABLEMAX_TASK_TMP`集中到同一任务根。

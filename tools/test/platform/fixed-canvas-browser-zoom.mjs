@@ -27,7 +27,7 @@ const playwrightRequire = createRequire(
 const { PNG } = serverRequire('pngjs');
 const hash = (bytes) => createHash('sha256').update(bytes).digest('hex');
 const local = (path) => relative(root, path).split(sep).join('/');
-const windowSize = { width: 1440, height: 1200 };
+const windowSize = { width: 1440, height: 1440 };
 const probeText = 'WWWW MMMM 01789';
 const probeFamily = 'TableMaxContractLatin';
 const surfaceCaptureParameters = Object.freeze({

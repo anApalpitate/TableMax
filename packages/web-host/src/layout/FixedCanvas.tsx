@@ -24,6 +24,10 @@ import {
   type CanvasRect,
   type CanvasRole,
 } from './fixed-layout';
+import {
+  fixedFocusedCanvasSelection,
+  fixedVisualViewportClip,
+} from './fixed-visible-viewport';
 import './fixed-canvas.css';
 
 export interface GameLayout {
@@ -68,6 +72,7 @@ export function FixedCanvasFrame({
   children: ReactNode;
   preference?: CanvasPreference;
 }) {
+  const boundary = useRef<HTMLDivElement>(null);
   const viewport = useRef<HTMLDivElement>(null);
   const canvas = useRef<HTMLDivElement>(null);
   const [preference, updatePreference] = useState(storedPreference);
@@ -77,8 +82,19 @@ export function FixedCanvasFrame({
     selectCanvasLayout(space, role, effectivePreference),
   );
   const current = useRef(selection);
-  const selectionSpace = useRef(space);
+  const [offset, setOffset] = useState<CanvasPoint>(() => ({
+    x:
+      space.x +
+      Math.max(0, (space.width - canvasSizes[selection.layout].width) / 2),
+    y:
+      space.y +
+      Math.max(0, (space.height - canvasSizes[selection.layout].height) / 2),
+  }));
+  const measuredPreference = useRef(effectivePreference);
   const measuredSpace = useRef(space);
+  const measuredOffset = useRef(offset);
+  const measuredScroll = useRef({ left: 0, top: 0 });
+  const measureNow = useRef<(() => void) | null>(null);
   const explicitChange = useRef(false);
   const [revision, setRevision] = useState(0);
   const setPreference = useCallback((next: CanvasPreference) => {
@@ -92,7 +108,9 @@ export function FixedCanvasFrame({
   }, []);
   useLayoutEffect(() => {
     const element = viewport.current;
-    if (!element) return;
+    const container = boundary.current;
+    if (!element || !container) return;
+    const visualViewport = window.visualViewport;
     let animation = 0;
     let timer: ReturnType<typeof setTimeout> | undefined;
     let lastWidth = element.offsetWidth;
@@ -110,6 +128,14 @@ export function FixedCanvasFrame({
     const measure = () => {
       animation = 0;
       clearTimeout(timer);
+      const containerRect = container.getBoundingClientRect();
+      const clip = fixedVisualViewportClip(containerRect, visualViewport);
+      Object.assign(element.style, {
+        left: `${clip.x}px`,
+        top: `${clip.y}px`,
+        width: `${clip.width}px`,
+        height: `${clip.height}px`,
+      });
       const rect = element.getBoundingClientRect();
       const style = getComputedStyle(element);
       const left = parseFloat(style.paddingLeft) || 0;
@@ -117,11 +143,27 @@ export function FixedCanvasFrame({
       const top = parseFloat(style.paddingTop) || 0;
       const bottom = parseFloat(style.paddingBottom) || 0;
       const nextSpace = {
-        x: rect.x + left - element.scrollLeft,
-        y: rect.y + top - element.scrollTop,
+        x: rect.x + element.clientLeft + left,
+        y: rect.y + element.clientTop + top,
         width: Math.max(0, element.clientWidth - left - right),
         height: Math.max(0, element.clientHeight - top - bottom),
       };
+      container.style.setProperty(
+        '--tablemax-visible-left',
+        `${nextSpace.x - containerRect.x}px`,
+      );
+      container.style.setProperty(
+        '--tablemax-visible-top',
+        `${nextSpace.y - containerRect.y}px`,
+      );
+      container.style.setProperty(
+        '--tablemax-visible-width',
+        `${nextSpace.width}px`,
+      );
+      container.style.setProperty(
+        '--tablemax-visible-height',
+        `${nextSpace.height}px`,
+      );
       // An overflowing composition can create scrollbars which disappear when
       // another composition fits. Do not let those transient bars lock out that
       // candidate. The context still reports the actual visible client area.
@@ -150,6 +192,7 @@ export function FixedCanvasFrame({
               )
             : nextSpace.height,
       };
+      let geometryChanged = false;
       if (
         !Object.keys(nextSpace).every(
           (key) =>
@@ -159,30 +202,60 @@ export function FixedCanvasFrame({
       ) {
         measuredSpace.current = nextSpace;
         setSpace(nextSpace);
-        // Anchors must be able to observe recentering/scrolling as well as a
-        // composition change; a stable mode does not imply stable coordinates.
-        setRevision((value) => value + 1);
+        geometryChanged = true;
       }
+      const canvasRect = canvas.current?.getBoundingClientRect();
+      const nextOffset = canvasRect
+        ? { x: canvasRect.x, y: canvasRect.y }
+        : {
+            x: nextSpace.x - element.scrollLeft,
+            y: nextSpace.y - element.scrollTop,
+          };
+      if (
+        measuredOffset.current.x !== nextOffset.x ||
+        measuredOffset.current.y !== nextOffset.y
+      ) {
+        measuredOffset.current = nextOffset;
+        setOffset(nextOffset);
+        geometryChanged = true;
+      }
+      if (
+        measuredScroll.current.left !== element.scrollLeft ||
+        measuredScroll.current.top !== element.scrollTop
+      ) {
+        measuredScroll.current = {
+          left: element.scrollLeft,
+          top: element.scrollTop,
+        };
+        geometryChanged = true;
+      }
+      // A scroll changes coordinates even when the visible scrollport is stable.
+      if (geometryChanged) setRevision((value) => value + 1);
       const focused = document.activeElement?.matches(
         'input,textarea,[contenteditable="true"]',
       );
-      const keyboardOnly = focused && lastWidth === element.offsetWidth;
+      const keyboardOnly =
+        focused &&
+        lastWidth === element.offsetWidth &&
+        measuredPreference.current === effectivePreference &&
+        !explicitChange.current;
       lastWidth = element.offsetWidth;
-      if (!keyboardOnly) selectionSpace.current = candidateSpace;
-      let selected = selectCanvasLayout(
-        selectionSpace.current,
-        role,
-        effectivePreference,
-        current.current.layout,
-      );
-      // A keyboard may hold composition steady, but visible-space reporting
-      // must still expose the shortage and keep the scroll fallback available.
-      if (keyboardOnly && !canvasFits(nextSpace, selected.layout))
-        selected = {
-          ...selected,
-          fitStatus: 'overflow',
-          selectionReason: 'overflow',
-        };
+      measuredPreference.current = effectivePreference;
+      // Keep the focused composition, while deriving both shortage and recovery
+      // from the current scrollport rather than a space captured before blur.
+      const selected = keyboardOnly
+        ? fixedFocusedCanvasSelection(
+            nextSpace,
+            role,
+            effectivePreference,
+            current.current.layout,
+          )
+        : selectCanvasLayout(
+            candidateSpace,
+            role,
+            effectivePreference,
+            current.current.layout,
+          );
       if (
         selected.layout !== current.current.layout &&
         canvasFits(nextSpace, current.current.layout) &&
@@ -196,40 +269,45 @@ export function FixedCanvasFrame({
       if (!animation) animation = requestAnimationFrame(measure);
     };
     const observer = new ResizeObserver(schedule);
+    observer.observe(container);
     observer.observe(element);
+    if (canvas.current) observer.observe(canvas.current);
     window.addEventListener('resize', schedule);
-    window.visualViewport?.addEventListener('resize', schedule);
+    visualViewport?.addEventListener('resize', schedule);
+    visualViewport?.addEventListener('scroll', schedule);
     element.addEventListener('scroll', schedule, { passive: true });
     document.addEventListener('focusout', schedule);
     document.addEventListener('focusin', schedule);
+    measureNow.current = measure;
     measure();
     return () => {
       observer.disconnect();
       cancelAnimationFrame(animation);
       clearTimeout(timer);
       window.removeEventListener('resize', schedule);
-      window.visualViewport?.removeEventListener('resize', schedule);
+      visualViewport?.removeEventListener('resize', schedule);
+      visualViewport?.removeEventListener('scroll', schedule);
       element.removeEventListener('scroll', schedule);
       document.removeEventListener('focusout', schedule);
       document.removeEventListener('focusin', schedule);
+      measureNow.current = null;
     };
   }, [role, effectivePreference]);
+  useLayoutEffect(() => {
+    measureNow.current?.();
+  }, [selection.layout]);
   const value = useMemo<GameLayout>(() => {
     const logicalSize = canvasSizes[selection.layout];
     const renderedRect = () =>
       canvas.current?.getBoundingClientRect() ?? {
-        x: space.x,
-        y: space.y,
+        ...offset,
         ...logicalSize,
       };
     return {
       ...selection,
       logicalSize,
       availableRect: space,
-      offset: {
-        x: space.x + Math.max(0, (space.width - logicalSize.width) / 2),
-        y: space.y + Math.max(0, (space.height - logicalSize.height) / 2),
-      },
+      offset,
       scale: 1,
       revision,
       preference: effectivePreference,
@@ -239,7 +317,7 @@ export function FixedCanvasFrame({
       logicalToClient: (point) =>
         logicalPointToClient(point, renderedRect(), logicalSize),
     };
-  }, [selection, space, revision, effectivePreference, setPreference]);
+  }, [selection, space, offset, revision, effectivePreference, setPreference]);
   const logicalSize = canvasSizes[selection.layout];
   const style = {
     '--tablemax-canvas-width': `${logicalSize.width}px`,
@@ -248,32 +326,38 @@ export function FixedCanvasFrame({
   return (
     <Context.Provider value={value}>
       <div
-        ref={viewport}
-        className="tablemax-canvas-viewport"
-        data-canvas-viewport
-        data-fit-status={selection.fitStatus}
-        data-layout-revision={revision}
-        data-available-width={space.width}
-        data-available-height={space.height}
+        ref={boundary}
+        className="tablemax-canvas-boundary"
+        data-canvas-boundary
       >
         <div
-          ref={canvas}
-          className="tablemax-fixed-canvas"
-          data-fixed-canvas
-          data-player-layout-contract={
-            role === 'player' ? 'fixed-v1' : undefined
-          }
-          data-canvas-layout={selection.layout}
-          data-player-layout={
-            role === 'player'
-              ? selection.layout === 'player-landscape'
-                ? 'wide'
-                : 'portrait'
-              : undefined
-          }
-          style={style}
+          ref={viewport}
+          className="tablemax-canvas-viewport"
+          data-canvas-viewport
+          data-fit-status={selection.fitStatus}
+          data-layout-revision={revision}
+          data-available-width={space.width}
+          data-available-height={space.height}
         >
-          {children}
+          <div
+            ref={canvas}
+            className="tablemax-fixed-canvas"
+            data-fixed-canvas
+            data-player-layout-contract={
+              role === 'player' ? 'fixed-v1' : undefined
+            }
+            data-canvas-layout={selection.layout}
+            data-player-layout={
+              role === 'player'
+                ? selection.layout === 'player-landscape'
+                  ? 'wide'
+                  : 'portrait'
+                : undefined
+            }
+            style={style}
+          >
+            {children}
+          </div>
         </div>
         {selection.fitStatus === 'overflow' && (
           <p className="tablemax-viewport-notice" role="status">

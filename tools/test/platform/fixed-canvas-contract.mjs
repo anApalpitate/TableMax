@@ -22,7 +22,7 @@ export const fixedCanvasPlatformInputFiles = [
 ];
 export const fixedCanvasLayouts = [
   { layout: 'host', role: 'host', width: 1280, height: 720 },
-  { layout: 'player-portrait', role: 'player', width: 360, height: 640 },
+  { layout: 'player-portrait', role: 'player', width: 360, height: 800 },
   { layout: 'player-landscape', role: 'player', width: 640, height: 360 },
 ];
 export const fixedCanvasVariants = {
@@ -89,6 +89,15 @@ export const fixedCanvasCases = [
     id: 'adapter-player-portrait-browser-zoom',
     layer: 'adapter',
     boundary: 'browser-zoom',
+    inputsClosed: false,
+  },
+  {
+    ...fixedCanvasLayouts[1],
+    id: 'adapter-player-portrait-visual-viewport',
+    layer: 'adapter',
+    boundary: 'visual-viewport',
+    playerFrame: true,
+    inputsClosed: false,
   },
   ...['content', 'integration'].flatMap((layer) =>
     Object.keys(fixedCanvasVariants).flatMap((variant) =>
@@ -131,6 +140,9 @@ export function selectFixedCanvasCases(args) {
   const platform = selected.some((item) => item.platform);
   const playerFrame = selected.some((item) => item.playerFrame);
   const browserZoom = selected.some((item) => item.boundary === 'browser-zoom');
+  const controlledVisual = selected.some(
+    (item) => item.boundary === 'visual-viewport',
+  );
   return {
     version: fixedCanvasVersion,
     layer,
@@ -141,6 +153,7 @@ export function selectFixedCanvasCases(args) {
     platform,
     playerFrame,
     browserZoom,
+    controlledVisual,
     scopes: [
       ...(platform ? ['box'] : []),
       'shared',
@@ -150,10 +163,15 @@ export function selectFixedCanvasCases(args) {
       ? {
           inputs: {
             ...fixedCanvasAdapterInputs,
-            complete: !browserZoom && fixedCanvasAdapterInputs.complete,
+            complete:
+              selected.every((item) => item.inputsClosed !== false) &&
+              fixedCanvasAdapterInputs.complete,
             files: [
               ...fixedCanvasAdapterInputs.files,
               ...(platform ? fixedCanvasPlatformInputFiles : []),
+              ...(playerFrame
+                ? ['apps/web/src/components/PlayerFrame.tsx']
+                : []),
               ...(browserZoom
                 ? ['tools/test/platform/fixed-canvas-browser-zoom.mjs']
                 : []),

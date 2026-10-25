@@ -24,6 +24,7 @@ const validScopes = ['box', 'shared', 'tooling', ...gameScopes];
 // Classify what a test actually exercises, rather than its containing app.
 const unitScopes = {
   'packages/web-host/src/layout/fixed-layout.test.ts': ['shared'],
+  'packages/web-host/src/layout/fixed-visible-viewport.test.ts': ['shared'],
   'apps/server/src/cockroach-games.test.ts': ['game:cockroach-poker'],
   'apps/server/src/cockroach-worker.test.ts': ['game:cockroach-poker'],
   'packages/platform-core/src/automatic-timing.test.ts': ['shared'],

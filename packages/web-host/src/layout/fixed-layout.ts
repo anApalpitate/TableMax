@@ -13,7 +13,7 @@ export interface CanvasRect extends CanvasPoint {
 }
 export const canvasSizes = {
   'host-landscape': { width: 1280, height: 720 },
-  'player-portrait': { width: 360, height: 640 },
+  'player-portrait': { width: 360, height: 800 },
   'player-landscape': { width: 640, height: 360 },
 } as const;
 export const canvasPreferenceKey = 'tablemax-player-layout-v3';

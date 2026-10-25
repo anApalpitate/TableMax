@@ -204,9 +204,7 @@ test(
 
 test('fixed adapter declarations close the generated entry imports and production overlay styles', () => {
   const ids = fixedCanvasCases
-    .filter(
-      (item) => item.layer === 'adapter' && item.boundary !== 'browser-zoom',
-    )
+    .filter((item) => item.layer === 'adapter' && item.inputsClosed !== false)
     .map((item) => item.id);
   assert.equal(
     ids.length,

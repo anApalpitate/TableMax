@@ -27,12 +27,20 @@ import { failureLimit } from '../runner/failure-policy.mjs';
 import {
   fixedCanvasVariants,
   fixedCanvasAdapterClock,
+  fixedCanvasLayouts,
   selectFixedCanvasCases,
 } from './fixed-canvas-contract.mjs';
 
 const sha256 = (bytes) => createHash('sha256').update(bytes).digest('hex');
 const local = (path) => relative(resolve('.'), path).replaceAll('\\', '/');
 const quoted = (path) => JSON.stringify(resolve(path));
+const playerCanvases = fixedCanvasLayouts.filter(
+  (layout) => layout.role === 'player',
+);
+const playerMaxSize = {
+  width: Math.max(...playerCanvases.map((layout) => layout.width)),
+  height: Math.max(...playerCanvases.map((layout) => layout.height)),
+};
 function workspacePath(value, prefix) {
   assert(
     value,
@@ -342,6 +350,8 @@ export async function runFixedCanvasContract(args) {
         await page.waitForFunction(
           () => typeof window.renderFixedCase === 'function',
         );
+        if (item.boundary === 'visual-viewport')
+          await installControlledVisualViewport(page);
         await page.evaluate((value) => window.renderFixedCase(value), item);
         if (item.playerFrame) {
           const iframe = page.locator('iframe[data-player-frame]');
@@ -353,9 +363,14 @@ export async function runFixedCanvasContract(args) {
             surface,
             'The real PlayerFrame creates its child browsing context',
           );
-          await surface.waitForFunction(
-            () => window.fixtureSession?.role === 'player',
-          );
+          if (item.layer === 'adapter')
+            await surface.waitForFunction(
+              () => window.contractContext !== null,
+            );
+          else
+            await surface.waitForFunction(
+              () => window.fixtureSession?.role === 'player',
+            );
           await page.waitForFunction(() =>
             document.querySelector('[data-fixed-canvas-frame="true"]'),
           );
@@ -364,7 +379,22 @@ export async function runFixedCanvasContract(args) {
         await settle(surface);
         await chooseLayout(surface, item.layout);
         let measurements;
-        if (item.boundary === 'browser-zoom') {
+        if (item.boundary === 'visual-viewport') {
+          measurements = await checkControlledVisualViewport(
+            page,
+            surface,
+            item,
+            async (stage) => {
+              const screenshot = await capture(
+                page,
+                output,
+                `${item.id}-${stage}`,
+              );
+              report.screenshots.push(screenshot);
+              return screenshot;
+            },
+          );
+        } else if (item.boundary === 'browser-zoom') {
           const { runBrowserZoomProof } =
             await import('./fixed-canvas-browser-zoom.mjs');
           measurements = await runBrowserZoomProof({
@@ -480,6 +510,9 @@ export async function runFixedCanvasContract(args) {
             ? { evidence: diagnosticMeasurements }
             : {}),
           ...(diagnosticIframe ? { iframe: diagnosticIframe } : {}),
+          ...(error.controlledVisualEvidence
+            ? { controlledVisualEvidence: error.controlledVisualEvidence }
+            : {}),
           ...(browserZoomEvidence ? { browserZoomEvidence } : {}),
           ...(browserZoomEvidenceRejected
             ? { browserZoomEvidenceRejected }
@@ -1002,8 +1035,8 @@ async function checkAdapter(page, item, captureStage) {
       });
     await page.evaluate(() => document.activeElement?.blur());
     await page.setViewportSize({
-      width: 640,
-      height: item.layout === 'player-portrait' ? 640 : 360,
+      width: playerMaxSize.width,
+      height: item.height,
     });
     await settle(page);
     await chooseLayout(page, item.layout);
@@ -1011,8 +1044,13 @@ async function checkAdapter(page, item, captureStage) {
     await input.focus();
     const focused = await measure(page);
     await page.setViewportSize({
-      width: 640,
-      height: item.layout === 'player-portrait' ? 400 : 280,
+      width: playerMaxSize.width,
+      height:
+        item.layout === 'player-portrait'
+          ? fixedCanvasLayouts.find(
+              (layout) => layout.layout === 'player-landscape',
+            ).height + 40
+          : item.height - 80,
     });
     await settle(page);
     const shortened = await measure(page);
@@ -1635,6 +1673,332 @@ async function reachable(page, locator) {
   );
   return result;
 }
+async function installControlledVisualViewport(page) {
+  await page.evaluate(() => {
+    const state = {
+      width: innerWidth,
+      height: innerHeight,
+      offsetLeft: 0,
+      offsetTop: 0,
+      scale: 1,
+    };
+    const viewport = new EventTarget();
+    for (const key of Object.keys(state))
+      Object.defineProperty(viewport, key, { get: () => state[key] });
+    Object.defineProperty(viewport, 'pageLeft', {
+      get: () => scrollX + state.offsetLeft,
+    });
+    Object.defineProperty(viewport, 'pageTop', {
+      get: () => scrollY + state.offsetTop,
+    });
+    Object.defineProperty(window, 'visualViewport', {
+      configurable: true,
+      get: () => viewport,
+    });
+    const masks = ['top', 'bottom'].map((side) => {
+      const element = document.createElement('div');
+      element.dataset.controlledVisualMask = side;
+      element.textContent = '受控遮挡夹具：不是系统键盘';
+      Object.assign(element.style, {
+        position: 'fixed',
+        left: '0',
+        width: '100vw',
+        zIndex: '2147483647',
+        background: '#d4dde6',
+        color: '#15232c',
+        fontSize: '16px',
+        pointerEvents: 'auto',
+        overflow: 'hidden',
+      });
+      document.body.append(element);
+      return element;
+    });
+    const updateMasks = () => {
+      const heights = [
+        state.offsetTop,
+        Math.max(0, innerHeight - state.offsetTop - state.height),
+      ];
+      masks.forEach((element, index) => {
+        element.style.top =
+          (index === 0 ? 0 : state.offsetTop + state.height) + 'px';
+        element.style.height = heights[index] + 'px';
+        element.style.display = heights[index] > 0 ? 'block' : 'none';
+      });
+    };
+    window.controlledVisualViewport = {
+      state,
+      set(values) {
+        Object.assign(state, values);
+        updateMasks();
+        viewport.dispatchEvent(new Event('resize'));
+        viewport.dispatchEvent(new Event('scroll'));
+      },
+    };
+    updateMasks();
+  });
+}
+
+async function visualViewportObservation(page, surface, locator, framed) {
+  const element = await locator.evaluate((node) => {
+    const rect = node.getBoundingClientRect();
+    return {
+      rect: { x: rect.x, y: rect.y, width: rect.width, height: rect.height },
+      focused: document.activeElement === node,
+    };
+  });
+  const parent = await page.evaluate(
+    ({ local, framed }) => {
+      const viewport = window.visualViewport;
+      const iframe = framed
+        ? document.querySelector('iframe[data-player-frame]')
+        : null;
+      const frameRect = iframe?.getBoundingClientRect();
+      const rect = { ...local };
+      if (iframe) {
+        rect.x += frameRect.x + iframe.clientLeft;
+        rect.y += frameRect.y + iframe.clientTop;
+      }
+      const center = {
+        x: rect.x + rect.width / 2,
+        y: rect.y + rect.height / 2,
+      };
+      const hit = document.elementFromPoint(center.x, center.y);
+      const visible = {
+        x: viewport.offsetLeft,
+        y: viewport.offsetTop,
+        width: viewport.width,
+        height: viewport.height,
+        scale: viewport.scale,
+      };
+      return {
+        layout: { width: innerWidth, height: innerHeight },
+        visible,
+        projectedRect: rect,
+        center,
+        insideVisible:
+          rect.x >= visible.x - 1 &&
+          rect.y >= visible.y - 1 &&
+          rect.x + rect.width <= visible.x + visible.width + 1 &&
+          rect.y + rect.height <= visible.y + visible.height + 1,
+        hit: {
+          tag: hit?.tagName ?? null,
+          mask: hit?.getAttribute('data-controlled-visual-mask') ?? null,
+          iframe: hit === iframe,
+        },
+        iframe: iframe
+          ? {
+              x: frameRect.x,
+              y: frameRect.y,
+              width: frameRect.width,
+              height: frameRect.height,
+            }
+          : null,
+      };
+    },
+    { local: element.rect, framed },
+  );
+  const childHit = await locator.evaluate((node) => {
+    const rect = node.getBoundingClientRect(),
+      hit = document.elementFromPoint(
+        rect.x + rect.width / 2,
+        rect.y + rect.height / 2,
+      );
+    return hit === node || node.contains(hit);
+  });
+  return { element, parent, childHit, measurements: await measure(surface) };
+}
+
+async function checkControlledVisualViewport(
+  page,
+  surface,
+  item,
+  captureStage,
+) {
+  const evidence = {
+    boundary:
+      'Controlled top-level EventTarget visualViewport and physical DOM occlusion only; not an operating-system keyboard, pinch or page-zoom proof.',
+    stages: [],
+  };
+  async function exercise(target, framed, label) {
+    const input = target.getByRole('textbox', {
+      name: '契约草稿',
+      exact: true,
+    });
+    const submit = target.getByRole('button', {
+      name: '确认契约草稿',
+      exact: true,
+    });
+    await input.fill(label + '未提交草稿');
+    await input.focus();
+    const inputNode = await input.elementHandle();
+    assert(inputNode);
+    const before = await measure(target);
+    assertLogical(before, item);
+    assert.equal(before.fitStatus, 'fits');
+    const identities = framed ? await frameIdentity(page) : null;
+    const count = await target.evaluate(() => window.contractSubmissions);
+    const stage = {
+      label,
+      framed,
+      before,
+      identities,
+      submissionsBefore: count,
+    };
+    evidence.stages.push(stage);
+    await page.evaluate(() =>
+      window.controlledVisualViewport.set({
+        height: 400,
+        offsetTop: 30,
+        scale: 1,
+      }),
+    );
+    await settle(target);
+    stage.shortened = await measure(target);
+    const notice = target.locator('.tablemax-viewport-notice');
+    stage.notice = (await notice.count())
+      ? await visualViewportObservation(page, target, notice, framed)
+      : null;
+    assert.equal(
+      await target.evaluate(() => window.contractSubmissions),
+      count,
+      'Visual changes never submit a draft',
+    );
+    stage.initialInput = await visualViewportObservation(
+      page,
+      target,
+      input,
+      framed,
+    );
+    await input.scrollIntoViewIfNeeded();
+    await settle(target);
+    stage.input = await visualViewportObservation(page, target, input, framed);
+    await submit.scrollIntoViewIfNeeded();
+    await settle(target);
+    stage.submit = await visualViewportObservation(
+      page,
+      target,
+      submit,
+      framed,
+    );
+    stage.focusBeforeClick = await inputNode.evaluate(
+      (node) => node.isConnected && document.activeElement === node,
+    );
+    stage.screenshot = await captureStage(label + '-controlled-occlusion');
+    await page.mouse.click(
+      stage.submit.parent.center.x,
+      stage.submit.parent.center.y,
+    );
+    await settle(target);
+    stage.submissionsAfterClick = await target.evaluate(
+      () => window.contractSubmissions,
+    );
+    stage.afterScroll = await measure(target);
+    stage.iframeAfterScroll = framed ? await frameIdentity(page) : null;
+    assert.deepEqual(
+      stage.submit.parent.layout,
+      { width: item.width, height: item.height },
+      'Only the controlled visual viewport changes; parent layout size stays fixed',
+    );
+    assert.equal(stage.submit.parent.visible.scale, 1);
+    assert.equal(stage.submit.parent.visible.height, 400);
+    assert.equal(stage.submit.parent.visible.y, 30);
+    assert.equal(
+      stage.shortened.fitStatus,
+      'overflow',
+      'A visual-only shortage must report overflow',
+    );
+    assert(
+      stage.shortened.availableRect.height <= 400,
+      'Available space must reflect the scale-one visual intersection',
+    );
+    assert(
+      stage.shortened.revision > before.revision,
+      'Visual-only geometry changes advance revision',
+    );
+    assert(
+      stage.notice?.parent.insideVisible,
+      'The shortage notice stays inside the actual visible band',
+    );
+    assert(
+      stage.input.parent.insideVisible &&
+        stage.input.childHit &&
+        !stage.input.parent.hit.mask,
+      'The actual input can scroll into the effective visible region',
+    );
+    assert(
+      stage.submit.parent.insideVisible &&
+        stage.submit.childHit &&
+        !stage.submit.parent.hit.mask,
+      'The actual submit can scroll into the effective visible region',
+    );
+    assert(
+      stage.focusBeforeClick,
+      'Focused input and its node survive the visual-only change and scrolling',
+    );
+    assert.equal(
+      stage.submissionsAfterClick,
+      count + 1,
+      'A real mouse click through the unobscured iframe invokes only the explicit fixture confirmation',
+    );
+    assert.equal(await input.inputValue(), label + '未提交草稿');
+    assert.deepEqual(
+      stage.afterScroll.availableRect,
+      stage.shortened.availableRect,
+      'The visible scrollport rectangle stays independent of content scrolling',
+    );
+    assert(
+      stage.afterScroll.revision > stage.shortened.revision,
+      'Scrolling advances coordinate revision',
+    );
+    assert(
+      Math.abs(stage.afterScroll.offset.x - stage.afterScroll.canvas.x) <=
+        0.5 &&
+        Math.abs(stage.afterScroll.offset.y - stage.afterScroll.canvas.y) <=
+          0.5,
+      'Offset reports the actual centered and scrolled canvas origin',
+    );
+    assert.equal(stage.afterScroll.mounts, before.mounts);
+    assert.equal(stage.afterScroll.unmounts, before.unmounts);
+    assert.equal(stage.afterScroll.commands, 0);
+    if (framed) assertFrameIdentity(stage.iframeAfterScroll, identities);
+    await input.focus();
+    await page.evaluate(() =>
+      window.controlledVisualViewport.set({
+        height: 800,
+        offsetTop: 0,
+        scale: 1,
+      }),
+    );
+    await settle(target);
+    stage.restored = await measure(target);
+    assertLogical(stage.restored, item);
+    assert.equal(stage.restored.fitStatus, 'fits');
+    assert(
+      await inputNode.evaluate(
+        (node) => node.isConnected && document.activeElement === node,
+      ),
+    );
+    assert.equal(await input.inputValue(), label + '未提交草稿');
+    assert.equal(stage.restored.mounts, before.mounts);
+    assert.equal(stage.restored.unmounts, before.unmounts);
+    if (framed) assertFrameIdentity(await frameIdentity(page), identities);
+  }
+  try {
+    await exercise(surface, true, 'framed');
+    await page.evaluate(
+      (value) => window.renderFixedCase({ ...value, playerFrame: false }),
+      item,
+    );
+    await settle(page);
+    await chooseLayout(page, item.layout);
+    await exercise(page, false, 'top-direct');
+    return evidence;
+  } catch (error) {
+    error.controlledVisualEvidence = evidence;
+    throw error;
+  }
+}
+
 async function frameIdentity(page, remember = false) {
   return page.evaluate((capture) => {
     const iframe = document.querySelector('iframe[data-player-frame]');
@@ -1817,7 +2181,10 @@ async function checkGame(page, item, surface = page, captureStage) {
   }
   const layoutSwitches = [];
   if (item.playerFrame) {
-    await page.setViewportSize({ width: 900, height: 760 });
+    await page.setViewportSize({
+      width: playerMaxSize.width + 260,
+      height: playerMaxSize.height + 120,
+    });
     await settle(surface);
     const control = surface.getByRole('combobox', {
       name: '显示布局',
@@ -1836,10 +2203,13 @@ async function checkGame(page, item, surface = page, captureStage) {
       const switched = await measure(surface);
       assertLogical(switched, {
         ...item,
-        layout:
-          preference === 'portrait' ? 'player-portrait' : 'player-landscape',
-        width: preference === 'portrait' ? 360 : 640,
-        height: preference === 'portrait' ? 640 : 360,
+        ...fixedCanvasLayouts.find(
+          (layout) =>
+            layout.layout ===
+            (preference === 'portrait'
+              ? 'player-portrait'
+              : 'player-landscape'),
+        ),
       });
       assert.equal(switched.mounts, before.mounts);
       assert.equal(switched.unmounts, before.unmounts);

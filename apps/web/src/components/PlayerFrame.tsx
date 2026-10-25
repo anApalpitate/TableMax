@@ -1,4 +1,12 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+  type CSSProperties,
+} from 'react';
+import { fixedVisualViewportClip } from '@tablemax/web-host/platform';
 import {
   isDesktopPlayer,
   playerFramePath,
@@ -29,6 +37,10 @@ export function PlayerFrame({ initialUrl }: { initialUrl: string }) {
   });
   const [contract, setContract] = useState(false);
   const [fixedCanvas, setFixedCanvas] = useState(false);
+  const boundary = useRef<HTMLElement>(null);
+  const [fixedClip, setFixedClip] = useState<ReturnType<
+    typeof fixedVisualViewportClip
+  > | null>(null);
   const [space, setSpace] = useState(() =>
     workspaceSpace(window.innerWidth, window.innerHeight),
   );
@@ -52,6 +64,50 @@ export function PlayerFrame({ initialUrl }: { initialUrl: string }) {
   const displayPreference = contract ? workspacePreference : preferred;
   const frame = useRef<HTMLIFrameElement>(null);
   const disconnect = useRef<(() => void) | null>(null);
+  useLayoutEffect(() => {
+    const container = boundary.current;
+    if (!fixedCanvas || !container) {
+      setFixedClip(null);
+      return;
+    }
+    // Only the top-level visual viewport knows which part of this iframe is
+    // actually visible. Resizing its box preserves the same child document.
+    const visualViewport = window.visualViewport;
+    let animation = 0;
+    const measure = () => {
+      animation = 0;
+      const next = fixedVisualViewportClip(
+        container.getBoundingClientRect(),
+        visualViewport,
+      );
+      setFixedClip((previous) =>
+        previous &&
+        Object.keys(next).every(
+          (key) =>
+            previous[key as keyof typeof next] ===
+            next[key as keyof typeof next],
+        )
+          ? previous
+          : next,
+      );
+    };
+    const schedule = () => {
+      if (!animation) animation = requestAnimationFrame(measure);
+    };
+    const observer = new ResizeObserver(schedule);
+    observer.observe(container);
+    visualViewport?.addEventListener('resize', schedule);
+    visualViewport?.addEventListener('scroll', schedule);
+    window.addEventListener('resize', schedule);
+    measure();
+    return () => {
+      observer.disconnect();
+      cancelAnimationFrame(animation);
+      visualViewport?.removeEventListener('resize', schedule);
+      visualViewport?.removeEventListener('scroll', schedule);
+      window.removeEventListener('resize', schedule);
+    };
+  }, [fixedCanvas]);
   const applyDisplay = useCallback(() => {
     const child = frame.current?.contentWindow;
     if (!child) return;
@@ -102,10 +158,17 @@ export function PlayerFrame({ initialUrl }: { initialUrl: string }) {
     applyDisplay();
     disconnect.current?.();
     const child = frame.current?.contentWindow;
-    if (!child) return;
+    if (!child) {
+      setFixedCanvas(false);
+      return;
+    }
     try {
-      if (child.location.origin !== window.location.origin) return;
+      if (child.location.origin !== window.location.origin) {
+        setFixedCanvas(false);
+        return;
+      }
     } catch {
+      setFixedCanvas(false);
       return;
     }
     const synchronize = () => {
@@ -170,8 +233,19 @@ export function PlayerFrame({ initialUrl }: { initialUrl: string }) {
     synchronize();
   }, [applyDisplay]);
   useEffect(() => () => disconnect.current?.(), []);
+  const fixedStyle: CSSProperties | undefined =
+    fixedCanvas && fixedClip
+      ? {
+          position: 'absolute',
+          left: fixedClip.x,
+          top: fixedClip.y,
+          width: fixedClip.width,
+          height: fixedClip.height,
+        }
+      : undefined;
   return (
     <main
+      ref={boundary}
       className="player-frame"
       data-player-display={mode}
       data-workspace-layout={contract ? mode : undefined}
@@ -245,6 +319,7 @@ export function PlayerFrame({ initialUrl }: { initialUrl: string }) {
         ref={frame}
         data-player-frame
         className="player-frame__viewport"
+        style={fixedStyle}
         title="玩家操作"
         src={source}
         allow="fullscreen 'none'"
