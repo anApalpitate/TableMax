@@ -8,14 +8,10 @@ export function AuctionTheme({
   view,
   names,
   activityMessage,
-  structuredOnce = false,
-  leaderOutside = false,
 }: {
   view: ModernArtView;
   names: Record<string, string>;
   activityMessage?: string | undefined;
-  structuredOnce?: boolean;
-  leaderOutside?: boolean;
 }) {
   const auction = view.auction;
   if (!auction) return null;
@@ -43,7 +39,7 @@ export function AuctionTheme({
             <i />
             <AuctionMark kind="open" />
           </div>
-          <span>最高价</span>
+          <span>当前最高出价</span>
           <strong>{money(auction.currentBid)}</strong>
           {auction.highBidder ? (
             <div className="ma-theme__lead">
@@ -54,22 +50,8 @@ export function AuctionTheme({
             <span>等待第一声报价</span>
           )}
           <span className="ma-theme__caption">
-            {message ?? (
-              <>
-                <span className="ma-theme__confirm-count">
-                  已确认{' '}
-                  {
-                    new Set([
-                      ...auction.passes,
-                      ...(auction.highBidder ? [auction.highBidder] : []),
-                    ]).size
-                  }{' '}
-                  / {view.seatOrder.length}
-                  <span className="ma-theme__confirm-separator">；</span>
-                </span>
-                <span className="ma-theme__confirm-rule">加价后重新确认</span>
-              </>
-            )}
+            {message ??
+              `已确认 ${new Set([...auction.passes, ...(auction.highBidder ? [auction.highBidder] : [])]).size} / ${view.seatOrder.length}；加价后重新确认`}
           </span>
         </>
       )}
@@ -101,14 +83,7 @@ export function AuctionTheme({
             })}
             <span>一次机会</span>
           </div>
-          {structuredOnce ? (
-            <div className="ma-theme__once-price">
-              <span className="ma-theme__price-label">当前价</span>
-              <strong>{money(auction.currentBid)}</strong>
-            </div>
-          ) : (
-            <strong>{money(auction.currentBid)}</strong>
-          )}
+          <strong>{money(auction.currentBid)}</strong>
           <div className="ma-theme__lead">
             {message ??
               (acting ? (
@@ -120,7 +95,7 @@ export function AuctionTheme({
                 '本轮出价完成'
               ))}
           </div>
-          {auction.highBidder && !leaderOutside && (
+          {auction.highBidder && (
             <span className="ma-theme__caption">
               领拍：{identity(auction.highBidder)}
             </span>

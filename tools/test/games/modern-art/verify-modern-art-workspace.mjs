@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
 import { createRequire } from 'node:module';
-import { cp, mkdir, readFile, readdir, writeFile } from 'node:fs/promises';
+import { cp, mkdir, readFile, writeFile } from 'node:fs/promises';
 import { resolve, join, relative, sep, basename } from 'node:path';
 import { build as esbuild } from 'esbuild';
 import { build } from 'vite';
@@ -18,7 +18,6 @@ const arg = (name) =>
 const phase = arg('phase');
 const smoke = process.argv.includes('--smoke');
 const buildOnly = process.argv.includes('--build-only');
-const fixedCanvas = process.argv.includes('--fixed-canvas');
 const extra = process.argv.includes('--extra');
 const extraChecks = [
   'minimum-phone-320-bid',
@@ -37,16 +36,7 @@ assert.ok(
   ['before', 'after'].includes(phase),
   'Choose --phase=before or after',
 );
-assert.ok(
-  !fixedCanvas || phase === 'after',
-  'Fixed canvas uses current source',
-);
-const task = resolve(
-  arg('task') ??
-    (fixedCanvas
-      ? 'tmp/fixed-canvas-20261025-02/modern-art'
-      : 'tmp/modern-art-player-layout-20261023-b1'),
-);
+const task = resolve(arg('task') ?? 'tmp/modern-art-player-layout-20261023-b1');
 assert.ok(
   task.startsWith(resolve('tmp') + sep),
   'Task directory must remain inside workspace tmp',
@@ -58,9 +48,7 @@ process.env.TMP = browserTemp;
 const { launchTestBrowser } = await import('../../support/browser-test.mjs');
 const output = resolve(
   arg('output') ??
-    (fixedCanvas
-      ? `artifacts/maintenance/fixed-canvas-20261025-02/modern-art/build-${phase}`
-      : `artifacts/maintenance/modern-art-player-layout-20261023-b1/${phase}`),
+    `artifacts/maintenance/modern-art-player-layout-20261023-b1/${phase}`,
 );
 assert.ok(
   output.startsWith(resolve('artifacts') + sep),
@@ -102,7 +90,6 @@ const report = {
   phase,
   smoke,
   buildOnly,
-  fixedCanvas,
   extra,
   only,
   excluded: [],
@@ -125,17 +112,6 @@ const record = async (path) => ({
   path: relative(process.cwd(), path).split(sep).join('/'),
   sha256: hash(await readFile(path)),
 });
-const sourceFiles = async (directory) => {
-  const entries = await readdir(directory, { withFileTypes: true });
-  return (
-    await Promise.all(
-      entries.map((entry) => {
-        const path = join(directory, entry.name);
-        return entry.isDirectory() ? sourceFiles(path) : [path];
-      }),
-    )
-  ).flat();
-};
 const checks = async (id, fn) => {
   if (only.length && !only.includes(id)) {
     report.excluded.push(id);
@@ -173,16 +149,7 @@ const work = join(task, `fixture-${basename(output)}`);
 await mkdir(work, { recursive: true });
 let browser, server, page;
 try {
-  const preparationSource = resolve(
-    'tools/test/fixtures/prepare-modern-art-workspace.ts',
-  );
-  const preparationHash = hash(await readFile(preparationSource));
-  const data = join(
-    task,
-    fixedCanvas
-      ? `fixed-legal-fixtures-${preparationHash.slice(0, 12)}`
-      : 'legal-fixtures',
-  );
+  const data = join(task, 'legal-fixtures');
   let snapshots;
   try {
     snapshots = JSON.parse(
@@ -199,7 +166,7 @@ try {
     });
     ({ snapshots } = await require(
       join(task, 'prepare-layout.cjs'),
-    ).prepareLayout(data, fixedCanvas));
+    ).prepareLayout(data));
   }
   if (!snapshots['sealed-submitted']) {
     await esbuild({
@@ -228,9 +195,6 @@ try {
   }
   const game = join(sourceRoot, 'games/modern-art/web/index.tsx');
   const frame = join(sourceRoot, 'apps/web/src/components/PlayerFrame.tsx');
-  const savedEntrance = fixedCanvas
-    ? JSON.parse(await readFile(join(data, 'saved-entrance.json'), 'utf8'))
-    : null;
   const tracked = [
     game,
     frame,
@@ -242,19 +206,6 @@ try {
     join(sourceRoot, 'apps/web/src/components/player-frame.ts'),
     join(data, 'snapshots.json'),
   ];
-  if (fixedCanvas) {
-    tracked.push(
-      ...(await sourceFiles(join(sourceRoot, 'games/modern-art/ui'))),
-      ...(await sourceFiles(resolve('packages/web-host/src/layout'))),
-      resolve('packages/web-host/src/index.tsx'),
-      resolve('packages/web-host/src/types.ts'),
-      preparationSource,
-      resolve('tools/test/fixtures/prepare-modern-art-polish.ts'),
-      join(data, 'preparation-proof.json'),
-      join(data, 'saved-entrance.json'),
-    );
-    tracked.splice(0, tracked.length, ...new Set(tracked));
-  }
   report.inputs.before = await Promise.all(tracked.map(record));
   if (phase === 'after') {
     const css = await readFile(
@@ -266,23 +217,18 @@ try {
       .filter((value) => value.includes('safe-area-inset-'));
     assert.deepEqual(
       declarations,
-      fixedCanvas
-        ? []
-        : [10, 8, 12].map((base) =>
-            ['top', 'right', 'bottom', 'left']
-              .map((side) => `max(${base}px, env(safe-area-inset-${side}))`)
-              .join(' '),
-          ),
-      fixedCanvas
-        ? 'Public frame deducts safe area; game does not deduct it again'
-        : 'All three contract padding overrides preserve four native safe-area insets',
+      [10, 8, 12].map((base) =>
+        ['top', 'right', 'bottom', 'left']
+          .map((side) => `max(${base}px, env(safe-area-inset-${side}))`)
+          .join(' '),
+      ),
+      'All three contract padding overrides preserve four native safe-area insets',
     );
     report.safeAreaEvidence = {
       source: 'games/modern-art/ui/player-wide.css',
       declarations,
-      computedScope: fixedCanvas
-        ? 'Current FixedCanvasFrame owns four native env insets. Game padding is internal logical spacing. Physical nonzero safe areas remain separate.'
-        : 'Normal headless browser native env values; expected base padding is checked in actual player captures and boundary samples. No temporary CSS override.',
+      computedScope:
+        'Normal headless browser native env values; expected base padding is checked in actual player captures and boundary samples. No temporary CSS override.',
       nonzeroPhysicalSafeAreaTested: false,
     };
   }
@@ -297,24 +243,21 @@ import{PlayerFrame}from ${JSON.stringify(frame)};
 import ${JSON.stringify(resolve('apps/web/src/styles.css'))};
 import ${JSON.stringify(resolve('apps/web/src/scrollbars.css'))};
 const snapshots=${JSON.stringify(snapshots)};
-window.__savedEntrance=${JSON.stringify(savedEntrance)};
-if(window.__savedEntrance)window.__savedEntrance.motion=client.savedChanges(window.__savedEntrance.before.player.gameView,window.__savedEntrance.after.player.gameView);
 configureGameHost({ScreenLink:p=><a {...p}/>,FullscreenControl:()=>null,DisplaySettings:()=>null,useAudioOutput:()=>false,claimAudioEvent:()=>true,avatarFor,avatarChoices});
 const root=createRoot(document.getElementById('root'));let sequence=0,currentKey='initial';
 window.__commands=[];window.__documentId=crypto.randomUUID();
-window.renderModernArt=({scene='auction-open',role='player',preserve=false,view:providedView,suppliedView,connected=true,savedMessage='',locked=false,awaitingConfirmation=false,admissionPending=false,feedback=null,motion=[]}={})=>{
+window.renderModernArt=({scene='auction-open',role='player',preserve=false,view:providedView,suppliedView,connected=true,savedMessage=''}={})=>{
  const view=structuredClone(suppliedView??providedView??snapshots[scene][role]);
  if(view.decisionClock)view.decisionClock={...view.decisionClock,running:false,serverTime:Date.now()};
  const self=role==='player'?view.seats.find(s=>s.id===view.self?.seatId):undefined;
- const session={role,view,self,connected,locked:locked||!connected||awaitingConfirmation||admissionPending,canControl:role==='host'||Boolean(view.self?.capabilities?.control),message:savedMessage,messageKind:savedMessage?'saved':'none',admissionPending,awaitingConfirmation,feedback,errorId:'',motion,command:c=>window.__commands.push(c)};
- window.__currentView=view;
- window.__fixture={scene,role,revision:view.revision,decisionId:view.decisionId,actions:view.actions,paused:view.paused,connected,uiFlags:{connected,locked,awaitingConfirmation,admissionPending,boundary:'controlled fixture UI flags; no real network/authentication proof'},publicHasSelf:role!=='player'&&Boolean(view.gameView?.self),auction:view.gameView?.auction?{kind:view.gameView.auction.kind,currentBid:view.gameView.auction.currentBid,highBidder:view.gameView.auction.highBidder,actingSeats:view.gameView.auction.actingSeats}:null};
+ const session={role,view,self,connected,locked:!connected,canControl:role==='host'||Boolean(view.self?.capabilities?.control),message:savedMessage,messageKind:savedMessage?'saved':'none',admissionPending:false,awaitingConfirmation:false,feedback:null,errorId:'',motion:[],command:c=>window.__commands.push(c)};
+ window.__fixture={scene,role,revision:view.revision,decisionId:view.decisionId,actions:view.actions,paused:view.paused,connected,publicHasSelf:role!=='player'&&Boolean(view.gameView?.self)};
  if(!preserve)currentKey=String(++sequence);
  flushSync(()=>root.render(<HostedGame key={currentKey} session={session} client={client} presentation={{management:()=>null,feedback:p=><SessionFeedback session={session}{...p}/>,playMode:()=>null,countdown:()=>null}}/>));
  return window.__fixture;
 };
 const params=new URLSearchParams(location.search),role=params.get('role')??'player',scene=params.get('scene')??'auction-open';
-if(!${JSON.stringify(fixedCanvas)}&&role==='player'&&self===top){const url=new URL('/player/game',location.origin);url.searchParams.set('role','player');url.searchParams.set('scene',scene);flushSync(()=>root.render(<PlayerFrame initialUrl={url.href}/>));}
+if(role==='player'&&self===top){const url=new URL('/player/game',location.origin);url.searchParams.set('role','player');url.searchParams.set('scene',scene);flushSync(()=>root.render(<PlayerFrame initialUrl={url.href}/>));}
 else window.renderModernArt({scene,role});
 `;
   await writeFile(join(work, 'entry.tsx'), entry);

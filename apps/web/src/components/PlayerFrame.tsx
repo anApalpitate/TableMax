@@ -1,12 +1,4 @@
-import {
-  useCallback,
-  useEffect,
-  useLayoutEffect,
-  useRef,
-  useState,
-  type CSSProperties,
-} from 'react';
-import { fixedVisualViewportClip } from '@tablemax/web-host/platform';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   isDesktopPlayer,
   playerFramePath,
@@ -36,11 +28,6 @@ export function PlayerFrame({ initialUrl }: { initialUrl: string }) {
     }
   });
   const [contract, setContract] = useState(false);
-  const [fixedCanvas, setFixedCanvas] = useState(false);
-  const boundary = useRef<HTMLElement>(null);
-  const [fixedClip, setFixedClip] = useState<ReturnType<
-    typeof fixedVisualViewportClip
-  > | null>(null);
   const [space, setSpace] = useState(() =>
     workspaceSpace(window.innerWidth, window.innerHeight),
   );
@@ -52,62 +39,16 @@ export function PlayerFrame({ initialUrl }: { initialUrl: string }) {
         return 'portrait';
       }
     });
-  const mode = fixedCanvas
-    ? 'mobile'
-    : contract
-      ? workspaceLayout(space.width, space.height, workspacePreference)
-      : desktop && large
-        ? preferred
-        : 'mobile';
+  const mode = contract
+    ? workspaceLayout(space.width, space.height, workspacePreference)
+    : desktop && large
+      ? preferred
+      : 'mobile';
   const canSwitchWorkspace =
     workspaceLayout(space.width, space.height, 'wide') === 'wide';
   const displayPreference = contract ? workspacePreference : preferred;
   const frame = useRef<HTMLIFrameElement>(null);
   const disconnect = useRef<(() => void) | null>(null);
-  useLayoutEffect(() => {
-    const container = boundary.current;
-    if (!fixedCanvas || !container) {
-      setFixedClip(null);
-      return;
-    }
-    // Only the top-level visual viewport knows which part of this iframe is
-    // actually visible. Resizing its box preserves the same child document.
-    const visualViewport = window.visualViewport;
-    let animation = 0;
-    const measure = () => {
-      animation = 0;
-      const next = fixedVisualViewportClip(
-        container.getBoundingClientRect(),
-        visualViewport,
-      );
-      setFixedClip((previous) =>
-        previous &&
-        Object.keys(next).every(
-          (key) =>
-            previous[key as keyof typeof next] ===
-            next[key as keyof typeof next],
-        )
-          ? previous
-          : next,
-      );
-    };
-    const schedule = () => {
-      if (!animation) animation = requestAnimationFrame(measure);
-    };
-    const observer = new ResizeObserver(schedule);
-    observer.observe(container);
-    visualViewport?.addEventListener('resize', schedule);
-    visualViewport?.addEventListener('scroll', schedule);
-    window.addEventListener('resize', schedule);
-    measure();
-    return () => {
-      observer.disconnect();
-      cancelAnimationFrame(animation);
-      visualViewport?.removeEventListener('resize', schedule);
-      visualViewport?.removeEventListener('scroll', schedule);
-      window.removeEventListener('resize', schedule);
-    };
-  }, [fixedCanvas]);
   const applyDisplay = useCallback(() => {
     const child = frame.current?.contentWindow;
     if (!child) return;
@@ -116,21 +57,13 @@ export function PlayerFrame({ initialUrl }: { initialUrl: string }) {
         !playerFramePath(new URL(child.location.href), window.location.origin)
       )
         return;
-      if (fixedCanvas) {
-        // The inner fixed canvas owns presentation. Its document still fills
-        // the real viewport so modal/popover and browser zoom remain usable.
-        delete child.document.documentElement.dataset.playerDisplay;
-        delete child.document.documentElement.dataset.playerLayout;
-      } else {
-        child.document.documentElement.dataset.playerDisplay = mode;
-        if (contract)
-          child.document.documentElement.dataset.playerLayout = mode;
-        else delete child.document.documentElement.dataset.playerLayout;
-      }
+      child.document.documentElement.dataset.playerDisplay = mode;
+      if (contract) child.document.documentElement.dataset.playerLayout = mode;
+      else delete child.document.documentElement.dataset.playerLayout;
     } catch {
       /* An unrelated document does not receive player presentation. */
     }
-  }, [mode, contract, fixedCanvas]);
+  }, [mode, contract]);
   useEffect(() => {
     let previousWidth = window.innerWidth;
     const changed = () => {
@@ -158,17 +91,10 @@ export function PlayerFrame({ initialUrl }: { initialUrl: string }) {
     applyDisplay();
     disconnect.current?.();
     const child = frame.current?.contentWindow;
-    if (!child) {
-      setFixedCanvas(false);
-      return;
-    }
+    if (!child) return;
     try {
-      if (child.location.origin !== window.location.origin) {
-        setFixedCanvas(false);
-        return;
-      }
+      if (child.location.origin !== window.location.origin) return;
     } catch {
-      setFixedCanvas(false);
       return;
     }
     const synchronize = () => {
@@ -187,7 +113,7 @@ export function PlayerFrame({ initialUrl }: { initialUrl: string }) {
       }
     };
     child.addEventListener('popstate', synchronize);
-    const detect = () => {
+    const detect = () =>
       setContract(
         Boolean(
           child.document.querySelector(
@@ -195,14 +121,6 @@ export function PlayerFrame({ initialUrl }: { initialUrl: string }) {
           ),
         ),
       );
-      setFixedCanvas(
-        Boolean(
-          child.document.querySelector(
-            '[data-player-layout-contract="fixed-v1"]',
-          ),
-        ),
-      );
-    };
     const observer = new MutationObserver(detect);
     observer.observe(child.document.documentElement, {
       subtree: true,
@@ -233,23 +151,11 @@ export function PlayerFrame({ initialUrl }: { initialUrl: string }) {
     synchronize();
   }, [applyDisplay]);
   useEffect(() => () => disconnect.current?.(), []);
-  const fixedStyle: CSSProperties | undefined =
-    fixedCanvas && fixedClip
-      ? {
-          position: 'absolute',
-          left: fixedClip.x,
-          top: fixedClip.y,
-          width: fixedClip.width,
-          height: fixedClip.height,
-        }
-      : undefined;
   return (
     <main
-      ref={boundary}
       className="player-frame"
       data-player-display={mode}
       data-workspace-layout={contract ? mode : undefined}
-      data-fixed-canvas-frame={fixedCanvas || undefined}
     >
       <div className="player-frame__scene" aria-hidden="true">
         <span className="player-frame__cards player-frame__cards--left" />
@@ -257,7 +163,7 @@ export function PlayerFrame({ initialUrl }: { initialUrl: string }) {
         <span className="player-frame__chip player-frame__chip--left" />
         <span className="player-frame__chip player-frame__chip--right" />
       </div>
-      {!fixedCanvas && (contract ? canSwitchWorkspace : desktop && large) && (
+      {(contract ? canSwitchWorkspace : desktop && large) && (
         <button
           type="button"
           className="player-frame__display"
@@ -319,7 +225,6 @@ export function PlayerFrame({ initialUrl }: { initialUrl: string }) {
         ref={frame}
         data-player-frame
         className="player-frame__viewport"
-        style={fixedStyle}
         title="玩家操作"
         src={source}
         allow="fullscreen 'none'"

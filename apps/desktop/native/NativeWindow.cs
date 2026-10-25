@@ -28,7 +28,6 @@ namespace TableMax.Desktop
         private bool fullscreen, applyingDisplay;
         private string windowMode = "windowed", fullscreenReturnMode = "windowed";
         private DisplayGeometry simulated;
-        private readonly DisplayLayoutState displayLayout = new DisplayLayoutState();
         private readonly int initialWidth, initialHeight;
         private string lastMessageSourcePath, lastMessageCurrentPath;
         private string capturedJoinUrl;
@@ -120,10 +119,7 @@ namespace TableMax.Desktop
                 if (args.IsNewDocument) { AudioReady = false; InteractionAudioReady = false; context.BroadcastAudio(); context.BroadcastInteractionAudio(); }
                 ApplyDisplay();
             };
-            // SourceChanged omits same-URL reloads. ContentLoading runs before
-            // injected scripts for every new document, excluding hash/SPA changes.
-            core.ContentLoading += (_, __) => { displayLayout.Reset(); ApplyDisplay(); };
-            core.ProcessFailed += (_, __) => { displayLayout.Reset(); AudioReady = false; InteractionAudioReady = false; context.BroadcastAudio(); context.BroadcastInteractionAudio(); };
+            core.ProcessFailed += (_, __) => { AudioReady = false; InteractionAudioReady = false; context.BroadcastAudio(); context.BroadcastInteractionAudio(); };
             core.WebMessageReceived += OnWebMessage;
             core.NavigationCompleted += (_, __) => ApplyDisplay();
             browser.ZoomFactorChanged += (_, __) => { if (!applyingDisplay && Managed) ApplyDisplay(); };
@@ -245,7 +241,7 @@ namespace TableMax.Desktop
         public object ApplyDisplay()
         {
             if (IsDisposed || browser.IsDisposed) return null;
-            var snapshot = Geometry().Snapshot(Preferences, displayLayout);
+            var snapshot = Geometry().Snapshot(Preferences);
             if (Managed && browser.CoreWebView2 != null)
             {
                 var factor = Json.Number(Json.Decode(Json.Encode(snapshot)), "zoomFactor", 1);
@@ -255,11 +251,6 @@ namespace TableMax.Desktop
                 if (context.Allowed(Url, Role)) Changed("display", snapshot);
             }
             return snapshot;
-        }
-        public object SetLayoutProfile(object input)
-        {
-            displayLayout.Select(input);
-            return ApplyDisplay();
         }
         public void Changed(string channel, object value)
         {

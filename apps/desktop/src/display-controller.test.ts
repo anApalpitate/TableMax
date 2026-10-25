@@ -1,8 +1,4 @@
 import { EventEmitter } from 'node:events';
-import { execFile } from 'node:child_process';
-import { createHash } from 'node:crypto';
-import { promisify } from 'node:util';
-import { runInNewContext } from 'node:vm';
 import {
   mkdtemp,
   mkdir,
@@ -27,238 +23,23 @@ import {
 import { displayChannels, type DisplaySnapshot } from './display-types';
 
 const origin = 'http://127.0.0.1:38473';
-const temporaryRoot = resolve(
-  process.env.TABLEMAX_DISPLAY_TEST_TMP ?? join(tmpdir(), 'tablemax-display'),
-);
 const temporaryDirectories: string[] = [];
 async function temporaryDirectory() {
-  await mkdir(temporaryRoot, { recursive: true });
-  const directory = await mkdtemp(join(temporaryRoot, 'case-'));
+  const directory = await mkdtemp(join(tmpdir(), 'tablemax-display-'));
   temporaryDirectories.push(directory);
   return directory;
 }
 afterEach(async () => {
   for (const directory of temporaryDirectories.splice(0)) {
-    if (!resolve(directory).startsWith(temporaryRoot + sep + 'case-'))
+    if (
+      !resolve(directory).startsWith(
+        resolve(tmpdir()) + sep + 'tablemax-display-',
+      )
+    )
       throw new Error('Refusing to remove a non-test directory');
     await rm(directory, { recursive: true, force: true });
   }
   vi.restoreAllMocks();
-});
-
-it('executes current native geometry, document generations and host-only persistence', async () => {
-  const directory = await temporaryDirectory();
-  const harness = join(directory, 'DisplayHarness.cs');
-  const executable = join(directory, 'DisplayHarness.exe');
-  await writeFile(
-    harness,
-    `using System;
-using System.Collections.Generic;
-using System.IO;
-using TableMax.Desktop;
-internal static class DisplayHarness {
-  static readonly List<string> checks = new List<string>();
-  static void Check(bool ok, string name) { if (!ok) throw new Exception(name); checks.Add(name); }
-  static Dictionary<string, object> Snapshot(double width, double height, int ui, double dpi, DisplayLayoutState state, string resolution = "auto") {
-    return Json.Object(new System.Web.Script.Serialization.JavaScriptSerializer().DeserializeObject(Json.Encode(new DisplayGeometry { Width = width, Height = height, ScreenWidth = width, ScreenHeight = height, ScaleFactor = dpi }.Snapshot(new DisplayPreferences { Resolution = resolution, InterfaceScale = ui }, state))));
-  }
-  static object Selection(string profile, int generation, string document) { return Json.Decode(Json.Encode(new { profile, generation, documentId = document })); }
-  static void Reject(DisplayLayoutState state, object input, string name) { var before = state.Profile; var generation = state.Generation; bool rejected = false; try { state.Select(input); } catch (ArgumentException) { rejected = true; } catch (InvalidOperationException) { rejected = true; } Check(rejected && before == state.Profile && generation == state.Generation, name); }
-  static int Main(string[] args) {
-    try {
-      var state = new DisplayLayoutState();
-      var firstDocument = state.DocumentId;
-      Check(state.Profile == "legacy" && state.Generation == 0, "legacy by default");
-      state.Select(Selection("fixed-host-1280-v1", 1, firstDocument));
-      foreach (double dpi in new[] { 1.0, 1.25, 1.5, 2.0 }) foreach (int ui in new[] { 100, 125, 150 }) {
-        var result = Snapshot(3840 / dpi, 2160 / dpi, ui, dpi, state);
-        Check(Math.Abs(Json.Number(result, "zoomFactor") - 2 / dpi * ui / 100) < 1e-9 && !Json.Bool(result, "undersized"), "4K DIP/DPI/UI " + dpi + "/" + ui);
-      }
-      foreach (int ui in new[] { 100, 125, 150 }) Check(Math.Abs(Json.Number(Snapshot(1920, 1080, ui, 1, state), "zoomFactor") - ui / 100.0) < 1e-9, "1080p retains UI " + ui);
-      var fixedLimit = Snapshot(1280, 800, 150, 1, state, "3840x2160");
-      Check(Json.Number(fixedLimit, "zoomFactor") == 1 && Json.Bool(fixedLimit, "limited"), "fixed width limits preset without changing requested base");
-      Check(!Json.Bool(Snapshot(1280, 720, 100, 1, state), "undersized"), "exact fixed boundary");
-      Check(Json.Bool(Snapshot(1279, 720, 100, 1, state), "undersized"), "one CSS pixel short in width");
-      Check(Json.Bool(Snapshot(1280, 719, 100, 1, state), "undersized"), "one CSS pixel short in height");
-      Check(Json.Number(Snapshot(1000, 500, 150, 1, state), "zoomFactor") == 1, "never shrink below one");
-      Check(Json.Number(Snapshot(5760, 3240, 150, 1, state), "zoomFactor") == 3, "maximum three");
-      Reject(state, Selection("legacy", 1, firstDocument), "duplicate generation rejected");
-      Reject(state, Selection("legacy", 0, firstDocument), "zero generation rejected");
-      Reject(state, Selection("untrusted-size", 2, firstDocument), "unknown profile rejected");
-      Reject(state, Selection("legacy", 2, "wrong"), "wrong document rejected");
-      Reject(state, Json.Decode(Json.Encode(new { profile = "legacy", generation = 2, documentId = firstDocument, width = 1 })), "extra geometry rejected");
-      state.Select(Selection("legacy", 3, firstDocument));
-      var legacy = Snapshot(1280, 800, 150, 1, state, "3840x2160");
-      Check(Math.Abs(Json.Number(legacy, "zoomFactor") - 800.0 / 720) < 1e-9, "legacy geometry unchanged");
-      Reject(state, Selection("fixed-host-1280-v1", 2, firstDocument), "late lower generation rejected");
-      state.Reset();
-      Check(state.Profile == "legacy" && state.Generation == 0 && state.DocumentId != firstDocument, "navigation resets runtime state and token");
-      Reject(state, Selection("fixed-host-1280-v1", 999, firstDocument), "old document cannot revive profile");
-      state.Select(Selection("fixed-host-1280-v1", 1, state.DocumentId));
-      var store = new DisplaySettingsStore(args[0]);
-      var preferences = new DisplayPreferences { Resolution = "2560x1440", InterfaceScale = 125 };
-      store.Save(preferences);
-      var path = Path.Combine(args[0], "display-settings.json");
-      var saved = File.ReadAllText(path);
-      var savedObject = Json.Decode(saved);
-      Check(savedObject.Count == 2 && Json.Number(savedObject, "version") == 2 && !saved.Contains("layout"), "profile excluded from host-only v2 preferences");
-      state.Reset();
-      Snapshot(3840, 2160, 100, 1, state);
-      Check(File.ReadAllText(path) == saved && new DisplaySettingsStore(args[0]).Read().InterfaceScale == 125, "runtime changes never rewrite preferences");
-      Console.WriteLine(Json.Encode(new { passed = true, checks })); return 0;
-    } catch (Exception error) { Console.Error.WriteLine(error); return 1; }
-  }
-}`,
-  );
-  const compiler = join(
-    process.env.ProgramFiles ?? 'C:/Program Files',
-    'dotnet/sdk/9.0.102/Roslyn/bincore/csc.dll',
-  );
-  const references = resolve(
-    '.cache/nuget/microsoft.netframework.referenceassemblies.net48/1.0.3/build/.NETFramework/v4.8',
-  );
-  const execute = promisify(execFile);
-  const compilation = await execute(
-    'dotnet',
-    [
-      compiler,
-      '/nologo',
-      '/target:exe',
-      '/platform:x64',
-      '/langversion:12',
-      '/warnaserror+',
-      '/nostdlib+',
-      `/out:${executable}`,
-      ...['mscorlib', 'System', 'System.Core', 'System.Web.Extensions'].map(
-        (name) => `/reference:${join(references, name + '.dll')}`,
-      ),
-      resolve('apps/desktop/native/DisplaySettings.cs'),
-      resolve('apps/desktop/native/Json.cs'),
-      harness,
-    ],
-    { windowsHide: true, timeout: 30000 },
-  );
-  await writeFile(join(directory, 'compile.log'), compilation.stdout);
-  const execution = await execute(executable, [directory], {
-    windowsHide: true,
-    timeout: 10000,
-  });
-  const report = JSON.parse(execution.stdout.trim()) as {
-    passed: boolean;
-    checks: string[];
-  };
-  expect(report.passed).toBe(true);
-  expect(report.checks.length).toBeGreaterThanOrEqual(30);
-  if (process.env.TABLEMAX_DISPLAY_TEST_EVIDENCE) {
-    const evidence = resolve(process.env.TABLEMAX_DISPLAY_TEST_EVIDENCE);
-    await mkdir(evidence, { recursive: true });
-    const sources = await Promise.all(
-      [
-        'apps/desktop/native/DisplaySettings.cs',
-        'apps/desktop/native/Json.cs',
-        'apps/desktop/src/display-controller.test.ts',
-      ].map(async (path) => {
-        return [
-          path,
-          createHash('sha256')
-            .update(await readFile(resolve(path)))
-            .digest('hex'),
-        ];
-      }),
-    );
-    await writeFile(
-      join(
-        evidence,
-        `native-unit-${process.env.TABLEMAX_TEST_HISTORY_RUN_ID ?? Date.now()}.json`,
-      ),
-      JSON.stringify({
-        ...report,
-        method: 'compiled-net48-native-display-geometry-state',
-        sourceHashes: Object.fromEntries(sources),
-        harnessSha256: createHash('sha256')
-          .update(await readFile(harness))
-          .digest('hex'),
-        environment: {
-          compiler,
-          node: process.version,
-          platform: process.platform,
-          architecture: process.arch,
-        },
-      }),
-    );
-  }
-}, 45000);
-
-type BridgeRequest = {
-  id: number;
-  method: string;
-  params: unknown[];
-};
-async function nativeBridge(top = true) {
-  const requests: BridgeRequest[] = [];
-  let receive: (event: { data: unknown }) => void = () => {};
-  const surface: Record<string, unknown> = {
-    chrome: {
-      webview: {
-        postMessage: (message: BridgeRequest) => requests.push(message),
-        addEventListener: (_event: string, handler: typeof receive) =>
-          (receive = handler),
-      },
-    },
-    addEventListener() {},
-  };
-  surface.top = top ? surface : {};
-  runInNewContext(
-    (await readFile(resolve('apps/desktop/native/bridge.js'), 'utf8'))
-      .replace('__WINDOW_ID__', '1')
-      .replace('__MANAGED__', 'true')
-      .replace('__TESTING__', 'false')
-      .replace('__UPDATE_ALLOWED__', 'false'),
-    { window: surface, setTimeout, clearTimeout },
-  );
-  return {
-    bridge: surface.tablemaxDisplay as NonNullable<Window['tablemaxDisplay']>,
-    requests,
-    reply(request: BridgeRequest, result: unknown) {
-      receive({ data: { id: request.id, result } });
-    },
-  };
-}
-
-it('binds the actual native layout bridge to one document and rejects stale queued choices', async () => {
-  const { bridge, requests, reply } = await nativeBridge();
-  const first = bridge.setLayoutProfile!('fixed-host-1280-v1', 1).catch(
-    (error: Error) => error.message,
-  );
-  const second = bridge.setLayoutProfile!('legacy', 2);
-  expect(requests).toHaveLength(1);
-  expect(requests[0]?.method).toBe('display.read');
-  reply(requests[0]!, { layoutDocumentId: 'current-document' });
-  await expect(first).resolves.toContain('过期');
-  await vi.waitFor(() => expect(requests).toHaveLength(2));
-  expect(requests[1]).toMatchObject({
-    method: 'display.setLayoutProfile',
-    params: [
-      { profile: 'legacy', generation: 2, documentId: 'current-document' },
-    ],
-  });
-  reply(requests[1]!, { layoutProfile: 'legacy' });
-  await expect(second).resolves.toMatchObject({ layoutProfile: 'legacy' });
-  const third = bridge.setLayoutProfile!('fixed-host-1280-v1', 3);
-  await vi.waitFor(() => expect(requests).toHaveLength(3));
-  expect(requests[2]?.params).toEqual([
-    {
-      profile: 'fixed-host-1280-v1',
-      generation: 3,
-      documentId: 'current-document',
-    },
-  ]);
-  reply(requests[2]!, { layoutProfile: 'fixed-host-1280-v1' });
-  await third;
-  await expect(bridge.setLayoutProfile!('legacy', 2)).rejects.toThrow('过期');
-  await expect(bridge.setLayoutProfile!('legacy', NaN)).rejects.toThrow('无效');
-  expect(requests).toHaveLength(3);
-  expect((await nativeBridge(false)).bridge).toBeUndefined();
 });
 
 class TestWebContents extends EventEmitter {

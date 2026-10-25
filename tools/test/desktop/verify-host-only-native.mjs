@@ -9,11 +9,6 @@ import { basename, dirname, join, relative, resolve, sep } from 'node:path';
 import { assertWorkspaceRoot } from '../../shared/workspace-root.mjs';
 
 assertWorkspaceRoot();
-if (process.argv.some((arg) => arg.startsWith('--layout-profile'))) {
-  const { runFixedProfileNative } = await import('./fixed-profile-native.mjs');
-  await runFixedProfileNative(process.argv.slice(2));
-  process.exit(process.exitCode ?? 0);
-}
 const option = (name, fallback) =>
   process.argv
     .find((arg) => arg.startsWith(`--${name}=`))

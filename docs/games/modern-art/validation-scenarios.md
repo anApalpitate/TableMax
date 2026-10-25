@@ -2,17 +2,7 @@
 
 本页维护当前源码布局检查、规则／策略范围及其原构建的历史证明。以下源码结果、历史运行包、便携ZIP和资源预算不代表当前installer重新通过；当前交付身份、安装与真实设备缺口统一查[验收](../../reference/acceptance.md#当前源码与本地交付)。
 
-## 固定构图源码试点（2026-10-25）
-
-用户选择360×800重新试点后，[最终46项报告](../../../artifacts/maintenance/fixed-canvas-20261025-02/modern-art/required-46-r5/report.json)通过：五人、三套逻辑构图、完整手牌、五类拍卖、双拍、密集收藏、暗标输入、轮间与终局，另含最长合法姓名／中途领拍／必要错误及等待。源码与合法投影绑定[build-r5](../../../artifacts/maintenance/fixed-canvas-20261025-02/modern-art/build-r5/report.json)。三套参数仍须宝可梦原版与扩展试点后冻结，首轮360×640失败不改写通过。
-
-`player-draft-switch`保持同一手牌与输入节点，真实翻页后切换构图再返回，浏览位置532px与首可见画作同时恢复；金额9、排序、真实焦点和零误提交分别核验。保存演出使用真实RoomCoordinator合法offer事件及前后授权投影，检查实际canvas偏移、同事件去重、初始快照不播放与暂停／受控断线恢复不补播。[演出元数据定向报告](../../../artifacts/maintenance/fixed-canvas-20261025-02/modern-art/saved-entrance-metadata-r9/report.json)按实际构图与拍卖方式记录live图；46项原报告的两条live图片曾继承初始场景标签，原PNG、真实锚点与断言保留，以定向报告的正确标签使用。
-
-[统一内容三构图](../../../artifacts/maintenance/test-history/runs/6315effd-31d7-4a84-816a-13d41201969f/0/report.json)及[真实PlayerFrame接入三项](../../../artifacts/maintenance/test-history/runs/56d21cdc-382e-49f7-83fa-14e8e11c323d/0/report.json)通过。公共36项、受控可见视口、真实浏览器缩放和原生profile各有独立证明，不计入本游戏46项或父命令分母；证据入口与[离线变化展示](../../../artifacts/maintenance/fixed-canvas-20261025-02/review/index.html)由[当前任务](../../tasks/fixed-canvas-visual-validation.md)维护。
-
-本轮属于生产组件、合法投影及受控GameHost投递的源码证明。真实Socket、服务持久化、实体手机／触控、其它物理DPI与旧档恢复继续单列，不从这些场景推为通过。下列2026-10-24及更早报告保留原源码／窗口布局与输入边界。
-
-## 历史竖横按钮、保存反馈与横屏容纳（2026-10-24）
+## 竖横按钮、保存反馈与横屏容纳（2026-10-24）
 
 `modern-art-layout-refine-20261023-c1`以提交`f96cd83b`导出的现代艺术完整源码及四个PlayerFrame文件为改前基线，复用逐SHA绑定的合法五人状态投影。[改前报告](../../../artifacts/maintenance/modern-art-layout-refine-20261023-c1/before-visual-r01/report.json)记录25组原布局；[最终改后报告](../../../artifacts/maintenance/modern-art-layout-refine-20261023-c1/after-visual-r06/report.json)28项通过、0失败／待项，绑定[最终构建报告](../../../artifacts/maintenance/modern-art-layout-refine-20261023-c1/after-build-r06/report.json)及其八项运行源码与一项状态快照SHA。场景包含十种阶段／子状态的1280×720与844×390玩家视口、390×844竖屏，以及三角色保存回执；另有可用640×320的上拍、单幅与双幅检查。
 

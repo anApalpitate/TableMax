@@ -323,9 +323,6 @@ namespace TableMax.Desktop
                     if (parameters.Length != 0) throw new ArgumentException("Invalid window request.");
                     window.ToggleMenu(); return null;
                 case "display.read": if (parameters.Length != 0) throw new ArgumentException("显示设置参数无效。"); return window.ApplyDisplay();
-                case "display.setLayoutProfile":
-                    if (parameters.Length != 1) throw new ArgumentException("显示布局参数无效。");
-                    return window.SetLayoutProfile(parameters[0]);
                 case "display.update":
                     if (parameters.Length != 1) throw new ArgumentException("显示设置参数无效。");
                     var preferences = DisplayPreferences.Parse(parameters[0]); Displays.Save(preferences); window.Preferences = preferences; return window.ApplyDisplay();

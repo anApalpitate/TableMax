@@ -47,7 +47,6 @@ export async function preparePublicScreenRetirement(
     action: JsonValue,
     seatId: string,
   ) => boolean,
-  options: { selectedKeys?: string[]; includeMixedName?: boolean } = {},
 ) {
   const games: Record<string, GameFixture> = {};
   const proof: { method: string; entries: unknown[] } = {
@@ -55,17 +54,7 @@ export async function preparePublicScreenRetirement(
       'Real RoomCoordinator joins/ready/start, then bounded legal rules.apply and bot decisions with complete state validation; independent authorized UI projections. Continuation does not claim transport, persistence or a naturally played match.',
     entries: [],
   };
-  const selectedEntries = options.selectedKeys
-    ? entries.filter((entry) => options.selectedKeys!.includes(entry.key))
-    : entries;
-  if (options.selectedKeys) {
-    assert.equal(
-      new Set(options.selectedKeys).size,
-      options.selectedKeys.length,
-    );
-    assert.equal(selectedEntries.length, options.selectedKeys.length);
-  }
-  for (const entry of selectedEntries) {
+  for (const entry of entries) {
     let saved: Save | null = null;
     const repository: SaveRepository = {
       load: () => structuredClone(saved),
@@ -97,9 +86,7 @@ export async function preparePublicScreenRetirement(
           ? '一起开心玩桌游呀'
           : index === 1
             ? 'WWWWWWWWWWWWWWWW'
-            : index === 2 && options.includeMixedName
-              ? '朋友WWWWWWWWWWWW'
-              : `朋友${index + 1}`,
+            : `朋友${index + 1}`,
       );
       players.push(joined);
       await act(joined.token, { type: 'ready', ready: true });

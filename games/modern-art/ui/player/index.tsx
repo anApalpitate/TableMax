@@ -1,4 +1,4 @@
-import { useCallback, useLayoutEffect, useRef, useState } from 'react';
+import { useRef, useState, useSyncExternalStore } from 'react';
 import type { Action, ModernArtView } from '../view';
 import { ArtCard } from '../ArtCard';
 import { money } from '../public/labels';
@@ -9,102 +9,19 @@ import {
 } from '../painting-display';
 import { artistPresentation } from '../artist-presentation';
 import { auctionNames } from '../public/labels';
-import type { CSSProperties, ReactNode, RefObject } from 'react';
+import type { CSSProperties, ReactNode } from 'react';
 import { sortPaintings, type PaintingSort } from '../sorting';
 
 type MoneyAction = Extract<Action, { amount: number }>;
 
-type HandBrowsePosition = {
-  left: number;
-  top: number;
-  anchor: string | undefined;
-  offsetX: number;
-  offsetY: number;
-};
+function subscribeHandWidth(update: () => void) {
+  const query = window.matchMedia('(min-width: 960px)');
+  query.addEventListener('change', update);
+  return () => query.removeEventListener('change', update);
+}
 
-function useHandBrowsePosition(
-  handRef: RefObject<HTMLDivElement | null>,
-  selectionKey: string,
-  layoutKey: string,
-  sort: PaintingSort,
-  expanded: boolean,
-) {
-  const memory = useRef({
-    selectionKey,
-    positions: new Map<string, HandBrowsePosition>(),
-  });
-  const restoring = useRef(false);
-  const positionKey = `${layoutKey}:${sort}`;
-  const remember = useCallback(() => {
-    const hand = handRef.current;
-    if (
-      !expanded ||
-      restoring.current ||
-      memory.current.selectionKey !== selectionKey ||
-      !hand ||
-      !hand.clientWidth ||
-      !hand.clientHeight
-    )
-      return;
-    const bounds = hand.getBoundingClientRect();
-    const anchor = [
-      ...hand.querySelectorAll<HTMLElement>('.ma-hand__card'),
-    ].find((card) => {
-      const rect = card.getBoundingClientRect();
-      return (
-        rect.right > bounds.left + 1 &&
-        rect.left < bounds.right - 1 &&
-        rect.bottom > bounds.top + 1 &&
-        rect.top < bounds.bottom - 1
-      );
-    });
-    const rect = anchor?.getBoundingClientRect();
-    memory.current.positions.set(positionKey, {
-      left: hand.scrollLeft,
-      top: hand.scrollTop,
-      anchor: anchor?.dataset.cardId,
-      offsetX: rect ? rect.left - bounds.left : 0,
-      offsetY: rect ? rect.top - bounds.top : 0,
-    });
-  }, [expanded, handRef, positionKey, selectionKey]);
-  useLayoutEffect(() => {
-    if (memory.current.selectionKey !== selectionKey) {
-      memory.current = { selectionKey, positions: new Map() };
-    }
-    const hand = handRef.current;
-    if (!expanded || !hand) return;
-    const saved = memory.current.positions.get(positionKey);
-    restoring.current = true;
-    const restore = () => {
-      let left = saved?.left ?? 0;
-      let top = saved?.top ?? 0;
-      const anchor =
-        saved?.anchor &&
-        [...hand.querySelectorAll<HTMLElement>('.ma-hand__card')].find(
-          (card) => card.dataset.cardId === saved.anchor,
-        );
-      if (anchor && saved) {
-        const bounds = hand.getBoundingClientRect();
-        const rect = anchor.getBoundingClientRect();
-        left = hand.scrollLeft + rect.left - bounds.left - saved.offsetX;
-        top = hand.scrollTop + rect.top - bounds.top - saved.offsetY;
-      }
-      hand.scrollTo({ left, top, behavior: 'instant' });
-    };
-    restore();
-    let frame = requestAnimationFrame(() => {
-      restore();
-      frame = requestAnimationFrame(() => {
-        restoring.current = false;
-        remember();
-      });
-    });
-    return () => {
-      cancelAnimationFrame(frame);
-      restoring.current = false;
-    };
-  }, [expanded, handRef, positionKey, remember, selectionKey]);
-  return remember;
+function wideHandWidth() {
+  return window.matchMedia('(min-width: 960px)').matches;
 }
 
 function AmountControls({
@@ -113,14 +30,12 @@ function AmountControls({
   choose,
   pass,
   passLabel,
-  compact = false,
 }: {
   actions: readonly MoneyAction[];
   locked: boolean;
   choose(action: Action): void;
   pass: Action | undefined;
   passLabel: string;
-  compact?: boolean;
 }) {
   const minimum = actions.reduce(
     (value, action) => Math.min(value, action.amount),
@@ -157,13 +72,10 @@ function AmountControls({
             ? '出售价格'
             : type === 'sealed-bid'
               ? '你的秘密出价'
-              : compact
-                ? '出价'
-                : '你的出价'}
+              : '你的出价'}
         </span>
         <small className="ma-bid__range">
-          {minimum}–{maximum}
-          {!compact && ' 千元'}
+          {minimum}–{maximum} 千元
         </small>
       </label>
       <div className="ma-bid__field">
@@ -184,7 +96,6 @@ function AmountControls({
         </button>
         <input
           id="ma-bid-amount"
-          aria-label={compact ? '你的出价金额（千元）' : undefined}
           type="number"
           inputMode="numeric"
           autoComplete="off"
@@ -236,12 +147,8 @@ function AmountControls({
       {!chosen && (
         <p className="ma-bid__invalid" role="status">
           {Number.isInteger(value) && value < minimum
-            ? compact
-              ? `至少${minimum}千元；输入已保留。`
-              : `当前报价已提高，请改为至少 ${minimum} 千元。你的输入已保留。`
-            : compact
-              ? '仅限范围内整数；输入已保留。'
-              : '请输入当前允许范围内的整数金额。'}
+            ? `当前报价已提高，请改为至少 ${minimum} 千元。你的输入已保留。`
+            : '请输入当前允许范围内的整数金额。'}
         </p>
       )}
     </form>
@@ -250,9 +157,6 @@ function AmountControls({
 
 export function PlayerControls({
   stage,
-  leader,
-  compactBidHeader = false,
-  layoutKey = 'legacy',
   view,
   actions,
   locked,
@@ -262,9 +166,6 @@ export function PlayerControls({
   choose,
 }: {
   stage: ReactNode;
-  leader?: ReactNode;
-  compactBidHeader?: boolean;
-  layoutKey?: string;
   view: ModernArtView;
   actions: readonly Action[];
   locked: boolean;
@@ -280,10 +181,11 @@ export function PlayerControls({
     expanded: boolean;
   } | null>(null);
   const handRef = useRef<HTMLDivElement>(null);
+  const wideHand = useSyncExternalStore(subscribeHandWidth, wideHandWidth);
+  if (!self) return null;
   const moneyActions = actions.filter(
     (action): action is MoneyAction => 'amount' in action,
   );
-  const compactBid = compactBidHeader && moneyActions.length > 0;
   const offered = new Map(
     actions.flatMap((action) =>
       'cardId' in action ? [[action.cardId, action] as const] : [],
@@ -292,15 +194,8 @@ export function PlayerControls({
   const handAction =
     (view.phase === 'offer' || view.phase === 'double') && offered.size > 0;
   const handExpanded =
-    handRequested?.key === selectionKey ? handRequested.expanded : handAction;
-  const rememberHandPosition = useHandBrowsePosition(
-    handRef,
-    `${selectionKey}:${self?.seatId ?? 'none'}`,
-    layoutKey,
-    sort,
-    handExpanded,
-  );
-  if (!self) return null;
+    wideHand ||
+    (handRequested?.key === selectionKey ? handRequested.expanded : handAction);
   const browseHand = (direction: -1 | 1) => {
     const hand = handRef.current;
     const first = hand?.querySelector<HTMLElement>('.ma-hand__card');
@@ -353,16 +248,13 @@ export function PlayerControls({
     <section className="ma-player" aria-label="你的玩家区域">
       <div className="ma-player__workspace">
         {stage}
-        <div
-          className="ma-player__operations"
-          data-compact-bid={compactBid || undefined}
-        >
+        <div className="ma-player__operations">
           <div className="ma-wallet">
             <div>
               <span className="ma-wallet__icon" aria-hidden="true">
                 ▥
               </span>
-              <span>{compactBid ? '资金' : '你的博物馆'}</span>
+              <span>你的博物馆</span>
             </div>
             <strong>
               <span aria-hidden="true" className="ma-coin">
@@ -380,7 +272,6 @@ export function PlayerControls({
                 choose={choose}
                 pass={pass}
                 passLabel={passLabel}
-                compact={compactBid}
               />
             )}
             <div className="ma-controls__simple">
@@ -430,7 +321,6 @@ export function PlayerControls({
                 </p>
               )}
           </div>
-          {leader}
         </div>
       </div>
       <div
@@ -447,25 +337,27 @@ export function PlayerControls({
                 : '你的手牌'}
           </h2>
           <span className="ma-hand-count">{self.hand.length} 张</span>
-          <button
-            className="secondary ma-hand-toggle"
-            type="button"
-            aria-expanded={handExpanded}
-            aria-controls="ma-private-hand"
-            onClick={() =>
-              setHandRequested({ key: selectionKey, expanded: !handExpanded })
-            }
-          >
-            <span className="ma-hand-toggle__portrait">
-              {handExpanded ? '收起' : '查看手牌'}
-            </span>
-            <span className="ma-hand-toggle__landscape">
-              {handExpanded ? '返回拍卖' : `手牌 ${self.hand.length} 张`}
-            </span>
-            <span className="ma-hand-toggle__icon" aria-hidden="true">
-              {handExpanded ? '⌃' : '⌄'}
-            </span>
-          </button>
+          {!wideHand && (
+            <button
+              className="secondary ma-hand-toggle"
+              type="button"
+              aria-expanded={handExpanded}
+              aria-controls="ma-private-hand"
+              onClick={() =>
+                setHandRequested({ key: selectionKey, expanded: !handExpanded })
+              }
+            >
+              <span className="ma-hand-toggle__portrait">
+                {handExpanded ? '收起' : '查看手牌'}
+              </span>
+              <span className="ma-hand-toggle__landscape">
+                {handExpanded ? '返回拍卖' : `手牌 ${self.hand.length} 张`}
+              </span>
+              <span className="ma-hand-toggle__icon" aria-hidden="true">
+                {handExpanded ? '⌃' : '⌄'}
+              </span>
+            </button>
+          )}
         </div>
         <div id="ma-private-hand" hidden={!handExpanded}>
           <div className="ma-hand-tools">
@@ -500,7 +392,6 @@ export function PlayerControls({
             id="ma-hand-gallery"
             className="ma-hand"
             ref={handRef}
-            onScroll={rememberHandPosition}
             role="region"
             aria-label="你的完整手牌，横屏可左右浏览"
             tabIndex={0}

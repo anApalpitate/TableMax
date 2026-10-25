@@ -16,8 +16,9 @@
 }
 .ma-screen .ma-museum__name {
   min-width: 0;
-  overflow-wrap: anywhere;
-  white-space: normal;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 .ma-screen:not(.player) .ma-table:has(.ma-results) .ma-museum__cash {
   margin: 4px 0;
@@ -44,9 +45,9 @@
 }
 
 .ma-screen .ma-results__identity > span {
-  min-width: 0;
-  overflow-wrap: anywhere;
-  white-space: normal;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .ma-screen .ma-results__income > div > strong {
@@ -54,7 +55,7 @@
   white-space: nowrap;
 }
 
-@container tablemax-game (min-width: 701px) and (max-height: 800px) {
+@media (min-width: 701px) and (max-height: 800px) {
   .ma-screen:not(.player) .ma-museum__portrait,
   .ma-screen:not(.player) .ma-results__portrait {
     width: 24px;

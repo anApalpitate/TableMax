@@ -6,7 +6,6 @@ if (isDirectExecution(import.meta.url)) assertWorkspaceRoot();
 
 import { readdirSync, existsSync } from 'node:fs';
 import { relative, resolve } from 'node:path';
-import { selectFixedCanvasCases } from '../platform/fixed-canvas-contract.mjs';
 
 export const gameIds = [
   'pokemon-encounters',
@@ -23,8 +22,6 @@ const validScopes = ['box', 'shared', 'tooling', ...gameScopes];
 
 // Classify what a test actually exercises, rather than its containing app.
 const unitScopes = {
-  'packages/web-host/src/layout/fixed-layout.test.ts': ['shared'],
-  'packages/web-host/src/layout/fixed-visible-viewport.test.ts': ['shared'],
   'apps/server/src/cockroach-games.test.ts': ['game:cockroach-poker'],
   'apps/server/src/cockroach-worker.test.ts': ['game:cockroach-poker'],
   'packages/platform-core/src/automatic-timing.test.ts': ['shared'],
@@ -569,56 +566,8 @@ export function scopedVitestIncludes(root, value, args = []) {
   return selectUnitTests(root, 'full', filters).selected;
 }
 
-export const fixedNativeProfileCheckIds = [
-  'native-fixed-source-build-and-medium',
-  'native-fixed-production-adapter',
-  'native-fixed-ui-size-and-canvas',
-  'native-fixed-document-generation',
-  'native-fixed-authority-and-persistence',
-];
-
-export function selectFixedNativeProfile(args) {
-  const options = new Map();
-  for (const arg of args) {
-    const match = /^--(layout-profile|task|evidence|checks)=(.+)$/.exec(arg);
-    if (!match || options.has(match[1]))
-      throw new Error(
-        'Unknown, conflicting or duplicate fixed native profile argument: ' +
-          arg,
-      );
-    options.set(match[1], match[2]);
-  }
-  if (options.get('layout-profile') !== 'fixed-v1')
-    throw new Error('Invalid fixed native layout profile');
-  const checks = options.has('checks')
-    ? options.get('checks').split(',')
-    : fixedNativeProfileCheckIds;
-  if (
-    new Set(checks).size !== checks.length ||
-    checks.some((id) => !fixedNativeProfileCheckIds.includes(id))
-  )
-    throw new Error('Unknown or duplicate fixed native profile check');
-  return {
-    profile: 'fixed-v1',
-    task: options.get('task'),
-    evidence: options.get('evidence'),
-    checks,
-    scopes: ['shared'],
-  };
-}
-
 export function verificationTestScopes(item) {
   const script = item.script.replaceAll('\\', '/');
-  if (
-    script === 'tools/test/desktop/verify-host-only-native.mjs' &&
-    item.args.some((arg) => arg.startsWith('--layout-profile'))
-  )
-    return selectFixedNativeProfile(item.args).scopes;
-  if (
-    script === 'tools/test/platform/verify-public-screen-retirement-ui.mjs' &&
-    item.args.some((arg) => arg.startsWith('--layout-contract'))
-  )
-    return selectFixedCanvasCases(item.args).scopes;
   if (
     script ===
       'tools/test/games/pokemon-encounters/verify-pokemon-polish.mjs' &&
