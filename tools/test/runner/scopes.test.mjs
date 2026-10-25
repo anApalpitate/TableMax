@@ -85,6 +85,41 @@ test('fixed canvas rejects unknown IDs, unmigrated games and legacy arguments', 
   assert.throws(() => selectFixedCanvasCases(['--layout-contract=fixed-v1']));
 });
 
+test('only platform overlay canvas cases add box scope and their generated-entry dependencies', () => {
+  const script = 'tools/test/platform/verify-public-screen-retirement-ui.mjs';
+  const base = ['--layout-contract=fixed-v1', '--layer=adapter'];
+  const platform = item(script, [
+    ...base,
+    '--only=adapter-host-platform-overlays,adapter-player-portrait-platform-video',
+  ]);
+  assert.deepEqual(verificationTestScopes(platform), ['box', 'shared']);
+  assert.throws(() => validateBatchScope(plan(platform), 'shared'), /outside/);
+  assert.doesNotThrow(() => validateBatchScope(plan(platform), 'box,shared'));
+  const selected = selectFixedCanvasCases(platform.args);
+  assert(
+    selected.inputs.files.includes(
+      'apps/web/src/components/DisplaySettings.tsx',
+    ),
+  );
+  assert(
+    selected.inputs.files.includes(
+      'apps/web/src/components/ConfirmationDialog.tsx',
+    ),
+  );
+  const ordinary = selectFixedCanvasCases([
+    ...base,
+    '--only=adapter-host-minimum',
+  ]);
+  assert.deepEqual(ordinary.scopes, ['shared']);
+  assert.equal(ordinary.platform, false);
+  assert(
+    !ordinary.inputs.files.some((path) =>
+      path.startsWith('apps/web/src/components/'),
+    ),
+  );
+  assert.deepEqual(selectFixedCanvasCases(base).scopes, ['box', 'shared']);
+});
+
 test('fixed native profile is shared while its default UNO host suite retains its scope', () => {
   const script = 'tools/test/desktop/verify-host-only-native.mjs';
   const fixed = item(script, ['--layout-profile=fixed-v1']);

@@ -52,7 +52,7 @@ export function SettingHelp({
         onBlur={() => setOpen(false)}
         onClick={() => setOpen(true)}
         onKeyDown={(event) => {
-          if (event.key === 'Escape') {
+          if (open && event.key === 'Escape') {
             event.preventDefault();
             event.stopPropagation();
             setOpen(false);

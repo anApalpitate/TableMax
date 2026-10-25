@@ -78,6 +78,7 @@ export function FixedCanvasFrame({
   );
   const current = useRef(selection);
   const selectionSpace = useRef(space);
+  const measuredSpace = useRef(space);
   const explicitChange = useRef(false);
   const [revision, setRevision] = useState(0);
   const setPreference = useCallback((next: CanvasPreference) => {
@@ -94,7 +95,7 @@ export function FixedCanvasFrame({
     if (!element) return;
     let animation = 0;
     let timer: ReturnType<typeof setTimeout> | undefined;
-    let lastWidth = element.clientWidth;
+    let lastWidth = element.offsetWidth;
     const commit = (next: typeof selection) => {
       if (
         current.current.layout !== next.layout ||
@@ -121,20 +122,53 @@ export function FixedCanvasFrame({
         width: Math.max(0, element.clientWidth - left - right),
         height: Math.max(0, element.clientHeight - top - bottom),
       };
-      setSpace((old) =>
-        Object.keys(nextSpace).every(
+      // An overflowing composition can create scrollbars which disappear when
+      // another composition fits. Do not let those transient bars lock out that
+      // candidate. The context still reports the actual visible client area.
+      const candidateSpace = {
+        ...nextSpace,
+        width:
+          style.overflowY === 'auto' && style.scrollbarGutter === 'auto'
+            ? Math.max(
+                0,
+                element.offsetWidth -
+                  (parseFloat(style.borderLeftWidth) || 0) -
+                  (parseFloat(style.borderRightWidth) || 0) -
+                  left -
+                  right,
+              )
+            : nextSpace.width,
+        height:
+          style.overflowX === 'auto'
+            ? Math.max(
+                0,
+                element.offsetHeight -
+                  (parseFloat(style.borderTopWidth) || 0) -
+                  (parseFloat(style.borderBottomWidth) || 0) -
+                  top -
+                  bottom,
+              )
+            : nextSpace.height,
+      };
+      if (
+        !Object.keys(nextSpace).every(
           (key) =>
-            old[key as keyof CanvasRect] === nextSpace[key as keyof CanvasRect],
+            measuredSpace.current[key as keyof CanvasRect] ===
+            nextSpace[key as keyof CanvasRect],
         )
-          ? old
-          : nextSpace,
-      );
+      ) {
+        measuredSpace.current = nextSpace;
+        setSpace(nextSpace);
+        // Anchors must be able to observe recentering/scrolling as well as a
+        // composition change; a stable mode does not imply stable coordinates.
+        setRevision((value) => value + 1);
+      }
       const focused = document.activeElement?.matches(
         'input,textarea,[contenteditable="true"]',
       );
-      const keyboardOnly = focused && lastWidth === nextSpace.width;
-      lastWidth = nextSpace.width;
-      if (!keyboardOnly) selectionSpace.current = nextSpace;
+      const keyboardOnly = focused && lastWidth === element.offsetWidth;
+      lastWidth = element.offsetWidth;
+      if (!keyboardOnly) selectionSpace.current = candidateSpace;
       let selected = selectCanvasLayout(
         selectionSpace.current,
         role,

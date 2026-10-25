@@ -18,11 +18,19 @@
 
 相同入口的`--review-only --task=tmp/<安全任务名> --evidence=<新轮名>`精确归`tooling`，读取任务`review/review-source.json`绑定HTML与相对图片SHA，再检查离线解码、筛选、原始像素和窄屏页面。一次性HTML生成脚本留任务`work`，不登记为永久工具入口；审阅QA不另增产品场景统计。服务路由／权限、原生桥接、配置、声音和安装器均须各自证据。
 
-固定画布为同一入口的可选模式：`--layout-contract=fixed-v1 --layer=adapter|content|integration [--only=<稳定场景ID,...>]`，与旧`phase`、`task`、`evidence`、`review-only`参数互斥；默认旧模式及其主体不变断言保留。固定模式从`TABLEMAX_TASK_TMP`读取任务临时根，从父运行器的`TABLEMAX_TEST_OUTPUT_DIR`写`report.json`和带SHA的PNG；version 2计划使用`resultFile: "report.json"`，临时路径不加入命令参数指纹。先按[纯选择清单](platform/fixed-canvas-contract.mjs)校验场景，再只构建选中夹具／玩法。adapter登记为`shared`，内容／接入目前仅登记现代艺术三构图，为`shared,game:modern-art`；其它玩法不因同一工具入口取得迁移结论。
+固定画布为同一入口的可选模式：`--layout-contract=fixed-v1 --layer=adapter|content|integration [--only=<稳定场景ID,...>]`，与旧`phase`、`task`、`evidence`、`review-only`参数互斥；默认旧模式及其主体不变断言保留。固定模式从`TABLEMAX_TASK_TMP`读取任务临时根，从父运行器的`TABLEMAX_TEST_OUTPUT_DIR`写`report.json`和带SHA的PNG；version 2计划使用`resultFile: "report.json"`，临时路径不加入命令参数指纹。先按[纯选择清单](platform/fixed-canvas-contract.mjs)校验场景，再只构建选中夹具／玩法。原34个公共adapter场景登记为`shared`；仅两个平台浮窗场景另需`box`，默认全adapter因此为`box,shared`。内容／接入目前仅登记现代艺术三构图，为`shared,game:modern-art`；其它玩法不因同一工具入口取得迁移结论。
 
 稳定ID示例为`adapter-host-minimum`、`adapter-player-portrait-height-minus-one`、`content-modern-art-player-landscape`、`integration-modern-art-host`。adapter检查逻辑尺寸、空间不足／留白、CSS不缩放、显式布局选择、连续resize保留挂载／草稿及坐标命中／拖动终点；`max-scale`只检查扩大CSS视口后画布仍保持原尺寸，不证明原生最大倍率。两种玩家构图另有`safe-insets`（实际容器已知padding与扣减一次）、`focused-height-change`（真实聚焦、缩短视口、保留构图／草稿、滚动到输入／确认入口、blur后回退）及`unfocused-dynamic-height`（连续高度变化保留挂载）；这些均标为可控CSS视口／安全区模拟。`adapter-player-portrait-overlay-focus`实际调用生产`OverlayPanel`原生dialog／portal和`SettingHelp`原生popover，核验Escape与焦点恢复，保留打开时截图。
 
 游戏模式要求生产client真实声明`fixed-v1`，核验实际组件、图片与文字；integration同一挂载连续resize，记录连接／身份／revision和有实际输入框时的草稿保持。报告分别计声明、选中、执行、通过、失败、未执行及复用；父运行器仍以一次独立命令计数。当前模式不声称证明实体安全区、真实键盘／地址栏、物理DPI、实体设备、服务保存或安装器；必要项目继续使用各自证据。新工具能力也不等于已执行通过，实际结果以本轮报告为准。
+
+平台样本`adapter-host-platform-overlays`使用实际`BoxOverlayPanel`、`ConfirmationDialog`、平台`RulesGuide`及`DisplaySettings`，检查独立内容滚动、取消初始焦点／确认回调、章节定位／回到章节、真实视频设置控件和帮助锚点，逐类保留截图。`adapter-player-portrait-platform-video`实际打开玩家视频设置，检查没有桌面显示字段／无边框选项，玩家本地开关可用且未调用桌面桥接。章节内容及host显示服务明确只是UI控制夹具，不证明游戏规则、保存或原生权限；四个入口只在选中这两个case时导入和构建。
+
+固定模式显式从Playwright默认参数移除`--hide-scrollbars`。`adapter-player-portrait-focused-height-change`另设置已知16px的webkit滚动条CSS，要求缩短后的实际`offsetWidth-clientWidth`为16px，再检查聚焦／blur回退；未取得实际占位时报告`environmentCoverage: not-covered`并失败，不从computed宽度推定已覆盖。报告保留client／offset尺寸及失败时几何。该项仍为受控浏览器环境，方法变化须形成新轮证据。
+
+adapter的内容绑定计划使用[纯清单](platform/fixed-canvas-contract.mjs)的`selectFixedCanvasCases(args).inputs`与`fixedCanvasAdapterClock`。选择结果在公共`fixedCanvasAdapterInputs`基础上，仅为平台样本追加四个实际入口及静态依赖／CSS；不选平台样本时仍保持原公共输入范围。计划同时声明`environmentProviders: ["msedge", "fixed-canvas-fonts"]`、`resultFile: "report.json"`，组合保留`kind: "source-ui"`、`layer: "adapter"`、`contract: "fixed-v1"`及固定时钟。`msedge`使用[公共运行时读取器](support/msedge-runtime.mjs)按锁定Playwright的实际安装优先顺序选择文件，绑定EXE／同版DLL的版本、路径及SHA；固定helper显式启动同一路径，核对实际browser版本并在结束时重核字节。WebView2 provider不能替代此Edge身份。
+
+`fixed-canvas-fonts`绑定系统字体目录中的`arial.ttf`／`arialbd.ttf`／`msyh.ttc`／`msyhbd.ttc`。仅adapter将这四个原文件复制到任务tmp的bundle，通过127.0.0.1以明确命名的常规／粗体font-face加载并检查成功；正式证据只记录字体来源、SHA和加载结果，不包含字体文件，也不据此证明系统字体映射或实体设备。缺浏览器、同版引擎、字体或必要版本时拒绝建立缓存。随机游戏局面仍保持`inputs.complete:false`；旧轮不会补字段追认为完整缓存证据。依赖审查闭合后先以全新轮次建立证据，再由原version 2选择报告确认reuse，复用不增加执行／通过统计。工具回归的临时文件接受`TABLEMAX_TASK_TMP`集中到同一任务根。
 
 真实原生接线复用[verify-host-only-native.mjs](desktop/verify-host-only-native.mjs)的`--layout-profile=fixed-v1`模式，精确归`shared`；默认旧模式范围不变。父计划设置`TABLEMAX_TASK_TMP=tmp/<任务唯一ID>/native`，采用`resultFile: "report.json"`，父输出目录内写数字`failures`及`failureDetails`；内部源码构建、profile及缓存均在任务临时根下唯一目录，不将逐轮目录名放入语义参数。可用`--checks=<稳定检查ID,...>`定向复验，合法ID由既有scope选择器维护。该模式隔离编译真实生产WinForms/WebView2开发壳，在可信回环`/host`源界面核验profile、原生倍率、导航与权限，不读取／修改冻结current，不生成installer；临时壳的内部`packaged`标记由真实路径策略决定，不能作为是否已发布或源码来源的证明。
 

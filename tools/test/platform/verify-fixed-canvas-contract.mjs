@@ -18,9 +18,15 @@ import react from '@vitejs/plugin-react';
 import { leanCatalogPlugin } from '../../build/lean-catalog.mjs';
 import { launchTestBrowser } from '../support/browser-test.mjs';
 import { serveFixture } from '../support/fixture-server.mjs';
+import {
+  controlledCanvasFontFaces,
+  readMsEdgeRuntime,
+  readControlledCanvasFonts,
+} from '../support/msedge-runtime.mjs';
 import { failureLimit } from '../runner/failure-policy.mjs';
 import {
   fixedCanvasVariants,
+  fixedCanvasAdapterClock,
   selectFixedCanvasCases,
 } from './fixed-canvas-contract.mjs';
 
@@ -114,14 +120,21 @@ export async function runFixedCanvasContract(args) {
       'CSS scale remains one. Native display zoom and physical DPI require their independent profile evidence.',
     ],
   };
-  let server, browser;
+  let server, browser, browserRuntime, fontRuntime;
   try {
+    browserRuntime = readMsEdgeRuntime();
+    fontRuntime =
+      selection.layer === 'adapter' ? readControlledCanvasFonts() : null;
     await bind('tools/test/platform/verify-public-screen-retirement-ui.mjs');
     await bind('tools/test/platform/verify-fixed-canvas-contract.mjs');
     await bind('tools/test/platform/fixed-canvas-contract.mjs');
     const fixture = selection.variants.length
       ? await prepareSelected()
-      : { createdAt: Date.now(), games: {}, proof: { entries: [] } };
+      : {
+          createdAt: fixedCanvasAdapterClock,
+          games: {},
+          proof: { entries: [] },
+        };
     const fixturePath = join(work, 'fixtures.json');
     await writeFile(fixturePath, JSON.stringify(fixture));
     await bind(fixturePath);
@@ -178,8 +191,38 @@ export async function runFixedCanvasContract(args) {
       },
       logLevel: 'error',
     });
+    if (fontRuntime) {
+      const fontDirectory = join(work, 'bundle', '__tablemax-contract-fonts');
+      await mkdir(fontDirectory);
+      for (const face of fontRuntime.faces) {
+        const bytes = await readFile(face.path);
+        assert.equal(
+          sha256(bytes),
+          face.sha256,
+          'Controlled font changed before serving',
+        );
+        await writeFile(
+          join(fontDirectory, face.id + extname(face.file)),
+          bytes,
+        );
+      }
+      report.controlledFonts = {
+        ...fontRuntime,
+        boundary:
+          'Exact local bytes served as named faces on loopback. Font bytes remain only in task tmp, never in evidence/delivery. Controlled source fixture, not OS font mapping or physical-device proof.',
+      };
+    }
     server = await serveFixture(join(work, 'bundle'));
-    browser = await launchTestBrowser({ channel: 'msedge', headless: true });
+    browser = await launchTestBrowser({
+      executablePath: browserRuntime.executable.path,
+      headless: true,
+      ignoreDefaultArgs: ['--hide-scrollbars'],
+    });
+    assert.equal(
+      browser.version(),
+      browserRuntime.version,
+      'The launched browser matches the bound msedge runtime',
+    );
     report.environment = {
       node: process.version,
       browser: browser.version(),
@@ -189,6 +232,9 @@ export async function runFixedCanvasContract(args) {
       physicalDpi: false,
       hasTouch: true,
       reducedMotion: 'reduce',
+      ignoredDefaultBrowserArgs: ['--hide-scrollbars'],
+      msedge: browserRuntime,
+      frozenClock: fixture.createdAt,
     };
     const context = await browser.newContext({
       reducedMotion: 'reduce',
@@ -262,6 +308,7 @@ export async function runFixedCanvasContract(args) {
         });
       } catch (error) {
         failures++;
+        const diagnosticMeasurements = await measure(page).catch(() => null);
         const screenshot = await capture(
           page,
           output,
@@ -272,6 +319,12 @@ export async function runFixedCanvasContract(args) {
           ...item,
           result: 'failed',
           error: String(error.stack ?? error),
+          ...(diagnosticMeasurements
+            ? { evidence: diagnosticMeasurements }
+            : {}),
+          ...(error.environmentCoverage
+            ? { environmentCoverage: error.environmentCoverage }
+            : {}),
           ...(screenshot ? { screenshot } : {}),
         });
       }
@@ -329,6 +382,23 @@ export async function runFixedCanvasContract(args) {
   } finally {
     await browser?.close();
     await server?.close();
+    try {
+      if (browserRuntime)
+        assert.deepEqual(
+          readMsEdgeRuntime(),
+          browserRuntime,
+          'Bound browser changed during verification',
+        );
+      if (fontRuntime)
+        assert.deepEqual(
+          readControlledCanvasFonts(),
+          fontRuntime,
+          'Controlled fonts changed during verification',
+        );
+    } catch (error) {
+      report.result = 'failed';
+      report.errors.push(String(error));
+    }
     report.inputs = [...inputs.values()].sort((a, b) =>
       a.path.localeCompare(b.path),
     );
@@ -387,19 +457,59 @@ export async function runFixedCanvasContract(args) {
   if (report.result !== 'passed') process.exitCode = 1;
 }
 
-function fixtureEntry(selection) {
+export function fixtureEntry(selection) {
   const games = selection.variants.length > 0;
-  return `import React,{useEffect,useLayoutEffect,useState}from'react';import{createRoot}from'react-dom/client';import{flushSync}from'react-dom';import{FixedCanvasFrame,PlayerLayoutControl,OverlayPanel,SettingHelp,useGameLayout}from'@tablemax/web-host';${games ? `import{PlatformGame}from ${quoted('apps/web/src/session/gameHostAdapter.tsx')};${selection.variants.map((key, index) => `import{client as c${index}}from ${quoted(join(fixedCanvasVariants[key].path, 'web/index.tsx'))};`).join('')}` : ''}import fixtures from'./fixtures.json';import ${quoted('apps/web/src/styles.css')};import ${quoted('apps/web/src/scrollbars.css')};
-const style=document.createElement('style');style.textContent='html,body,#root{margin:0;width:100%;height:100%;overflow:hidden}.contract-fixture{box-sizing:border-box;padding:16px;font-size:18px;height:100%;background:#fffbe8;color:#182d36}.contract-fixture h1{font-size:24px}.contract-fixture input,.contract-fixture button,.contract-fixture select{font-size:18px;min-height:44px;max-width:100%;box-sizing:border-box}.contract-fixture label{display:block;margin:12px 0}.contract-target{position:absolute;right:8px;bottom:8px;width:48px;height:48px}.contract-fixture p{font-size:16px;max-width:100%;overflow-wrap:anywhere}';document.head.append(style);
+  const platformImports = selection.platform
+    ? `import{BoxOverlayPanel,BoxPanelScope}from ${quoted('apps/web/src/components/BoxOverlayPanel.tsx')};import{ConfirmationDialog}from ${quoted('apps/web/src/components/ConfirmationDialog.tsx')};import{RulesGuide as PlatformRulesGuide}from ${quoted('apps/web/src/components/RulesGuide.tsx')};import{DisplaySettings as PlatformDisplaySettings}from ${quoted('apps/web/src/components/DisplaySettings.tsx')};`
+    : '';
+  const controlledFontCss =
+    selection.layer === 'adapter'
+      ? controlledCanvasFontFaces
+          .map(
+            (face) =>
+              `@font-face{font-family:"${face.family}";font-style:normal;font-weight:${face.weight};font-display:block;src:url("/__tablemax-contract-fonts/${face.id}${extname(face.file)}")} `,
+          )
+          .join('') +
+        ':root{font-family:"TableMaxContractLatin","TableMaxContractCJK"}'
+      : '';
+  return `import React,{useEffect,useLayoutEffect,useState}from'react';import{createRoot}from'react-dom/client';import{flushSync}from'react-dom';import{FixedCanvasFrame,PlayerLayoutControl,OverlayPanel,SettingHelp,useGameLayout}from'@tablemax/web-host';${platformImports}${games ? `import{PlatformGame}from ${quoted('apps/web/src/session/gameHostAdapter.tsx')};${selection.variants.map((key, index) => `import{client as c${index}}from ${quoted(join(fixedCanvasVariants[key].path, 'web/index.tsx'))};`).join('')}` : ''}import fixtures from'./fixtures.json';import ${quoted('apps/web/src/styles.css')};import ${quoted('apps/web/src/scrollbars.css')};
+const style=document.createElement('style');style.textContent=${JSON.stringify(controlledFontCss)}+'html,body,#root{margin:0;width:100%;height:100%;overflow:hidden}.contract-fixture{box-sizing:border-box;padding:16px;font-size:18px;height:100%;background:#fffbe8;color:#182d36}.contract-fixture h1{font-size:24px}.contract-fixture input,.contract-fixture button,.contract-fixture select{font-size:18px;min-height:44px;max-width:100%;box-sizing:border-box}.contract-fixture label{display:block;margin:12px 0}.contract-target{position:absolute;right:8px;bottom:8px;width:48px;height:48px;padding:0}.contract-fixture p{font-size:16px;max-width:100%;overflow-wrap:anywhere}';document.head.append(style);window.controlledCanvasFontFaces=${JSON.stringify(selection.layer === 'adapter' ? controlledCanvasFontFaces : [])};
 const root=createRoot(document.getElementById('root'));window.fixtureCommands=[];window.contractMounts=0;window.contractUnmounts=0;window.contractDrags=[];window.contractClicks=0;window.contractSubmissions=0;window.contractContext=null;const noop=()=>{};
 function Probe(){const layout=useGameLayout();useLayoutEffect(()=>{window.contractContext=layout});useEffect(()=>{window.contractMounts++;return()=>{window.contractUnmounts++}},[]);return null}
 function Adapter(){const [draft,setDraft]=useState('未提交草稿');const [panel,setPanel]=useState(false);return <><Probe/><div className="contract-fixture"><h1>固定画布契约</h1><p>一起开心玩桌游呀 WWWWWWWWWWWWWWWW 朋友WWWWWWWWWWWW</p><label>草稿<input aria-label="契约草稿" value={draft} onChange={event=>setDraft(event.target.value)}/></label><PlayerLayoutControl/><button type="button" aria-label="打开契约面板" onClick={()=>setPanel(true)}>查看详情</button><SettingHelp label="契约设置说明" hint="真实SettingHelp的浮层必须保持可读，并在窗口变化后仍然可达。"/><button type="button" aria-label="确认契约草稿" style={{position:'absolute',left:16,bottom:72}} onClick={()=>window.contractSubmissions++}>确认草稿</button><button className="contract-target" aria-label="边缘命中" onClick={()=>window.contractClicks++} onPointerDown={event=>event.currentTarget.setPointerCapture(event.pointerId)} onPointerUp={event=>window.contractDrags.push(window.contractContext.clientToLogical({x:event.clientX,y:event.clientY}))}>落点</button>{panel&&<OverlayPanel title="契约真实浮窗" close={()=>setPanel(false)}><label>面板草稿<input aria-label="面板草稿" defaultValue="浮窗内未提交内容"/></label><p>这是生产OverlayPanel创建的原生dialog和portal，不是模拟div。</p></OverlayPanel>}</div></>}
 ${games ? `const originals={${selection.variants.map((key, index) => `${JSON.stringify(key)}:c${index}`).join(',')}};const clients=Object.fromEntries(Object.entries(originals).map(([key,original])=>[key,{...original,Screen:({session})=><><Probe/><original.Screen session={session}/></>}]));function session(key,role){const view=fixtures.games[key].playing[role];return{role,view,isHost:role==='host',canControl:view.capabilities.control,canManageSeats:view.capabilities.manageSeats,self:view.seats.find(seat=>seat.id===view.self.seatId),credential:'fixture',connected:true,locked:false,busy:false,message:'',messageKind:'none',admissionPending:false,awaitingConfirmation:false,feedback:null,errorId:'',motion:[],saved:false,submitting:false,name:'',setName:noop,command:command=>window.fixtureCommands.push(command),retry:noop,retryAdmission:noop,subscribeInteractions:()=>noop,subscribeInteractionReset:()=>noop,addresses:['127.0.0.1'],adapters:[],port:38473,catalog:view.catalog,games:view.catalog,address:'127.0.0.1',joinUrl:'http://127.0.0.1:38473/',externalJoinUrl:null,networkMessage:'',refreshNetwork:noop,setAddress:noop,saveExternalJoinUrl:async()=>true,join:noop,setPlayerCredential:noop}}` : ''}
-window.renderFixedCase=item=>{window.fixtureCommands=[];history.replaceState(null,'','/'+item.role+(item.layer==='adapter'?'':'/game'));${games ? `if(item.layer!=='adapter'){if(originals[item.variant].layout?.contract!=='fixed-v1')throw new Error('Game is not migrated to fixed-v1');const s=session(item.variant,item.role);window.fixtureSession=s;flushSync(()=>root.render(<PlatformGame session={s} client={clients[item.variant]}/>));return;}` : ''}flushSync(()=>root.render(<FixedCanvasFrame role={item.role}><Adapter/></FixedCanvasFrame>))};`;
+${selection.platform ? platformFixtureCode() : ''}
+window.renderFixedCase=item=>{window.fixtureCommands=[];history.replaceState(null,'','/'+item.role+(item.layer==='adapter'?'':'/game'));${games ? `if(item.layer!=='adapter'){if(originals[item.variant].layout?.contract!=='fixed-v1')throw new Error('Game is not migrated to fixed-v1');const s=session(item.variant,item.role);window.fixtureSession=s;flushSync(()=>root.render(<PlatformGame session={s} client={clients[item.variant]}/>));return;}` : ''}${selection.platform ? `if(item.platform){installPlatformServices(item.role);flushSync(()=>root.render(<FixedCanvasFrame role={item.role}><PlatformOverlayFixture role={item.role}/></FixedCanvasFrame>));return;}` : ''}flushSync(()=>root.render(<FixedCanvasFrame role={item.role}><Adapter/></FixedCanvasFrame>))};`;
+}
+
+function platformFixtureCode() {
+  return `
+function installPlatformServices(role){window.platformCounters={displayReads:0,displayUpdates:[],windowReads:0,windowModes:[],confirms:0};if(role!=='host'){delete window.tablemaxDisplay;delete window.tablemaxWindow;return}let display={preferences:{resolution:'auto',interfaceScale:100},viewport:{width:1280,height:720},screen:{width:1280,height:720,scaleFactor:1},zoomFactor:1,limited:false,layoutProfile:'fixed-host-1280-v1'};let mode='windowed';window.tablemaxDisplay={read:async()=>{window.platformCounters.displayReads++;return display},update:async preferences=>{window.platformCounters.displayUpdates.push({...preferences});display={...display,preferences};return display},subscribe:()=>noop};window.tablemaxWindow={read:async()=>{window.platformCounters.windowReads++;return{mode,fullscreen:mode==='fullscreen'}},setMode:async next=>{window.platformCounters.windowModes.push(next);mode=next;return{mode,fullscreen:mode==='fullscreen'}},setFullscreen:async enabled=>{mode=enabled?'fullscreen':'windowed';return{mode,fullscreen:enabled}},subscribe:()=>noop}}
+const platformRuleChapters=[1,2,3].map(index=>({id:'ui-chapter-'+index,label:'示例章节'+['一','二','三'][index-1],title:'UI夹具规则章节'+['一','二','三'][index-1],content:<>{Array.from({length:7},(_,row)=><p key={row}>UI布局夹具段落{row+1}：这里只检查真实规则目录组件的章节、焦点和滚动，不提供任何游戏规则结论，也不表示服务端保存或原生授权已经发生。</p>)}</>}));
+function PlatformOverlayFixture({role}){const [draft,setDraft]=useState('未提交草稿');const [panel,setPanel]=useState(null);return <><Probe/><BoxPanelScope><div className='contract-fixture'><h1>平台浮窗UI夹具</h1><p>真实生产组件；内容与显示服务仅受控UI输入，不代表规则、保存或原生授权。</p><label>草稿<input aria-label='契约草稿' value={draft} onChange={event=>setDraft(event.target.value)}/></label><PlayerLayoutControl/>{role==='host'&&<><button aria-label='打开平台盒子浮窗' onClick={()=>setPanel('box')}>盒子浮窗</button><button aria-label='打开平台确认' onClick={()=>setPanel('confirm')}>操作确认</button><button aria-label='打开平台规则' onClick={()=>setPanel('rules')}>规则目录</button></>}<PlatformDisplaySettings role={role}/>{panel==='box'&&<BoxOverlayPanel title='UI夹具盒子浮窗' close={()=>setPanel(null)}>{Array.from({length:18},(_,index)=><p key={index}>盒子滚动布局夹具{index+1}：这里只验证真实浮窗边框、独立滚动、关闭入口和焦点恢复，不表示任何游戏或账号操作。</p>)}<button aria-label='盒子内容尾部'>末尾可达位置</button></BoxOverlayPanel>}{panel==='confirm'&&<ConfirmationDialog title='UI夹具确认' confirmLabel='确认UI夹具操作' cancel={()=>setPanel(null)} confirm={()=>{window.platformCounters.confirms++;setPanel(null)}}><p>此确认仅增加UI夹具计数，不发送产品命令。</p></ConfirmationDialog>}{panel==='rules'&&<BoxOverlayPanel title='UI夹具规则目录' close={()=>setPanel(null)}><PlatformRulesGuide className='platform-contract-rules' summary='仅用于规则目录UI验证，不是游戏规则资料。' chapters={platformRuleChapters} source='受控布局夹具，没有官方规则结论。'/></BoxOverlayPanel>}</div></BoxPanelScope></>}
+`;
 }
 
 async function settle(page) {
   await page.evaluate(async () => {
+    window.controlledFontLoads = await Promise.all(
+      (window.controlledCanvasFontFaces ?? []).map(async (face) => {
+        const sample =
+          face.family === 'TableMaxContractCJK' ? '契约草稿' : 'WWWW17';
+        const fonts = await document.fonts.load(
+          face.weight + ' 16px "' + face.family + '"',
+          sample,
+        );
+        if (!fonts.length || fonts.some((font) => font.status !== 'loaded'))
+          throw new Error('Controlled font failed to decode: ' + face.id);
+        return {
+          id: face.id,
+          family: face.family,
+          weight: face.weight,
+          loaded: true,
+        };
+      }),
+    );
     await document.fonts.ready;
     await Promise.all(
       [...document.images].map((image) => image.decode().catch(() => {})),
@@ -463,6 +573,98 @@ async function measure(page) {
         height: value.height,
       };
     };
+    const box = (node) => {
+      if (!node) return null;
+      const style = getComputedStyle(node);
+      const edges = (prefix) =>
+        Object.fromEntries(
+          ['top', 'right', 'bottom', 'left'].map((side) => [
+            side,
+            style.getPropertyValue(
+              prefix + '-' + side + (prefix === 'border' ? '-width' : ''),
+            ),
+          ]),
+        );
+      return {
+        tag: node.tagName,
+        className: node.getAttribute('class') ?? '',
+        rect: rect(node),
+        scroll: {
+          width: node.scrollWidth,
+          height: node.scrollHeight,
+          left: node.scrollLeft,
+          top: node.scrollTop,
+        },
+        client: { width: node.clientWidth, height: node.clientHeight },
+        offset: { width: node.offsetWidth, height: node.offsetHeight },
+        overflow: { x: style.overflowX, y: style.overflowY },
+        scrollbarGutter: style.scrollbarGutter,
+        boxSizing: style.boxSizing,
+        display: style.display,
+        position: style.position,
+        border: edges('border'),
+        padding: edges('padding'),
+        margin: edges('margin'),
+        fontSize: style.fontSize,
+        lineHeight: style.lineHeight,
+      };
+    };
+    const fixture =
+      canvas.querySelector('.contract-fixture') ?? canvas.querySelector('main');
+    const beyond = (value, boundary) =>
+      value.x < boundary.x - 0.5 ||
+      value.y < boundary.y - 0.5 ||
+      value.x + value.width > boundary.x + boundary.width + 0.5 ||
+      value.y + value.height > boundary.y + boundary.height + 0.5;
+    const canvasBounds = rect(canvas),
+      fixtureBounds = fixture ? rect(fixture) : canvasBounds;
+    const childOverflow = fixture
+      ? [fixture, ...fixture.querySelectorAll('*')]
+          .filter((node) => node instanceof HTMLElement)
+          .flatMap((node) => {
+            const bounds = rect(node);
+            if (!bounds.width || !bounds.height) return [];
+            const glyphs = [...node.childNodes]
+              .filter(
+                (child) =>
+                  child.nodeType === Node.TEXT_NODE && child.textContent.trim(),
+              )
+              .flatMap((child) => {
+                const range = document.createRange();
+                range.selectNodeContents(child);
+                return [...range.getClientRects()].map((value) => ({
+                  x: value.x,
+                  y: value.y,
+                  width: value.width,
+                  height: value.height,
+                }));
+              });
+            const flags = {
+              ownScrollOverflow:
+                node.scrollWidth > node.clientWidth + 0.5 ||
+                node.scrollHeight > node.clientHeight + 0.5,
+              elementBeyondFixture: beyond(bounds, fixtureBounds),
+              elementBeyondCanvas: beyond(bounds, canvasBounds),
+              glyphBeyondElement: glyphs.some((glyph) => beyond(glyph, bounds)),
+              glyphBeyondCanvas: glyphs.some((glyph) =>
+                beyond(glyph, canvasBounds),
+              ),
+            };
+            if (!Object.values(flags).some(Boolean)) return [];
+            return [
+              {
+                ...box(node),
+                text: node.textContent
+                  .replace(/\s+/g, ' ')
+                  .trim()
+                  .slice(0, 240),
+                flags,
+                glyphs,
+              },
+            ];
+          })
+          .slice(0, 40)
+      : [];
     const context = window.contractContext;
     return {
       viewport: {
@@ -472,9 +674,26 @@ async function measure(page) {
       },
       canvas: rect(canvas),
       outer: rect(viewport),
+      layoutDiagnostics: {
+        outer: box(viewport),
+        canvas: box(canvas),
+        fixture: box(fixture),
+        childOverflow,
+      },
       outerClient: {
         width: viewport.clientWidth,
         height: viewport.clientHeight,
+      },
+      outerOffset: {
+        width: viewport.offsetWidth,
+        height: viewport.offsetHeight,
+      },
+      computedScrollbar: {
+        width: getComputedStyle(viewport, '::-webkit-scrollbar').width,
+        height: getComputedStyle(viewport, '::-webkit-scrollbar').height,
+        color: getComputedStyle(viewport).getPropertyValue('scrollbar-color'),
+        standardWidth:
+          getComputedStyle(viewport).getPropertyValue('scrollbar-width'),
       },
       computedPadding: Object.fromEntries(
         ['top', 'right', 'bottom', 'left'].map((side) => [
@@ -494,6 +713,9 @@ async function measure(page) {
       fitStatus: context.fitStatus,
       revision: context.revision,
       preference: context.preference,
+      controlledFontLoads: window.controlledFontLoads,
+      controlledFontFamily: getComputedStyle(document.documentElement)
+        .fontFamily,
       mounts: window.contractMounts,
       unmounts: window.contractUnmounts,
       commands: window.fixtureCommands.length,
@@ -532,10 +754,25 @@ function assertLogical(value, item) {
   );
   assert.equal(value.brokenImages.length, 0, 'Visible images decode');
   assert.equal(value.commands, 0, 'Layout work submits no game command');
+  if (item.layer === 'adapter') {
+    assert.equal(
+      value.controlledFontLoads.length,
+      4,
+      'All regular and bold controlled faces loaded',
+    );
+    assert(
+      value.controlledFontFamily.includes('TableMaxContractLatin') &&
+        value.controlledFontFamily.includes('TableMaxContractCJK'),
+      'Adapter uses the explicitly loaded faces',
+    );
+  }
 }
 async function checkAdapter(page, item, captureStage) {
   const before = await measure(page);
   assertLogical(before, item);
+  if (item.platform)
+    return checkPlatformOverlays(page, item, before, captureStage);
+  const edgeTargetBefore = await checkEdgeTargetGlyphs(page);
   const snapshots = [before];
   const sizes =
     {
@@ -591,6 +828,11 @@ async function checkAdapter(page, item, captureStage) {
     });
   }
   if (item.boundary === 'focused-height-change') {
+    if (item.layout === 'player-portrait')
+      await page.addStyleTag({
+        content:
+          '[data-canvas-viewport]{scrollbar-color:auto;scrollbar-width:auto}[data-canvas-viewport]::-webkit-scrollbar{width:16px;height:16px}',
+      });
     await page.evaluate(() => document.activeElement?.blur());
     await page.setViewportSize({
       width: 640,
@@ -607,6 +849,26 @@ async function checkAdapter(page, item, captureStage) {
     });
     await settle(page);
     const shortened = await measure(page);
+    if (item.layout === 'player-portrait') {
+      const occupiedWidth =
+        shortened.outerOffset.width - shortened.outerClient.width;
+      try {
+        assert.equal(
+          occupiedWidth,
+          16,
+          'Classic scrollbar environment not covered: the shortened viewport must actually reserve 16 CSS px',
+        );
+      } catch (error) {
+        error.environmentCoverage = {
+          status: 'not-covered',
+          condition: 'classic-scrollbar-16px',
+          requiredOccupiedWidth: 16,
+          actualOccupiedWidth: occupiedWidth,
+          measured: shortened,
+        };
+        throw error;
+      }
+    }
     assert.equal(
       shortened.layout,
       focused.layout,
@@ -648,6 +910,12 @@ async function checkAdapter(page, item, captureStage) {
     snapshots.push({
       controlledInput:
         'A real focused input plus Playwright CSS viewport height changes; not an actual software keyboard.',
+      ...(item.layout === 'player-portrait'
+        ? {
+            controlledScrollbar:
+              'Controlled scrollbar-color/scrollbar-width auto with 16px webkit scrollbar CSS; actual occupied space is recorded via outerClient/outerOffset, never inferred from requested CSS.',
+          }
+        : {}),
       focused,
       shortened,
       blurred,
@@ -747,6 +1015,15 @@ async function checkAdapter(page, item, captureStage) {
     await settle(page);
     const next = await measure(page);
     assertLogical(next, item);
+    if (
+      item.boundary === 'continuous-resize' &&
+      (size.width > before.viewport.width ||
+        size.height > before.viewport.height)
+    )
+      assert(
+        next.revision > before.revision,
+        'A larger available rectangle advances the layout revision',
+      );
     snapshots.push(next);
   }
   const after = snapshots.at(-1);
@@ -835,8 +1112,336 @@ async function checkAdapter(page, item, captureStage) {
     'Resizing preserves mounted identity',
   );
   assert.equal(final.unmounts, before.unmounts);
-  return { snapshots, final, draftRetained: true };
+  const edgeTargetAfter = await checkEdgeTargetGlyphs(page);
+  return {
+    snapshots,
+    final,
+    draftRetained: true,
+    edgeTargetBefore,
+    edgeTargetAfter,
+  };
 }
+async function checkEdgeTargetGlyphs(page) {
+  const evidence = await page
+    .getByRole('button', { name: '边缘命中', exact: true })
+    .evaluate((element) => {
+      const bounds = (node) => {
+        const rect = node.getBoundingClientRect();
+        return { x: rect.x, y: rect.y, width: rect.width, height: rect.height };
+      };
+      const range = document.createRange();
+      range.selectNodeContents(element);
+      return {
+        text: element.textContent,
+        fontSize: Number.parseFloat(getComputedStyle(element).fontSize),
+        button: bounds(element),
+        canvas: bounds(element.closest('[data-fixed-canvas]')),
+        glyphs: [...range.getClientRects()].map((rect) => ({
+          x: rect.x,
+          y: rect.y,
+          width: rect.width,
+          height: rect.height,
+        })),
+      };
+    });
+  assert.equal(evidence.text, '落点');
+  assert.equal(evidence.fontSize, 18);
+  assert.equal(evidence.button.width, 48);
+  assert.equal(evidence.button.height, 48);
+  assert(
+    evidence.glyphs.length > 0,
+    'The edge target exposes actual text glyphs',
+  );
+  for (const glyph of evidence.glyphs) {
+    const fits = (box, tolerance) =>
+      glyph.x >= box.x - tolerance &&
+      glyph.y >= box.y - tolerance &&
+      glyph.x + glyph.width <= box.x + box.width + tolerance &&
+      glyph.y + glyph.height <= box.y + box.height + tolerance;
+    assert(
+      fits(evidence.button, 0.5),
+      'Edge target glyphs stay inside the 48px button: ' +
+        JSON.stringify(evidence),
+    );
+    assert(
+      fits(evidence.canvas, 1),
+      'Edge target glyphs stay inside the logical canvas: ' +
+        JSON.stringify(evidence),
+    );
+  }
+  return evidence;
+}
+async function checkPlatformOverlays(page, item, before, captureStage) {
+  const checks = [];
+  const draft = page.getByRole('textbox', { name: '契约草稿', exact: true });
+  await draft.fill('平台样本保留草稿');
+  async function open(openerName, title) {
+    const opener = page.getByRole('button', { name: openerName, exact: true });
+    await opener.click();
+    const dialog = page.getByRole('dialog', { name: title, exact: true });
+    await dialog.waitFor({ state: 'visible' });
+    assert(
+      await dialog.evaluate(
+        (element) =>
+          element instanceof HTMLDialogElement &&
+          element.matches(':modal') &&
+          element.classList.contains('box-overlay-panel'),
+      ),
+      'The production box component opens its actual native dialog',
+    );
+    return { opener, dialog, geometry: await reachable(page, dialog) };
+  }
+  async function closed(sample) {
+    await sample.dialog.waitFor({ state: 'detached' });
+    assert(
+      await sample.opener.evaluate(
+        (element) => document.activeElement === element,
+      ),
+      'Closing the production panel restores its exact opener',
+    );
+  }
+  if (item.role === 'host') {
+    const box = await open('打开平台盒子浮窗', 'UI夹具盒子浮窗');
+    const heading = box.dialog.getByRole('heading', {
+      name: 'UI夹具盒子浮窗',
+      exact: true,
+    });
+    const top = await heading.boundingBox();
+    const content = box.dialog.locator(':scope > .box-overlay-panel__content');
+    assert(
+      await content.evaluate(
+        (element) => element.scrollHeight > element.clientHeight,
+      ),
+      'The real box content has its own scrollable region',
+    );
+    const tail = await reachable(
+      page,
+      box.dialog.getByRole('button', { name: '盒子内容尾部', exact: true }),
+    );
+    assert(
+      await content.evaluate((element) => element.scrollTop > 0),
+      'Scrolling reaches the real content tail',
+    );
+    const afterScroll = await heading.boundingBox();
+    assert(
+      top && afterScroll && Math.abs(top.y - afterScroll.y) <= 0.5,
+      'The box heading stays outside the content scroll',
+    );
+    checks.push({
+      component: 'BoxOverlayPanel',
+      geometry: box.geometry,
+      tail,
+      screenshot: await captureStage('box-panel-scroll'),
+    });
+    await box.dialog
+      .getByRole('button', { name: '关闭面板', exact: true })
+      .click();
+    await closed(box);
+
+    const confirmation = await open('打开平台确认', 'UI夹具确认');
+    const cancel = confirmation.dialog.getByRole('button', {
+      name: '取消',
+      exact: true,
+    });
+    assert(
+      await cancel.evaluate((element) => document.activeElement === element),
+      'The production confirmation initially focuses Cancel',
+    );
+    const screenshot = await captureStage('confirmation');
+    await cancel.click();
+    await closed(confirmation);
+    assert.equal(
+      await page.evaluate(() => window.platformCounters.confirms),
+      0,
+    );
+    const confirmed = await open('打开平台确认', 'UI夹具确认');
+    await confirmed.dialog
+      .getByRole('button', { name: '确认UI夹具操作', exact: true })
+      .click();
+    await closed(confirmed);
+    assert.equal(
+      await page.evaluate(() => window.platformCounters.confirms),
+      1,
+      'Only the explicit UI confirmation invokes its controlled callback',
+    );
+    checks.push({
+      component: 'ConfirmationDialog',
+      initialCancelFocus: true,
+      cancelledWithoutCallback: true,
+      explicitCallback: 1,
+      screenshot,
+    });
+
+    const rules = await open('打开平台规则', 'UI夹具规则目录');
+    const navigation = rules.dialog.getByRole('navigation', {
+      name: '规则章节',
+      exact: true,
+    });
+    await navigation
+      .getByRole('button', { name: '示例章节三', exact: true })
+      .click();
+    const chapter = rules.dialog.getByRole('heading', {
+      name: 'UI夹具规则章节三',
+      exact: true,
+    });
+    assert(
+      await chapter.evaluate((element) => document.activeElement === element),
+      'The real rule anchor focuses its chapter heading',
+    );
+    const anchor = await reachable(page, chapter);
+    assert(
+      await rules.dialog
+        .locator(':scope > .box-overlay-panel__content')
+        .evaluate((element) => element.scrollTop > 0),
+      'The real rule anchor advances the box scroll region',
+    );
+    const ruleScreenshot = await captureStage('rules-chapter-anchor');
+    await rules.dialog
+      .getByRole('button', { name: '回到章节', exact: true })
+      .click();
+    assert(
+      await navigation
+        .getByRole('button', { name: '示例章节一', exact: true })
+        .evaluate((element) => document.activeElement === element),
+      'Return to chapters restores the first actual navigation button',
+    );
+    await page.keyboard.press('Escape');
+    await closed(rules);
+    checks.push({
+      component: 'RulesGuide',
+      anchor,
+      returnedToNavigation: true,
+      sourceBoundary: 'Controlled UI chapters, not game rules',
+      screenshot: ruleScreenshot,
+    });
+  }
+
+  const video = await open('视频设置', '视频设置');
+  const modes = video.dialog.getByRole('combobox', {
+    name: '显示模式',
+    exact: true,
+  });
+  if (item.role === 'host') {
+    const resolution = video.dialog.getByRole('combobox', {
+      name: '适配方式',
+      exact: true,
+    });
+    const scale = video.dialog.getByRole('combobox', {
+      name: '界面大小',
+      exact: true,
+    });
+    assert.equal(await resolution.inputValue(), 'auto');
+    assert.equal(await modes.locator('option[value="borderless"]').count(), 1);
+    await scale.selectOption('125');
+    await page.waitForFunction(
+      () => window.platformCounters.displayUpdates.length === 1,
+    );
+    assert.equal(await scale.inputValue(), '125');
+    const help = video.dialog.getByRole('button', {
+      name: '适配方式',
+      exact: true,
+    });
+    await help.focus();
+    await page.waitForFunction(() =>
+      document.activeElement?.getAttribute('aria-describedby'),
+    );
+    const described = await help.getAttribute('aria-describedby');
+    assert(described);
+    const tooltip = page.locator(
+      `[id=${JSON.stringify(described)}][role="tooltip"]`,
+    );
+    await tooltip.waitFor({ state: 'visible' });
+    assert(
+      await tooltip.evaluate((element) => element.matches(':popover-open')),
+      'The actual video setting help uses its native popover anchor',
+    );
+    const anchor = await reachable(page, tooltip);
+    checks.push({
+      component: 'DisplaySettings',
+      role: 'host',
+      controlledDisplayUpdate: { resolution: 'auto', interfaceScale: 125 },
+      helpAnchor: anchor,
+      screenshot: await captureStage('host-video-settings'),
+    });
+    await page.keyboard.press('Escape');
+    await tooltip.waitFor({ state: 'detached' });
+    assert(
+      await video.dialog.isVisible(),
+      'Help Escape leaves the real settings dialog open',
+    );
+  } else {
+    assert.equal(
+      await video.dialog
+        .locator('#display-resolution,#display-interface-scale')
+        .count(),
+      0,
+      'A player without the desktop bridge receives no desktop display preferences',
+    );
+    assert.equal(
+      await modes.locator('option[value="borderless"]').count(),
+      0,
+      'The browser player has no native borderless option',
+    );
+    const shooting = video.dialog.getByRole('switch', {
+      name: '射击按钮',
+      exact: true,
+    });
+    const original = await shooting.getAttribute('aria-checked');
+    await shooting.click();
+    assert.notEqual(
+      await shooting.getAttribute('aria-checked'),
+      original,
+      'The actual player preference control updates locally',
+    );
+    await shooting.click();
+    assert.equal(await shooting.getAttribute('aria-checked'), original);
+    checks.push({
+      component: 'DisplaySettings',
+      role: 'player',
+      desktopFieldsAbsent: true,
+      nativeBorderlessAbsent: true,
+      localPlayerPreference: true,
+      screenshot: await captureStage('player-video-settings'),
+    });
+  }
+  await page.keyboard.press('Escape');
+  await closed(video);
+  const counters = await page.evaluate(() => window.platformCounters);
+  if (item.role === 'player')
+    assert.deepEqual(
+      counters,
+      {
+        displayReads: 0,
+        displayUpdates: [],
+        windowReads: 0,
+        windowModes: [],
+        confirms: 0,
+      },
+      'The browser player performs no desktop bridge operation',
+    );
+  else {
+    assert(counters.displayReads > 0 && counters.windowReads > 0);
+    assert.deepEqual(counters.displayUpdates, [
+      { resolution: 'auto', interfaceScale: 125 },
+    ]);
+    assert.deepEqual(counters.windowModes, []);
+  }
+  const final = await measure(page);
+  assertLogical(final, item);
+  assert.equal(final.mounts, before.mounts);
+  assert.equal(final.unmounts, before.unmounts);
+  assert.equal(await draft.inputValue(), '平台样本保留草稿');
+  return {
+    before,
+    checks,
+    final,
+    counters,
+    draftRetained: true,
+    boundary:
+      'Production components with UI-only sample chapters and controlled host display callbacks; no rules, persistence or native authorization proof.',
+  };
+}
+
 async function reachable(page, locator) {
   await locator.scrollIntoViewIfNeeded();
   const result = await locator.evaluate((element) => {
@@ -954,6 +1559,14 @@ async function checkGame(page, item) {
     await settle(page);
     const value = await measure(page);
     assertLogical(value, item);
+    if (
+      size.width > before.viewport.width ||
+      size.height > before.viewport.height
+    )
+      assert(
+        value.revision > before.revision,
+        'Game integration observes the revised available rectangle',
+      );
     snapshots.push(value);
     assert.equal(value.mounts, before.mounts);
     assert.equal(value.unmounts, before.unmounts);

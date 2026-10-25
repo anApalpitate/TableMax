@@ -14,6 +14,10 @@ import { release } from 'node:os';
 import { fileURLToPath } from 'node:url';
 import { execFileSync } from 'node:child_process';
 import ts from 'typescript';
+import {
+  readMsEdgeRuntime,
+  readControlledCanvasFonts,
+} from '../support/msedge-runtime.mjs';
 
 export const digest = (bytes) =>
   createHash('sha256').update(bytes).digest('hex');
@@ -43,12 +47,28 @@ export function createFingerprintStage() {
 function environmentFacts(providers, stage) {
   const facts = {};
   for (const provider of providers ?? []) {
-    if (!['webview2', 'powershell'].includes(provider))
+    if (
+      !['webview2', 'powershell', 'msedge', 'fixed-canvas-fonts'].includes(
+        provider,
+      )
+    )
       throw new Error('Unknown environment provider');
     if (process.platform !== 'win32')
       throw new Error('Windows environment required');
     if (stage.environmentCache.has(provider)) {
       facts[provider] = stage.environmentCache.get(provider);
+      continue;
+    }
+    if (provider === 'msedge' || provider === 'fixed-canvas-fonts') {
+      const started = performance.now();
+      const value =
+        provider === 'msedge'
+          ? readMsEdgeRuntime()
+          : readControlledCanvasFonts();
+      stage.metrics.environmentQueries++;
+      stage.metrics.environmentMs += performance.now() - started;
+      facts[provider] = value;
+      stage.environmentCache.set(provider, value);
       continue;
     }
     const command =

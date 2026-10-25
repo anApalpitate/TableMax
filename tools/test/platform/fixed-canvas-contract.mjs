@@ -2,6 +2,24 @@ import assert from 'node:assert/strict';
 
 // This is the selectable contract for the existing UI verifier, not a CLI.
 export const fixedCanvasVersion = 'fixed-v1';
+export const fixedCanvasAdapterClock = Date.UTC(2026, 9, 25, 0, 0, 0);
+export const fixedCanvasAdapterInputs = {
+  complete: true,
+  files: [
+    'tools/test/platform/verify-fixed-canvas-contract.mjs',
+    'tools/test/platform/fixed-canvas-contract.mjs',
+    'packages/web-host/src/index.tsx',
+    'apps/web/src/styles.css',
+    'apps/web/src/scrollbars.css',
+  ],
+  directories: ['packages/web-host/src/layout'],
+};
+export const fixedCanvasPlatformInputFiles = [
+  'apps/web/src/components/BoxOverlayPanel.tsx',
+  'apps/web/src/components/ConfirmationDialog.tsx',
+  'apps/web/src/components/RulesGuide.tsx',
+  'apps/web/src/components/DisplaySettings.tsx',
+];
 export const fixedCanvasLayouts = [
   { layout: 'host', role: 'host', width: 1280, height: 720 },
   { layout: 'player-portrait', role: 'player', width: 360, height: 640 },
@@ -52,6 +70,20 @@ export const fixedCanvasCases = [
     layer: 'adapter',
     boundary: 'overlay-focus',
   },
+  {
+    ...fixedCanvasLayouts[0],
+    id: 'adapter-host-platform-overlays',
+    layer: 'adapter',
+    boundary: 'platform-overlays',
+    platform: true,
+  },
+  {
+    ...fixedCanvasLayouts[1],
+    id: 'adapter-player-portrait-platform-video',
+    layer: 'adapter',
+    boundary: 'platform-video',
+    platform: true,
+  },
   ...['content', 'integration'].flatMap((layer) =>
     Object.keys(fixedCanvasVariants).flatMap((variant) =>
       fixedCanvasLayouts.map((layout) => ({
@@ -89,6 +121,7 @@ export function selectFixedCanvasCases(args) {
     ? cases.filter((item) => ids.includes(item.id))
     : cases;
   const variants = [...new Set(selected.flatMap((item) => item.variant ?? []))];
+  const platform = selected.some((item) => item.platform);
   return {
     version: fixedCanvasVersion,
     layer,
@@ -96,6 +129,23 @@ export function selectFixedCanvasCases(args) {
     selectedCaseIds: selected.map((item) => item.id),
     cases: selected,
     variants,
-    scopes: ['shared', ...variants.map((id) => `game:${id}`)],
+    platform,
+    scopes: [
+      ...(platform ? ['box'] : []),
+      'shared',
+      ...variants.map((id) => `game:${id}`),
+    ],
+    ...(layer === 'adapter'
+      ? {
+          inputs: {
+            ...fixedCanvasAdapterInputs,
+            files: [
+              ...fixedCanvasAdapterInputs.files,
+              ...(platform ? fixedCanvasPlatformInputFiles : []),
+            ],
+            directories: [...fixedCanvasAdapterInputs.directories],
+          },
+        }
+      : {}),
   };
 }
