@@ -6,6 +6,29 @@ export function playerFramePath(url: URL, origin: string): string | null {
 }
 
 export type PlayerDisplay = 'portrait' | 'wide';
+
+/** A narrow window or a touch screen alone does not identify a phone. */
+export function isPhonePlayer(device: {
+  userAgent: string;
+  userAgentData?: { mobile: boolean };
+}): boolean {
+  if (/iPad|Tablet/i.test(device.userAgent)) return false;
+  return (
+    /iPhone|iPod|Android.*Mobile/i.test(device.userAgent) ||
+    device.userAgentData?.mobile === true
+  );
+}
+
+/** Screen orientation is independent of the visual viewport reduced by a keyboard. */
+export function phoneIsLandscape(
+  type: string | undefined,
+  width: number,
+  height: number,
+): boolean {
+  if (type?.startsWith('portrait')) return false;
+  if (type?.startsWith('landscape')) return true;
+  return width > height;
+}
 export const playerDisplayKey = 'tablemax-player-display-mode';
 
 export type WorkspacePreference = PlayerDisplay;

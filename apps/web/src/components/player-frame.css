@@ -1,3 +1,68 @@
+.phone-orientation-guard {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100dvh;
+  max-width: none;
+  max-height: none;
+  margin: 0;
+  padding: max(24px, env(safe-area-inset-top))
+    max(24px, env(safe-area-inset-right)) max(24px, env(safe-area-inset-bottom))
+    max(24px, env(safe-area-inset-left));
+  border: 0;
+  color: #fff;
+  background: #080c12b8;
+  backdrop-filter: blur(8px);
+  touch-action: none;
+  overscroll-behavior: none;
+}
+.phone-orientation-guard[open] {
+  display: grid;
+  place-items: center;
+}
+.phone-orientation-guard::backdrop {
+  background: transparent;
+}
+.phone-orientation-guard__content {
+  text-align: center;
+}
+.phone-orientation-guard h2 {
+  margin: 16px 0 8px;
+  font-size: 22px;
+}
+.phone-orientation-guard p {
+  margin: 0;
+  font-size: 18px;
+}
+.phone-orientation-guard__phone {
+  display: inline-block;
+  width: 42px;
+  height: 70px;
+  border: 3px solid currentColor;
+  border-radius: 9px;
+  animation: phone-return-to-portrait 2.8s ease-in-out infinite;
+}
+.phone-orientation-guard__arrow {
+  display: inline-block;
+  margin-left: 18px;
+  font-size: 42px;
+}
+@keyframes phone-return-to-portrait {
+  0%,
+  15% {
+    transform: rotate(90deg);
+  }
+  65%,
+  100% {
+    transform: rotate(0);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .phone-orientation-guard__phone {
+    animation: none;
+  }
+}
+
 .player-frame {
   position: relative;
   isolation: isolate;

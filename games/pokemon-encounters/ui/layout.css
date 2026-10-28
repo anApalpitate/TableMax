@@ -194,6 +194,7 @@
 }
 .pokemon-screen .card-slot {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   grid-template-rows: minmax(0, 1fr) 18px;
   gap: 1px;
   min-height: 0;

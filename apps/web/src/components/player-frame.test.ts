@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import {
   isDesktopPlayer,
+  isPhonePlayer,
+  phoneIsLandscape,
   playerDisplayKey,
   playerFramePath,
   readPlayerDisplay,
@@ -11,6 +13,25 @@ import {
   workspaceLayout,
   workspaceSpace,
 } from './player-frame';
+
+describe('phone-only orientation policy', () => {
+  it('confirms phones without classifying tablets or touch desktops as phones', () => {
+    expect(isPhonePlayer({ userAgent: 'iPhone Mobile Safari' })).toBe(true);
+    expect(isPhonePlayer({ userAgent: 'Android 14 Mobile Chrome' })).toBe(true);
+    expect(isPhonePlayer({ userAgent: 'Android 14 Chrome' })).toBe(false);
+    expect(isPhonePlayer({ userAgent: 'iPad Mobile Safari' })).toBe(false);
+    expect(isPhonePlayer({ userAgent: 'Windows NT 10.0' })).toBe(false);
+    expect(isPhonePlayer({ userAgent: 'Macintosh Safari' })).toBe(false);
+    expect(isPhonePlayer({ userAgent: 'unknown' })).toBe(false);
+  });
+  it('uses physical orientation independently of keyboard-reduced visible height', () => {
+    expect(phoneIsLandscape('portrait-primary', 390, 280)).toBe(false);
+    expect(phoneIsLandscape('landscape-primary', 844, 390)).toBe(true);
+    expect(phoneIsLandscape('landscape-secondary', 844, 390)).toBe(true);
+    expect(phoneIsLandscape(undefined, 390, 844)).toBe(false);
+    expect(phoneIsLandscape(undefined, 844, 390)).toBe(true);
+  });
+});
 
 describe('opt-in game workspace layout', () => {
   it('keeps portrait until the player chooses wide, even on a landscape display', () => {

@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   isDesktopPlayer,
+  isPhonePlayer,
+  phoneIsLandscape,
   playerFramePath,
   readPlayerDisplay,
   readWorkspaceDisplay,
@@ -12,11 +14,18 @@ import {
   type WorkspacePreference,
 } from './player-frame';
 import './player-frame.css';
+import { PhoneOrientationGuard } from './PhoneOrientationGuard';
 
 export function PlayerFrame({ initialUrl }: { initialUrl: string }) {
   // Parent history changes and window resizing must never replace the document.
   const [source] = useState(initialUrl);
   const [desktop] = useState(() => isDesktopPlayer(navigator));
+  const [phone] = useState(() => isPhonePlayer(navigator));
+  const guardedFocus = useRef<HTMLElement | null>(null);
+  const [landscape, setLandscape] = useState(() =>
+    phoneIsLandscape(screen.orientation?.type, screen.width, screen.height),
+  );
+  const blocked = phone && landscape;
   const [large, setLarge] = useState(
     () => window.matchMedia('(min-width: 800px)').matches,
   );
@@ -39,11 +48,15 @@ export function PlayerFrame({ initialUrl }: { initialUrl: string }) {
         return 'portrait';
       }
     });
-  const mode = contract
-    ? workspaceLayout(space.width, space.height, workspacePreference)
-    : desktop && large
-      ? preferred
-      : 'mobile';
+  const mode = phone
+    ? contract
+      ? 'portrait'
+      : 'mobile'
+    : contract
+      ? workspaceLayout(space.width, space.height, workspacePreference)
+      : desktop && large
+        ? preferred
+        : 'mobile';
   const canSwitchWorkspace =
     workspaceLayout(space.width, space.height, 'wide') === 'wide';
   const displayPreference = contract ? workspacePreference : preferred;
@@ -150,6 +163,41 @@ export function PlayerFrame({ initialUrl }: { initialUrl: string }) {
     };
     synchronize();
   }, [applyDisplay]);
+  useEffect(() => {
+    const changed = () => {
+      const next = phoneIsLandscape(
+        screen.orientation?.type,
+        screen.width,
+        screen.height,
+      );
+      if (phone && next && !guardedFocus.current) {
+        guardedFocus.current = frame.current?.contentDocument
+          ?.activeElement as HTMLElement | null;
+      }
+      setLandscape(next);
+    };
+    screen.orientation?.addEventListener('change', changed);
+    window.addEventListener('orientationchange', changed);
+    window.addEventListener('resize', changed);
+    return () => {
+      screen.orientation?.removeEventListener('change', changed);
+      window.removeEventListener('orientationchange', changed);
+      window.removeEventListener('resize', changed);
+    };
+  }, [phone]);
+  useEffect(() => {
+    if (blocked) return;
+    const previous = guardedFocus.current;
+    guardedFocus.current = null;
+    if (
+      previous?.isConnected &&
+      !previous.matches(':disabled') &&
+      !previous.closest('[inert]') &&
+      previous.getClientRects().length
+    ) {
+      previous.focus({ preventScroll: true });
+    }
+  }, [blocked]);
   useEffect(() => () => disconnect.current?.(), []);
   return (
     <main
@@ -163,7 +211,7 @@ export function PlayerFrame({ initialUrl }: { initialUrl: string }) {
         <span className="player-frame__chip player-frame__chip--left" />
         <span className="player-frame__chip player-frame__chip--right" />
       </div>
-      {(contract ? canSwitchWorkspace : desktop && large) && (
+      {!phone && (contract ? canSwitchWorkspace : desktop && large) && (
         <button
           type="button"
           className="player-frame__display"
@@ -229,7 +277,9 @@ export function PlayerFrame({ initialUrl }: { initialUrl: string }) {
         src={source}
         allow="fullscreen 'none'"
         onLoad={loaded}
+        inert={blocked}
       />
+      {blocked && <PhoneOrientationGuard />}
     </main>
   );
 }
