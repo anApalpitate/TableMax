@@ -10,7 +10,8 @@
 | 原版动作、能力、结束与计分             | [规则](rules.md)、[卡牌／组件](cards.json)                          |
 | 扩展牌组、事件、研究与旧配置边界       | [扩展设计](expansion-design.md)                                     |
 | 状态、授权、决策、checkpoint与扩展投影 | [信息与决策](information-and-decisions.md)                          |
-| 三端布局、声画、规则说明与操作         | [交互](interaction.md)                                              |
+| 三类布局设计、拟定尺寸与精简验收范围   | [视觉方案](visual-design.md)（设计提案，未实施／未验收）            |
+| 声画、规则说明、操作及旧布局参数       | [交互](interaction.md)                                              |
 | 角色、牌面、声音及来源／制作缺口       | [资源](assets.md)                                                   |
 | 原版／扩展验证、历史证据与真人待测     | [验证场景](validation-scenarios.md)、[原版场景数据](scenarios.json) |
 | 两玩法三档策略与故障恢复               | [人机](bot.md)                                                      |
