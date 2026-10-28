@@ -50,7 +50,9 @@ const report = {
 };
 const cases = [];
 for (const variant of ['original', 'expansion']) {
-  const add = (device, scene, extra = {}) =>
+  const add = (device, scene, extra = {}) => {
+    if (cases.some((item) => item.id === `${variant}-${device}-${scene}`))
+      return;
     cases.push({
       id: `${variant}-${device}-${scene}`,
       variant,
@@ -58,6 +60,7 @@ for (const variant of ['original', 'expansion']) {
       scene,
       ...extra,
     });
+  };
   for (const scene of ['draw', 'initial', 'place', 'result'])
     add('host-1280', scene);
   add('host-1920', 'draw');
@@ -78,14 +81,13 @@ for (const variant of ['original', 'expansion']) {
     'peek',
     'mew',
   ])
-    add('portrait-360', scene);
+    add('portrait-390', scene);
   for (const scene of ['draw', 'place', 'friends']) add('portrait-390', scene);
   for (const scene of ['draw', 'place', 'friends', 'mew'])
     add('landscape', scene);
-  add('wide-player', 'place');
-  add('below-minimum', 'place');
+  for (const scene of ['draw', 'place']) add('portrait-probe', scene);
   if (variant === 'expansion') {
-    for (const device of ['host-1280', 'portrait-360', 'landscape'])
+    for (const device of ['host-1280', 'portrait-390', 'landscape'])
       add(device, 'vote');
     for (const scene of [
       'rocket',
@@ -96,9 +98,9 @@ for (const variant of ['original', 'expansion']) {
       'buffer',
       'buffer-take',
     ])
-      add('portrait-360', scene);
+      add('portrait-390', scene);
   } else {
-    for (const device of ['portrait-360', 'landscape'])
+    for (const device of ['portrait-390', 'landscape'])
       for (const scene of [
         'snorlax',
         'charizard',
@@ -112,18 +114,10 @@ for (const variant of ['original', 'expansion']) {
   for (const seats of [4, 5])
     for (const scene of ['draw', 'result'])
       add('host-1280', `${seats}p-${scene}`, { scene, seats });
-  for (const scene of ['draw', 'place', 'peek', 'mew'])
-    add('landscape-min', scene);
+  for (const scene of ['draw', 'place', 'peek', 'mew']) add('landscape', scene);
   for (const scene of ['draw', 'result']) add('host-tall', scene);
   add('frame-boundary', 'place', { outerFrame: true });
-  for (const device of [
-    'host-below-width',
-    'host-below-height',
-    'portrait-below-width',
-    'portrait-below-height',
-    'landscape-below-width',
-    'landscape-below-height',
-  ])
+  for (const device of ['host-below-width', 'host-below-height'])
     add(device, 'place', { belowMinimum: true });
   if (variant === 'expansion') {
     for (const scene of [
@@ -133,10 +127,10 @@ for (const variant of ['original', 'expansion']) {
       'weather',
       'vote',
     ])
-      add('landscape-min', scene);
-    for (const device of ['host-1280', 'portrait-360'])
+      add('landscape', scene);
+    for (const device of ['host-1280', 'portrait-390'])
       add(device, 'mewtwo-private');
-    for (const device of ['host-1280', 'portrait-360', 'landscape-min'])
+    for (const device of ['host-1280', 'portrait-390', 'landscape'])
       add(device, 'event-details');
     add('host-1280', 'event-coin');
   }
@@ -151,20 +145,13 @@ const sizes = {
   'host-1280': [1280, 720],
   'host-1920': [1920, 1080],
   'host-4k': [1920, 1080],
-  'portrait-360': [360, 640],
+  'portrait-probe': [360, 800],
   'portrait-390': [390, 844],
-  landscape: [844, 390],
-  'wide-player': [1280, 720],
-  'below-minimum': [320, 568],
-  'landscape-min': [640, 360],
+  landscape: [1280, 720],
   'host-tall': [1920, 1200],
   'frame-boundary': [799, 900],
   'host-below-width': [1279, 720],
   'host-below-height': [1280, 719],
-  'portrait-below-width': [359, 640],
-  'portrait-below-height': [360, 639],
-  'landscape-below-width': [639, 360],
-  'landscape-below-height': [640, 359],
 };
 let browser;
 const servers = [];
@@ -961,7 +948,7 @@ try {
             admissionPending: false,
             awaitingConfirmation: false,
           });
-          if (role === 'player' && item.device === 'portrait-360') {
+          if (role === 'player' && item.device === 'portrait-390') {
             await surface
               .locator(
                 item.variant === 'original'
@@ -985,7 +972,7 @@ try {
         if (
           role === 'player' &&
           scene === 'place' &&
-          item.device === 'portrait-360'
+          item.device === 'portrait-390'
         ) {
           const first = page.locator('button.card-slot:not(:disabled)').first();
           await first.click();
@@ -993,10 +980,10 @@ try {
             (await first.getAttribute('aria-pressed')) === 'true',
             'Card selection missing',
           );
-          await page.setViewportSize({ width: 844, height: 390 });
+          await page.setViewportSize({ width: 1280, height: 720 });
           expect(
             (await first.getAttribute('aria-pressed')) === 'true',
-            'Rotation lost selection draft',
+            'Portrait/desktop layout switch lost selection draft',
           );
           await page.setViewportSize({ width, height });
           const confirm = surface

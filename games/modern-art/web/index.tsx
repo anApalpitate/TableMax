@@ -1,5 +1,5 @@
 /* eslint-disable react-refresh/only-export-components -- Lazy adapters expose one platform client object. */
-import { useState } from 'react';
+import { useId, useState, type CSSProperties } from 'react';
 import type { JsonValue } from '@tablemax/game-sdk';
 import type { Action, ModernArtView } from '../ui/view';
 import {
@@ -15,6 +15,7 @@ import { PlayerControls } from '../ui/player';
 import '../ui/style.css';
 import '../ui/public/avatars.css';
 import '../ui/player-wide.css';
+import '../ui/viewport.css';
 import type { GameClient, GameHost as RoomSession } from '@tablemax/web-host';
 import { ScreenLink } from '@tablemax/web-host';
 import { SessionFeedback } from '@tablemax/web-host';
@@ -34,8 +35,14 @@ import { useAudioOutput } from '@tablemax/web-host';
 import { modernArtRulebook } from '../ui/RulesGuide';
 import { RulesGuide } from '@tablemax/web-host';
 import { AuctionEntrance } from '../ui/AuctionEntrance';
+import { useViewportSnapshot } from '@tablemax/web-host';
 
 function ModernArtScreen({ session }: { session: RoomSession }) {
+  const viewportId = useId();
+  const viewport = useViewportSnapshot(
+    `[data-ma-viewport="${viewportId}"]`,
+    '--ma-safe-',
+  );
   const { role, view, connected, command, locked, canControl, motion } =
     session;
   const game = view?.gameView as ModernArtView | null;
@@ -194,6 +201,17 @@ function ModernArtScreen({ session }: { session: RoomSession }) {
   return (
     <main
       className={`ma-screen ${role} ${saved ? 'ma-saved' : ''}`}
+      data-ma-viewport={viewportId}
+      style={
+        {
+          '--ma-viewport-height': `${viewport.viewport.height}px`,
+          '--ma-net-width': `${viewport.available.width}px`,
+          '--ma-safe-top': 'env(safe-area-inset-top, 0px)',
+          '--ma-safe-right': 'env(safe-area-inset-right, 0px)',
+          '--ma-safe-bottom': 'env(safe-area-inset-bottom, 0px)',
+          '--ma-safe-left': 'env(safe-area-inset-left, 0px)',
+        } as CSSProperties
+      }
       data-play-mode={view?.playMode ?? 'play'}
       data-player-layout-contract={role === 'player' ? 'three-v1' : undefined}
     >

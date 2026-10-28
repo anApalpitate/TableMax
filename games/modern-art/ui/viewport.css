@@ -1,0 +1,41 @@
+/* Local workspace limits; the surrounding theme still covers the full iframe. */
+.ma-screen[data-ma-viewport] {
+  min-height: var(--ma-viewport-height, 100dvh);
+}
+.ma-screen[data-ma-viewport]:not(.player) {
+  height: var(--ma-viewport-height, 100dvh);
+  padding-left: max(
+    16px,
+    var(--ma-safe-left),
+    calc((var(--ma-net-width) - 1920px) / 2)
+  );
+  padding-right: max(
+    16px,
+    var(--ma-safe-right),
+    calc((var(--ma-net-width) - 1920px) / 2)
+  );
+}
+@media (min-width: 960px) {
+  [data-player-layout='wide'] .ma-screen.player[data-ma-viewport] {
+    padding-left: max(
+      16px,
+      var(--ma-safe-left),
+      calc((var(--ma-net-width) - 1440px) / 2)
+    );
+    padding-right: max(
+      16px,
+      var(--ma-safe-right),
+      calc((var(--ma-net-width) - 1440px) / 2)
+    );
+    padding-top: max(
+      16px,
+      var(--ma-safe-top),
+      calc((var(--ma-viewport-height) - 1000px) / 2)
+    );
+    padding-bottom: max(
+      16px,
+      var(--ma-safe-bottom),
+      calc((var(--ma-viewport-height) - 1000px) / 2)
+    );
+  }
+}

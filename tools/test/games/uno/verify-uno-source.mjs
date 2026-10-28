@@ -24,6 +24,8 @@ const evidence = option('evidence');
 assert.match(evidence ?? '', /^[a-z0-9-]{1,65}$/);
 const groups = [
   'layout',
+  'viewport',
+  'host',
   'dialogs',
   'config',
   'delay',
@@ -57,7 +59,17 @@ const priorFailures = Number(option('prior-failures', '0'));
 assert(
   Number.isInteger(priorFailures) && priorFailures >= 0 && priorFailures < 10,
 );
-const output = resolve('artifacts/maintenance/uno-source-20261020', evidence);
+const task = option('task');
+if (task) assert.match(task, /^tmp\/[a-z0-9-]+$/);
+const output = task
+  ? resolve('artifacts/maintenance', task.slice(4), 'uno', evidence)
+  : resolve('artifacts/maintenance/uno-source-20261020', evidence);
+const workRoot = task ? resolve(task, 'uno', evidence) : output;
+if (task) {
+  await mkdir(workRoot, { recursive: true });
+  process.env.TEMP = workRoot;
+  process.env.TMP = workRoot;
+}
 await mkdir(dirname(output), { recursive: true });
 await mkdir(output, { recursive: false });
 const sha = (value) => createHash('sha256').update(value).digest('hex');
@@ -101,6 +113,7 @@ const bind = async (path) => {
   const absolute = resolve(path);
   if (
     absolute.startsWith(output) ||
+    absolute.startsWith(workRoot) ||
     absolute.includes('node_modules') ||
     !existsSync(absolute)
   )
@@ -176,8 +189,8 @@ function configured(state,setup){state.setup=setup;if(setup.drawPenaltyStacking)
 function step(state,action,seat=state.turnSeat){const result=rules.apply(state,action,seat,context(41,state.seats));rules.validateState(result.state,state.seats);return result;}
 function scenario(name,setup){
  let state,actor='a',before=null,result=null;
- if(name==='normal'){
-  state=rules.initialize({...context(1257,ids),setup});
+ if(name==='normal'||name==='normal-two'){
+  state=rules.initialize({...context(1257,name==='normal-two'?ids.slice(0,2):ids),setup});
   if(state.stage==='choose-color')state=step(state,{type:'choose-color',color:'red'}).state;
   actor=state.turnSeat;
  }else if(name==='dense'){
@@ -185,6 +198,8 @@ function scenario(name,setup){
   const chosen=new Set([...playable,'red-5-a']),available=CARD_IDS.filter(id=>!chosen.has(id)),hands={a:playable};
   for(const id of ids.slice(1))hands[id]=available.splice(0,7);
   state=configured(fixture(hands),setup);
+ }else if(name==='draft'){
+  state=configured(fixture({a:['wild-1','red-1-a'],b:['blue-1-a'],c:['green-1-a']}),setup);
  }else if(name==='catch'){
   state=configured(fixture({a:['red-1-a','yellow-2-a'],b:['red-2-a','blue-1-a'],c:['green-2-a','yellow-3-a']}),setup);
   state=step(state,{type:'play',cardId:'red-1-a'},'a').state;actor='c';
@@ -244,7 +259,7 @@ window.renderUno({scenario:'normal'});
 }
 
 async function compile(name, clientPath, baselineFiles = {}) {
-  const work = join(output, name);
+  const work = join(workRoot, name);
   await mkdir(work);
   await writeFile(
     join(work, 'index.html'),
@@ -937,6 +952,136 @@ try {
           () => layout(page, width, height, scenario, names),
           page,
         );
+  if (enabled('host'))
+    for (const [width, height] of sizes)
+      for (const count of [2, 6])
+        await check(
+          `host:${width}x${height}:${count}:long-names`,
+          async () => {
+            await page.setViewportSize({ width, height });
+            await ready(page, {
+              scenario: count === 2 ? 'normal-two' : 'normal',
+              role: 'host',
+              names: 'latin',
+            });
+            await page.waitForTimeout(150);
+            const names = await page
+              .locator('.uno-table .uno-seat-info > strong')
+              .evaluateAll((nodes) =>
+                nodes.map((node) => {
+                  const r = node.getBoundingClientRect(),
+                    s = getComputedStyle(node);
+                  return {
+                    w: r.width,
+                    h: r.height,
+                    x: r.x,
+                    y: r.y,
+                    right: r.right,
+                    bottom: r.bottom,
+                    overflow: s.overflow,
+                    whiteSpace: s.whiteSpace,
+                    scroll: node.scrollWidth,
+                    client: node.clientWidth,
+                  };
+                }),
+              );
+            assert.equal(names.length, count);
+            assert(
+              names.every(
+                (n) =>
+                  n.overflow === 'visible' &&
+                  n.whiteSpace === 'normal' &&
+                  n.scroll <= n.client + 1 &&
+                  n.x >= 0 &&
+                  n.y >= 0 &&
+                  n.right <= width &&
+                  n.bottom <= height,
+              ),
+              'Every full nickname is visible',
+            );
+            const seats = await page
+              .locator('.uno-table .uno-seat')
+              .evaluateAll((nodes) =>
+                nodes.map((n) => {
+                  const r = n.getBoundingClientRect();
+                  return {
+                    left: r.left,
+                    right: r.right,
+                    top: r.top,
+                    bottom: r.bottom,
+                  };
+                }),
+              );
+            for (let i = 0; i < seats.length; i++)
+              for (let j = i + 1; j < seats.length; j++)
+                assert(
+                  !(
+                    Math.min(seats[i].right, seats[j].right) >
+                      Math.max(seats[i].left, seats[j].left) + 1 &&
+                    Math.min(seats[i].bottom, seats[j].bottom) >
+                      Math.max(seats[i].top, seats[j].top) + 1
+                  ),
+                  'Seat cards do not overlap',
+                );
+            await capture(page, `host-${width}x${height}-${count}-long-names`);
+          },
+          page,
+        );
+  if (enabled('viewport'))
+    await check(
+      'viewport:draft-and-bounded-workspace',
+      async () => {
+        await page.setViewportSize({ width: 390, height: 844 });
+        await ready(page, { scenario: 'draft' });
+        await page.locator('[data-card-id="wild-1"]').click();
+        await page.locator('.uno-wild-selection').waitFor();
+        await page.evaluate(() => {
+          window.originalUnoHand = document.querySelector('.uno-hand-section');
+        });
+        for (const [width, height] of [
+          [844, 390],
+          [1280, 720],
+          [3840, 2160],
+          [390, 844],
+        ]) {
+          await page.setViewportSize({ width, height });
+          await page.waitForTimeout(100);
+          assert.equal(
+            await page.evaluate(
+              () =>
+                window.originalUnoHand ===
+                document.querySelector('.uno-hand-section'),
+            ),
+            true,
+            'Hand DOM stays mounted across layout changes',
+          );
+          assert.equal(await page.locator('.uno-wild-selection').count(), 1);
+          assert.deepEqual(await page.evaluate(() => window.commands), []);
+          if (width === 3840) {
+            const workspace = await page
+              .locator('.uno-screen')
+              .evaluate((node) => {
+                const s = getComputedStyle(node);
+                return (
+                  node.clientWidth -
+                  parseFloat(s.paddingLeft) -
+                  parseFloat(s.paddingRight)
+                );
+              });
+            assert(
+              workspace <= 1441,
+              'Player content has a finite width at 4K',
+            );
+          }
+        }
+        await page
+          .locator('.uno-wild-selection')
+          .getByRole('button', { name: '红色', exact: false })
+          .click();
+        assert.equal((await page.evaluate(() => window.commands)).length, 1);
+      },
+      page,
+    );
   if (enabled('dialogs'))
     for (const [width, height] of sizes) {
       await check(
@@ -1336,7 +1481,7 @@ try {
       'games/uno/ui/Hand.tsx',
       'games/uno/ui/style.css',
     ];
-    const baselineRoot = join(output, 'baseline-source');
+    const baselineRoot = join(workRoot, 'baseline-source');
     await mkdir(baselineRoot);
     const replacements = {};
     report.baseline = { ref, files: {} };

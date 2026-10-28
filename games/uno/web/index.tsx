@@ -1,5 +1,5 @@
 /* eslint-disable react-refresh/only-export-components -- The lazy game module exports its platform client. */
-import { useEffect, useState } from 'react';
+import { useEffect, useId, useState, type CSSProperties } from 'react';
 import type { JsonValue } from '@tablemax/game-sdk';
 import {
   avatarFor,
@@ -14,6 +14,7 @@ import {
   ScreenLink,
   SessionFeedback,
   useAudioOutput,
+  useViewportSnapshot,
   type GameClient,
   type GameHost,
 } from '@tablemax/web-host';
@@ -27,6 +28,7 @@ import { unoRulebook } from '../ui/RulesGuide';
 import { SavedEffect } from '../ui/SavedEffects';
 import { UnoSetupSettings } from '../ui/SetupSettings';
 import '../ui/style.css';
+import '../ui/layout.css';
 
 function CatchUnoControl({
   timing,
@@ -71,6 +73,11 @@ function CatchUnoControl({
 }
 
 function UnoScreen({ session }: { session: GameHost }) {
+  const viewportId = useId();
+  const viewport = useViewportSnapshot(
+    `[data-uno-viewport="${viewportId}"]`,
+    '--uno-safe-',
+  );
   const { role, view, connected, locked, canControl, command } = session;
   const game = view?.gameView as UnoView | null;
   const [panel, setPanel] = useState<'menu' | 'rules' | 'players' | null>(null);
@@ -164,6 +171,20 @@ function UnoScreen({ session }: { session: GameHost }) {
   return (
     <main
       className={`uno-screen uno-screen--${role}`}
+      data-uno-viewport={viewportId}
+      data-uno-layout={
+        player ? (viewport.available.width >= 960 ? 'L' : 'P') : 'H'
+      }
+      style={
+        {
+          '--uno-viewport-height': `${viewport.viewport.height}px`,
+          '--uno-net-width': `${viewport.available.width}px`,
+          '--uno-safe-top': 'env(safe-area-inset-top, 0px)',
+          '--uno-safe-right': 'env(safe-area-inset-right, 0px)',
+          '--uno-safe-bottom': 'env(safe-area-inset-bottom, 0px)',
+          '--uno-safe-left': 'env(safe-area-inset-left, 0px)',
+        } as CSSProperties
+      }
       data-phase={game?.phase}
       data-play-mode={view?.playMode ?? 'play'}
     >
@@ -231,9 +252,7 @@ function UnoScreen({ session }: { session: GameHost }) {
           </button>
         </div>
       </header>
-      {((session.message && session.message !== '已保存') ||
-        session.admissionPending ||
-        session.awaitingConfirmation) && <SessionFeedback session={session} />}
+      <SessionFeedback session={session} mode="messages" />
       {!game || !view ? (
         <div className="uno-unavailable">
           <h1>等待 UNO 开局</h1>

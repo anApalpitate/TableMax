@@ -18,6 +18,7 @@ const arg = (name) =>
 const phase = arg('phase');
 const smoke = process.argv.includes('--smoke');
 const buildOnly = process.argv.includes('--build-only');
+const rollout = process.argv.includes('--rollout');
 const extra = process.argv.includes('--extra');
 const extraChecks = [
   'minimum-phone-320-bid',
@@ -25,7 +26,16 @@ const extraChecks = [
   'width-and-height-boundary-drafts',
   'paused-and-controlled-disconnected',
 ];
-const only = (arg('only') ?? (extra ? extraChecks.join(',') : ''))
+const rolloutChecks = [
+  'rollout-player',
+  'rollout-host',
+  'rollout-draft',
+  'rollout-controls',
+];
+const only = (
+  arg('only') ??
+  (rollout ? rolloutChecks.join(',') : extra ? extraChecks.join(',') : '')
+)
   .split(',')
   .filter(Boolean);
 assert.ok(
@@ -67,6 +77,7 @@ const scenes = [
   'ended',
 ];
 const knownChecks = new Set([
+  ...rolloutChecks,
   ...extraChecks,
   ...[...scenes, 'collections', 'auction-pair'].flatMap((scene) =>
     ['portrait', 'wide'].map((layout) => `${scene}-${layout}`),
@@ -201,6 +212,7 @@ try {
     join(sourceRoot, 'games/modern-art/ui/style.css'),
     join(sourceRoot, 'games/modern-art/ui/public/index.tsx'),
     join(sourceRoot, 'games/modern-art/ui/player-wide.css'),
+    join(sourceRoot, 'games/modern-art/ui/viewport.css'),
     join(sourceRoot, 'games/modern-art/ui/player/index.tsx'),
     join(sourceRoot, 'apps/web/src/components/player-frame.css'),
     join(sourceRoot, 'apps/web/src/components/player-frame.ts'),
@@ -336,9 +348,10 @@ else window.renderModernArt({scene,role});
     if (new URL(r.url()).origin !== new URL(server.url).origin)
       report.externalRequests.push(r.url());
   });
-  await page.addInitScript(() =>
-    localStorage.setItem('tablemax-player-display-mode', 'wide'),
-  );
+  await page.addInitScript(() => {
+    localStorage.setItem('tablemax-player-display-mode', 'wide');
+    localStorage.setItem('tablemax-workspace-display-mode-v2', 'wide');
+  });
   const load = async (scene, role, width, height) => {
     await page.setViewportSize({ width, height });
     const url = new URL(server.url);
@@ -448,7 +461,7 @@ else window.renderModernArt({scene,role});
     );
     if (phase === 'after') {
       assert.equal(metrics.overflow, false, 'Document horizontal overflow');
-      if (role === 'player') {
+      if (role === 'player' && !rollout) {
         const base =
           metrics.layout !== 'wide' ? 10 : metrics.width >= 960 ? 16 : 8;
         assert.deepEqual(
@@ -482,6 +495,126 @@ else window.renderModernArt({scene,role});
       );
     }
   };
+  if (rollout) {
+    await checks('rollout-controls', async () => {
+      for (const [width, height] of [
+        [390, 844],
+        [1280, 720],
+      ]) {
+        const f = await load('auction-open', 'player', width, height);
+        const field = f.locator('#ma-bid-amount');
+        await field.fill('999');
+        assert.equal(
+          await f.locator('[data-ma-action="bid"]').isDisabled(),
+          true,
+        );
+        await f.getByRole('button', { name: '减少出价', exact: true }).click();
+        assert.equal(await field.inputValue(), await field.getAttribute('max'));
+        const button = f.locator('[data-ma-action="bid"]');
+        const box = await button.boundingBox();
+        assert(box.width >= 44 && box.height >= 44);
+        await button.click();
+        assert.equal((await f.evaluate(() => window.__commands)).length, 1);
+      }
+      const f = await load('offer', 'player', 1280, 720);
+      const expected = Number(
+        (await f.locator('.ma-hand-count').innerText()).match(/\d+/)[0],
+      );
+      assert.equal(
+        await f.locator('.ma-hand__card').count(),
+        expected,
+        'All hand cards remain mounted',
+      );
+      await f.getByRole('button', { name: '下一页手牌', exact: true }).click();
+      assert(
+        await f
+          .locator('#ma-hand-gallery')
+          .evaluate((node) => node.scrollLeft > 0),
+        'Hand paging reaches the remaining cards',
+      );
+      await f.locator('.ma-hand__card').last().scrollIntoViewIfNeeded();
+      assert.deepEqual(await f.evaluate(() => window.__commands), []);
+      const disconnected = await load('auction-open', 'player', 1280, 720);
+      await disconnected.evaluate(() =>
+        window.renderModernArt({
+          scene: 'auction-open',
+          role: 'player',
+          connected: false,
+          preserve: true,
+        }),
+      );
+      assert.equal(
+        await disconnected.locator('[data-ma-action="bid"]').isDisabled(),
+        true,
+      );
+      assert.deepEqual(
+        await disconnected.evaluate(() => window.__commands),
+        [],
+      );
+    });
+    await checks('rollout-player', async () => {
+      for (const scene of [
+        'offer',
+        'auction-open',
+        'auction-once',
+        'auction-sealed',
+        'sealed-submitted',
+        'auction-fixed',
+        'auction-double',
+        'auction-pair',
+      ])
+        for (const [width, height] of [
+          [390, 844],
+          [1280, 720],
+        ])
+          await capture(
+            `rollout-${scene}-${width}`,
+            scene,
+            'player',
+            width,
+            height,
+          );
+    });
+    await checks('rollout-host', async () => {
+      for (const scene of ['collections', 'auction-pair', 'result', 'ended'])
+        await capture(`rollout-host-${scene}`, scene, 'host', 1280, 720);
+      await capture('rollout-host-4k', 'collections', 'host', 3840, 2160);
+    });
+    await checks('rollout-draft', async () => {
+      const f = await load('auction-sealed', 'player', 1280, 720);
+      const input = f.locator('.ma-bid input');
+      await input.fill('7');
+      const identity = await f.evaluate(() => {
+        window.retainedControls = document.querySelector('.ma-player');
+        return window.__documentId;
+      });
+      for (const [width, height] of [
+        [390, 844],
+        [1280, 720],
+        [3840, 2160],
+      ]) {
+        await page.setViewportSize({ width, height });
+        await page.waitForTimeout(150);
+        assert.equal(await f.evaluate(() => window.__documentId), identity);
+        assert.equal(
+          await f.evaluate(
+            () =>
+              window.retainedControls === document.querySelector('.ma-player'),
+          ),
+          true,
+        );
+        assert.equal(await input.inputValue(), '7');
+        assert.deepEqual(await f.evaluate(() => window.__commands), []);
+      }
+      await capture(
+        'rollout-player-4k',
+        'auction-sealed',
+        'player',
+        3840,
+        2160,
+      );
+    });
+  }
   for (const scene of smoke ? ['auction-open'] : scenes)
     for (const [layout, width, height] of smoke
       ? [['wide', 1280, 720]]

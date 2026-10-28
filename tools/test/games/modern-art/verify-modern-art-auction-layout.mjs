@@ -95,7 +95,7 @@ const scenes = fixedComparisonOnly
           'auction-double',
           'auction-fixed',
         ];
-const sizes =
+const supportedSizes =
   inactiveOnly || fixedComparisonOnly
     ? [[1280, 720]]
     : [
@@ -104,6 +104,15 @@ const sizes =
         [960, 540],
         ...(!extraOnly ? [[3840, 2160]] : []),
       ];
+const sizes = option('sizes')
+  ? option('sizes')
+      .split(',')
+      .map((value) => value.split('x').map(Number))
+  : supportedSizes;
+assert.ok(
+  sizes.every(([w, h]) => supportedSizes.some(([x, y]) => x === w && y === h)),
+  'Select supported targeted sizes',
+);
 let browser;
 try {
   if (option('source-report')) {
