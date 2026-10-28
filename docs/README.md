@@ -10,6 +10,7 @@
 - 连接与连续游玩：[连接规格](reference/phase-02-platform-spec.md#连接与连续游玩)；计时、缩放及互动查[显示与互动](reference/phase-02-platform-spec.md#计时显示与互动)。
 - 工程依赖和模块边界：[架构](reference/architecture.md)；文件与产物归属查[目录职责](reference/project-structure.md)。
 - 界面共性提炼与统一组织：[界面复用](reference/ui-composition.md)，区分已有宿主能力、游戏专属组合及待实施接口。
+- 全部游戏的适配批次、区域重排与验收：[落地计划](tasks/all-games-layout-rollout.md)；公共控件去重与兼容迁移见[架构优化](reference/architecture.md#面向本轮适配的架构优化计划)。
 - 固定工具链、启动、构建、安装目录和冻结：[构建与运行](reference/build-and-run.md)。实际命令查[工具索引](../tools/README.md)。
 - 选择检查、证据复用及失败处理：[验证](reference/validation.md#按变更范围选择检查)；安装／更新证据和原EXE直接启动查[安装验收](reference/installation-validation.md)。
 - 源码视觉检查：[源码视觉验证](reference/source-visual-verification.md)。源码通过不证明安装器或实体设备通过。
