@@ -647,6 +647,51 @@
 .rk-saved-workspace .rk-table {
   min-height: 280px;
 }
+.rk-screen--host .rk-table--public {
+  display: flex;
+  flex-wrap: wrap;
+  align-content: flex-start;
+  gap: 6px;
+  padding: 8px;
+  border-width: 6px;
+}
+.rk-screen--host .rk-table--public .rk-meld {
+  flex: 0 0 auto;
+  max-width: 100%;
+  padding: 5px;
+}
+.rk-screen--host .rk-table--public .rk-meld-heading {
+  min-height: 22px;
+  margin-bottom: 4px;
+}
+.rk-screen--host .rk-table--public .rk-meld-tiles {
+  gap: 3px;
+  padding: 2px 3px;
+}
+.rk-screen--host .rk-table--public .rk-tile {
+  width: 48px;
+  height: 72px;
+  min-height: 72px;
+}
+.rk-screen--host {
+  gap: 8px;
+  padding: 8px;
+}
+.rk-screen--host .rk-section-heading {
+  margin-bottom: 6px;
+}
+.rk-screen--host .rk-latest {
+  height: 56px;
+  min-height: 56px;
+  padding-block: 6px;
+}
+.rk-screen--host .rk-seat {
+  gap: 6px;
+  padding: 6px;
+}
+.rk-screen--host .rk-seat > img {
+  display: none;
+}
 .rk-saved-workspace--player .rk-rack-section {
   margin-top: 16px;
 }

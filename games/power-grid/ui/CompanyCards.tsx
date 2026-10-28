@@ -1,5 +1,5 @@
 import { useLayoutEffect, useRef, type CSSProperties } from 'react';
-import { RESOURCES, RESOURCE_LABELS } from '../data/catalog';
+import { RESOURCES, RESOURCE_LABELS, getPlant } from '../data/catalog';
 import type { PowerGridView } from '../types';
 import { PlantCard, ResourceIcon } from './components';
 import { PLAYER_COLORS } from './labels';
@@ -29,6 +29,7 @@ export function CompanyCards({
   savedKey = null,
   animate = false,
   horizontal = false,
+  overview = false,
   contextKey,
   artFor,
 }: {
@@ -40,6 +41,7 @@ export function CompanyCards({
   savedKey?: string | null;
   animate?: boolean;
   horizontal?: boolean;
+  overview?: boolean;
   contextKey: string;
   artFor(id: number): CSSProperties;
 }) {
@@ -103,6 +105,71 @@ export function CompanyCards({
         ? 'instant'
         : 'smooth',
     });
+  if (overview)
+    return (
+      <section
+        ref={list}
+        className="pg-company-overview"
+        aria-label="所有玩家公司概览"
+      >
+        {view.playerOrder.map((seatId, rank) => {
+          const player = view.players[seatId]!;
+          const index = view.seatOrder.indexOf(seatId);
+          return (
+            <article
+              key={seatId}
+              data-company-seat={seatId}
+              data-company-rank={rank + 1}
+              className={`pg-company-overview-card${active && view.actor === seatId ? ' pg-company-card--acting' : ''}`}
+              style={
+                { '--pg-player-color': PLAYER_COLORS[index] } as CSSProperties
+              }
+            >
+              <button
+                onClick={() => onDetails(seatId)}
+                aria-label={`查看${names[seatId]}的公司详情`}
+              >
+                <span>{rank + 1}</span>
+                <strong>{names[seatId] ?? `公司${index + 1}`}</strong>
+              </button>
+              <div>
+                {player.cities.length} 城 ·{' '}
+                {active && view.actor === seatId
+                  ? '行动中'
+                  : `座位 ${index + 1}`}
+              </div>
+              <div className="pg-company-overview-plants">
+                {player.plants.length
+                  ? player.plants
+                      .map(
+                        (plant) =>
+                          `${plant.id}号/${getPlant(plant.id).output}城`,
+                      )
+                      .join(' · ')
+                  : '暂无电厂'}
+              </div>
+              <div className="pg-company-overview-stock">
+                {RESOURCES.map((resource) => (
+                  <span
+                    key={resource}
+                    aria-label={`${RESOURCE_LABELS[resource]}库存${player.plants.reduce((sum, plant) => sum + plant.resources[resource], 0)}份`}
+                  >
+                    <ResourceIcon resource={resource} />
+                    {player.plants.reduce(
+                      (sum, plant) => sum + plant.resources[resource],
+                      0,
+                    )}
+                  </span>
+                ))}
+              </div>
+              {player.cash != null && (
+                <div data-company-cash>现金 {player.cash} 电币</div>
+              )}
+            </article>
+          );
+        })}
+      </section>
+    );
   return (
     <div
       className={`pg-company-cards-wrap${horizontal ? ' pg-company-cards-wrap--horizontal' : ''}`}

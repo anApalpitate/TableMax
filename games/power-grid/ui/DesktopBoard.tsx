@@ -301,6 +301,7 @@ export function DesktopBoard({
             animate={animate}
             contextKey={contextKey}
             horizontal
+            overview
           />
         </div>
       </section>

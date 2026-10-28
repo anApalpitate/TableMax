@@ -6,6 +6,58 @@
   display: grid;
   gap: 8px;
 }
+.pg-screen .pg-company-overview {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 6px;
+}
+.pg-screen .pg-company-overview-card {
+  min-width: 0;
+  padding: 6px;
+  border: 1px solid #9b8963;
+  border-top: 4px solid var(--pg-player-color);
+  border-radius: 9px;
+  background: #fff9e8;
+  font-size: 16px;
+  line-height: 1.35;
+}
+.pg-screen .pg-company-overview-card > button {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  width: 100%;
+  min-height: 48px;
+  padding: 3px;
+  font-size: 18px;
+  text-align: left;
+}
+.pg-screen .pg-company-overview-card strong {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.pg-screen .pg-company-overview-plants {
+  min-height: 44px;
+  margin-top: 4px;
+}
+.pg-screen .pg-company-overview-stock {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 2px;
+}
+.pg-screen .pg-company-overview-stock > span {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+.pg-screen .pg-company-overview-stock svg {
+  width: 18px;
+  height: 18px;
+}
+@media (max-width: 900px) {
+  .pg-screen .pg-company-overview {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
 .pg-screen .pg-company-cards--horizontal {
   display: flex;
   gap: 8px;
