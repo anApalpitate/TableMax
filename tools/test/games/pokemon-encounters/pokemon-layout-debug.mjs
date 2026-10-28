@@ -42,6 +42,11 @@ const report = {
   screenshots: [],
   errors: [],
   inputs: [],
+  verifier: {
+    path: 'tools/test/games/pokemon-encounters/pokemon-layout-debug.mjs',
+    sha256: hash(await readFile(new URL(import.meta.url))),
+  },
+  arguments: process.argv.slice(2),
 };
 const cases = [];
 for (const variant of ['original', 'expansion']) {
@@ -104,6 +109,37 @@ for (const variant of ['original', 'expansion']) {
       ])
         add(device, scene);
   }
+  for (const seats of [4, 5])
+    for (const scene of ['draw', 'result'])
+      add('host-1280', `${seats}p-${scene}`, { scene, seats });
+  for (const scene of ['draw', 'place', 'peek', 'mew'])
+    add('landscape-min', scene);
+  for (const scene of ['draw', 'result']) add('host-tall', scene);
+  add('frame-boundary', 'place', { outerFrame: true });
+  for (const device of [
+    'host-below-width',
+    'host-below-height',
+    'portrait-below-width',
+    'portrait-below-height',
+    'landscape-below-width',
+    'landscape-below-height',
+  ])
+    add(device, 'place', { belowMinimum: true });
+  if (variant === 'expansion') {
+    for (const scene of [
+      'mew-target',
+      'mewtwo-target',
+      'mewtwo-private',
+      'weather',
+      'vote',
+    ])
+      add('landscape-min', scene);
+    for (const device of ['host-1280', 'portrait-360'])
+      add(device, 'mewtwo-private');
+    for (const device of ['host-1280', 'portrait-360', 'landscape-min'])
+      add(device, 'event-details');
+    add('host-1280', 'event-coin');
+  }
 }
 if (only)
   assert(
@@ -120,6 +156,15 @@ const sizes = {
   landscape: [844, 390],
   'wide-player': [1280, 720],
   'below-minimum': [320, 568],
+  'landscape-min': [640, 360],
+  'host-tall': [1920, 1200],
+  'frame-boundary': [799, 900],
+  'host-below-width': [1279, 720],
+  'host-below-height': [1280, 719],
+  'portrait-below-width': [359, 640],
+  'portrait-below-height': [360, 639],
+  'landscape-below-width': [639, 360],
+  'landscape-below-height': [640, 359],
 };
 let browser;
 const servers = [];
@@ -198,6 +243,7 @@ try {
       hasTouch: !item.device.startsWith('host'),
     });
     const page = await context.newPage();
+    let surface = page;
     page.on('pageerror', (error) =>
       report.errors.push({ id: item.id, error: error.message }),
     );
@@ -209,8 +255,30 @@ try {
     };
     try {
       await page.emulateMedia({ reducedMotion: 'reduce' });
-      await page.goto(servers.find((s) => s.variant === item.variant).url);
-      await page.waitForFunction(
+      const fixtureServer = servers.find((s) => s.variant === item.variant);
+      if (item.outerFrame) {
+        const html = await readFile(
+          join(work, item.variant, 'bundle/index.html'),
+          'utf8',
+        );
+        await context.route('**/player/game?layout-child=1', (route) =>
+          route.fulfill({
+            contentType: 'text/html; charset=utf-8',
+            body: html,
+          }),
+        );
+      }
+      await page.goto(
+        fixtureServer.url + (item.outerFrame ? '?layout-outer=1' : ''),
+      );
+      if (item.outerFrame) {
+        await surface.locator('iframe').waitFor();
+        surface = await (
+          await page.locator('iframe').elementHandle()
+        ).contentFrame();
+        await surface.locator('main').waitFor();
+      }
+      await surface.waitForFunction(
         () => !!(window.setPokemonFixture || window.redesignShow),
       );
       const role = item.device.startsWith('host') ? 'host' : 'player';
@@ -248,6 +316,9 @@ try {
                           'weather',
                           'mew-target',
                           'mewtwo-target',
+                          'mewtwo-private',
+                          'event-details',
+                          'event-coin',
                           'buffer',
                           'buffer-take',
                         ].includes(scene)
@@ -272,9 +343,15 @@ try {
                 weather: 'kyogre',
                 'mew-target': 'mew',
                 'mewtwo-target': 'mewtwo',
+                'mewtwo-private': 'mewtwo',
+                'event-details': 'kyogre',
+                'event-coin': 'team-rocket',
               }[scene],
               targetStage: ['mew-target', 'mewtwo-target'].includes(scene),
-              event: scene === 'weather' ? 'rain' : undefined,
+              privateStage: scene === 'mewtwo-private',
+              event: ['weather', 'event-details', 'event-coin'].includes(scene)
+                ? 'rain'
+                : undefined,
               buffer:
                 scene === 'buffer'
                   ? 'occupied'
@@ -285,26 +362,28 @@ try {
               paused: scene === 'paused',
               animate: false,
             };
-      check.fixture = await page.evaluate(
+      check.fixture = await surface.evaluate(
         ({ variant, settings }) =>
           variant === 'original'
             ? window.setPokemonFixture(settings)
             : window.redesignShow(settings),
         { variant: item.variant, settings },
       );
-      await page.waitForFunction(() =>
+      await surface.waitForFunction(() =>
         Array.from(document.images).every(
           (i) => i.complete && i.naturalWidth > 0,
         ),
       );
-      await page.evaluate(
+      await surface.evaluate(
         () =>
           new Promise((done) =>
             requestAnimationFrame(() => requestAnimationFrame(done)),
           ),
       );
+      if (scene === 'event-details')
+        await surface.locator('.ex-event-status summary').click();
       const measure = async () =>
-        page.evaluate(() => {
+        surface.evaluate(() => {
           const main = document.querySelector(
             'main.game-screen, main.expansion-screen',
           );
@@ -316,6 +395,7 @@ try {
               width: r.width,
               height: r.height,
               bottom: r.bottom,
+              right: r.right,
             };
           };
           const visible = (e) => {
@@ -397,7 +477,78 @@ try {
               display: getComputedStyle(c).display,
             })),
           }));
+          const targets = Array.from(
+            main.querySelectorAll(
+              'button.card-slot:not(:disabled), .target-tabs button, .ex-target-list button, .ex-research-summary, .ex-event-status summary, button.ex-event-status, .ex-event-status button, .ability-detail, .close-peek-action, .ex-private-peek button',
+            ),
+          )
+            .filter(visible)
+            .map((e) => {
+              const r = e.getBoundingClientRect();
+              const hit = document.elementFromPoint(
+                r.x + r.width / 2,
+                r.y + r.height / 2,
+              );
+              return {
+                ...rect(e),
+                name: e.getAttribute('aria-label') || e.textContent,
+                className: e.className,
+                hit: Boolean(hit && (e === hit || e.contains(hit))),
+                horizontalChoice: Boolean(
+                  e.closest('.target-tabs, .ex-target-list'),
+                ),
+              };
+            });
+          const information = Array.from(
+            main.querySelectorAll(
+              '.card-name, .card-name-text, .slot-index, .ex-source-name, .ex-research-summary strong, .ex-event-status',
+            ),
+          )
+            .filter(visible)
+            .map((e) => ({
+              text: e.textContent,
+              font: parseFloat(getComputedStyle(e).fontSize),
+            }));
+          const artwork = Array.from(
+            main.querySelectorAll('.pokemon-board .pokemon-card.face > img'),
+          )
+            .filter(visible)
+            .map((e) => ({
+              ...rect(e),
+              fit: getComputedStyle(e).objectFit,
+              natural: [e.naturalWidth, e.naturalHeight],
+              card: rect(e.closest('.pokemon-card')),
+            }));
           return {
+            viewport: {
+              width: innerWidth,
+              height: innerHeight,
+              dpr: devicePixelRatio,
+            },
+            net: {
+              width: main.dataset.netWidth,
+              height: main.dataset.netHeight,
+              layout: main.dataset.layout,
+              belowMinimum: main.dataset.belowMinimum,
+            },
+            targets,
+            information,
+            artwork,
+            eventDetails: Array.from(
+              main.querySelectorAll('.ex-event-status details[open] > p'),
+            )
+              .filter(visible)
+              .map(rect),
+            privatePanels: Array.from(
+              main.querySelectorAll('.private-peek, .ex-private-peek'),
+            ).filter(visible).length,
+            seatRects: Array.from(
+              main.querySelectorAll(
+                '.game-seats > .game-seat, .ex-players > .ex-player',
+              ),
+            )
+              .filter(visible)
+              .map(rect),
             diagnostics,
             rootOverflow: document.documentElement.scrollHeight - innerHeight,
             horizontalOverflow:
@@ -413,8 +564,8 @@ try {
         });
       check.geometry = await measure();
       if (scene === 'friends') {
-        await page.getByRole('button', { name: /朋友/ }).first().click();
-        check.friends = await page.locator('dialog[open]').evaluate((e) => ({
+        await surface.getByRole('button', { name: /朋友/ }).first().click();
+        check.friends = await surface.locator('dialog[open]').evaluate((e) => ({
           width: e.getBoundingClientRect().width,
           count: e.querySelectorAll('.friend-board, .ex-player').length,
           overflow: e.scrollWidth - e.clientWidth,
@@ -423,7 +574,10 @@ try {
       const png = join(work, `${item.id}.png`);
       await captureBrowserScreenshot(page, {
         path: png,
-        fullPage: phase === 'before' || item.device === 'below-minimum',
+        fullPage:
+          phase === 'before' ||
+          item.device === 'below-minimum' ||
+          item.belowMinimum,
       });
       const bytes = await readFile(png);
       report.screenshots.push({
@@ -437,8 +591,11 @@ try {
           if (!condition) check.failures.push(reason);
         };
         const g = check.geometry;
+        const contentHeight = g.viewport.height;
         if (item.seats) {
           expect(g.boards.length === item.seats, 'Unexpected seat count');
+        }
+        if ([2, 3].includes(item.seats)) {
           expect(
             g.boardCards.every(
               (r) => Math.abs(r.height / r.width - 1.4) < 0.035,
@@ -450,7 +607,7 @@ try {
           g.horizontalOverflow <= 1,
           `Horizontal overflow ${g.horizontalOverflow}`,
         );
-        if (item.device !== 'below-minimum') {
+        if (item.device !== 'below-minimum' && !item.belowMinimum) {
           expect(
             g.rootOverflow <= 1,
             `Page vertical overflow ${g.rootOverflow}`,
@@ -460,7 +617,7 @@ try {
             'Main seats internally scroll',
           );
           expect(
-            g.boards.every((r) => r.bottom <= height + 1 && r.y >= 0),
+            g.boards.every((r) => r.bottom <= contentHeight + 1 && r.y >= 0),
             'Board outside first screen',
           );
         }
@@ -468,39 +625,252 @@ try {
           !g.nameIssues.length,
           `Card names clipped: ${g.nameIssues.join(',')}`,
         );
-        if (scene === 'weather') {
+        if (['weather', 'event-details', 'event-coin'].includes(scene)) {
           expect(
-            await page.locator('.ex-event-status').isVisible(),
+            await surface.locator('.ex-event-status').isVisible(),
             'Weather status missing',
           );
           expect(
-            (await page.locator('[data-score-effect="rain"]').count()) > 0,
+            (await surface.locator('[data-score-effect="rain"]').count()) > 0,
             'Rain effective-value marker missing',
           );
         }
+        if (scene === 'event-details') {
+          expect(
+            g.eventDetails.length === 1 &&
+              g.eventDetails.every(
+                (r) =>
+                  r.x >= 0 &&
+                  r.y >= 0 &&
+                  r.right <= g.viewport.width &&
+                  r.bottom <= contentHeight,
+              ),
+            'Opened event details are outside the game viewport',
+          );
+          await surface.locator('.ex-event-status summary').click();
+          expect(
+            await surface
+              .locator('.ex-event-status details')
+              .evaluate((e) => !e.open),
+            'Event details cannot be closed',
+          );
+        }
+        if (scene === 'event-coin')
+          expect(
+            (await surface.locator('.ex-coin-result').count()) > 0 &&
+              (await surface.locator('.ex-research-summary').count()) > 0,
+            'Combined event, coin and active research fixture is incomplete',
+          );
         if (scene === 'buffer')
           expect(
-            (await page
+            (await surface
               .locator('.ex-buffer-source .pokemon-card.face')
               .count()) > 0,
             'Occupied buffer not displayed',
           );
         if (scene === 'buffer-take')
           expect(
-            (await page.locator('.ex-held-options').count()) === 0,
+            (await surface.locator('.ex-held-options').count()) === 0,
             'Forced buffer placement offers discard/store',
           );
-        if (item.device !== 'below-minimum')
+        if (item.device !== 'below-minimum' && !item.belowMinimum)
           expect(
             g.controls.every(
               (r) =>
-                r.bottom <= height + 1 &&
+                r.bottom <= contentHeight + 1 &&
                 r.y >= 0 &&
                 r.height >= 44 &&
                 r.font >= 18,
             ),
             'Current confirmation/action is outside screen or below text/touch minimum',
           );
+        expect(
+          g.information.every((e) => e.font >= 16),
+          'Information text below 16 CSS px',
+        );
+        if (item.variant === 'original' && role === 'player')
+          expect(
+            g.artwork.every(
+              (r) =>
+                r.height >= 32 &&
+                r.fit === 'contain' &&
+                r.natural.every((n) => n > 0),
+            ),
+            'Original player board artwork is squeezed below 32px or loses its contain fit',
+          );
+        if (item.device !== 'below-minimum' && !item.belowMinimum)
+          expect(
+            g.targets.every(
+              (r) =>
+                r.width >= 44 &&
+                r.height >= 44 &&
+                (r.hit || r.horizontalChoice),
+            ),
+            `Touch target below 44px or occluded: ${g.targets
+              .filter((r) => r.width < 44 || r.height < 44 || !r.hit)
+              .map((r) => r.name)
+              .join(',')}`,
+          );
+        for (const target of g.targets.filter(
+          (r) => !r.hit && r.horizontalChoice,
+        )) {
+          const choice = surface.getByRole('button', {
+            name: target.name,
+            exact: true,
+          });
+          await choice.scrollIntoViewIfNeeded();
+          expect(
+            await choice.evaluate((e) => {
+              const r = e.getBoundingClientRect();
+              const hit = document.elementFromPoint(
+                r.x + r.width / 2,
+                r.y + r.height / 2,
+              );
+              return (
+                r.width >= 44 &&
+                r.height >= 44 &&
+                r.y >= 0 &&
+                r.bottom <= innerHeight &&
+                Boolean(hit && (e === hit || e.contains(hit)))
+              );
+            }),
+            `Horizontally scrolled choice remains unreachable: ${target.name}`,
+          );
+        }
+        if (role === 'player') {
+          const privateScene = scene === 'peek' || scene === 'mewtwo-private';
+          expect(
+            g.boards.length === (scene === 'vote' || privateScene ? 0 : 1),
+            `Expected one decision board (none during private view/vote), found ${g.boards.length}`,
+          );
+          if (privateScene)
+            expect(
+              g.privatePanels === 1,
+              'Private view must have exactly one authorized panel',
+            );
+        } else expect(g.privatePanels === 0, 'Private panel leaked to manager');
+        if (item.seats === 4) {
+          const xs = new Set(g.seatRects.map((r) => Math.round(r.x)));
+          const ys = new Set(g.seatRects.map((r) => Math.round(r.y)));
+          expect(
+            xs.size === 2 && ys.size === 2,
+            'Four-seat layout must remain 2 by 2',
+          );
+        }
+        if (item.seats === 5) {
+          const ys = g.seatRects.map((r) => Math.round(r.y));
+          expect(
+            new Set(ys).size === 2 &&
+              ys.filter((y) => y === Math.min(...ys)).length === 3,
+            'Five-seat layout must retain three seats in its first row',
+          );
+        }
+        if (item.belowMinimum) {
+          expect(
+            g.net.belowMinimum === 'true',
+            'Below-minimum region is not identified',
+          );
+          expect(
+            await surface.locator('.pokemon-layout-warning').isVisible(),
+            'Below-minimum access warning missing',
+          );
+          const reachable = surface
+            .locator(
+              'button.card-slot:not(:disabled), .confirm-action, .ex-submit button',
+            )
+            .last();
+          if (await reachable.count()) {
+            await reachable.scrollIntoViewIfNeeded();
+            expect(
+              await reachable.evaluate((e) => {
+                const r = e.getBoundingClientRect();
+                const hit = document.elementFromPoint(
+                  r.x + r.width / 2,
+                  r.y + r.height / 2,
+                );
+                return (
+                  r.width >= 44 &&
+                  r.height >= 44 &&
+                  Boolean(hit && (hit === e || e.contains(hit)))
+                );
+              }),
+              'Below-minimum action cannot be reached by scrolling',
+            );
+          }
+        }
+        if (item.outerFrame) {
+          check.frameProbe = [];
+          await surface.evaluate(() => {
+            window.pilotDocumentToken = 'pokemon-pilot-stable-document';
+          });
+          const selected = surface
+            .locator('button.card-slot:not(:disabled)')
+            .first();
+          await selected.click();
+          for (const outerWidth of [799, 800, 801]) {
+            await page.setViewportSize({ width: outerWidth, height: 900 });
+            await page.waitForFunction((w) => innerWidth === w, outerWidth);
+            await page.evaluate(
+              () =>
+                new Promise((done) =>
+                  requestAnimationFrame(() => requestAnimationFrame(done)),
+                ),
+            );
+            const toggle = page.locator('.player-frame__display');
+            expect(
+              (await toggle.count()) === (outerWidth >= 800 ? 1 : 0),
+              'PlayerFrame legacy 800px mode gate changed',
+            );
+            expect(
+              await surface.evaluate(
+                () =>
+                  window.pilotDocumentToken === 'pokemon-pilot-stable-document',
+              ),
+              'PlayerFrame replaced the game document',
+            );
+            expect(
+              (await selected.getAttribute('aria-pressed')) === 'true',
+              'PlayerFrame boundary lost selection draft',
+            );
+            check.frameProbe.push({
+              outerWidth,
+              outer: await page.evaluate(() => ({
+                media: matchMedia('(min-width: 800px)').matches,
+                mode: document.querySelector('.player-frame')?.dataset
+                  .playerDisplay,
+                contract:
+                  document.querySelector('.player-frame')?.dataset
+                    .workspaceLayout,
+                childContract: document
+                  .querySelector('iframe')
+                  ?.contentDocument?.querySelector(
+                    '[data-player-layout-contract]',
+                  )
+                  ?.getAttribute('data-player-layout-contract'),
+              })),
+              child: await measure(),
+            });
+          }
+          await page.locator('.player-frame__display').click();
+          expect(
+            await surface.evaluate(
+              () => document.documentElement.dataset.playerDisplay === 'wide',
+            ),
+            'Manual PlayerFrame wide mode did not reach child',
+          );
+          expect(
+            (await selected.getAttribute('aria-pressed')) === 'true',
+            'PlayerFrame manual switch lost selection draft',
+          );
+          expect(
+            await surface.evaluate(
+              () =>
+                window.pilotDocumentToken === 'pokemon-pilot-stable-document',
+            ),
+            'Manual PlayerFrame switch replaced document',
+          );
+          check.frameWide = await measure();
+        }
         expect(
           g.cards.every(
             (card) =>
@@ -517,11 +887,11 @@ try {
             expect(check.friends.width > 620, 'Friends dialog remains narrow');
           await page.keyboard.press('Escape');
           expect(
-            (await page.locator('dialog[open]').count()) === 0,
+            (await surface.locator('dialog[open]').count()) === 0,
             'Friends Escape failed',
           );
           expect(
-            await page
+            await surface
               .getByRole('button', { name: /朋友/ })
               .first()
               .evaluate((e) => e === document.activeElement),
@@ -539,7 +909,7 @@ try {
             );
           await update({ message: '已保存', messageKind: 'saved' });
           expect(
-            (await page.getByText('已保存', { exact: true }).count()) === 0,
+            (await surface.getByText('已保存', { exact: true }).count()) === 0,
             'Ordinary saved acknowledgement visible',
           );
           const changed = await measure();
@@ -549,19 +919,19 @@ try {
           );
           await update({ message: '保存失败，请重试', messageKind: 'error' });
           expect(
-            await page
+            await surface
               .getByText('保存失败，请重试', { exact: true })
               .isVisible(),
             'Save failure hidden',
           );
           await update({ message: '正在保存…', messageKind: null, busy: true });
           expect(
-            await page.getByText('正在保存…', { exact: true }).isVisible(),
+            await surface.getByText('正在保存…', { exact: true }).isVisible(),
             'Saving state hidden',
           );
           await update({ connected: false, message: '', messageKind: null });
           expect(
-            await page.locator('.session-feedback').isVisible(),
+            await surface.locator('.session-feedback').isVisible(),
             'Disconnected feedback hidden',
           );
           await update({
@@ -572,13 +942,13 @@ try {
             awaitingConfirmation: true,
           });
           expect(
-            await page
+            await surface
               .getByRole('button', { name: '重试入座确认', exact: true })
               .isVisible(),
             'Admission retry hidden',
           );
           expect(
-            await page
+            await surface
               .getByRole('button', { name: '重试确认', exact: true })
               .isVisible(),
             'Confirmation retry hidden',
@@ -592,7 +962,7 @@ try {
             awaitingConfirmation: false,
           });
           if (role === 'player' && item.device === 'portrait-360') {
-            await page
+            await surface
               .locator(
                 item.variant === 'original'
                   ? '.draw-pile.deck-pile-control'
@@ -629,7 +999,7 @@ try {
             'Rotation lost selection draft',
           );
           await page.setViewportSize({ width, height });
-          const confirm = page
+          const confirm = surface
             .locator(
               item.variant === 'original'
                 ? '.confirm-action'
@@ -637,7 +1007,7 @@ try {
             )
             .first();
           await confirm.click();
-          const count = await page.evaluate(
+          const count = await surface.evaluate(
             (variant) =>
               variant === 'original'
                 ? window.pokemonCommands.length

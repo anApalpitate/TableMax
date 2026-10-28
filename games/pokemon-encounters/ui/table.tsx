@@ -76,11 +76,8 @@ export function GameTable({
     const capture = () => {
       const anchors: TrailAnchors = {};
       for (const [key, selector] of [
-        ['held', '.held-pile .pokemon-card, .held-zone'],
-        [
-          'discard',
-          '.card-piles > div:nth-child(2) .pokemon-card, .card-piles > div:nth-child(2) .empty-pile',
-        ],
+        ['held', '[data-pile-anchor="held"]'],
+        ['discard', '[data-pile-anchor="discard"]'],
       ] as const) {
         const rect = tableElement.current
           ?.querySelector(selector)
@@ -93,11 +90,17 @@ export function GameTable({
             height: rect.height,
           };
       }
-      trailAnchors.current = anchors;
+      // A stage can hide its source after saving. Keep its last real position
+      // until the next visible source provides a replacement anchor.
+      trailAnchors.current = { ...trailAnchors.current, ...anchors };
+    };
+    const resized = () => {
+      trailAnchors.current = {};
+      capture();
     };
     capture();
-    window.addEventListener('resize', capture);
-    return () => window.removeEventListener('resize', capture);
+    window.addEventListener('resize', resized);
+    return () => window.removeEventListener('resize', resized);
   });
   const thinkingSeat =
     game.phase === 'initial-flip'
@@ -154,9 +157,11 @@ export function GameTable({
                 portraits={portraits}
                 drawActions={paused || locked ? [] : actions}
                 onDraw={selfId ? choose : undefined}
+                player={player}
+                active={Boolean(selfId && actions.length && !paused && playing)}
               />
             )}
-            <ActivityFeed game={game} names={names} />
+            {!player && <ActivityFeed game={game} names={names} />}
             {game.roundResult && (
               <section
                 className={`round-banner ${motion.includes('@phase') ? 'saved-motion' : ''}`}

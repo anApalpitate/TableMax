@@ -83,12 +83,16 @@ export function TableStatus({
   portraits = {},
   drawActions = [],
   onDraw,
+  player = false,
+  active = true,
 }: {
   view: PokemonView;
   names: Record<string, string>;
   portraits?: Record<string, string>;
   drawActions?: readonly JsonValue[];
   onDraw?: ((action: JsonValue) => void) | undefined;
+  player?: boolean;
+  active?: boolean;
 }) {
   const gallery = useRef<HTMLDialogElement>(null);
   const galleryTitle = useId();
@@ -101,6 +105,9 @@ export function TableStatus({
   const draws = (drawActions as readonly Action[]).filter(
     (action) => action.type === 'draw',
   );
+  const showSources = !player || (view.phase === 'draw' && active);
+  const showHeld = !player || Boolean(view.held && active);
+  const playerZone = showSources ? 'draw' : showHeld ? 'held' : 'quiet';
   const heldStatus =
     view.phase === 'mew-self' || view.phase === 'zapdos-receive'
       ? '等待换入'
@@ -114,6 +121,7 @@ export function TableStatus({
     const face = <CardFace card={source === 'deck' ? null : view.discardTop} />;
     return onDraw && view.phase === 'draw' ? (
       <button
+        data-pile-anchor={source}
         className={`draw-pile ${source}-pile-control ${action ? 'can-draw' : 'is-unavailable'}`}
         disabled={!action}
         aria-label={source === 'deck' ? '从牌库取牌' : '从弃牌顶取牌'}
@@ -142,14 +150,20 @@ export function TableStatus({
         <span className="pile-action">{action ? '点此取牌' : '等待'}</span>
       </button>
     ) : (
-      <div className={`pile-display ${source}-pile-control`}>
+      <div
+        className={`pile-display ${source}-pile-control`}
+        data-pile-anchor={source}
+      >
         {face}
         <span className="pile-action">仅展示</span>
       </div>
     );
   };
   return (
-    <div className="pokemon-status decision-dashboard">
+    <div
+      className="pokemon-status decision-dashboard"
+      data-player-zone={player ? playerZone : undefined}
+    >
       <div
         className={`decision-status ${motion.includes('@phase') ? 'saved-motion' : ''}`}
       >
@@ -246,118 +260,128 @@ export function TableStatus({
           </span>
         )}
       </div>
-      <div className="card-piles">
-        <div className="pile-zone deck-pile">
-          <span className="pile-label">
-            <span className="pile-symbol" aria-hidden="true">
-              <svg viewBox="0 0 24 24">
-                <rect x="7" y="3" width="12" height="15" rx="2" />
-                <path d="M5 7H4v14h12v-1M11 8h4M11 12h4" />
-              </svg>
-            </span>
-            <span className="pile-name">摸牌堆</span>
-            <span className="pile-count">{view.deckCount}</span>
-          </span>
-          {pile('deck')}
-        </div>
-        <div className="pile-zone discard-pile">
-          <span className="pile-label">
-            <span className="pile-symbol" aria-hidden="true">
-              <svg viewBox="0 0 24 24">
-                <path d="M12 3v10m-4-4 4 4 4-4M4 16v5h16v-5" />
-              </svg>
-            </span>
-            <span className="pile-name">弃牌堆</span>
-            <span className="pile-count">{view.discardCount}</span>
-          </span>
-          {view.discardTop ? (
-            pile('discard')
-          ) : (
-            <span
-              className="empty-pile is-unavailable"
-              aria-label="弃牌堆暂时为空"
-            >
-              <span className="empty-pile-symbol" aria-hidden="true">
-                ↧
+      {showSources && (
+        <div className="card-piles">
+          <div className="pile-zone deck-pile">
+            <span className="pile-label">
+              <span className="pile-symbol" aria-hidden="true">
+                <svg viewBox="0 0 24 24">
+                  <rect x="7" y="3" width="12" height="15" rx="2" />
+                  <path d="M5 7H4v14h12v-1M11 8h4M11 12h4" />
+                </svg>
               </span>
-              <span>暂无</span>
+              <span className="pile-name">摸牌堆</span>
+              <span className="pile-count">{view.deckCount}</span>
             </span>
+            {pile('deck')}
+          </div>
+          <div className="pile-zone discard-pile">
+            <span className="pile-label">
+              <span className="pile-symbol" aria-hidden="true">
+                <svg viewBox="0 0 24 24">
+                  <path d="M12 3v10m-4-4 4 4 4-4M4 16v5h16v-5" />
+                </svg>
+              </span>
+              <span className="pile-name">弃牌堆</span>
+              <span className="pile-count">{view.discardCount}</span>
+            </span>
+            {view.discardTop ? (
+              pile('discard')
+            ) : (
+              <span
+                className="empty-pile is-unavailable"
+                data-pile-anchor="discard"
+                aria-label="弃牌堆暂时为空"
+              >
+                <span className="empty-pile-symbol" aria-hidden="true">
+                  ↧
+                </span>
+                <span>暂无</span>
+              </span>
+            )}
+          </div>
+          {view.discard && view.discard.length > 0 && (
+            <div className="discard-control">
+              <button
+                className="secondary"
+                onClick={() => gallery.current?.showModal()}
+              >
+                查看弃牌
+              </button>
+              <dialog
+                ref={gallery}
+                className="card-gallery-panel"
+                aria-labelledby={galleryTitle}
+              >
+                <header className="gallery-heading">
+                  <h2 id={galleryTitle}>弃牌 底 → 顶</h2>
+                  <button
+                    className="secondary"
+                    onClick={() => gallery.current?.close()}
+                  >
+                    关闭
+                  </button>
+                </header>
+                <div className="discard-gallery">
+                  {view.discard.map((card, i) => (
+                    <CardFace key={i} card={card} />
+                  ))}
+                </div>
+              </dialog>
+            </div>
           )}
         </div>
-        {view.discard && view.discard.length > 0 && (
-          <div className="discard-control">
-            <button
-              className="secondary"
-              onClick={() => gallery.current?.showModal()}
-            >
-              查看弃牌
-            </button>
-            <dialog
-              ref={gallery}
-              className="card-gallery-panel"
-              aria-labelledby={galleryTitle}
-            >
-              <header className="gallery-heading">
-                <h2 id={galleryTitle}>弃牌 底 → 顶</h2>
-                <button
-                  className="secondary"
-                  onClick={() => gallery.current?.close()}
-                >
-                  关闭
-                </button>
-              </header>
-              <div className="discard-gallery">
-                {view.discard.map((card, i) => (
-                  <CardFace key={i} card={card} />
-                ))}
-              </div>
-            </dialog>
+      )}
+      {showHeld && (
+        <section
+          className={`held-zone ${view.held ? 'has-held' : 'held-empty'}`}
+          aria-label="公开暂持区"
+        >
+          {!view.held && (
+            <span className="held-empty-art" aria-hidden="true">
+              <svg className="held-empty-symbol" viewBox="0 0 40 48">
+                <rect x="8" y="4" width="25" height="36" rx="4" />
+                <circle cx="20.5" cy="22" r="5.5" />
+                <path d="M5 11H3v34h25v-2M15 22h11" />
+              </svg>
+            </span>
+          )}
+          <div className="held-copy">
+            <span className="held-tag">
+              {view.held ? heldStatus : '暂持区'}
+            </span>
+            <strong>
+              {view.held
+                ? view.held.name.replace('外观', '')
+                : view.phase === 'draw'
+                  ? '待取牌'
+                  : '暂未持牌'}
+            </strong>
           </div>
-        )}
-      </div>
-      <section
-        className={`held-zone ${view.held ? 'has-held' : 'held-empty'}`}
-        aria-label="公开暂持区"
-      >
-        {!view.held && (
-          <span className="held-empty-art" aria-hidden="true">
-            <svg className="held-empty-symbol" viewBox="0 0 40 48">
-              <rect x="8" y="4" width="25" height="36" rx="4" />
-              <circle cx="20.5" cy="22" r="5.5" />
-              <path d="M5 11H3v34h25v-2M15 22h11" />
-            </svg>
-          </span>
-        )}
-        <div className="held-copy">
-          <span className="held-tag">{view.held ? heldStatus : '暂持区'}</span>
-          <strong>
-            {view.held
-              ? view.held.name.replace('外观', '')
-              : view.phase === 'draw'
-                ? '待取牌'
-                : '暂未持牌'}
-          </strong>
-        </div>
-        {view.held && (
-          <div
-            className={`held-pile ${motion.includes('@held') ? 'saved-motion' : ''}`}
-          >
-            <CardFace card={view.held} />
-          </div>
-        )}
-      </section>
+          {view.held && (
+            <div
+              className={`held-pile ${motion.includes('@held') ? 'saved-motion' : ''}`}
+              data-pile-anchor="held"
+            >
+              <CardFace card={view.held} />
+            </div>
+          )}
+        </section>
+      )}
     </div>
   );
 }
 export function PublicLog({
   view,
   names = {},
+  expanded = false,
 }: {
   view: PokemonView;
   names?: Record<string, string>;
+  expanded?: boolean;
 }) {
   return (
-    <details className="public-log">
+    <details className="public-log" open={expanded || undefined}>
       <summary>公开操作记录</summary>
       <ol>
         {view.events

@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client';
 import { flushSync } from 'react-dom';
 import { client } from '../../../apps/web/src/game-clients/PokemonScreen';
 import { BoxScreen } from '../../../apps/web/src/screens/BoxScreen';
+import { PlayerFrame } from '../../../apps/web/src/components/PlayerFrame';
 import type { RoomSession } from '../../../apps/web/src/session/useRoomSession';
 import type { PokemonView } from '../../../games/pokemon-encounters/rules/project';
 import { rules, type Action } from '../../../games/pokemon-encounters/rules';
@@ -296,4 +297,10 @@ function Fixture() {
 }
 
 window.pokemonCommands = [];
-createRoot(document.getElementById('root')!).render(<Fixture />);
+createRoot(document.getElementById('root')!).render(
+  new URLSearchParams(location.search).has('layout-outer') ? (
+    <PlayerFrame initialUrl="/player/game?layout-child=1" />
+  ) : (
+    <Fixture />
+  ),
+);

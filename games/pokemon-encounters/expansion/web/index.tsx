@@ -1,5 +1,5 @@
 /* eslint-disable react-refresh/only-export-components -- Independent expansion client adapter. */
-import { useLayoutEffect, useRef, useState, type ReactNode } from 'react';
+import { useState, type ReactNode } from 'react';
 import type { GameClient, GameHost } from '@tablemax/web-host';
 import {
   avatarFor,
@@ -26,6 +26,7 @@ import {
 import { BoardGrid } from '../../ui/BoardGrid';
 import { CardSkin } from '../../ui/CardSkin';
 import { WinTrack } from '../../ui/WinTrack';
+import { usePokemonViewport } from '../../ui/usePokemonViewport';
 import { ResearchCard, ResearchPicture } from './ResearchCard';
 import { ResearchReward } from './ResearchReward';
 import { portraitFor } from './card-art';
@@ -153,6 +154,22 @@ function eventText(
     )
     .join('；');
   return `${names[action.actor] ?? '玩家'}${verbs[action.verb] ?? '完成操作'}${category ? ` ${category.name}` : ''}${targets ? `，目标为${targets}` : ''}。`;
+}
+function eventDescription(
+  event: View['events'][number],
+  names: Record<string, string>,
+) {
+  return eventText(event, names)
+    .split(/(\d+(?:、\d+)*号位)/u)
+    .map((part, index) =>
+      /^\d+(?:、\d+)*号位$/u.test(part) ? (
+        <span className="ex-position-phrase" key={index}>
+          {part}
+        </span>
+      ) : (
+        part
+      ),
+    );
 }
 
 function BufferCard({
@@ -456,7 +473,9 @@ function PublicSupply({
       </section>
       <div className="ex-last-action" role="status">
         <span>最近行动</span>
-        <p>{game.events.at(-1) && eventText(game.events.at(-1)!, names)}</p>
+        <p>
+          {game.events.at(-1) && eventDescription(game.events.at(-1)!, names)}
+        </p>
       </div>
       {research}
     </aside>
@@ -530,6 +549,10 @@ function Actions({
         a.b === Math.max(...slots) &&
         (!('swap' in a) || a.swap === exchange),
     );
+  const selectingSlots =
+    !game.peek &&
+    selectable.length > 0 &&
+    (game.phase !== 'draw' || mode === 'reposition');
   const commandLabel =
     selectedType === 'initial-flip'
       ? '翻开这张牌'
@@ -658,213 +681,234 @@ function Actions({
         </h2>
         <WinTrack wins={game.winsBySeat[self] ?? 0} />
       </header>
-      {game.coin && (
-        <div className="ex-coin-result" role="status">
-          <span className="coin-face">
-            <img src={coinArt[game.coin]} alt="" />
-          </span>
-          <strong>{game.coin === 'meowth' ? '喵喵面' : '皮卡丘面'}</strong>
-        </div>
-      )}
-      {game.held && (
-        <div className="ex-held" data-pile="held">
-          <Card profile={game.rulesProfile} face={game.held} />
-          <div>
-            <span className="ex-held-label">当前取牌</span>
-            <strong>{game.held.name}</strong>
-            {game.drawSource !== 'deck' && (
-              <span className="ex-source-rule">
-                <span className="ex-source-label-full">
-                  {game.drawSource === 'buffer' ? '来自本人缓冲' : '来自弃牌堆'}
-                  ，必须使用
-                </span>
-                <span className="ex-source-label-compact">
-                  <span>
-                    {game.drawSource === 'buffer' ? '本人缓冲' : '弃牌堆'}
-                  </span>
-                  <span>必须换入</span>
-                </span>
-              </span>
-            )}
-            <p
-              className={
-                game.held.abilityUsed && game.held.ability
-                  ? 'ex-held-ability-used'
-                  : 'ex-held-summary'
-              }
-            >
-              {game.held.abilityUsed && game.held.ability ? (
-                <>
-                  能力已使用
-                  <span className="ex-placement-reminder">，选择位置换入</span>
-                </>
-              ) : (
-                categoryPresentation(game.held.categoryId, game.rulesProfile)
-                  .abilitySummary || '选择位置换入'
-              )}
-            </p>
-            {game.held.abilityText && !game.held.abilityUsed && (
-              <details>
-                <summary>能力说明</summary>
-                <p>{game.held.abilityText}</p>
-              </details>
-            )}
-            <BufferCard game={game} seat={self} />
+      <div className="ex-decision-context">
+        {game.coin && (
+          <div className="ex-coin-result" role="status">
+            <span className="coin-face">
+              <img src={coinArt[game.coin]} alt="" />
+            </span>
+            <strong>{game.coin === 'meowth' ? '喵喵面' : '皮卡丘面'}</strong>
           </div>
-        </div>
-      )}
-      {!game.held && (
-        <span className="ex-held-anchor" data-pile="held" aria-hidden="true" />
-      )}
-      {game.phase !== 'place' && heldOptions}
-      {(game.phase === 'draw' || game.phase === 'lucario-draw') && (
-        <div className="ex-draw-options">
-          <button
-            className="ex-source"
-            data-pile="deck"
-            data-action="draw"
-            data-source="deck"
-            disabled={
-              locked ||
-              !actions.some((a) => a.type === 'draw' && a.source === 'deck')
-            }
-            onClick={() => choose({ type: 'draw', source: 'deck' })}
-          >
-            <strong>摸牌堆</strong>
-            <div className="ex-source-face">
-              <Card profile={game.rulesProfile} face={null} compact />
-              <span>
-                取一张牌<b>{game.deckCount} 张</b>
-              </span>
-            </div>
-          </button>
-          {(game.phase === 'draw'
-            ? bufferedProfile(game.rulesProfile)
-              ? [0]
-              : [0, 1]
-            : []
-          ).map((index) => {
-            const i = index as 0 | 1;
-            const face = game.discardOptions[i] ?? null;
-            return (
-              <button
-                key={i}
-                className="ex-source"
-                data-pile={i === 0 ? 'discard' : 'discard-second'}
-                data-action="draw"
-                data-source="discard"
-                data-discard-index={i}
-                disabled={
-                  locked ||
-                  !actions.some(
-                    (a) =>
-                      a.type === 'draw' &&
-                      a.source === 'discard' &&
-                      a.discardIndex === i,
-                  )
-                }
-                onClick={() =>
-                  choose({ type: 'draw', source: 'discard', discardIndex: i })
+        )}
+        {game.held && (
+          <div className="ex-held" data-pile="held">
+            <Card profile={game.rulesProfile} face={game.held} />
+            <div>
+              <span className="ex-held-label">当前取牌</span>
+              <strong>{game.held.name}</strong>
+              {game.drawSource !== 'deck' && (
+                <span className="ex-source-rule">
+                  <span className="ex-source-label-full">
+                    {game.drawSource === 'buffer'
+                      ? '来自本人缓冲'
+                      : '来自弃牌堆'}
+                    ，必须使用
+                  </span>
+                  <span className="ex-source-label-compact">
+                    <span>
+                      {game.drawSource === 'buffer' ? '本人缓冲' : '弃牌堆'}
+                    </span>
+                    <span>必须换入</span>
+                  </span>
+                </span>
+              )}
+              <p
+                className={
+                  game.held.abilityUsed && game.held.ability
+                    ? 'ex-held-ability-used'
+                    : 'ex-held-summary'
                 }
               >
-                <strong>
-                  {bufferedProfile(game.rulesProfile)
-                    ? '弃牌顶部'
-                    : `可选弃牌${i + 1}`}
-                </strong>
+                {game.held.abilityUsed && game.held.ability ? (
+                  <>
+                    能力已使用
+                    <span className="ex-placement-reminder">
+                      ，选择位置换入
+                    </span>
+                  </>
+                ) : (
+                  categoryPresentation(game.held.categoryId, game.rulesProfile)
+                    .abilitySummary || '选择位置换入'
+                )}
+              </p>
+              {game.held.abilityText && !game.held.abilityUsed && (
+                <details>
+                  <summary>能力说明</summary>
+                  <p>{game.held.abilityText}</p>
+                </details>
+              )}
+              <BufferCard game={game} seat={self} />
+            </div>
+          </div>
+        )}
+        {!game.held && (
+          <span
+            className="ex-held-anchor"
+            data-pile="held"
+            aria-hidden="true"
+          />
+        )}
+        {(game.phase === 'draw' || game.phase === 'lucario-draw') && (
+          <div className="ex-draw-options">
+            <button
+              className="ex-source"
+              data-pile="deck"
+              data-action="draw"
+              data-source="deck"
+              disabled={
+                locked ||
+                !actions.some((a) => a.type === 'draw' && a.source === 'deck')
+              }
+              onClick={() => choose({ type: 'draw', source: 'deck' })}
+            >
+              <strong>摸牌堆</strong>
+              <div className="ex-source-face">
+                <Card profile={game.rulesProfile} face={null} compact />
+                <span>
+                  取一张牌<b>{game.deckCount} 张</b>
+                </span>
+              </div>
+            </button>
+            {(game.phase === 'draw'
+              ? bufferedProfile(game.rulesProfile)
+                ? [0]
+                : [0, 1]
+              : []
+            ).map((index) => {
+              const i = index as 0 | 1;
+              const face = game.discardOptions[i] ?? null;
+              return (
+                <button
+                  key={i}
+                  className="ex-source"
+                  data-pile={i === 0 ? 'discard' : 'discard-second'}
+                  data-action="draw"
+                  data-source="discard"
+                  data-discard-index={i}
+                  disabled={
+                    locked ||
+                    !actions.some(
+                      (a) =>
+                        a.type === 'draw' &&
+                        a.source === 'discard' &&
+                        a.discardIndex === i,
+                    )
+                  }
+                  onClick={() =>
+                    choose({ type: 'draw', source: 'discard', discardIndex: i })
+                  }
+                >
+                  <strong>
+                    {bufferedProfile(game.rulesProfile)
+                      ? '弃牌顶部'
+                      : `可选弃牌${i + 1}`}
+                  </strong>
+                  <div className="ex-source-face">
+                    {face ? (
+                      <Card profile={game.rulesProfile} face={face} compact />
+                    ) : (
+                      <span className="ex-empty-source">—</span>
+                    )}
+                    <span>
+                      {face?.name ?? '暂无卡牌'}
+                      <b>
+                        {face ? summaryOf(face, game.rulesProfile) : '不可选择'}
+                      </b>
+                    </span>
+                  </div>
+                </button>
+              );
+            })}
+            {game.buffersBySeat && game.phase === 'draw' && (
+              <button
+                className="ex-source ex-buffer-source"
+                data-pile="buffer"
+                data-seat={self}
+                data-action="draw-buffer"
+                disabled={
+                  locked || !actions.some((a) => a.type === 'draw-buffer')
+                }
+                onClick={() => choose({ type: 'draw-buffer' })}
+              >
+                <strong>本人缓冲</strong>
                 <div className="ex-source-face">
-                  {face ? (
-                    <Card profile={game.rulesProfile} face={face} compact />
+                  {game.buffersBySeat[self] ? (
+                    <Card
+                      profile={game.rulesProfile}
+                      face={game.buffersBySeat[self]!}
+                      compact
+                    />
                   ) : (
-                    <span className="ex-empty-source">—</span>
+                    <span className="ex-buffer-empty" aria-hidden="true">
+                      ＋
+                    </span>
                   )}
                   <span>
-                    {face?.name ?? '暂无卡牌'}
+                    {game.buffersBySeat[self]?.name ?? '空位'}
                     <b>
-                      {face ? summaryOf(face, game.rulesProfile) : '不可选择'}
+                      {game.buffersBySeat[self] ? '取出后必须使用' : '尚未存牌'}
                     </b>
                   </span>
                 </div>
               </button>
-            );
-          })}
-          {game.buffersBySeat && game.phase === 'draw' && (
-            <button
-              className="ex-source ex-buffer-source"
-              data-pile="buffer"
-              data-seat={self}
-              data-action="draw-buffer"
-              disabled={
-                locked || !actions.some((a) => a.type === 'draw-buffer')
-              }
-              onClick={() => choose({ type: 'draw-buffer' })}
-            >
-              <strong>本人缓冲</strong>
-              <div className="ex-source-face">
-                {game.buffersBySeat[self] ? (
-                  <Card
-                    profile={game.rulesProfile}
-                    face={game.buffersBySeat[self]!}
-                    compact
-                  />
-                ) : (
-                  <span className="ex-buffer-empty" aria-hidden="true">
-                    ＋
+            )}
+            {game.phase === 'draw' && (
+              <button
+                className={`ex-source ex-reposition-source ${mode === 'reposition' ? 'selected' : ''}`}
+                disabled={
+                  locked || !actions.some((a) => a.type === 'reposition')
+                }
+                onClick={() => {
+                  setMode(mode === 'reposition' ? '' : 'reposition');
+                  setSlots([]);
+                }}
+              >
+                <strong>卡牌换位</strong>
+                <div className="ex-source-face">
+                  <span className="ex-swap-mark" aria-hidden="true">
+                    <svg viewBox="0 0 72 90">
+                      <rect x="5" y="9" width="30" height="47" rx="5" />
+                      <rect x="37" y="34" width="30" height="47" rx="5" />
+                      <path d="M12 71h18l-6-6m6 6-6 6M60 18H42l6-6m-6 6 6 6" />
+                    </svg>
                   </span>
-                )}
-                <span>
-                  {game.buffersBySeat[self]?.name ?? '空位'}
-                  <b>
-                    {game.buffersBySeat[self] ? '取出后必须使用' : '尚未存牌'}
-                  </b>
-                </span>
+                  <span>
+                    交换两格<b>结束本回合</b>
+                  </span>
+                </div>
+              </button>
+            )}
+          </div>
+        )}
+        {(targets.length > 0 || chosenSeat !== self) && (
+          <div className="ex-target-controls">
+            {targets.length > 0 && (
+              <div className="ex-target-list" aria-label="目标玩家">
+                {targets.map((id) => (
+                  <button
+                    key={id}
+                    data-target-seat={id}
+                    className={chosenSeat === id ? 'selected' : ''}
+                    disabled={locked}
+                    onClick={() => {
+                      setTarget(id);
+                      setSlots([]);
+                    }}
+                  >
+                    {names[id] ?? id}
+                  </button>
+                ))}
               </div>
-            </button>
-          )}
-          {game.phase === 'draw' && (
-            <button
-              className={`ex-source ex-reposition-source ${mode === 'reposition' ? 'selected' : ''}`}
-              disabled={locked || !actions.some((a) => a.type === 'reposition')}
-              onClick={() => {
-                setMode(mode === 'reposition' ? '' : 'reposition');
-                setSlots([]);
-              }}
-            >
-              <strong>卡牌换位</strong>
-              <div className="ex-source-face">
-                <span className="ex-swap-mark" aria-hidden="true">
-                  <svg viewBox="0 0 72 90">
-                    <rect x="5" y="9" width="30" height="47" rx="5" />
-                    <rect x="37" y="34" width="30" height="47" rx="5" />
-                    <path d="M12 71h18l-6-6m6 6-6 6M60 18H42l6-6m-6 6 6 6" />
-                  </svg>
-                </span>
-                <span>
-                  交换两格<b>结束本回合</b>
-                </span>
-              </div>
-            </button>
-          )}
-        </div>
-      )}
-      {targets.length > 0 && (
-        <div className="ex-target-list" aria-label="目标玩家">
-          {targets.map((id) => (
-            <button
-              key={id}
-              data-target-seat={id}
-              className={chosenSeat === id ? 'selected' : ''}
-              disabled={locked}
-              onClick={() => {
-                setTarget(id);
-                setSlots([]);
-              }}
-            >
-              {names[id] ?? id}
-            </button>
-          ))}
-        </div>
-      )}
+            )}
+            {chosenSeat !== self && (
+              <details className="ex-own-preview">
+                <summary>查看本人场地</summary>
+                <Board game={game} seat={self} motion={motion} />
+              </details>
+            )}
+          </div>
+        )}
+      </div>
       {working.some((a) => a.type === 'row-target') ? (
         <div className="ex-row-choice">
           <p>
@@ -877,19 +921,8 @@ function Actions({
             行，朝向随牌移动。
           </p>
           <Board game={game} seat={chosenSeat} />
-          <button
-            data-action="row-target"
-            disabled={locked}
-            onClick={() => {
-              const a = candidates.find((v) => v.type === 'row-target');
-              if (a) choose(a);
-            }}
-          >
-            确认交换这一整行
-          </button>
         </div>
-      ) : selectable.length > 0 &&
-        (game.phase !== 'draw' || mode === 'reposition') ? (
+      ) : selectingSlots ? (
         <div className="ex-target-board">
           <div className="ex-target-heading">
             <strong>
@@ -922,46 +955,12 @@ function Actions({
               </button>
             </div>
           )}
-          <div className="ex-submit">
-            <button
-              data-action={selectedType}
-              disabled={locked || !chosen}
-              onClick={() => {
-                if (chosen) choose(chosen);
-              }}
-            >
-              {commandLabel}
-              {slots.length > 0 && (
-                <span className="ex-command-target">
-                  {slots.map((s) => s + 1).join('、')}号位
-                </span>
-              )}
-            </button>
-          </div>
         </div>
-      ) : (
+      ) : !game.peek ? (
         <div className="ex-target-board ex-own-board">
           <Board game={game} seat={self} motion={motion} />
         </div>
-      )}
-      {game.phase === 'place' && heldOptions}
-      {chosenSeat !== self && (
-        <details className="ex-own-preview">
-          <summary>查看本人场地</summary>
-          <Board game={game} seat={self} motion={motion} />
-        </details>
-      )}
-      {mode === 'reposition' && (
-        <button
-          className="secondary ex-cancel"
-          onClick={() => {
-            setMode('');
-            setSlots([]);
-          }}
-        >
-          取消换位
-        </button>
-      )}
+      ) : null}
       {game.peek && (
         <div className="ex-private-peek">
           <h3>仅本人可见</h3>
@@ -989,37 +988,85 @@ function Actions({
           </div>
         </div>
       )}
-      <div className="ex-simple-actions">
-        {actions
-          .filter((a) =>
-            [
-              'decline-ability',
-              'close-peek',
-              'activate-arceus',
-              'extra-draw',
-              'pass-direction',
-            ].includes(a.type),
-          )
-          .map((a) => (
+      <div className="ex-decision-footer">
+        {working.some((a) => a.type === 'row-target') ? (
+          <div className="ex-submit">
             <button
-              key={'direction' in a ? a.direction : a.type}
-              data-action={a.type}
-              data-direction={'direction' in a ? a.direction : undefined}
+              data-action="row-target"
               disabled={locked}
-              className={a.type === 'decline-ability' ? 'secondary' : ''}
-              onClick={() => choose(a)}
+              onClick={() => {
+                const a = candidates.find((v) => v.type === 'row-target');
+                if (a) choose(a);
+              }}
             >
-              {'direction' in a
-                ? a.direction === 'clockwise'
-                  ? '顺时针接力 ↻'
-                  : '逆时针接力 ↺'
-                : labels[a.type]}
+              确认交换这一整行
             </button>
-          ))}
+          </div>
+        ) : selectingSlots ? (
+          <div className="ex-submit">
+            <button
+              data-action={selectedType}
+              disabled={locked || !chosen}
+              onClick={() => {
+                if (chosen) choose(chosen);
+              }}
+            >
+              {commandLabel}
+              {slots.length > 0 && (
+                <span className="ex-command-target">
+                  {slots.map((s) => s + 1).join('、')}号位
+                </span>
+              )}
+            </button>
+          </div>
+        ) : null}
+        {heldOptions}
+        {mode === 'reposition' && (
+          <button
+            className="secondary ex-cancel"
+            onClick={() => {
+              setMode('');
+              setSlots([]);
+            }}
+          >
+            取消换位
+          </button>
+        )}
+        <div className="ex-simple-actions">
+          {actions
+            .filter((a) =>
+              [
+                'decline-ability',
+                'close-peek',
+                'activate-arceus',
+                'extra-draw',
+                'pass-direction',
+              ].includes(a.type),
+            )
+            .map((a) => (
+              <button
+                key={'direction' in a ? a.direction : a.type}
+                data-action={a.type}
+                data-direction={'direction' in a ? a.direction : undefined}
+                disabled={locked}
+                className={a.type === 'decline-ability' ? 'secondary' : ''}
+                onClick={() => choose(a)}
+              >
+                {'direction' in a
+                  ? a.direction === 'clockwise'
+                    ? '顺时针接力 ↻'
+                    : '逆时针接力 ↺'
+                  : a.type === 'decline-ability' &&
+                      game.phase === 'mewtwo-choice'
+                    ? '不交换'
+                    : labels[a.type]}
+              </button>
+            ))}
+        </div>
+        {game.phase !== 'draw' && !game.held && (
+          <BufferCard game={game} seat={self} />
+        )}
       </div>
-      {game.phase !== 'draw' && !game.held && (
-        <BufferCard game={game} seat={self} />
-      )}
     </section>
   );
 }
@@ -1245,18 +1292,7 @@ function Rulebook({ profile }: { profile: RulesProfile }) {
 }
 function ScreenBody({ session, game }: { session: GameHost; game: View }) {
   const canPlay = useAudioOutput();
-  const frame = useRef<HTMLElement>(null);
-  useLayoutEffect(() => {
-    const node = frame.current;
-    if (!node) return;
-    const measure = () => {
-      node.dataset.narrowTable = String(node.clientWidth <= 1100);
-    };
-    measure();
-    const observer = new ResizeObserver(measure);
-    observer.observe(node);
-    return () => observer.disconnect();
-  }, []);
+  const viewport = usePokemonViewport(session.role === 'player');
   const presentation = useExpansionPresentation();
   const { motion, resultReady } = presentation;
   const profile = game.rulesProfile ?? 'legacy';
@@ -1306,6 +1342,14 @@ function ScreenBody({ session, game }: { session: GameHost; game: View }) {
           </button>
         ))}
       </aside>
+    ) : null;
+  const roundContext =
+    !game.roundResult &&
+    (research || game.currentEvent || game.bondPlaceholders?.length) ? (
+      <div className="ex-round-context">
+        <EventStatus game={game} />
+        {research}
+      </div>
     ) : null;
   const renderSeat = (s: (typeof seats)[number]) => (
     <article
@@ -1374,141 +1418,156 @@ function ScreenBody({ session, game }: { session: GameHost; game: View }) {
   );
   return (
     <main
-      ref={frame}
+      data-pokemon-viewport={viewport.id}
       className={`expansion-screen ${session.role} ${game.roundResult && !resultReady ? 'ex-pending-settlement' : ''}`}
+      data-layout={viewport.layout}
+      data-below-minimum={viewport.belowMinimum || undefined}
+      data-net-width={viewport.width}
+      data-net-height={viewport.height}
+      data-narrow-table={viewport.layout === 'P' || viewport.width <= 1100}
+      style={viewport.style}
       data-players={seats.length}
       data-phase={game.phase}
       data-play-mode={session.view?.playMode}
       data-rules-profile={profile}
     >
       <EventEnvironment game={game} />
-      <header className="ex-toolbar">
-        <ScreenLink href={`/${session.role}`} className="secondary">
-          ‹ 盒子
-        </ScreenLink>
-        <h1>
-          宝可梦奇遇 <span>扩展版</span>
-        </h1>
-        {!session.connected && (
-          <span className="ex-connection" role="status">
-            连接中…
-          </span>
-        )}
-        {session.role !== 'player' && (
-          <>
-            <PlayModeBadge mode={session.view?.playMode} />
-            <SoundControl
-              compact
-              iconOnly
-              disabled={session.view?.playMode === 'test' || !session.connected}
-              paused={session.view?.paused ?? false}
-              feedback={presentation.feedback}
-              eventKey={presentation.eventKey}
-              errorId={session.errorId}
-              canPlay={canPlay}
-              recipe={(event, reducedMotion) =>
-                expansionSoundRecipe(
-                  event.kind,
-                  event.action,
-                  game,
-                  reducedMotion,
-                  expansionVoices,
-                  presentation.current?.event.effect ?? {},
-                )
-              }
-              resolveSource={(cue, event) => {
-                const theme = expansionThemeFor(
-                  event.kind,
-                  event.action,
-                  cue,
-                  presentation.current?.event.effect ?? {},
-                );
-                return theme
-                  ? expansionThemes[
-                      `../../../../assets/games/pokemon-encounters/expansion/audio/${theme}-theme-original-v1.ogg`
-                    ]
-                  : undefined;
-              }}
-            />
-          </>
-        )}
-        <button className="secondary" onClick={() => setPanel('rules')}>
-          规则
-        </button>
-        {session.role === 'player' && (
-          <button className="secondary" onClick={() => setPanel('friends')}>
-            朋友
+      <div className="ex-heading-region">
+        <header className="ex-toolbar">
+          <ScreenLink href={`/${session.role}`} className="secondary">
+            ‹ 盒子
+          </ScreenLink>
+          <h1>
+            宝可梦奇遇 <span>扩展版</span>
+          </h1>
+          {!session.connected && (
+            <span className="ex-connection" role="status">
+              连接中…
+            </span>
+          )}
+          {session.role !== 'player' && (
+            <>
+              <PlayModeBadge mode={session.view?.playMode} />
+              <SoundControl
+                compact
+                iconOnly
+                disabled={
+                  session.view?.playMode === 'test' || !session.connected
+                }
+                paused={session.view?.paused ?? false}
+                feedback={presentation.feedback}
+                eventKey={presentation.eventKey}
+                errorId={session.errorId}
+                canPlay={canPlay}
+                recipe={(event, reducedMotion) =>
+                  expansionSoundRecipe(
+                    event.kind,
+                    event.action,
+                    game,
+                    reducedMotion,
+                    expansionVoices,
+                    presentation.current?.event.effect ?? {},
+                  )
+                }
+                resolveSource={(cue, event) => {
+                  const theme = expansionThemeFor(
+                    event.kind,
+                    event.action,
+                    cue,
+                    presentation.current?.event.effect ?? {},
+                  );
+                  return theme
+                    ? expansionThemes[
+                        `../../../../assets/games/pokemon-encounters/expansion/audio/${theme}-theme-original-v1.ogg`
+                      ]
+                    : undefined;
+                }}
+              />
+            </>
+          )}
+          <button className="secondary" onClick={() => setPanel('rules')}>
+            规则
           </button>
-        )}
-        <button
-          className="secondary ex-menu-entry"
-          aria-label="菜单"
-          title="菜单"
-          onClick={() => setPanel('menu')}
-        >
-          <svg
-            width="24"
-            height="24"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.8"
-            strokeLinecap="round"
-            aria-hidden="true"
+          {session.role === 'player' && (
+            <button className="secondary" onClick={() => setPanel('friends')}>
+              朋友
+            </button>
+          )}
+          <button
+            className="secondary ex-menu-entry"
+            aria-label="菜单"
+            title="菜单"
+            onClick={() => setPanel('menu')}
           >
-            <path transform="translate(0.5 0)" d="M8 6h13M8 12h13M8 18h13" />
-            <path
-              d="M3 5a1 1 0 1 0 0 2 1 1 0 0 0 0-2Zm0 6a1 1 0 1 0 0 2 1 1 0 0 0 0-2Zm0 6a1 1 0 1 0 0 2 1 1 0 0 0 0-2Z"
-              transform="translate(0.5 0)"
-            />
-          </svg>
-        </button>
-      </header>
-      <div className="ex-round-banner">
-        <span>第 {game.roundNumber} 小局</span>
-        <strong>
-          {game.phase === 'mewtwo-target' && profile === 'events-research-v3'
-            ? '超梦：私看对手一张'
-            : phaseText[game.phase]}
-        </strong>
-        <span
-          className="ex-current-actor"
-          data-simultaneous={pendingSeats.length > 1}
-        >
-          {game.phase === 'research-vote' && (
-            <span className="ex-actor-progress">
-              投票 {game.votedSeats.length}/{game.seatOrder.length}
-            </span>
-          )}
-          {game.phase === 'initial-flip' && (
-            <span className="ex-actor-progress">
-              翻牌 {game.initialDone.length}/{game.seatOrder.length}
-            </span>
-          )}
-          {pendingSeats.length
-            ? pendingSeats.map((id) => {
-                const seat = seats.find((entry) => entry.id === id);
-                return (
-                  <span
-                    className="ex-actor-identity"
-                    title={names[id] ?? '玩家'}
-                    aria-label={names[id] ?? '玩家'}
-                    data-actor-seat={id}
-                    key={id}
-                  >
-                    <img
-                      src={avatarFor(seat?.avatarId ?? 'builtin-1')}
-                      alt=""
-                    />
-                    <span>{names[id] ?? '玩家'}</span>
-                  </span>
-                );
-              })
-            : '三胜赛制'}
-        </span>
-        <TurnProgress game={game} />
+            <svg
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.8"
+              strokeLinecap="round"
+              aria-hidden="true"
+            >
+              <path transform="translate(0.5 0)" d="M8 6h13M8 12h13M8 18h13" />
+              <path
+                d="M3 5a1 1 0 1 0 0 2 1 1 0 0 0 0-2Zm0 6a1 1 0 1 0 0 2 1 1 0 0 0 0-2Zm0 6a1 1 0 1 0 0 2 1 1 0 0 0 0-2Z"
+                transform="translate(0.5 0)"
+              />
+            </svg>
+          </button>
+        </header>
+        <div className="ex-round-banner">
+          <span>第 {game.roundNumber} 小局</span>
+          <strong>
+            {game.phase === 'mewtwo-target' && profile === 'events-research-v3'
+              ? '超梦：私看对手一张'
+              : phaseText[game.phase]}
+          </strong>
+          <span
+            className="ex-current-actor"
+            data-simultaneous={pendingSeats.length > 1}
+          >
+            {game.phase === 'research-vote' && (
+              <span className="ex-actor-progress">
+                投票 {game.votedSeats.length}/{game.seatOrder.length}
+              </span>
+            )}
+            {game.phase === 'initial-flip' && (
+              <span className="ex-actor-progress">
+                翻牌 {game.initialDone.length}/{game.seatOrder.length}
+              </span>
+            )}
+            {pendingSeats.length
+              ? pendingSeats.map((id) => {
+                  const seat = seats.find((entry) => entry.id === id);
+                  return (
+                    <span
+                      className="ex-actor-identity"
+                      title={names[id] ?? '玩家'}
+                      aria-label={names[id] ?? '玩家'}
+                      data-actor-seat={id}
+                      key={id}
+                    >
+                      <img
+                        src={avatarFor(seat?.avatarId ?? 'builtin-1')}
+                        alt=""
+                      />
+                      <span>{names[id] ?? '玩家'}</span>
+                    </span>
+                  );
+                })
+              : '三胜赛制'}
+          </span>
+          <TurnProgress game={game} />
+        </div>
       </div>
-      <EventStatus game={game} />
+      {viewport.belowMinimum && (
+        <div className="pokemon-layout-warning" role="status">
+          当前可用区域较小，可滚动查看全部牌位与操作。
+        </div>
+      )}
+      {session.role === 'player' && roundContext}
       <SessionFeedback session={session} mode="messages" />
       {session.view?.paused && (
         <div className="ex-paused" role="status">
@@ -1630,12 +1689,10 @@ function ScreenBody({ session, game }: { session: GameHost; game: View }) {
               showResearch={showResearch}
             />
           ) : !game.roundResult && session.role !== 'player' ? (
-            <PublicSupply game={game} names={names} research={research} />
+            <PublicSupply game={game} names={names} research={roundContext} />
           ) : null}
         </div>
       )}
-      {session.role === 'player' && !game.roundResult && research}
-
       <SavedEffects
         game={game}
         session={session}
@@ -1751,7 +1808,7 @@ function ScreenBody({ session, game }: { session: GameHost; game: View }) {
                   .slice(-12)
                   .reverse()
                   .map((e) => (
-                    <p key={e.id}>{eventText(e, names)}</p>
+                    <p key={e.id}>{eventDescription(e, names)}</p>
                   ))}
               </section>
             </>

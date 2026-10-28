@@ -2,6 +2,7 @@ import { createRoot } from 'react-dom/client';
 import { flushSync } from 'react-dom';
 import { PlatformGame } from '../../../apps/web/src/session/gameHostAdapter';
 import type { RoomSession } from '../../../apps/web/src/session/useRoomSession';
+import { PlayerFrame } from '../../../apps/web/src/components/PlayerFrame';
 import { client } from '../../../games/pokemon-encounters/expansion/web';
 import { ResearchCard } from '../../../games/pokemon-encounters/expansion/web/ResearchCard';
 import { task } from '../../../games/pokemon-encounters/expansion/research';
@@ -40,6 +41,7 @@ type Settings = {
   busy?: boolean;
   initial?: boolean;
   targetStage?: boolean;
+  privateStage?: boolean;
   event?: EventKind;
   buffer?: 'occupied' | 'take';
   admissionPending?: boolean;
@@ -202,7 +204,7 @@ function fixture(settings: Settings) {
       } else if (creature === 'mewtwo') {
         if (!settings.targetStage) {
           take('mewtwo-target');
-          take('mewtwo-exchange');
+          if (!settings.privateStage) take('mewtwo-exchange');
         }
       } else if (creature === 'zapdos') {
         if (!settings.targetStage) take('pass-direction');
@@ -410,9 +412,12 @@ window.redesignResearch = (id) => {
     ),
   );
 };
-window.redesignShow({
-  ordinary: 'magikarp',
-  scenario: 'draw',
-  role: 'player',
-  animate: false,
-});
+if (new URLSearchParams(location.search).has('layout-outer'))
+  root.render(<PlayerFrame initialUrl="/player/game?layout-child=1" />);
+else
+  window.redesignShow({
+    ordinary: 'magikarp',
+    scenario: 'draw',
+    role: 'player',
+    animate: false,
+  });

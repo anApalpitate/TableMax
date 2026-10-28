@@ -5,14 +5,28 @@ main.expansion-screen {
   display: flex;
   flex-direction: column;
   gap: 6px;
-  height: 100dvh;
+  height: min(var(--pokemon-net-height, 100dvh), 1080px);
   min-height: 0;
-  max-width: none;
-  width: 100%;
+  max-width: 1920px;
+  width: min(100%, var(--pokemon-net-width, 100vw));
+  margin: max(0px, calc((var(--pokemon-net-height, 100dvh) - 1080px) / 2)) auto;
   box-sizing: border-box;
   padding: max(6px, env(safe-area-inset-top))
     max(12px, env(safe-area-inset-right)) max(6px, env(safe-area-inset-bottom))
     max(12px, env(safe-area-inset-left));
+}
+.expansion-screen::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -2;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse at 30% 0%, #fffdf4, transparent 65%),
+    linear-gradient(130deg, #e9f0df, #fbf4de 60%, #e6efdf);
+}
+.expansion-screen .ex-heading-region {
+  display: contents;
 }
 .expansion-screen .ex-toolbar {
   display: flex;
@@ -438,6 +452,9 @@ main.expansion-screen {
   margin: 0;
   font-size: 16px;
 }
+.expansion-screen .ex-position-phrase {
+  white-space: nowrap;
+}
 .expansion-screen .ex-active-research {
   display: flex;
   flex-direction: column;
@@ -475,13 +492,42 @@ main.expansion-screen {
   display: flex;
   align-items: center;
   gap: 8px;
-  min-height: 32px;
-  height: 32px;
+  min-height: 44px;
+  height: auto;
   flex: none;
-  padding: 4px 10px;
+  padding: 0 6px;
   margin: 0;
   font-size: 16px;
   line-height: 22px;
+}
+.expansion-screen .ex-event-status details {
+  position: relative;
+  min-width: 0;
+}
+.expansion-screen .ex-event-status summary {
+  min-height: 44px;
+  min-width: 44px;
+  padding: 4px 2px;
+  line-height: 20px;
+}
+.expansion-screen .ex-event-status details[open] > p {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  z-index: 8;
+  width: min(290px, calc(100vw - 32px));
+  margin: 0;
+  padding: 10px;
+  border: 1px solid #abc9b6;
+  border-radius: 8px;
+  background: #f5faf4;
+  box-shadow: 0 4px 14px #243a2830;
+}
+.expansion-screen .ex-round-context {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
 }
 .expansion-screen .ex-event-status strong {
   font-size: 18px;
@@ -672,10 +718,12 @@ main.expansion-screen.player {
   )
   .ex-actions
   .pokemon-board {
-  height: clamp(180px, calc(100dvh - 460px), 336px);
+  height: clamp(180px, calc(var(--pokemon-net-height, 100dvh) - 460px), 336px);
 }
-.expansion-screen.player:has(> .ex-event-status) .ex-actions .pokemon-board {
-  height: clamp(186px, calc(100dvh - 448px), 336px);
+.expansion-screen.player:has(.ex-round-context .ex-event-status)
+  .ex-actions
+  .pokemon-board {
+  height: clamp(186px, calc(var(--pokemon-net-height, 100dvh) - 448px), 336px);
 }
 .expansion-screen.player .ex-target-board,
 .expansion-screen.player .ex-row-choice {
@@ -1227,4 +1275,298 @@ main.expansion-screen.player {
   .expansion-screen.ex-friends {
     grid-template-columns: minmax(0, 1fr);
   }
+}
+
+/* Three bounded layouts use the same mounted decision tree. */
+main.expansion-screen.player[data-layout='P'] {
+  max-width: 430px;
+  height: min(var(--pokemon-net-height, 100dvh), 932px);
+  margin-block: max(0px, calc((var(--pokemon-net-height, 100dvh) - 932px) / 2));
+}
+main.expansion-screen.player[data-layout='L'] {
+  max-width: 1320px;
+  height: min(var(--pokemon-net-height, 100dvh), 900px);
+  margin-block: max(0px, calc((var(--pokemon-net-height, 100dvh) - 900px) / 2));
+}
+.expansion-screen .pokemon-layout-warning {
+  flex: none;
+  padding: 6px 8px;
+  color: #614811;
+  background: #fff2c7;
+  border: 1px solid #d9bc6c;
+  border-radius: 8px;
+  font-size: 16px;
+  line-height: 22px;
+}
+main.expansion-screen[data-layout][data-below-minimum='true'] {
+  height: auto;
+  min-height: var(--pokemon-net-height, 100dvh);
+  margin-block: 0;
+}
+main.expansion-screen:not(.player)[data-below-minimum='true'] .ex-table-layout {
+  flex: none;
+  height: 580px;
+}
+.expansion-screen.player .ex-round-context {
+  flex: none;
+  flex-direction: row;
+  align-items: stretch;
+  width: 100%;
+  gap: 4px;
+}
+.expansion-screen.player .ex-round-context > .ex-event-status {
+  flex: 0 1 auto;
+  min-width: 0;
+  max-width: 50%;
+  gap: 2px;
+}
+.expansion-screen.player .ex-event-status details[open] > p {
+  left: 0;
+  right: auto;
+}
+.expansion-screen.player .ex-round-context > .ex-research-strip {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: row;
+  gap: 4px;
+}
+.expansion-screen.player .ex-round-context .ex-research-summary {
+  min-height: 44px;
+  max-height: none;
+  line-height: 18px;
+}
+.expansion-screen.player .ex-decision-context {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+.expansion-screen.player
+  .ex-decision-context:has(> .ex-held-anchor:only-child) {
+  display: none;
+}
+.expansion-screen.player .ex-target-controls {
+  display: flex;
+  align-items: start;
+  gap: 4px;
+  min-width: 0;
+}
+.expansion-screen.player .ex-target-controls .ex-target-list {
+  flex: 1;
+  min-width: 0;
+  justify-content: flex-start;
+}
+.expansion-screen.player .ex-target-controls .ex-own-preview {
+  flex: none;
+  max-width: 100%;
+}
+.expansion-screen.player .ex-own-preview summary {
+  display: flex;
+  align-items: center;
+  padding: 4px;
+  font-size: 16px;
+  line-height: 20px;
+}
+.expansion-screen.player .ex-own-preview[open] {
+  flex: 1;
+  min-width: 0;
+}
+.expansion-screen.player .ex-own-preview[open] .pokemon-board {
+  width: 100%;
+  height: 240px;
+}
+.expansion-screen.player .ex-decision-footer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  min-width: 0;
+}
+.expansion-screen.player[data-layout] .ex-decision-footer > .ex-submit {
+  position: static;
+  flex: 1;
+  min-width: 0;
+  width: auto;
+}
+.expansion-screen.player .ex-decision-footer > .ex-held-options {
+  position: static;
+  flex: 2;
+  min-width: 0;
+  width: auto;
+}
+.expansion-screen.player .ex-decision-footer > .ex-simple-actions {
+  flex: 1;
+  min-width: 0;
+}
+.expansion-screen.player .ex-decision-footer button {
+  min-height: 44px;
+  height: auto;
+  white-space: normal;
+  font-size: 18px;
+  line-height: 22px;
+}
+.expansion-screen.player .ex-decision-footer .ex-submit button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+.expansion-screen.player .ex-decision-footer > .ex-buffer-card {
+  flex-basis: 100%;
+}
+.expansion-screen.player .ex-decision-footer > .ex-buffer-card.empty {
+  display: none;
+}
+.expansion-screen.player .ex-private-peek section {
+  gap: 2px;
+}
+.expansion-screen.player .ex-private-peek section > span {
+  font-size: 16px;
+  line-height: 20px;
+}
+.expansion-screen.player .ex-private-peek button {
+  min-height: 44px;
+  font-size: 18px;
+  line-height: 22px;
+  padding: 4px;
+}
+.expansion-screen.player[data-layout='P'] .ex-table-layout {
+  display: block;
+  flex: none;
+  width: 100%;
+  height: auto;
+}
+.expansion-screen.player[data-layout='P'] .ex-actions {
+  display: flex;
+  flex-direction: column;
+  height: auto;
+  padding: 6px;
+}
+.expansion-screen.player[data-layout='P'] .ex-action-heading {
+  display: none;
+}
+.expansion-screen.player[data-layout='P'] .ex-draw-options {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+.expansion-screen.player[data-layout='P'] .ex-draw-options:has(> :only-child) {
+  grid-template-columns: minmax(0, 1fr);
+}
+.expansion-screen.player[data-layout='P'] .ex-held {
+  height: 112px;
+}
+.expansion-screen.player[data-layout='P'][data-phase='place']
+  .ex-decision-context {
+  /* The target heading uses the remaining 20px of the 181px source band. */
+  min-height: 161px;
+}
+.expansion-screen.player[data-layout='L'] .ex-heading-region {
+  display: grid;
+  grid-template-columns: minmax(240px, 0.9fr) minmax(0, 1fr);
+  gap: 10px;
+  flex: none;
+  min-height: 44px;
+}
+.expansion-screen.player[data-layout='L'] .ex-toolbar {
+  justify-content: start;
+}
+.expansion-screen.player[data-layout='L'] .ex-round-banner {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-rows: 22px 22px;
+  align-items: center;
+  gap: 0 6px;
+  padding: 0 6px;
+}
+.expansion-screen.player[data-layout='L'] .ex-round-banner > strong {
+  grid-column: 1 / -1;
+  grid-row: 1;
+  line-height: 22px;
+}
+.expansion-screen.player[data-layout='L'] .ex-round-banner > span:first-child {
+  grid-column: 1;
+  grid-row: 2;
+}
+.expansion-screen.player[data-layout='L'] .ex-current-actor {
+  grid-column: 2;
+  grid-row: 2;
+}
+.expansion-screen.player[data-layout='L'] .ex-turn-progress {
+  display: none;
+}
+.expansion-screen.player[data-layout='L'] .ex-table-layout {
+  width: 100%;
+  max-width: none;
+  min-height: 0;
+  flex: 1;
+}
+.expansion-screen.player[data-layout='L'] .ex-actions {
+  display: grid;
+  grid-template-columns: minmax(240px, 0.9fr) minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr) auto;
+  align-content: start;
+  align-items: start;
+  height: 100%;
+  gap: 4px 10px;
+}
+.expansion-screen.player[data-layout='L'] .ex-action-heading {
+  display: none;
+}
+.expansion-screen.player[data-layout='L'] .ex-decision-context {
+  grid-column: 1;
+  grid-row: 1;
+}
+.expansion-screen.player[data-layout='L'] .ex-decision-footer {
+  grid-column: 1;
+  grid-row: 2;
+  align-self: end;
+  width: 100%;
+}
+.expansion-screen.player[data-layout='L']
+  :is(.ex-target-board, .ex-row-choice, .ex-private-peek) {
+  grid-column: 2;
+  grid-row: 1 / 3;
+  align-self: start;
+}
+.expansion-screen.player[data-layout='L'] .ex-actions .pokemon-board {
+  width: min(100%, 310px);
+  height: min(336px, calc(var(--pokemon-net-height, 100dvh) - 144px));
+}
+.expansion-screen.player[data-layout='L'] .ex-draw-options {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+.expansion-screen.player[data-layout='L'] .ex-draw-options:has(> :only-child) {
+  grid-template-columns: minmax(0, 1fr);
+}
+.expansion-screen.player[data-layout='L'] .ex-held {
+  height: 112px;
+}
+.expansion-screen.player[data-layout='L']
+  .ex-actions.ex-observing
+  > .pokemon-board {
+  grid-column: 2;
+  grid-row: 1 / 3;
+}
+.expansion-screen.player[data-layout='L'] .ex-actions.ex-observing > .ex-wait {
+  grid-column: 1;
+  grid-row: 1;
+}
+.expansion-screen.player[data-layout='L']
+  .ex-actions.ex-observing
+  > .ex-buffer-card {
+  grid-column: 1;
+  grid-row: 2;
+}
+.expansion-screen.player[data-layout='L'] .ex-vote {
+  width: 100%;
+  max-width: none;
+}
+.expansion-screen.player[data-layout='L'] .ex-vote-options {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+}
+main.expansion-screen.player[data-layout='L'][data-below-minimum='true']
+  .ex-table-layout {
+  flex: none;
+  min-height: 260px;
 }

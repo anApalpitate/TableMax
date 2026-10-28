@@ -71,3 +71,26 @@
     position: static;
   }
 }
+
+.pokemon-guidance-panel {
+  width: min(96vw, 620px);
+  max-height: 94dvh;
+  overflow-y: auto;
+}
+.pokemon-guidance-content {
+  font-size: 16px;
+  line-height: 1.5;
+  color: #194d43;
+}
+.pokemon-guidance-content p {
+  margin: 6px 0;
+  font-size: 16px;
+}
+.pokemon-guidance-content h3 {
+  font-size: 20px;
+  margin: 14px 0 4px;
+}
+.pokemon-guidance-content button {
+  min-height: 44px;
+  font-size: 18px;
+}
