@@ -44,6 +44,7 @@ const available = [
   'clarity-layout',
   'action-guidance',
   'stocks-finance',
+  'rollout-fill',
 ];
 const selected = option('only')?.split(',') ?? available;
 assert(selected.every((value) => available.includes(value)));
@@ -65,16 +66,25 @@ assert(
 );
 const suite = option('suite') ?? 'harbor';
 assert(['harbor', 'composition'].includes(suite));
+const task = option('task');
+if (task) assert.match(task, /^tmp\/[a-z0-9][a-z0-9-]{1,90}$/);
 const parent = resolve(
-  suite === 'composition'
-    ? 'artifacts/maintenance/manila-board-composition-20261017/mobile'
-    : 'artifacts/maintenance/manila-harbor-rebuild-20261017/mobile',
+  task
+    ? join('artifacts/maintenance', task.slice(4), 'manila')
+    : suite === 'composition'
+      ? 'artifacts/maintenance/manila-board-composition-20261017/mobile'
+      : 'artifacts/maintenance/manila-harbor-rebuild-20261017/mobile',
 );
 await mkdir(parent, { recursive: true });
 const output = join(parent, evidence);
 await mkdir(output);
-const work = join(output, 'fixture');
-await mkdir(work);
+const work = task ? resolve(task, 'manila', evidence) : join(output, 'fixture');
+await mkdir(work, { recursive: true });
+if (task) {
+  const browserTemp = resolve(task, 'browser-temp');
+  await mkdir(browserTemp, { recursive: true });
+  process.env.TEMP = process.env.TMP = browserTemp;
+}
 const source = await readFile(new URL(import.meta.url));
 await writeFile(join(output, 'verifier-source.mjs'), source, { flag: 'wx' });
 const file = (name) => JSON.stringify(resolve(name));
@@ -539,6 +549,69 @@ try {
       report,
       run,
       context,
+    });
+    await run('rollout-fill', async () => {
+      for (const role of ['host', 'player']) {
+        for (const phase of ['crew-full', 'pilot-large', 'round-result']) {
+          await load({ phase, role });
+          const value = await page.evaluate(() => {
+            const root = document.querySelector('.mn-screen');
+            const box = root.getBoundingClientRect();
+            const style = getComputedStyle(root);
+            return {
+              root: box.toJSON(),
+              width: innerWidth,
+              height: innerHeight,
+              scrollWidth: document.documentElement.scrollWidth,
+              contentWidth:
+                box.width -
+                parseFloat(style.paddingLeft) -
+                parseFloat(style.paddingRight),
+              contentHeight:
+                box.height -
+                parseFloat(style.paddingTop) -
+                parseFloat(style.paddingBottom),
+              layout: root.dataset.mnLayout,
+              lanes: [
+                ...document.querySelectorAll('.mn-lane[data-mn-cargo]'),
+              ].map((node) => node.getBoundingClientRect().toJSON()),
+            };
+          });
+          assert(
+            value.root.x <= 1 &&
+              value.root.y <= 1 &&
+              value.root.width >= width - 1 &&
+              value.root.height >= height - 1,
+            'Theme fills game viewport',
+          );
+          assert(value.scrollWidth <= width + 1, 'No horizontal page overflow');
+          assert(
+            value.contentWidth <= (role === 'host' ? 1920 : 1440) + 1,
+            'Bounded workspace width',
+          );
+          if (role === 'host') {
+            assert.equal(value.lanes.length, 3);
+            for (const lane of value.lanes)
+              assert(
+                lane.x >= 0 &&
+                  lane.y >= 0 &&
+                  lane.right <= width + 1 &&
+                  lane.bottom <= height + 1,
+                'All three host lanes fit',
+              );
+          }
+          report.metrics.push({
+            kind: 'rollout-fill',
+            width,
+            height,
+            role,
+            phase,
+            ...value,
+          });
+          await shot(`rollout-${role}-${phase}`);
+          assert.deepEqual(await commands(), []);
+        }
+      }
     });
     await run('visual-semantics', async () => {
       for (const role of ['player', 'host']) {

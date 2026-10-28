@@ -1,8 +1,9 @@
 /* eslint-disable react-refresh/only-export-components -- Lazy module exports the platform client. */
-import { useState } from 'react';
+import { useId, useState, type CSSProperties } from 'react';
 import type { JsonValue } from '@tablemax/game-sdk';
 import {
   ScreenLink,
+  useViewportSnapshot,
   SessionFeedback,
   RoomManagement,
   OverlayPanel,
@@ -19,7 +20,13 @@ import { PlayerControls } from '../ui/player';
 import { Effects } from '../ui/Effects';
 import { PokerRules } from '../ui/RulesGuide';
 import '../ui/style.css';
+import '../ui/layout.css';
 function Screen({ session }: { session: GameHost }) {
+  const viewportId = useId();
+  const viewport = useViewportSnapshot(
+    `[data-cp-viewport="${viewportId}"]`,
+    '--cp-safe-',
+  );
   const [panel, setPanel] = useState<'rules' | 'menu' | null>(null);
   const { view, role } = session;
   const game = view?.gameView as unknown as PokerView | null;
@@ -46,7 +53,18 @@ function Screen({ session }: { session: GameHost }) {
   };
   const boundary = `${view?.instanceId}:${view?.branch}:${view?.decisionId}`;
   return (
-    <main className={`cp-game cp-${role}`}>
+    <main
+      className={`cp-game cp-${role}`}
+      data-cp-viewport={viewportId}
+      data-cp-layout={
+        role === 'player' ? (viewport.available.width >= 960 ? 'L' : 'P') : 'H'
+      }
+      style={
+        {
+          '--cp-viewport-height': `${viewport.viewport.height}px`,
+        } as CSSProperties
+      }
+    >
       <header className="cp-toolbar">
         <ScreenLink
           href={`/${role}`}

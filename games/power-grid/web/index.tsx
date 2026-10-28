@@ -1,6 +1,12 @@
 /* eslint-disable react-refresh/only-export-components -- Lazy adapters expose one platform client object. */
 import '../ui/style.css';
-import { useCallback, useEffect, useState, type CSSProperties } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useId,
+  useState,
+  type CSSProperties,
+} from 'react';
 import type { JsonValue } from '@tablemax/game-sdk';
 import type { Action, PowerGridView } from '../types';
 import { AuctionDisplay, PlantMarket } from '../ui/components';
@@ -17,6 +23,7 @@ import { GameProgress } from '../ui/GameProgress';
 import '../ui/market-scrollbars.css';
 import '../ui/toolbar-refinement.css';
 import '../ui/player-wide.css';
+import '../ui/viewport-layout.css';
 import { PHASE_LABELS, PLAYER_COLORS } from '../ui/labels';
 import { PlayerControls } from '../ui/player';
 import { GermanyMap } from '../ui/map';
@@ -40,6 +47,7 @@ import { RulesGuide } from '@tablemax/web-host';
 import { powerGridRulebook } from '../ui/RulesGuide';
 import { avatarFor } from '@tablemax/web-host';
 import { useAudioOutput } from '@tablemax/web-host';
+import { useViewportSnapshot } from '@tablemax/web-host';
 
 function artFor(id: number): CSSProperties {
   const art = plantImage(getPlant(id).fuel, id);
@@ -51,6 +59,11 @@ function artFor(id: number): CSSProperties {
 }
 
 function PowerGridScreen({ session }: { session: RoomSession }) {
+  const viewportId = useId();
+  const net = useViewportSnapshot(
+    `[data-pg-viewport="${viewportId}"]`,
+    '--pg-safe-',
+  );
   const { role, view, connected, command, locked, canControl, motion } =
     session;
   const game = view?.gameView as PowerGridView | null;
@@ -337,6 +350,17 @@ function PowerGridScreen({ session }: { session: RoomSession }) {
   return (
     <main
       className={`pg-screen pg-screen--${role}${motion.length && view?.playMode !== 'test' ? ' pg-saved' : ''}`}
+      data-pg-viewport={viewportId}
+      style={
+        {
+          '--pg-viewport-height': `${net.viewport.height}px`,
+          '--pg-net-width': `${net.available.width}px`,
+          '--pg-safe-top': 'env(safe-area-inset-top, 0px)',
+          '--pg-safe-right': 'env(safe-area-inset-right, 0px)',
+          '--pg-safe-bottom': 'env(safe-area-inset-bottom, 0px)',
+          '--pg-safe-left': 'env(safe-area-inset-left, 0px)',
+        } as CSSProperties
+      }
       data-phase={game?.phase}
       data-play-mode={view?.playMode ?? 'play'}
     >

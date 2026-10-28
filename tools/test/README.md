@@ -12,6 +12,12 @@
 
 ### 当前源码界面与离线审阅
 
+同一入口支持 `--phase=layout-baseline`，直接绑定当前源码与合法投影，按九玩法的管理1280×720、玩家390×844及电脑玩家1280×720采集基础截图；不会将无水平溢出等基础断言等同完整视觉验收。`--risk-density`限定拉密60张桌面牌与电力公司30城的合法推进夹具，`--prepare-only`仅准备该密集夹具，不产生渲染通过项。仍可用`--only`定向选取真实case-id。该模式保留正式截图，各轮独立绑定输入，历史失败或无效夹具不覆盖。
+
+同入口的`--player-frame-smoke`仅与普通`--phase=layout-baseline`组合，九玩法使用实际PlayerFrame和游戏iframe执行390×844→844×390→390×844门禁检查，绑定同iframe／document／根DOM、键盘不可绕过及无规则动作；原版宝可梦额外合法摸牌后选位，拉密额外建立私有草稿并核对保留。其余玩法草稿须各自专项证据，不能从该冒烟推定全覆盖。夹具独立存为`legal-frame-fixtures.json`。密集管理4K可显式选择`rummikub-dense-host-3840`，表示3840×2160 CSS、DPR 1浏览器模拟，不代表物理电视。
+
+共享净区专项使用 [verify-viewport-measurement.mjs](platform/verify-viewport-measurement.mjs) 的 `--task=tmp/<安全任务名> --evidence=<新轮名>`，按`shared,tooling`显式计划执行。它验证实际React公开导出、后挂载根、env／显式安全区、DPR 2、iframe本地尺寸及resize／卸载；不证明真机安全区。
+
 [verify-public-screen-retirement-ui.mjs](platform/verify-public-screen-retirement-ui.mjs)使用`--phase=before|after --task=tmp/<安全任务名> --evidence=<新轮名>`，after另给`--baseline-report=<通过的改前报告>`，`--only=<真实case-id逗号列表>`定向复验。改前源码须完整冻结于任务内`work/before`；[内部准备器](fixtures/prepare-public-screen-retirement.ts)通过真实RoomCoordinator入座／准备／开始，再以合法规则动作和bot推进并validate，固定同一授权投影用于前后对照，不拼接双拍、建设或终局状态。准备器不是独立CLI，也不证明真实传输、保存或自然整局。
 
 入口按version 1显式计划在`box,shared,game:pokemon-encounters,game:modern-art,game:power-grid,game:rummikub,game:uno,game:avalon,game:manila,game:cockroach-poker`范围执行。覆盖八游戏九玩法管理1280／1920、玩家390／844及阿瓦隆十人终局，核对主体DOM的文字、字体、布局轨道及几何；电力公司还须在地图标签、SVG视窗／变换与避让边界持续稳定后采样。另检查原型两角色／管理与声音控件、管理浮窗和未认证管理入口的320／390／1280字形与44px按钮。默认隐藏、静音、127.0.0.1，临时bundle、profile、全部审阅PNG归任务目录，维护目录仅留报告、逐项SHA及明确选择的关键截图。邀请图槽使用标注的本地UI夹具，不证明二维码或网络入座。
@@ -26,7 +32,13 @@
 
 旧双窗口主体仅显式`--legacy-public-screen`时保留；历史完整程序可同时给`--executable=<冻结实际完整app/TableMax.exe>`。旧`--portable`及display的`--paused-720p-only`／`--box-debug`／`--run`必须显式legacy；旧ZIP分支仅为原输入追溯，本轮未执行、不表示存在新ZIP交付。普通支持facade不提供旧公共菜单，只有`legacyPublicWindow===true`进入历史模式。
 
+## 拉密玩家源码交互
+
+既有 [verify-rummikub-ui.mjs](games/rummikub/verify-rummikub-ui.mjs) 的 `--source-layout --task=tmp/<任务唯一ID> --evidence=<新轮名>` 分支只运行真实源码组件，不启动旧EXE或公共屏。复用同任务统一基线准备的`legal-fixtures.json`作为RoomCoordinator元数据，以真实规则校验与投影构造106牌守恒的受控30牌架、13张长顺子和百搭局面；不宣称自然推进到达。按`game:rummikub`显式计划执行P390×844／L1280×720的逐牌44px命中、拆分撤销、旋转草稿、决策失效、百搭及合法提交；命令保存在本地并由规则校验，不证明服务保存。辅助模块非独立入口；临时内容在任务`rummikub/<轮名>`，正式报告及截图在维护目录同位置。
+
 ## 马尼拉信息精简与行动引导
+
+该港湾入口也接受`--task=tmp/<安全任务名>`，将临时构建集中于任务下`manila/<evidence>`，正式证据归`artifacts/maintenance/<任务名>/manila/<evidence>`；省略时仍保留旧默认路径。参数迁移不等于旧全矩阵已执行。
 
 `games/manila/verify-manila-harbor.mjs --evidence=<新安全名称> --only=clarity-layout,action-guidance,stocks-finance --viewports=320x568,844x390`复用当前React与合法规则投影，检查岸上岗位实际字形／完整棋子居中、单份保存提示的字形碰撞与布局不变、全部玩家行动入口的呼吸／定位／减少动态、纯图形股票及独立抵押／赎回和强制付款。当前`clarity-layout`可用`--roles=player`或`--roles=host`限定两类角色，并用相同视口参数覆盖720p至4K；本轮仅完成该旧入口角色迁移和静态检查，实际前后主体证明使用上方统一源码矩阵。另外两组验证玩家行为及公开端秘密隔离。检查实现为[clarity-checks.mjs](games/manila/clarity-checks.mjs)，由原港湾脚本调用，不另建运行入口。
 
@@ -54,9 +66,15 @@
 
 `--only=connection-layout --games=box`当前按管理员矩阵检查320／390／1280px连接帮助、前缀循环与HTTP(S)组合、完整网址粘贴、保存中锁定、成功回显、失败草稿、LAN重置、警告排查及合法长域名截图。前缀逻辑另见`apps/web/src/components/external-entry.test.ts`，实际网址校验／配置保存见`apps/server/src/network-settings.test.ts`；界面组用受控保存响应，不冒称真实网络或实体设备验收。
 
+## 电力公司当前布局与交互专项
+
+[verify-power-grid-ui.mjs](games/power-grid/verify-power-grid-ui.mjs)支持`--rollout --task=tmp/<任务唯一ID> --evidence=<新轮名>`，在既有`game:power-grid`范围运行合法阶段的H/P/L源码布局与草稿操作。加`--rollout-details-only`定向检查公司详情与余料动作；`--seats=2`补两人四座旧厂加临时第五厂的真实投影与操作。临时构建放任务`power-grid/<轮名>`，正式证据放维护目录同位置；输入绑定包含实际Vite依赖和夹具SHA。整轮失败中的已通过项只能按相同产品输入与明确范围复用，不改标整轮通过；本地命令不证明服务保存。
+
 ## UNO 开局设置与手机源码验证
 
-`tools/test/games/uno/verify-uno-source.mjs --evidence=<独立安全名称>`通过合法规则投影与真实React组件检查紧凑布局、密集手牌、排序、保存提示、规则／设置浮窗、补牌传递、抓漏延迟及本人自动质疑证据。`--only=layout,dialogs,config,delay,penalty,evidence,baseline`选择组，`--sizes=320x568,1280x720`限制视口。基线仅隔离读取指定Git版本的UNO入口／手牌／样式，其余依赖使用当前源码；不代表历史完整产品。经现有批次计划以`box,shared,game:uno`范围运行，默认隐藏、静音、仅127.0.0.1；证据进入`artifacts/maintenance/uno-source-20261020/<名称>`，保留源码／脚本哈希和参数。模拟手机不替代实体设备、Safari、原生窗口或安装器验收。
+可加`--task=tmp/<任务唯一ID>`将临时构建/profile集中于任务下`uno/<轮名>`，正式证据进入`artifacts/maintenance/<任务唯一ID>/uno/<轮名>`；不加时兼容旧默认路径。`viewport`组检查本地测量及填充预算，`host`组补管理端长名与公开信息。
+
+`tools/test/games/uno/verify-uno-source.mjs --evidence=<独立安全名称>`通过合法规则投影与真实React组件检查紧凑布局、密集手牌、排序、保存提示、规则／设置浮窗、补牌传递、抓漏延迟及本人自动质疑证据。`--only=layout,viewport,host,dialogs,config,delay,penalty,evidence,baseline`选择组，`--sizes=320x568,1280x720`限制视口。基线仅隔离读取指定Git版本的UNO入口／手牌／样式，其余依赖使用当前源码；不代表历史完整产品。经现有批次计划以`box,shared,game:uno`范围运行，默认隐藏、静音、仅127.0.0.1；证据进入`artifacts/maintenance/uno-source-20261020/<名称>`，保留源码／脚本哈希和参数。模拟手机不替代实体设备、Safari、原生窗口或安装器验收。
 
 ## 文档工具定向回归
 
@@ -410,6 +428,8 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File tools/test/installation/
 完整生产链把该补充记录绑定到execution-receipt，独立封存保留引用；本地current切换及发布预检读取其原始报告、截图、账户清理记录并重新读取原EXE安全标记，缺失、路径为副本、内容或元数据改变均拒绝。对既有已验收current补证使用`node tools/release/original-executable-acceptance.mjs --current=<当前current.json> --proof=<补充证明>`，仅原子附加证明引用，不改原系统证明、候选、EXE、版本或公开附件。
 
 ## 现代艺术玩家布局与服务端拍卖几何
+
+本轮工作区入口支持`--phase=after --rollout --only=rollout-player,rollout-host,rollout-draft,rollout-controls`，复用合法场景和实际PlayerFrame；只选择所需组，不执行旧控件断言。任务与输出仍用`--task=tmp/<任务唯一ID>/modern-art --output=artifacts/maintenance/<任务唯一ID>/modern-art/<新轮名>`。拍卖几何入口新增`--sizes=1280x720`限制为既有尺寸子集，`--extra-only`执行额外六场景。
 
 [工作区构建入口](games/modern-art/verify-modern-art-workspace.mjs)与[按钮／滚动专项入口](games/modern-art/verify-modern-art-refinement.mjs)均登记为`game:modern-art,shared`，放入version 1独立计划后通过`node tools/test/runner/test-scoped.mjs --scope=game:modern-art,shared --plan=<计划.json>`执行；计划项字段为`runtime: node`、`script`和字符串`args`数组。
 

@@ -1,0 +1,63 @@
+/* Limits apply to the workspace; the root theme continues across the viewport. */
+.pg-screen[data-pg-viewport] {
+  height: var(--pg-viewport-height, 100dvh);
+  min-height: 0;
+  padding-top: max(
+    8px,
+    var(--pg-safe-top),
+    calc((var(--pg-viewport-height) - 1080px) / 2)
+  );
+  padding-bottom: max(
+    8px,
+    var(--pg-safe-bottom),
+    calc((var(--pg-viewport-height) - 1080px) / 2)
+  );
+  padding-left: max(
+    8px,
+    var(--pg-safe-left),
+    calc((var(--pg-net-width) - 1920px) / 2)
+  );
+  padding-right: max(
+    8px,
+    var(--pg-safe-right),
+    calc((var(--pg-net-width) - 1920px) / 2)
+  );
+}
+.pg-screen.pg-screen--player[data-pg-viewport] {
+  padding-top: max(6px, var(--pg-safe-top));
+  padding-bottom: max(6px, var(--pg-safe-bottom));
+  padding-left: max(
+    6px,
+    var(--pg-safe-left),
+    calc((var(--pg-net-width) - 430px) / 2)
+  );
+  padding-right: max(
+    6px,
+    var(--pg-safe-right),
+    calc((var(--pg-net-width) - 430px) / 2)
+  );
+}
+@media (min-width: 960px) {
+  [data-player-display='wide'] .pg-screen.pg-screen--player[data-pg-viewport] {
+    padding-top: max(
+      12px,
+      var(--pg-safe-top),
+      calc((var(--pg-viewport-height) - 900px) / 2)
+    );
+    padding-bottom: max(
+      12px,
+      var(--pg-safe-bottom),
+      calc((var(--pg-viewport-height) - 900px) / 2)
+    );
+    padding-left: max(
+      20px,
+      var(--pg-safe-left),
+      calc((var(--pg-net-width) - 1440px) / 2)
+    );
+    padding-right: max(
+      20px,
+      var(--pg-safe-right),
+      calc((var(--pg-net-width) - 1440px) / 2)
+    );
+  }
+}

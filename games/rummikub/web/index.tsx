@@ -1,5 +1,5 @@
 /* eslint-disable react-refresh/only-export-components -- Lazy adapters expose one platform client object. */
-import { useState } from 'react';
+import { useState, type CSSProperties } from 'react';
 import type { JsonValue } from '@tablemax/game-sdk';
 import {
   avatarFor,
@@ -14,6 +14,7 @@ import {
   ScreenLink,
   SessionFeedback,
   useAudioOutput,
+  useViewportSnapshot,
   type GameClient,
   type GameHost,
 } from '@tablemax/web-host';
@@ -25,9 +26,11 @@ import { RummikubSoundControl } from '../ui/audio';
 import { rummikubRulebook } from '../ui/RulesGuide';
 import { scoreLabel } from '../ui/labels';
 import '../ui/style.css';
+import '../ui/viewport-layout.css';
 
 function RummikubScreen({ session }: { session: GameHost }) {
   const { role, view, connected, locked, canControl, command } = session;
+  const net = useViewportSnapshot('.rk-screen[data-rk-layout]', '--rk-inset-');
   const game = view?.gameView as RummikubView | null;
   const [panel, setPanel] = useState<'menu' | 'rules' | 'players' | null>(null);
   const canPlay = useAudioOutput();
@@ -104,6 +107,19 @@ function RummikubScreen({ session }: { session: GameHost }) {
   return (
     <main
       className={`rk-screen rk-screen--${role}${saved ? ' rk-saved' : ''}`}
+      data-rk-layout={
+        role !== 'player' ? 'H' : net.available.width >= 960 ? 'L' : 'P'
+      }
+      style={
+        {
+          '--rk-viewport-width': `${net.viewport.width}px`,
+          '--rk-viewport-height': `${net.viewport.height}px`,
+          '--rk-safe-top': `${net.safeInsets.top}px`,
+          '--rk-safe-bottom': `${net.safeInsets.bottom}px`,
+          '--rk-safe-left': `${net.safeInsets.left}px`,
+          '--rk-safe-right': `${net.safeInsets.right}px`,
+        } as CSSProperties
+      }
       data-phase={game?.phase}
       data-play-mode={view?.playMode ?? 'play'}
     >

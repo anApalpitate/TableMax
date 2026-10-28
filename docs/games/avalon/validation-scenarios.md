@@ -4,6 +4,16 @@
 
 Windows 于2026-10-12统一为预装全部游戏的完整 EXE；当前实际程序与预装／Worker／精确恢复边界见[最新验收](../../reference/acceptance.md#当前源码与本地交付)；2026-10-12的六款七玩法检查保留原构建边界。下列两种 EXE、离线包导入、下载体积与早期 ZIP 均属于原构建的历史事实，当前没有这些产品入口。深度瘦身已按清单退役部分历史过程截图与程序副本，原报告、失败原因、构建及哈希边界保留，原素材与当前验收继续保护，见[瘦身记录](../../reference/project-slimming.md)。
 
+## 三类布局源码落地（2026-10-29）
+
+当前新增源码证据：H1280×720的5／10人七阶段[14项](../../../artifacts/maintenance/all-games-rollout-20261029/avalon-host-r2/report.json)及6–9人组队[4项](../../../artifacts/maintenance/all-games-rollout-20261029/avalon-seats-r2/report.json)；P390×844、L1280×720的5／10人阶段[28项](../../../artifacts/maintenance/all-games-rollout-20261029/avalon-player-r2/report.json)。首轮P终局长名句横溢出6px，两例失败保留在`avalon-player-r1/report.json`；修复换行、安全区变量后独立复验通过。
+
+[身份与操作20项](../../../artifacts/maintenance/all-games-rollout-20261029/avalon-interactions-r1/report.json)使用真实configured规则夹具和生产控件，包含身份打开／失焦关闭且不随布局恢复、选队／刺杀草稿跨布局保留且不提交、具体确认后只发一次合法动作、未完成密投不公开及忠诚玩家只能成功。随后按目视发现的L底排不在首屏问题，将7–10人圆桌改为四列三行；[L最终14项](../../../artifacts/maintenance/all-games-rollout-20261029/avalon-desktop-primary-r1/report.json)新增全部席位与主要操作首屏断言并复验操作。前轮L几何只证明可滚动访问，不能冒充此项更严格结论。未修改的H／P几何仍绑定各自原方法，不合并为重复通过统计。
+
+另以十人终局做[1920×1200与4K填充两探针](../../../artifacts/maintenance/all-games-rollout-20261029/avalon-fill-r1/report.json)，全部身份完整、无横纵溢出，代表截图已目视；此处4K仅浏览器CSS分辨率，不代表电视距离可读性或原生DPI。
+
+[控件权限单测](../../../artifacts/maintenance/test-history/runs/7ba78575-3032-4bd9-adc6-5221c507b65c/results.json)执行通过。没有修改规则、秘密投影或存档；旧classic／court恢复属于既有历史证据，本轮未运行需要两个EXE的兼容工具。浏览器为本机隐藏静音真实渲染，动作在内存规则中校验；不证明Socket并发保存、实体手机、原生DPI、4K电视或安装器。手机横向阻断与iframe焦点隔离由平台专项负责，不将纯游戏L模拟称为手机横屏验收。
+
 ## 唯一配置、并发密投与两种EXE（2026-10-11）
 
 六个人数精确角色表、莫德雷德／奥伯伦秘密投影、非法存档拒绝、刺客候选包含未知奥伯伦及误刺结算恢复通过。专项第四任务使用合法流程进入奥伯伦队长局面：三档按本人授权概率选择和密投，一张失败仍成功，两张失败终局可恢复，见[配置4项](../../../artifacts/maintenance/test-history/runs/4c6080d5-86e4-47cb-bcb4-086f4771ad19.json)。旧局按规则版本／包引用恢复，保留密投与checkpoint；旧大厅开局、旧局再玩均切换现行配置。

@@ -1,5 +1,11 @@
 /* eslint-disable react-refresh/only-export-components -- The lazy game entry exports the platform client. */
-import { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import {
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+  type CSSProperties,
+} from 'react';
 import type { JsonValue } from '@tablemax/game-sdk';
 import {
   CountdownSettings,
@@ -13,6 +19,7 @@ import {
   ScreenLink,
   SessionFeedback,
   avatarFor,
+  useViewportSnapshot,
   type GameClient,
   type GameHost,
 } from '@tablemax/web-host';
@@ -50,9 +57,11 @@ import '../ui/voyage-layout.css';
 import '../ui/label-layout.css';
 import '../ui/player-layout.css';
 import '../ui/stock-layout.css';
+import '../ui/viewport-layout.css';
 
 function ManilaScreen({ session }: { session: GameHost }) {
   const { view, role, command, connected, locked, canControl } = session;
+  const net = useViewportSnapshot('.mn-screen[data-mn-layout]', '--mn-inset-');
   useEffect(() => {
     if (role !== 'player') return;
     // The game theme arrives after the host interaction layer mounts. Let its
@@ -62,16 +71,7 @@ function ManilaScreen({ session }: { session: GameHost }) {
     );
     return () => cancelAnimationFrame(frame);
   }, [role]);
-  const [wide, setWide] = useState(false);
-  useEffect(() => {
-    const query = window.matchMedia(
-      '(min-width: 900px) and (min-height: 601px)',
-    );
-    const sync = () => setWide(query.matches);
-    sync();
-    query.addEventListener('change', sync);
-    return () => query.removeEventListener('change', sync);
-  }, []);
+  const wide = net.available.width >= 900 && net.available.height >= 601;
   const game = view?.gameView as ManilaView | null;
   const [panel, setPanel] = useState<'menu' | 'rules' | 'ledger' | null>(null);
   const [financeBoundary, setFinanceBoundary] = useState<string | null>(null);
@@ -360,6 +360,17 @@ function ManilaScreen({ session }: { session: GameHost }) {
   return (
     <main
       className={`manila-screen mn-screen mn-screen--${role}${role === 'player' && wide ? ' mn-wide' : ''}`}
+      data-mn-layout={role !== 'player' ? 'H' : wide ? 'L' : 'P'}
+      style={
+        {
+          '--mn-viewport-width': `${net.viewport.width}px`,
+          '--mn-viewport-height': `${net.viewport.height}px`,
+          '--mn-safe-top': `${net.safeInsets.top}px`,
+          '--mn-safe-bottom': `${net.safeInsets.bottom}px`,
+          '--mn-safe-left': `${net.safeInsets.left}px`,
+          '--mn-safe-right': `${net.safeInsets.right}px`,
+        } as CSSProperties
+      }
       data-phase={game?.phase}
       data-financing-self={
         game?.phase === 'financing' &&

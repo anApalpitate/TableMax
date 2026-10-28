@@ -4,6 +4,11 @@ import {
 } from '../../../shared/workspace-root.mjs';
 if (isDirectExecution(import.meta.url)) assertWorkspaceRoot();
 
+if (process.argv.includes('--source-layout')) {
+  await import('./rummikub-source-layout.mjs');
+  process.exit(process.exitCode ?? 0);
+}
+
 import assert from 'node:assert/strict';
 import { createHash, randomBytes, randomUUID } from 'node:crypto';
 import { execFile } from 'node:child_process';

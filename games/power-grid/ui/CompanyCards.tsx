@@ -115,6 +115,10 @@ export function CompanyCards({
         {view.playerOrder.map((seatId, rank) => {
           const player = view.players[seatId]!;
           const index = view.seatOrder.indexOf(seatId);
+          const salvage =
+            view.replacement?.buyer === seatId
+              ? view.replacement.salvage
+              : null;
           return (
             <article
               key={seatId}
@@ -162,6 +166,23 @@ export function CompanyCards({
                   </span>
                 ))}
               </div>
+              {salvage &&
+                RESOURCES.some((resource) => salvage[resource] > 0) && (
+                  <div className="pg-company-salvage">
+                    <strong>待安置</strong>
+                    {RESOURCES.filter((resource) => salvage[resource] > 0).map(
+                      (resource) => (
+                        <span
+                          key={resource}
+                          aria-label={`${RESOURCE_LABELS[resource]}待安置${salvage[resource]}份`}
+                        >
+                          <ResourceIcon resource={resource} />
+                          {salvage[resource]}
+                        </span>
+                      ),
+                    )}
+                  </div>
+                )}
               {player.cash != null && (
                 <div data-company-cash>现金 {player.cash} 电币</div>
               )}

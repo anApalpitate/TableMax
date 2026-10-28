@@ -16,10 +16,44 @@ const name = process.argv
   .find((arg) => arg.startsWith('--evidence='))
   ?.slice(11);
 assert.match(name ?? '', /^[a-z0-9-]{1,65}$/);
-const output = resolve('artifacts/avalon/validation', name);
+const option = (key) =>
+  process.argv
+    .find((arg) => arg.startsWith(`--${key}=`))
+    ?.slice(key.length + 3);
+const interactions = process.argv.includes('--interactions');
+const task = option('task');
+if (task) assert.match(task, /^tmp\/[a-z0-9][a-z0-9-]{1,90}$/);
+const sizes = (option('sizes') ?? '1280x720').split(',').map((value) => {
+  assert.match(value, /^\d{3,4}x\d{3,4}$/);
+  return value.split('x').map(Number);
+});
+const counts = (option('counts') ?? '5,6,7,8,9,10').split(',').map(Number);
+assert(counts.every((count) => count >= 5 && count <= 10));
+const phases = (
+  option('phases') ?? 'reveal,team,discussion,vote,quest,assassinate,ended'
+).split(',');
+assert(
+  phases.every((phase) =>
+    [
+      'reveal',
+      'team',
+      'discussion',
+      'vote',
+      'quest',
+      'assassinate',
+      'ended',
+    ].includes(phase),
+  ),
+);
+const roles = (option('roles') ?? 'host').split(',');
+assert(roles.every((role) => ['host', 'player'].includes(role)));
+const output = task
+  ? resolve('artifacts/maintenance', task.slice(4), name)
+  : resolve('artifacts/avalon/validation', name);
 await mkdir(output, { recursive: false });
 const inputPaths = [
   'games/avalon/ui/style.css',
+  'games/avalon/ui/layout.css',
   'games/avalon/web/index.tsx',
   'games/avalon/ui/Board.tsx',
   'games/avalon/rules/test-fixtures.ts',
@@ -37,7 +71,12 @@ await writeFile(
   join(output, 'verifier-source.mjs'),
   await readFile(new URL(import.meta.url)),
 );
-const work = await mkdtemp(resolve('tmp/avalon-host-'));
+const taskRoot = task
+  ? resolve(task, name)
+  : resolve('tmp', `avalon-host-${name}`);
+await mkdir(taskRoot, { recursive: true });
+process.env.TEMP = process.env.TMP = taskRoot;
+const work = await mkdtemp(join(taskRoot, 'fixture-'));
 await writeFile(
   join(work, 'index.html'),
   '<html lang="zh-CN"><meta charset="utf-8"><div id="root"></div><script type="module" src="./entry.tsx"></script></html>',
@@ -79,8 +118,11 @@ window.renderAvalon=({count=10,phase='discussion',role='host',long=false,paused=
  }
  const rules=rulesByVariant.configured;
  const seats=state.seats.map((id,i)=>({id,name:long?'圆桌骑士长昵称'+(i+1):'骑士'+(i+1),avatarId:'avatar-'+(i+1),controller:'human',ready:true,online:true,botDifficulty:null}));
- const game=rules.project(state,{role:role==='player'?'player':'public',seatId:role==='player'?state.seats[0]:undefined});
- const session={role,connected:true,locked:false,canControl:role==='host',message:'',messageKind:'saved',admissionPending:false,awaitingConfirmation:false,feedback:null,errorId:'',motion:[],command:c=>(window.commands??=[]).push(c),view:{instanceId:'host-layout',branch:0,revision:1,status:state.phase==='ended'?'ended':'playing',paused,playMode:'play',gameView:game,decisionId:rules.decisions(state)[0]?.id??null,countdownSeconds:30,decisionClock:null,actions:role==='player'?rules.legalActions(state,state.seats[0]):[],lifecycleActions:role==='host'&&state.phase==='discussion'?[{type:'skip-discussion',target:game.discussion.current}]:[],seats,history:[]}};
+ const self=phase==='assassinate'?state.seats.find(id=>state.roles[id]==='assassin'):phase==='team'?state.leader:phase==='quest'?(state.team.find(id=>rules.legalActions(state,id).length===1)??state.team[0]):state.seats[0];
+ window.commands=[];
+ window.expectedActions=rules.legalActions(state,self);
+ const game=rules.project(state,{role:role==='player'?'player':'public',seatId:role==='player'?self:undefined});
+ const session={role,connected:true,locked:false,canControl:role==='host',message:'',messageKind:'saved',admissionPending:false,awaitingConfirmation:false,feedback:null,errorId:'',motion:[],command:c=>{if(c.type==='game')window.appliedState=apply(state,c.action,self);window.commands.push(c);},view:{instanceId:'host-layout',branch:0,revision:1,status:state.phase==='ended'?'ended':'playing',paused,playMode:'play',gameView:game,decisionId:rules.decisions(state)[0]?.id??null,countdownSeconds:30,decisionClock:null,actions:role==='player'?window.expectedActions:[],lifecycleActions:role==='host'&&state.phase==='discussion'?[{type:'skip-discussion',target:game.discussion.current}]:[],seats,history:[]}};
  flushSync(()=>root.render(<HostedGame key={count+phase+role+long+paused} session={session} client={client} presentation={{management:()=>null,feedback:()=>null,playMode:()=>null,countdown:()=>null}}/>));
 };
 window.renderAvalon();
@@ -117,114 +159,223 @@ try {
   page.on('pageerror', (error) => report.failures.push(error.message));
   await page.goto(server.url);
   await page.waitForFunction(() => typeof window.renderAvalon === 'function');
-  for (const [width, height] of [
-    [1024, 640],
-    [1280, 720],
-    [1536, 864],
-    [1920, 1080],
-    [3840, 2160],
-  ]) {
+  for (const [width, height] of sizes) {
     await page.setViewportSize({ width, height });
-    for (const count of [5, 6, 7, 8, 9, 10])
-      for (const phase of [
-        'reveal',
-        'team',
-        'discussion',
-        'vote',
-        'quest',
-        'assassinate',
-        'ended',
-      ]) {
-        const scenario = {
-          count,
-          phase,
-          long: true,
-          paused: phase === 'discussion',
-        };
-        await page.evaluate((s) => window.renderAvalon(s), scenario);
-        await page.evaluate(() => document.fonts.ready);
-        const geometry = await page.evaluate(() => {
-          const bounds = (el) => {
-            const r = el.getBoundingClientRect();
-            return {
-              x: r.x,
-              y: r.y,
-              right: r.right,
-              bottom: r.bottom,
-              width: r.width,
-              height: r.height,
-            };
+    for (const role of roles)
+      for (const count of counts)
+        for (const phase of phases) {
+          if (report.failures.length >= 10) {
+            report.layouts.push({
+              width,
+              height,
+              role,
+              count,
+              phase,
+              skipped: '10 failures reached',
+            });
+            continue;
+          }
+          const scenario = {
+            role,
+            count,
+            phase,
+            long: true,
+            paused: phase === 'discussion',
           };
-          const seats = [...document.querySelectorAll('.av-seat')].map(bounds);
-          const siblings = [
-            ...document.querySelectorAll(
-              '.av-toolbar,.av-status-bar,.av-campaign,.av-workspace,.av-discussion,.av-recent-ballot,.av-saved-action,.av-public-footer,.av-replay',
-            ),
-          ].map(bounds);
-          const visible = [
-            ...document.querySelectorAll(
-              '.avalon-screen > :not(.av-effects),.av-seat,.av-council-center,.av-revealed-roles > article',
-            ),
-          ].filter((el) => el.getBoundingClientRect().height > 0);
-          const outside = visible
-            .filter((el) => {
+          await page.evaluate((s) => window.renderAvalon(s), scenario);
+          await page.evaluate(() => document.fonts.ready);
+          const geometry = await page.evaluate((role) => {
+            const bounds = (el) => {
               const r = el.getBoundingClientRect();
-              return (
-                r.x < -1 ||
-                r.right > innerWidth + 1 ||
-                r.y < -1 ||
-                r.bottom > innerHeight + 1
+              return {
+                x: r.x,
+                y: r.y,
+                right: r.right,
+                bottom: r.bottom,
+                width: r.width,
+                height: r.height,
+              };
+            };
+            const seats = [...document.querySelectorAll('.av-seat')].map(
+              bounds,
+            );
+            const siblings = [
+              ...document.querySelectorAll(
+                '.av-toolbar,.av-status-bar,.av-campaign,.av-workspace,.av-discussion,.av-recent-ballot,.av-saved-action,.av-public-footer,.av-replay',
+              ),
+            ].map(bounds);
+            const visible = [
+              ...document.querySelectorAll(
+                '.avalon-screen > :not(.av-effects),.av-seat,.av-council-center,.av-revealed-roles > article',
+              ),
+            ].filter((el) => el.getBoundingClientRect().height > 0);
+            const outside = visible
+              .filter((el) => {
+                const r = el.getBoundingClientRect();
+                return (
+                  r.x < -1 ||
+                  r.right > innerWidth + 1 ||
+                  (role === 'host' && (r.y < -1 || r.bottom > innerHeight + 1))
+                );
+              })
+              .map((el) => el.className);
+            const overlaps = seats.flatMap((a, i) =>
+              seats
+                .slice(i + 1)
+                .filter(
+                  (b) =>
+                    Math.min(a.right, b.right) - Math.max(a.x, b.x) > 1 &&
+                    Math.min(a.bottom, b.bottom) - Math.max(a.y, b.y) > 1,
+                )
+                .map(() => i),
+            );
+            const panelOverlaps = siblings.flatMap((a, i) =>
+              siblings
+                .slice(i + 1)
+                .filter(
+                  (b) =>
+                    Math.min(a.right, b.right) - Math.max(a.x, b.x) > 1 &&
+                    Math.min(a.bottom, b.bottom) - Math.max(a.y, b.y) > 1,
+                )
+                .map(() => i),
+            );
+            return {
+              primaryOutside:
+                role === 'player' && innerWidth >= 960
+                  ? [
+                      ...document.querySelectorAll(
+                        '.av-seat,.av-player-controls',
+                      ),
+                    ]
+                      .filter((el) => {
+                        const r = el.getBoundingClientRect();
+                        return r.y < 0 || r.bottom > innerHeight + 1;
+                      })
+                      .map((el) => el.className)
+                  : [],
+              scrollHeight: document.documentElement.scrollHeight,
+              scrollWidth: document.documentElement.scrollWidth,
+              outside,
+              overlaps,
+              panelOverlaps,
+              seats: seats.length,
+            };
+          }, role);
+
+          if (interactions && role === 'player') {
+            assert.equal(
+              await page.locator('[data-av-secret="true"]').count(),
+              0,
+              'Secret must remain closed by default',
+            );
+            if (phase === 'reveal') {
+              await page.locator('[data-av-action="identity"]').click();
+              assert.equal(
+                await page.locator('[data-av-secret="true"]').count(),
+                1,
               );
-            })
-            .map((el) => el.className);
-          const overlaps = seats.flatMap((a, i) =>
-            seats
-              .slice(i + 1)
-              .filter(
-                (b) =>
-                  Math.min(a.right, b.right) - Math.max(a.x, b.x) > 1 &&
-                  Math.min(a.bottom, b.bottom) - Math.max(a.y, b.y) > 1,
-              )
-              .map(() => i),
-          );
-          const panelOverlaps = siblings.flatMap((a, i) =>
-            siblings
-              .slice(i + 1)
-              .filter(
-                (b) =>
-                  Math.min(a.right, b.right) - Math.max(a.x, b.x) > 1 &&
-                  Math.min(a.bottom, b.bottom) - Math.max(a.y, b.y) > 1,
-              )
-              .map(() => i),
-          );
-          return {
-            scrollHeight: document.documentElement.scrollHeight,
-            scrollWidth: document.documentElement.scrollWidth,
-            outside,
-            overlaps,
-            panelOverlaps,
-            seats: seats.length,
-          };
-        });
-        report.layouts.push({ width, height, ...scenario, ...geometry });
-        if (
-          geometry.scrollHeight > height + 1 ||
-          geometry.scrollWidth > width + 1 ||
-          geometry.outside.length ||
-          geometry.overlaps.length ||
-          geometry.panelOverlaps.length
-        )
-          report.failures.push({ width, height, ...scenario, ...geometry });
-        if (
-          count === 10 &&
-          ['discussion', 'quest', 'ended'].includes(phase) &&
-          [1024, 1280, 1920, 3840].includes(width)
-        ) {
-          const path = join(output, `${width}-${phase}.png`);
-          await captureBrowserScreenshot(page, { path });
-          report.screenshots.push(path);
+              await page.evaluate(() =>
+                window.dispatchEvent(new Event('blur')),
+              );
+              assert.equal(
+                await page.locator('[data-av-secret="true"]').count(),
+                0,
+                'Blur closes identity',
+              );
+              await page.setViewportSize({ width: 1280, height: 720 });
+              assert.equal(
+                await page.locator('[data-av-secret="true"]').count(),
+                0,
+                'Layout change cannot reopen secrets',
+              );
+              await page.setViewportSize({ width, height });
+              await page.locator('[data-av-action="identity"]').click();
+              await page.locator('[data-av-action="acknowledge"]').click();
+            }
+            if (['team', 'assassinate'].includes(phase)) {
+              const action = await page.evaluate(
+                (phase) =>
+                  window.expectedActions.find(
+                    (a) =>
+                      a.type ===
+                      (phase === 'team' ? 'propose-team' : 'assassinate'),
+                  ),
+                phase,
+              );
+              assert(action, 'Current actor must have concrete action');
+              const ids = phase === 'team' ? action.team : [action.target];
+              for (const id of ids)
+                await page.locator(`[data-seat-id="${id}"]`).click();
+              await page.setViewportSize({
+                width: width === 390 ? 1280 : 390,
+                height: width === 390 ? 720 : 844,
+              });
+              assert.equal(
+                await page.locator('.av-seat[aria-pressed="true"]').count(),
+                ids.length,
+                'Draft retained across layout',
+              );
+              assert.equal(
+                await page.evaluate(() => window.commands.length),
+                0,
+                'Layout must not submit',
+              );
+              await page.setViewportSize({ width, height });
+              await page
+                .locator(
+                  `[data-av-action="${phase === 'team' ? 'propose' : 'assassinate'}"]`,
+                )
+                .click();
+            }
+            if (phase === 'vote') {
+              assert.equal(
+                await page.locator('.av-ballot-badge').count(),
+                0,
+                'Unfinished vote stays secret',
+              );
+              await page.locator('[data-av-action="vote-approve"]').click();
+            }
+            if (phase === 'quest') {
+              const actions = await page.evaluate(() => window.expectedActions);
+              if (actions.length === 1)
+                assert.equal(
+                  await page.locator('[data-av-action="quest-fail"]').count(),
+                  0,
+                  'Loyal player cannot fail',
+                );
+              await page.locator('[data-av-action="quest-success"]').click();
+            }
+            if (
+              ['reveal', 'team', 'assassinate', 'vote', 'quest'].includes(phase)
+            )
+              assert.equal(
+                await page.evaluate(() => window.commands.length),
+                1,
+                'Exactly one legal action',
+              );
+          }
+          report.layouts.push({ width, height, ...scenario, ...geometry });
+          if (
+            (role === 'host' && geometry.scrollHeight > height + 1) ||
+            geometry.scrollWidth > width + 1 ||
+            geometry.primaryOutside.length ||
+            geometry.outside.length ||
+            geometry.overlaps.length ||
+            geometry.panelOverlaps.length
+          )
+            report.failures.push({ width, height, ...scenario, ...geometry });
+          if (
+            count === 10 &&
+            ['discussion', 'quest', 'ended'].includes(phase)
+          ) {
+            const path = join(output, `${role}-${width}-${phase}.png`);
+            await captureBrowserScreenshot(page, {
+              path,
+              fullPage: role === 'player',
+            });
+            report.screenshots.push(path);
+          }
         }
-      }
   }
   report.result = report.failures.length ? 'failed' : 'passed';
 } catch (error) {

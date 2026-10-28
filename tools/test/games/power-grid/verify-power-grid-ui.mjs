@@ -6,13 +6,14 @@ import {
 if (isDirectExecution(import.meta.url)) assertWorkspaceRoot();
 
 import assert from 'node:assert/strict';
+import { createHash } from 'node:crypto';
 import { verifyUiPolish } from './power-grid-ui-polish-checks.mjs';
 import { verifyUiRefinement } from './power-grid-ui-refinement-checks.mjs';
 import { verifyPurchaseProgress } from './power-grid-purchase-progress-checks.mjs';
 import { verifyBoardFacts } from './power-grid-board-checks.mjs';
 import { mkdir, writeFile, readFile, mkdtemp, readdir } from 'node:fs/promises';
 import { createServer } from 'node:http';
-import { resolve, join, extname, sep } from 'node:path';
+import { resolve, join, extname, sep, relative } from 'node:path';
 import { build as bundle } from 'esbuild';
 import { build } from 'vite';
 import react from '@vitejs/plugin-react';
@@ -31,6 +32,13 @@ const cachedFixtures = process.argv
 const amountOnly = process.argv.includes('--amount-only');
 const mapOnly = process.argv.includes('--map-only');
 const boardOnly = process.argv.includes('--board-only');
+const rollout = process.argv.includes('--rollout');
+const task = process.argv
+  .find((value) => value.startsWith('--task='))
+  ?.slice(7);
+if (task) assert.match(task, /^tmp\/[a-z0-9][a-z0-9-]{1,90}$/);
+process.env.TABLEMAX_AUTO_MAINTENANCE = '0';
+process.env.TABLEMAX_TEST_MAINTENANCE = '0';
 const seatCount = Number(
   process.argv.find((value) => value.startsWith('--seats='))?.slice(8) ?? 6,
 );
@@ -40,9 +48,18 @@ const captureRules =
   captureRulesOnly || process.argv.includes('--capture-rules');
 assert.match(name, /^[a-z0-9-]{1,40}$/);
 assert.match(maintenance, /^[a-z0-9-]{1,40}$/);
-const output = verificationOutput(maintenance, 'power-grid', name);
+const output = task
+  ? resolve('artifacts/maintenance', task.slice(4), 'power-grid', name)
+  : verificationOutput(maintenance, 'power-grid', name);
 await mkdir(output, { recursive: true });
-const work = await mkdtemp(join(output, 'work-'));
+const taskRoot = task ? resolve(task, 'power-grid', name) : output;
+await mkdir(taskRoot, { recursive: true });
+const work = await mkdtemp(join(taskRoot, 'work-'));
+if (task) {
+  const browserTemp = resolve(task, 'browser-temp');
+  await mkdir(browserTemp, { recursive: true });
+  process.env.TEMP = process.env.TMP = browserTemp;
+}
 const started = performance.now();
 const report = {
   scope:
@@ -54,12 +71,55 @@ const report = {
   errors: [],
   requests: [],
   screenshots: [],
+  inputs: {},
 };
+const sha = (bytes) => createHash('sha256').update(bytes).digest('hex');
+const bindInput = async (id) => {
+  const file = id.split('?')[0];
+  if (
+    !file.startsWith(resolve('.') + sep) &&
+    !file.startsWith(resolve('.').replaceAll('\\', '/') + '/')
+  )
+    return;
+  if (
+    file.includes('node_modules') ||
+    resolve(file).startsWith(resolve('tmp') + sep)
+  )
+    return;
+  const key = relative(resolve('.'), file).replaceAll('\\', '/');
+  const bytes = await readFile(file);
+  if (report.inputs[key])
+    assert.equal(
+      report.inputs[key],
+      sha(bytes),
+      'Stable compilation input ' + key,
+    );
+  report.inputs[key] = sha(bytes);
+};
+for (const file of [
+  'tools/test/games/power-grid/verify-power-grid-ui.mjs',
+  'tools/test/games/power-grid/power-grid-rollout-checks.mjs',
+])
+  await bindInput(resolve(file));
 const generator = `
 import { rules, bot } from ${JSON.stringify(resolve('games/power-grid/index.ts'))};
+import { getPlant } from ${JSON.stringify(resolve('games/power-grid/data/catalog.ts'))};
 import { BOARD_WIDTH, BOARD_HEIGHT, GERMANY_CITIES, GERMANY_EDGES } from ${JSON.stringify(resolve('games/power-grid/data/germany.ts'))};
 import { INCOME } from ${JSON.stringify(resolve('games/power-grid/data/economy.ts'))};
 export const diagramData={income:INCOME,board:{width:BOARD_WIDTH,height:BOARD_HEIGHT,cities:GERMANY_CITIES,edges:GERMANY_EDGES}};
+function mixedBranch(source,seat,plantId,context){
+ let state=structuredClone(source);const plant=getPlant(plantId);
+ for(let i=0;i<120;i++){
+  rules.validateState(state,context.seats);const decision=rules.decisions(state)[0];if(!decision)return null;
+  const actor=decision.seatId,actions=rules.legalActions(state,actor),view=rules.project(state,{role:'player',seatId:actor});
+  if(view.phase==='powering'&&actor===seat&&actions.filter(a=>a.type==='run'&&a.plantId===plantId).length>1)return {game:view,publicGame:rules.project(state,{role:'public'}),actions,decision};
+  let action;
+  if(view.phase==='resources'&&actor===seat){const owned=view.players[seat].plants.find(p=>p.id===plantId);const resource=['coal','oil'].find(r=>owned.resources[r]<plant.input);action=actions.find(a=>a.type==='buy-resource'&&a.plantId===plantId&&a.resource===resource&&(a.quantity??1)===1);}
+  action??=actions.find(a=>a.type==='finish');if(!action)return null;
+  state=rules.apply(state,action,actor,context).state;
+ }
+ return null;
+}
 export async function make(){
  const seats=Array.from({length:${seatCount}},(_,index)=>'p'+(index+1));let seed=728;
  const random={next(){seed^=seed<<13;seed^=seed>>>17;seed^=seed<<5;return (seed>>>0)/4294967296;}};
@@ -75,6 +135,7 @@ export async function make(){
   if(view.phase==='building' && Object.values(view.players).reduce((n,p)=>n+p.cities.length,0)>30) fixtures.crowded={game:view,publicGame:rules.project(state,{role:'public'}),actions,decision};
   if(view.phase==='replace' && view.replacement?.removedPlantId!==null) fixtures.salvage={game:view,publicGame:rules.project(state,{role:'public'}),actions,decision};
   if(view.phase==='resources' && view.players[seat]?.plants.length>=3) fixtures['owned-resources']={game:view,publicGame:rules.project(state,{role:'public'}),actions,decision};
+  if(view.phase==='resources'&&!fixtures['mixed-fuel']){const hybrid=view.players[seat]?.plants.find(p=>getPlant(p.id).fuel==='hybrid');if(hybrid){const mixed=mixedBranch(state,seat,hybrid.id,context);if(mixed)fixtures['mixed-fuel']=mixed;}}
   if(view.phase==='powering' && actions.filter(a=>a.type==='run'&&a.plantId===view.players[seat]?.plants.find(p=>p.id===a.plantId&&p.resources.coal>0&&p.resources.oil>0)?.id).length>1) fixtures['mixed-fuel']={game:view,publicGame:rules.project(state,{role:'public'}),actions,decision};
   if(rules.ended(state)) break;
   if(!decision || !actions.length) throw new Error('Rules fixture stopped without a legal decision');
@@ -84,7 +145,7 @@ export async function make(){
  if(!fixtures.ended) throw new Error('Fixture match did not finish');
  return {fixtures,income:INCOME,board:{width:BOARD_WIDTH,height:BOARD_HEIGHT,cities:GERMANY_CITIES,edges:GERMANY_EDGES}};
 }`;
-await bundle({
+const generatorBuild = await bundle({
   stdin: {
     contents: generator,
     resolveDir: resolve('.'),
@@ -96,7 +157,12 @@ await bundle({
   format: 'esm',
   target: 'node22',
   logLevel: 'silent',
+  metafile: true,
 });
+for (const file of Object.keys(generatorBuild.metafile.inputs))
+  if (!file.startsWith('<') && file !== 'power-grid-ui-fixtures.ts')
+    await bindInput(resolve(file));
+report.generatorSha256 = sha(generator);
 const generated = await import(
   new URL('file:///' + join(work, 'generator.mjs').replaceAll('\\', '/'))
 );
@@ -109,6 +175,7 @@ const { fixtures, board, income } = cachedFixtures
 assert.equal(fixtures.regions.game.seatOrder.length, seatCount);
 if (cachedFixtures) report.fixtureSource = resolve(cachedFixtures);
 await writeFile(join(work, 'fixtures.json'), JSON.stringify(fixtures));
+report.fixtureSha256 = sha(JSON.stringify(fixtures));
 const entry = `
 import React,{useState} from 'react';import {createRoot} from 'react-dom/client';
 import {client} from ${JSON.stringify(resolve('apps/web/src/game-clients/PowerGridScreen.tsx'))};
@@ -148,7 +215,16 @@ await build({
       'react-dom': resolve('apps/web/node_modules/react-dom'),
     },
   },
-  plugins: [react()],
+  plugins: [
+    react(),
+    {
+      name: 'power-grid-input-binding',
+      async transform(_code, id) {
+        await bindInput(id);
+        return null;
+      },
+    },
+  ],
   build: {
     outDir: join(work, 'bundle'),
     emptyOutDir: false,
@@ -720,7 +796,26 @@ try {
       'resource-prices.png',
     ];
   };
-  if (captureRulesOnly) {
+  if (rollout) {
+    const { verifyRollout } = await import('./power-grid-rollout-checks.mjs');
+    await verifyRollout(
+      page,
+      fixtures,
+      report,
+      output,
+      choosePhoneCity,
+      process.argv.includes('--rollout-details-only'),
+    );
+    for (const [file, hash] of Object.entries(report.inputs))
+      assert.equal(
+        sha(await readFile(resolve(file))),
+        hash,
+        'Stable rendered source ' + file,
+      );
+    assert.deepEqual(report.errors, []);
+    assert.deepEqual(report.requests, []);
+    report.status = 'passed';
+  } else if (captureRulesOnly) {
     await captureRuleScreens();
     assert.deepEqual(report.errors, []);
     assert.deepEqual(report.requests, []);

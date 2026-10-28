@@ -6,7 +6,7 @@ import {
   rmSync,
   writeFileSync,
 } from 'node:fs';
-import { dirname, join, resolve } from 'node:path';
+import { dirname, join, resolve, sep } from 'node:path';
 import type { ModuleManifest } from '@tablemax/game-sdk/module-manifest';
 import {
   projectGameDetails,
@@ -94,8 +94,11 @@ it('explains selected variant incompatibility and malformed declarations', () =>
 });
 
 function fixture(document?: unknown) {
-  mkdirSync('tmp', { recursive: true });
-  const root = mkdtempSync(resolve('tmp/public-package-'));
+  const taskRoot = resolve('tmp', process.env.TABLEMAX_TASK_ID ?? '');
+  if (taskRoot !== resolve('tmp') && !taskRoot.startsWith(resolve('tmp') + sep))
+    throw new Error('Public-package fixture must remain under workspace tmp');
+  mkdirSync(taskRoot, { recursive: true });
+  const root = mkdtempSync(join(taskRoot, 'public-package-'));
   roots.push(root);
   const source = manifest();
   const module =

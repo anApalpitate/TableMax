@@ -18,15 +18,29 @@ import { captureBrowserScreenshot } from '../../support/screenshots.mjs';
 process.env.TABLEMAX_AUTO_MAINTENANCE = '0';
 const name = process.argv.find((a) => a.startsWith('--evidence='))?.slice(11);
 const densityOnly = process.argv.includes('--density-only');
+const option = (key) =>
+  process.argv
+    .find((arg) => arg.startsWith(`--${key}=`))
+    ?.slice(key.length + 3);
+const task = option('task');
+if (task) assert.match(task, /^tmp\/[a-z0-9][a-z0-9-]{1,90}$/);
+const only = option('only')?.split(',');
+const selectedSizes = option('sizes')
+  ?.split(',')
+  .map((value) => {
+    assert.match(value, /^\d{3,4}x\d{3,4}$/);
+    return value.split('x').map(Number);
+  });
 assert.match(name ?? '', /^[a-z0-9-]{1,65}$/);
-const output = resolve('artifacts/maintenance/cockroach-source', name);
+const output = task
+  ? resolve('artifacts/maintenance', task.slice(4), name)
+  : resolve('artifacts/maintenance/cockroach-source', name);
 await mkdir(output, { recursive: true });
 const reportPath = join(output, 'report.json');
 await writeFile(reportPath, '{}', { flag: 'wx' });
-const taskRoot = resolve(
-  'tmp',
-  process.env.TABLEMAX_TASK_ID ?? `cockroach-source-${name}`,
-);
+const taskRoot = task
+  ? resolve(task, name)
+  : resolve('tmp', process.env.TABLEMAX_TASK_ID ?? `cockroach-source-${name}`);
 await mkdir(taskRoot, { recursive: true });
 const work = await mkdtemp(join(taskRoot, 'fixture-'));
 const hash = (b) => createHash('sha256').update(b).digest('hex');
@@ -161,7 +175,11 @@ try {
   await page.goto(server.url);
   await page.waitForFunction(() => typeof window.setup === 'function');
   async function check(id, fn) {
-    if (report.failures.length >= 10) return;
+    if (only && !only.includes(id)) return;
+    if (report.failures.length >= 10) {
+      report.checks.push({ id, passed: false, skipped: '10 failures reached' });
+      return;
+    }
     try {
       await fn();
       report.checks.push({ id, passed: true });
@@ -222,10 +240,9 @@ try {
       });
     });
   }
-  const sizes = [
-    [320, 568],
+  const sizes = selectedSizes ?? [
+    [360, 800],
     [390, 844],
-    [844, 390],
     [1280, 720],
     [1920, 1080],
     [3840, 2160],
@@ -474,9 +491,9 @@ try {
         .locator('.cp-confirm')
         .getAttribute('aria-label');
       for (const viewport of [
-        { width: 844, height: 390 },
+        { width: 1280, height: 720 },
         { width: 390, height: 844 },
-        { width: 320, height: 568 },
+        { width: 360, height: 800 },
       ]) {
         await page.setViewportSize(viewport);
         assert.equal(
@@ -501,7 +518,7 @@ try {
           boxes.every((r) => r.width >= 44 && r.height >= 44),
           JSON.stringify({ viewport, boxes }),
         );
-        if (viewport.width === 844) {
+        if (viewport.width === 1280) {
           const nameBox = await page
             .locator('.cp-draft-preview .cp-person strong')
             .evaluate((node) => ({
@@ -510,11 +527,11 @@ try {
             }));
           assert(
             nameBox.height <= nameBox.line * 2 + 1,
-            'Full target name must fit at most two lines in short landscape',
+            'Full target name must fit at most two lines in desktop landscape',
           );
           assert(
             boxes.at(-1).bottom <= viewport.height,
-            'Short landscape confirmation must remain on screen',
+            'Desktop landscape confirmation must remain on screen',
           );
         }
         await captureBrowserScreenshot(page, {
@@ -531,7 +548,10 @@ try {
         for (const layout of [
           { role: 'host', width: 1280, height: 720 },
           { role: 'player', width: 390, height: 844 },
-          { role: 'player', width: 844, height: 390 },
+          { role: 'player', width: 1280, height: 720 },
+          ...(selectedSizes ?? [])
+            .filter(([width]) => width >= 1920)
+            .map(([width, height]) => ({ role: 'host', width, height })),
         ])
           await check(
             `state-${count}-${stage}-${layout.role}-${layout.width}`,

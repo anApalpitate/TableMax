@@ -1,5 +1,5 @@
 /* eslint-disable react-refresh/only-export-components -- Lazy game-client exports. */
-import { useEffect, useState } from 'react';
+import { useEffect, useId, useState, type CSSProperties } from 'react';
 import type { JsonValue } from '@tablemax/game-sdk';
 import {
   CountdownSettings,
@@ -14,6 +14,7 @@ import {
   SessionFeedback,
   avatarFor,
   useAudioOutput,
+  useViewportSnapshot,
   type GameClient,
   type GameHost,
 } from '@tablemax/web-host';
@@ -31,6 +32,7 @@ import { AvalonEffects } from '../ui/Effects';
 import { AvalonSoundControl } from '../ui/audio';
 import { avalonRulebookFor } from '../ui/RulesGuide';
 import '../ui/style.css';
+import '../ui/layout.css';
 
 function SavedAction({
   game,
@@ -151,6 +153,11 @@ function Table({
 }
 
 function AvalonScreen({ session }: { session: GameHost }) {
+  const viewportId = useId();
+  const viewport = useViewportSnapshot(
+    `[data-av-viewport="${viewportId}"]`,
+    '--av-safe-',
+  );
   const { role, view, connected, locked, canControl, command } = session;
   const game = view?.gameView as AvalonView | null;
   const player = role === 'player';
@@ -240,6 +247,15 @@ function AvalonScreen({ session }: { session: GameHost }) {
   return (
     <main
       className={`avalon-screen av-screen--${role}`}
+      data-av-viewport={viewportId}
+      data-av-layout={
+        player ? (viewport.available.width >= 960 ? 'L' : 'P') : 'H'
+      }
+      style={
+        {
+          '--av-viewport-height': `${viewport.viewport.height}px`,
+        } as CSSProperties
+      }
       data-phase={game?.phase}
       data-play-mode={view?.playMode ?? 'play'}
       data-av-saved={session.motion.length > 0 && !disabled}
@@ -336,9 +352,7 @@ function AvalonScreen({ session }: { session: GameHost }) {
           </button>
         </div>
       </header>
-      {((session.message && session.message !== '已保存') ||
-        session.admissionPending ||
-        session.awaitingConfirmation) && <SessionFeedback session={session} />}
+      <SessionFeedback session={session} mode="messages" />
       {!game || !view ? (
         <div className="av-unavailable">
           <h1>等待圆桌议会开局</h1>

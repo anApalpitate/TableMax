@@ -47,6 +47,7 @@ export async function preparePublicScreenRetirement(
     action: JsonValue,
     seatId: string,
   ) => boolean,
+  riskTargets: readonly string[] = [],
 ) {
   const games: Record<string, GameFixture> = {};
   const proof: { method: string; entries: unknown[] } = {
@@ -261,6 +262,55 @@ export async function preparePublicScreenRetirement(
       `${entry.key}: target phase unreachable in bounded legal preparation`,
     );
     snapshot(entry.key);
+    if (
+      riskTargets.includes('frame-draft') &&
+      entry.key === 'pokemon-encounters'
+    ) {
+      const decision = entry.rules
+        .decisions(state)
+        .find((item) =>
+          entry.rules
+            .legalActions(state, item.seatId)
+            .some((action) => (action as { type?: string }).type === 'draw'),
+        );
+      assert(decision, 'Pokemon frame draft requires a legal draw');
+      const action = { type: 'draw', source: 'deck' };
+      assert(allows(entry.rules, state, action, decision.seatId));
+      state = entry.rules.validateState(
+        entry.rules.apply(state, action, decision.seatId, context).state,
+        seats,
+      );
+      actionsTaken.push('draw');
+      steps++;
+      snapshot(entry.key);
+    }
+    if (riskTargets.includes(entry.key)) {
+      const dense = () => {
+        const object = stateObject(state);
+        if (entry.key === 'rummikub')
+          return (
+            (object.table as { tiles: unknown[] }[]).reduce(
+              (n, group) => n + group.tiles.length,
+              0,
+            ) >= 60
+          );
+        if (entry.key === 'power-grid')
+          return (
+            object.phase === 'building' &&
+            Object.values(
+              object.players as Record<string, { cities: string[] }>,
+            ).reduce((n, player) => n + player.cities.length, 0) >= 30
+          );
+        throw new Error('Unsupported legal density target: ' + entry.key);
+      };
+      while (!dense() && steps < 1500 && !entry.rules.ended(state))
+        await step();
+      assert(
+        dense(),
+        `${entry.key}: legal density target was not reached within budget`,
+      );
+      snapshot(entry.key + '-dense');
+    }
     if (entry.key === 'avalon') {
       while (!entry.rules.ended(state) && steps < 5000) await step();
       assert(

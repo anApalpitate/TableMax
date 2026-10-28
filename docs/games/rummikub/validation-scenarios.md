@@ -1,5 +1,15 @@
 # 拉密验证场景
 
+## 2026-10-29密集桌面与净区源码验证
+
+[合法推进夹具](../../../artifacts/maintenance/all-games-rollout-20261029/density-prepare-r1/report.json)得到60张已保存桌面牌、15组的四人局面；初轮仅基础渲染通过仍有第三排裁切，不能据此验收。缩减管理辅助空间后，[1280×720密集H](../../../artifacts/maintenance/all-games-rollout-20261029/density-host-r5/report.json)逐牌／逐组边界和组内无横向溢出通过，长名称及百搭绑定人工复核完整。r4运行中其他游戏输入变化导致整轮无效，日志保留。
+
+净区接入后[玩家source-r5](../../../artifacts/maintenance/all-games-rollout-20261029/rummikub/source-r5/report.json)P390×844／L1280×720两项通过，复用真实PlayerWorkshop和经规则校验的106牌唯一分区受控夹具：30牌架、13张长顺子逐个实际点击且热区不低于44px，拆分／撤销／重置、同DOM尺寸变化草稿保留、branch决策失效、百搭浮层，以及合法三9成组提交一次命令。受控合法状态不等于自然整局；命令经规则合法性校验不等于服务已保存。
+
+[有界工作区复验](../../../artifacts/maintenance/all-games-rollout-20261029/rummikub-host-viewport-r1/report.json)1280密集H通过，4K失败是旧根max-width与新padding重复限宽；明确根width100%／max-width:none后，[4K定向r2](../../../artifacts/maintenance/all-games-rollout-20261029/rummikub-host-viewport-r2/report.json)通过60牌／15组全部在工作区内。保留旧1800px大屏牌面分支，只在本游戏已验密集场景使用；未以缩字换取通过。
+
+本轮未运行历史EXE、publicPage或全局自然整局；实体设备、Windows实际DPI、电视观看距离、真实网络及保存待独立验证。正式PNG／JSON及旧失败在统一maintenance任务目录，临时构建和浏览器资料集中`tmp/all-games-rollout-20261029/`，清理须预览后确认。
+
 本页记录规则模块、隔离候选和最终同版包的真实服务、Worker与UI证据。当前单完整 EXE 交付见[最新验收](../../reference/acceptance.md#106唯一完整-exe2026-10-12)，下方2026-10-11及更早记录保留原 ZIP／构建边界，不等同当前程序重新执行整局。少数固定fixture不代替完整对局或实机。
 
 ## 交互完善与入口恢复（2026-10-11）

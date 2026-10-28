@@ -1,0 +1,32 @@
+/* Local layout budgets; the shared hook supplies CSS measurements only. */
+.mn-screen[data-mn-layout] {
+  --mn-inset-top: env(safe-area-inset-top, 0px);
+  --mn-inset-bottom: env(safe-area-inset-bottom, 0px);
+  --mn-inset-left: env(safe-area-inset-left, 0px);
+  --mn-inset-right: env(safe-area-inset-right, 0px);
+  --mn-work-width: 1920px;
+  --mn-work-height: 1080px;
+  width: 100%;
+  height: var(--mn-viewport-height, 100dvh);
+  min-height: 0;
+  padding-inline: max(
+    4px,
+    var(--mn-safe-left),
+    var(--mn-safe-right),
+    calc((var(--mn-viewport-width) - var(--mn-work-width)) / 2)
+  );
+  padding-block: max(
+    4px,
+    var(--mn-safe-top),
+    var(--mn-safe-bottom),
+    calc((var(--mn-viewport-height) - var(--mn-work-height)) / 2)
+  );
+}
+.mn-screen[data-mn-layout='P'] {
+  --mn-work-width: 430px;
+  padding-block: max(4px, var(--mn-safe-top), var(--mn-safe-bottom));
+}
+.mn-screen[data-mn-layout='L'] {
+  --mn-work-width: 1440px;
+  --mn-work-height: 900px;
+}

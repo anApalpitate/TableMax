@@ -159,7 +159,11 @@ export function PhonePages({
           {index === 0 && <div className="pg-action-dock" ref={setDock} />}
         </section>
       ))}
-      <nav className="pg-page-nav" aria-label="手机页面">
+      <nav
+        className="pg-page-nav"
+        aria-label="手机页面"
+        data-map-selection-preserve
+      >
         {pages.map((label, index) => (
           <button
             type="button"

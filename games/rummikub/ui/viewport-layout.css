@@ -1,0 +1,32 @@
+.rk-screen[data-rk-layout] {
+  --rk-inset-top: env(safe-area-inset-top, 0px);
+  --rk-inset-bottom: env(safe-area-inset-bottom, 0px);
+  --rk-inset-left: env(safe-area-inset-left, 0px);
+  --rk-inset-right: env(safe-area-inset-right, 0px);
+  --rk-work-width: 1920px;
+  --rk-work-height: 1080px;
+  width: 100%;
+  max-width: none;
+  margin-inline: 0;
+  height: var(--rk-viewport-height, 100dvh);
+  padding-inline: max(
+    8px,
+    var(--rk-safe-left),
+    var(--rk-safe-right),
+    calc((var(--rk-viewport-width) - var(--rk-work-width)) / 2)
+  );
+  padding-block: max(
+    8px,
+    var(--rk-safe-top),
+    var(--rk-safe-bottom),
+    calc((var(--rk-viewport-height) - var(--rk-work-height)) / 2)
+  );
+}
+.rk-screen[data-rk-layout='P'] {
+  --rk-work-width: 430px;
+  padding-block: max(6px, var(--rk-safe-top), var(--rk-safe-bottom));
+}
+.rk-screen[data-rk-layout='L'] {
+  --rk-work-width: 1440px;
+  --rk-work-height: 900px;
+}
