@@ -349,6 +349,7 @@ const verificationScopes = {
   'tools/test/support/screenshots.test.mjs': ['tooling'],
   'tools/test/support/installation-fixture.test.mjs': ['tooling'],
   'tools/test/desktop/verify-service-stop.mjs': ['shared', 'tooling'],
+  'tools/test/desktop/verify-window-startup.mjs': ['box', 'shared', 'tooling'],
   'tools/test/desktop/verify-host-only-native.mjs': [
     'box',
     'shared',

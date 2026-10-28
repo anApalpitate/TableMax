@@ -13,6 +13,7 @@ namespace TableMax.Desktop
         [DllImport("user32.dll")] internal static extern bool SetProcessDpiAwarenessContext(IntPtr context);
         [DllImport("user32.dll")] internal static extern uint GetDpiForWindow(IntPtr window);
         [DllImport("user32.dll")] internal static extern bool SetForegroundWindow(IntPtr window);
+        [DllImport("user32.dll")] internal static extern bool ShowWindow(IntPtr window, int command);
         [DllImport("user32.dll", SetLastError = true)] internal static extern bool SetWindowPos(IntPtr window, IntPtr insertAfter, int x, int y, int width, int height, uint flags);
         [DllImport("kernel32.dll")] internal static extern uint SetThreadExecutionState(uint flags);
         [DllImport("kernel32.dll", SetLastError = true)] internal static extern IntPtr CreateJobObject(IntPtr attributes, string name);

@@ -233,6 +233,8 @@ node tools/test/runner/benchmark-efficiency.mjs
 
 ## 开发环境操作：内容绑定的验收计划（2026-10-11）
 
+[原生窗口启动检查](desktop/verify-window-startup.mjs)接受 `--task=tmp/<任务唯一ID> --evidence=<新轮名>`，可另传本任务下的 `--baseline-dir=<目录>`，其中保留改前的 `NativeWindow.cs`、`DesktopContext.cs`、`NativeMethods.cs`。放入 version 1 计划，以 `box,shared,tooling` 范围交给 `runner/test-scoped.mjs` 执行。入口用锁定 net48/WebView2 依赖在任务目录隔离编译，私有桌面中调用生产 `Program.Main` 和 `ShowHost`，静音渲染回环 HTML 夹具，核对首次管理窗最大化到工作区、最小化／隐藏重开、显式普通／无边框／全屏恢复、玩家／后台窗口及显式 DPI 几何；不切换用户桌面、启动服务或读取实际用户设置。报告与真实截图保存至 `artifacts/maintenance/<任务目录名>/native/<新轮名>/`；不证明产品页面、安装器、物理多显示器或真实系统 DPI。
+
 version 2 明确内容、方法、环境与输入边界；清单和方案先预览。
 
 ```powershell

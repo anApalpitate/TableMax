@@ -87,12 +87,13 @@ namespace TableMax.Desktop
         {
             // An offscreen, nonactivating native HWND lets WebView2 render actual frames.
             // A never-shown WebView2 controller does not render screenshots reliably.
-            Show();
             if (!context.Background)
             {
                 var initialScale = NativeMethods.Scale(Handle);
                 Size = new Size((int)Math.Round(initialWidth * initialScale), (int)Math.Round(initialHeight * initialScale));
+                if (Managed && Role == "host") WindowState = FormWindowState.Maximized;
             }
+            Show();
             var options = context.Environment.CreateCoreWebView2ControllerOptions();
             options.ProfileName = profile;
             await browser.EnsureCoreWebView2Async(context.Environment, options);
@@ -348,6 +349,13 @@ namespace TableMax.Desktop
             ApplyDisplay();
         }
         public object WindowSnapshot() => new { fullscreen, mode = windowMode };
+        public void RestoreForReopen()
+        {
+            // SW_RESTORE retains the native pre-minimize normal/maximized state.
+            // Reopening must not reapply the initial maximized default.
+            if (WindowState == FormWindowState.Minimized) NativeMethods.ShowWindow(Handle, 9);
+            Show();
+        }
         private void ToggleF11() => SetMode(windowMode == "windowed" ? "fullscreen" : "windowed");
         public void ToggleFullscreen() => SetFullscreen(!fullscreen);
         public object SetFullscreen(bool value) => value ? SetMode("fullscreen") : fullscreen ? SetMode(fullscreenReturnMode) : WindowSnapshot();

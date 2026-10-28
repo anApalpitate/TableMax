@@ -248,7 +248,7 @@ namespace TableMax.Desktop
                 try { hostWindow = await hostOpening; }
                 finally { hostOpening = null; }
             }
-            else if (!Background) { if (hostWindow.WindowState == FormWindowState.Minimized) hostWindow.WindowState = FormWindowState.Normal; hostWindow.Show(); if (!Testing) { hostWindow.Activate(); NativeMethods.SetForegroundWindow(hostWindow.Handle); } }
+            else if (!Background) { hostWindow.RestoreForReopen(); if (!Testing) { hostWindow.Activate(); NativeMethods.SetForegroundWindow(hostWindow.Handle); } }
             return hostWindow;
         }
         public async Task<NativeWindow> Open(string url, string role, int width, int height, bool managed, string partition)
