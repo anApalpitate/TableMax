@@ -749,6 +749,19 @@ try {
         if (item.entrance) {
           const effect = check.entranceGeometry;
           expect(effect.scene === 'zapdos', 'Expected saved Zapdos entrance');
+          if (item.device === 'landscape') {
+            expect(
+              effect.banner.height >= effect.viewport.height * 0.3,
+              'Landscape entrance collapsed into a thin strip',
+            );
+            expect(
+              effect.banner.y + effect.banner.height / 2 >=
+                effect.viewport.height * 0.3 &&
+                effect.banner.y + effect.banner.height / 2 <=
+                  effect.viewport.height * 0.7,
+              'Landscape entrance is not in the central screen region',
+            );
+          }
           for (const [name, r] of [
             ['surface', effect.surface],
             ['energy', effect.energy],

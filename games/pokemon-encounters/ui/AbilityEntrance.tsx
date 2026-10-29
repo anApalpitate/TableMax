@@ -56,7 +56,10 @@ export function AbilityEntrance({
         Math.max(toolbar?.bottom ?? 0, heading?.bottom ?? 0) + 8,
       );
       const bottom =
-        actions && actions.bottom > top && actions.top < innerHeight
+        portraitPlayer &&
+        actions &&
+        actions.bottom > top &&
+        actions.top < innerHeight
           ? Math.max(top, actions.top - 8)
           : innerHeight - 12;
       const height = Math.max(0, bottom - top);

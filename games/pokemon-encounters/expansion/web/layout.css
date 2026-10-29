@@ -1644,7 +1644,7 @@ main.expansion-screen:not(.player)[data-below-minimum='true'] .ex-table-layout {
   gap: 6px;
 }
 
-/* Desktop decisions stay together; the nine-card field owns the right side. */
+/* Desktop scene: field and private focus left, decision tray right. */
 .expansion-screen.player[data-layout='L'] .ex-private-peek {
   max-width: 480px;
   padding: 16px;
@@ -1654,13 +1654,39 @@ main.expansion-screen:not(.player)[data-below-minimum='true'] .ex-table-layout {
   height: 200px;
 }
 .expansion-screen.player[data-layout='L'] .ex-heading-region {
-  grid-template-columns: 340px minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1fr) 360px;
 }
 .expansion-screen.player[data-layout='L'] .ex-actions {
-  grid-template-columns: minmax(280px, 340px) minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1fr) 360px;
   grid-template-rows: auto auto minmax(0, 1fr);
-  gap: 12px 24px;
-  padding: 16px;
+  gap: 14px 32px;
+  padding: 24px;
+  position: relative;
+  isolation: isolate;
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+}
+.expansion-screen.player[data-layout='L'] .ex-actions::before {
+  content: '';
+  position: relative;
+  grid-column: 2;
+  grid-row: 1 / 3;
+  align-self: stretch;
+  margin: -16px;
+  border: 2px solid #d4b778;
+  border-radius: 24px;
+  background: linear-gradient(160deg, #fffdf4f5, #f7eacdf5);
+  box-shadow: 0 8px 24px #3b51362b;
+  z-index: -1;
+  pointer-events: none;
+}
+.expansion-screen.player[data-layout='L'] .ex-decision-context,
+.expansion-screen.player[data-layout='L'] .ex-decision-footer,
+.expansion-screen.player[data-layout='L']
+  .ex-actions.ex-observing
+  > :is(.ex-wait, .ex-buffer-card) {
+  grid-column: 2;
 }
 .expansion-screen.player[data-layout='L'] .ex-decision-footer {
   align-self: start;
@@ -1668,6 +1694,7 @@ main.expansion-screen:not(.player)[data-below-minimum='true'] .ex-table-layout {
 }
 .expansion-screen.player[data-layout='L']
   :is(.ex-target-board, .ex-row-choice, .ex-private-peek) {
+  grid-column: 1;
   grid-row: 1 / -1;
   align-self: center;
   justify-self: center;
@@ -1682,6 +1709,7 @@ main.expansion-screen:not(.player)[data-below-minimum='true'] .ex-table-layout {
 .expansion-screen.player[data-layout='L']
   .ex-actions.ex-observing
   > .pokemon-board {
+  grid-column: 1;
   grid-row: 1 / -1;
   align-self: center;
   justify-self: center;
