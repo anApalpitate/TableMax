@@ -150,6 +150,13 @@ const unitScopes = {
 // Unregistered scripts may only run with an explicitly chosen full scope.
 // Mixed matrices cannot be narrowed by adding an option they do not implement.
 const verificationScopes = {
+  'tools/build/dependency-boundaries.test.mjs': ['tooling'],
+  'tools/build/resource-policy.test.mjs': ['tooling'],
+  'tools/build/runtime-boundaries.test.mjs': [
+    'tooling',
+    'shared',
+    'game:pokemon-encounters',
+  ],
   'tools/test/games/cockroach/verify-cockroach-installed.mjs': [
     'game:cockroach-poker',
   ],

@@ -331,5 +331,11 @@
     ],
     "absent": ["R05"]
   },
-  "continuation_note": "2026-10-30: added ten already approved current-theme research paintings and rain/sun event backgrounds; no image generation in continuation."
+  "continuation_note": "2026-10-30: added ten already approved current-theme research paintings and rain/sun event backgrounds; no image generation in continuation.",
+  "runtimePolicy": {
+    "maxWidth": 1536,
+    "maxHeight": 540,
+    "maxFileBytes": 140000,
+    "maxTotalBytes": 2000000
+  }
 }

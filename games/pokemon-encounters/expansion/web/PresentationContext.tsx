@@ -1,3 +1,5 @@
+import { PresentationClock, type AnchorRect } from './presentation-clock';
+import { measurePresentationAnchors } from './presentation-anchors';
 /* eslint-disable react-refresh/only-export-components -- The game-local provider and its hook form one presentation boundary. */
 import {
   createContext,
@@ -11,136 +13,7 @@ import {
 import type { GameHost } from '@tablemax/web-host';
 import type { RoomFeedback } from '@tablemax/web-host';
 import type { View } from '../project';
-import {
-  PresentationQueue,
-  presentationSteps,
-  type PresentationStep,
-} from './playback';
-export type AnchorRect = {
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-};
-type Snapshot = {
-  scope: string;
-  current: PresentationStep | null;
-  last: PresentationStep | null;
-  resultReady: boolean;
-  anchors: Readonly<Record<string, AnchorRect>>;
-  seen: readonly number[];
-};
-export class PresentationClock {
-  private initialized = true;
-  private queue = new PresentationQueue();
-  private timer: ReturnType<typeof setTimeout> | undefined;
-  private listeners = new Set<() => void>();
-  private state: Snapshot = {
-    scope: '',
-    current: null,
-    last: null,
-    resultReady: true,
-    anchors: {},
-    seen: [],
-  };
-  constructor(scope: string, committedIds: readonly number[]) {
-    this.queue.reset(scope, committedIds);
-    this.state = { ...this.state, scope, seen: [...committedIds] };
-  }
-  snapshot = () => this.state;
-  subscribe = (fn: () => void) => {
-    this.listeners.add(fn);
-    return () => {
-      this.listeners.delete(fn);
-    };
-  };
-  private publish(patch: Partial<Snapshot>) {
-    this.state = { ...this.state, ...patch };
-    this.listeners.forEach((fn) => fn());
-  }
-  cancel(scope: string, committedIds: readonly number[] = []) {
-    clearTimeout(this.timer);
-    this.queue.reset(scope, committedIds);
-    this.publish({
-      scope,
-      current: null,
-      last: null,
-      resultReady: true,
-      seen: [...committedIds],
-    });
-  }
-  dispose() {
-    this.initialized = false;
-    this.cancel('disposed');
-  }
-  receive(
-    scope: string,
-    steps: PresentationStep[],
-    disabled: boolean,
-    committedIds: readonly number[],
-  ) {
-    if (!this.initialized) {
-      this.initialized = true;
-      this.cancel(scope, committedIds);
-      return;
-    }
-    if (disabled) {
-      this.cancel(scope, committedIds);
-      return;
-    }
-    if (this.state.scope !== scope) this.cancel(scope);
-    const fresh = steps.filter((s) => !this.queue.has(s.event.id));
-    if (!fresh.length) return;
-    this.queue.append(scope, fresh);
-    this.publish({
-      seen: [...new Set([...this.state.seen, ...fresh.map((s) => s.event.id)])],
-      ...(fresh.some((s) => s.kind === 'result') ? { resultReady: false } : {}),
-    });
-    if (!this.state.current) this.advance();
-  }
-  private advance() {
-    const current = this.queue.next();
-    this.publish({
-      current,
-      ...(current ? { last: current } : {}),
-      ...(current?.kind === 'result' ? { resultReady: true } : {}),
-    });
-    if (current)
-      this.timer = setTimeout(() => this.advance(), current.durationMs);
-  }
-  measure() {
-    const anchors = { ...this.state.anchors };
-    let changed = false;
-    document
-      .querySelectorAll<HTMLElement>(
-        '.expansion-screen [data-slot], .expansion-screen [data-pile]',
-      )
-      .forEach((el) => {
-        const r = el.getBoundingClientRect();
-        if (
-          r.width > 2 &&
-          r.height > 2 &&
-          r.bottom > 0 &&
-          r.top < innerHeight
-        ) {
-          const id =
-            el.dataset.slot ??
-            `@${el.dataset.pile}${el.dataset.pile === 'buffer' ? ':' + el.dataset.seat : ''}`;
-          const rect = {
-            x: r.x + scrollX,
-            y: r.y + scrollY,
-            width: r.width,
-            height: r.height,
-          };
-          if (JSON.stringify(anchors[id]) !== JSON.stringify(rect)) {
-            anchors[id] = rect;
-            changed = true;
-          }
-        }
-      });
-    if (changed) this.publish({ anchors });
-  }
-}
+import { presentationSteps, type PresentationStep } from './playback';
 type Presentation = {
   motion: readonly string[];
   resultReady: boolean;
@@ -184,8 +57,8 @@ export function ExpansionPresentation({
     Boolean(session.view?.paused) ||
     session.view?.playMode !== 'play';
   useLayoutEffect(() => {
-    clock.measure();
-    const measure = () => clock.measure();
+    clock.measure(measurePresentationAnchors());
+    const measure = () => clock.measure(measurePresentationAnchors());
     const observer = new ResizeObserver(measure);
     const screen = document.querySelector('.expansion-screen');
     if (screen) observer.observe(screen);

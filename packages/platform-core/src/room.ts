@@ -1,15 +1,13 @@
-import { createHash, randomBytes, randomUUID } from 'node:crypto';
-import { performance } from 'node:perf_hooks';
 import type {
-  GameRules,
   BotStrategy,
+  GameRules,
   JsonValue,
   PublicEvent,
 } from '@tablemax/game-sdk';
 import {
-  CommandSchema,
   AVATAR_PRESETS,
   AvatarIdSchema,
+  CommandSchema,
   DEFAULT_COUNTDOWN_SECONDS,
   normalizePlayerName,
   playerNameError,
@@ -17,30 +15,23 @@ import {
   type Command,
   type CommandReply,
   type CommandStatus,
-  type SyncHint,
-  type RoomView,
-  type RoomFeedback,
   type PlayMode,
+  type RoomFeedback,
+  type RoomView,
+  type SyncHint,
 } from '@tablemax/protocol';
-import type { Save, SaveExtras, SaveRepository } from './model';
-import { validateSave } from './save-validation';
-import { Rejection, requireThat } from './errors';
-import { RandomSource } from './random';
-import { sealCredential, openCredential } from './session-receipts';
-import { GameRegistry, type LoadedGame } from './game-registry';
-import { allowsGameAction } from './game-actions';
-import { synchronizeDecisionClocks, projectDecisionClock } from './countdown';
+import { createHash, randomBytes, randomUUID } from 'node:crypto';
+import { performance } from 'node:perf_hooks';
+import {
+  actionDelayRemaining,
+  remainingActionClock,
+  synchronizeActionClocks,
+} from './action-timing';
 import {
   automaticDescriptor,
   synchronizeAutomaticClock,
-  projectAutomaticTiming,
 } from './automatic-timing';
-import { remainingActionClock } from './action-timing';
-import {
-  actionDelayRemaining,
-  projectActionTimings,
-  synchronizeActionClocks,
-} from './action-timing';
+import { synchronizeDecisionClocks } from './countdown';
 import {
   createTransfer,
   decideTransfer,
@@ -48,6 +39,16 @@ import {
   transferForKey,
   transferState,
 } from './device-transfer';
+import { Rejection, requireThat } from './errors';
+import { allowsGameAction } from './game-actions';
+import { GameRegistry, type LoadedGame } from './game-registry';
+import type { Save, SaveExtras, SaveRepository } from './model';
+import { RandomSource } from './random';
+import { RoomOperations, type RoomShutdownStatus } from './room-operations';
+import { controlsRoom, projectRoomView } from './room-projection';
+import { copySave } from './save-draft';
+import { validateSave } from './save-validation';
+import { openCredential, sealCredential } from './session-receipts';
 
 export const token = () => randomBytes(32).toString('hex');
 export const hash = (value: string) =>
@@ -55,7 +56,7 @@ export const hash = (value: string) =>
 export type Identity =
   { role: 'public' } | { role: 'host' } | { role: 'player'; seatId: string };
 type AvatarImage = { id: AvatarId; png: Uint8Array };
-export type RoomShutdownStatus = 'drained' | 'save-failed';
+export type { RoomShutdownStatus } from './room-operations';
 type TrackedCommand = {
   fingerprint: string;
   promise: Promise<CommandReply>;
@@ -73,33 +74,9 @@ const instanceChangingCommands = new Set<Command['command']['type']>([
   'remove-seat',
 ]);
 
-// Saved states/checkpoints are immutable after commit. Copy only the containers
-// that a command can change, instead of cloning every historical game state.
-function copySave(data: Save): Save {
-  return {
-    ...data,
-    seats: data.seats.map((seat) => ({ ...seat })),
-    snapshot: data.snapshot
-      ? { ...data.snapshot, bots: { ...data.snapshot.bots } }
-      : null,
-    history: [...data.history],
-    receipts: { ...data.receipts },
-    sessionReceipts: { ...data.sessionReceipts },
-    transferRequests: Object.fromEntries(
-      Object.entries(data.transferRequests ?? {}).map(([key, value]) => [
-        key,
-        { ...value },
-      ]),
-    ),
-  };
-}
-
 export class RoomCoordinator {
   private data: Save;
-  private queue: Promise<unknown> = Promise.resolve();
-  private closing = false;
-  private shutdown?: Promise<RoomShutdownStatus>;
-  private persistenceFailed = false;
+  private operations = new RoomOperations();
   private listeners = new Set<
     (feedback?: RoomFeedback, savedAt?: number) => void
   >();
@@ -478,45 +455,18 @@ export class RoomCoordinator {
     }
   }
   private enqueue<T>(operation: () => T | Promise<T>): Promise<T> {
-    if (this.closing) return Promise.reject(new Rejection('service-closing'));
-    const pending = this.queue.then(operation);
-    this.queue = pending.catch(() => undefined);
-    return pending;
+    return this.operations.enqueue(operation);
   }
-  /** Close admission synchronously; admitted operations retain their queue order. */
   beginShutdown(): Promise<RoomShutdownStatus> {
-    if (!this.shutdown) {
-      this.closing = true;
-      this.shutdown = this.queue.then(() =>
-        this.persistenceFailed ? 'save-failed' : 'drained',
-      );
-    }
-    return this.shutdown;
+    return this.operations.beginShutdown();
   }
-  /** Drain admitted actions before deciding whether an idle update can proceed. */
   reserveUpdateShutdown(): Promise<boolean> {
-    if (this.closing) return Promise.resolve(false);
-    this.closing = true;
-    const reservation = this.queue.then(() => {
-      if (this.data.status === 'playing') {
-        if (!this.shutdown) this.closing = false;
-        return false;
-      }
-      return true;
-    });
-    this.queue = reservation.catch(() => undefined);
-    return reservation;
+    return this.operations.reserveUpdateShutdown(
+      () => this.data.status === 'playing',
+    );
   }
   private persist(value: Save, extras?: SaveExtras) {
-    try {
-      this.repository.save(value, extras);
-      // A successful later action can recover a prior storage failure while open.
-      // During shutdown, any failed admitted write prevents a clean handoff.
-      if (!this.closing) this.persistenceFailed = false;
-    } catch (error) {
-      this.persistenceFailed = true;
-      throw error;
-    }
+    this.operations.persist(() => this.repository.save(value, extras));
   }
   private commit(
     next: Save,
@@ -719,143 +669,17 @@ export class RoomCoordinator {
     });
   }
   view(credential?: string, online: ReadonlySet<string> = new Set()): RoomView {
-    const identity = this.identity(credential);
-    const d = this.data;
-    const seatId = identity.role === 'player' ? identity.seatId : null;
-    const snap = d.snapshot;
-    const pending =
-      snap && seatId && this.game
-        ? this.rules.decisions(snap.state).find((p) => p.seatId === seatId)
-        : undefined;
-    return {
-      instanceId: d.instanceId,
-      revision: d.revision,
-      branch: d.branch,
-      status: d.status,
-      paused: d.paused,
-      restored: this.restored,
-      joinOpen: d.joinOpen,
-      playMode: this.playMode,
-      countdownSeconds: d.countdownSeconds ?? DEFAULT_COUNTDOWN_SECONDS,
-      decisionClock: projectDecisionClock(
-        d,
-        this.game?.rules ?? null,
-        seatId,
-        Date.now(),
-      ),
-      game: this.game
-        ? {
-            id: this.rules.manifest.id,
-            name: this.rules.manifest.name,
-            ...this.rules.manifest.players,
-            decisionTimer: this.rules.manifest.decisionTimer !== false,
-            ...(d.variantId === undefined ? {} : { variantId: d.variantId }),
-            ...(d.releaseRef === undefined ? {} : { releaseRef: d.releaseRef }),
-            ...(this.game.restoreOnly ? { restoreOnly: true } : {}),
-            ...(this.rules.setup
-              ? {
-                  setup: structuredClone(
-                    snap && this.rules.setup.fromState
-                      ? this.rules.setup.fromState(snap.state)
-                      : (d.gameSetup ?? this.rules.setup.defaults),
-                  ),
-                }
-              : {}),
-          }
-        : null,
+    return projectRoomView(this.data, this.identity(credential), online, {
+      game: this.game,
       catalog: this.registry.catalog(),
-      ownerSeatId: d.ownerSeatId ?? null,
-      ...(identity.role === 'host'
-        ? { transferRequests: pendingTransfers(d) }
-        : {}),
-      capabilities: {
-        manage: identity.role === 'host',
-        manageSeats: this.managesSeats(identity),
-        control: this.controls(identity),
-      },
-      seats: d.seats.map(
-        ({ id, name, avatarId, controller, ready, botDifficulty }) => ({
-          id,
-          name,
-          avatarId: avatarId!,
-          controller,
-          ready,
-          online: controller === 'bot' || online.has(id),
-          botDifficulty:
-            controller === 'bot' ? (botDifficulty ?? 'default') : null,
-        }),
-      ),
-      self: { role: identity.role, seatId },
-      gameView:
-        snap && this.game
-          ? this.rules.project(
-              structuredClone(snap.state),
-              seatId ? { role: 'player', seatId } : { role: 'public' },
-            )
-          : null,
-      decisionId: pending?.id ?? null,
-      selectionToken: pending?.id ?? null,
-      ...(this.game?.rules.automaticAction
-        ? { automaticTiming: projectAutomaticTiming(d, Date.now()) }
-        : {}),
-      actions:
-        pending && !d.paused && d.status === 'playing'
-          ? [...this.rules.legalActions(structuredClone(snap!.state), seatId!)]
-          : [],
-      ...(this.game?.rules.actionTiming
-        ? {
-            actionTiming: projectActionTimings(
-              d,
-              this.rules,
-              seatId,
-              Date.now(),
-            ),
-          }
-        : {}),
-      history:
-        identity.role === 'host'
-          ? d.history.map(
-              (
-                { id, label, revealedInformation, seatId, roundNumber },
-                index,
-              ) => ({
-                id,
-                label,
-                revealedInformation,
-                step: index + 1,
-                seatId: seatId ?? null,
-                roundNumber: roundNumber ?? null,
-              }),
-            )
-          : [],
-      lifecycleActions:
-        this.controls(identity) &&
-        this.game &&
-        snap &&
-        !d.paused &&
-        !['房主结束', '管理员结束'].includes(d.endReason ?? '')
-          ? [
-              ...this.rules.lifecycleActions(structuredClone(snap.state)),
-            ].filter(
-              (action) =>
-                identity.role === 'host' ||
-                this.rules.lifecyclePermission?.(
-                  structuredClone(snap.state),
-                  action,
-                ) !== 'host',
-            )
-          : [],
-      botError: this.missingRelease
-        ? `${this.restorationReason === 'ambiguous-legacy-release' ? '旧存档匹配到多个游戏发行，无法确定原版本' : this.restorationReason?.startsWith('incompatible-') ? '旧游戏或存档接口与当前程序不兼容' : '旧对局所需游戏版本缺失或损坏'}（${d.manifest?.id ?? '未知游戏'}，游戏 ${d.manifest?.gameVersion ?? '?'}／规则 ${d.manifest?.rulesVersion ?? '?'}，引用 ${this.missingRelease}）。请使用包含该版本且支持此存档格式的旧完整 EXE；原存档已保留。`
-        : (d.botError ?? this.transientBotError),
-      endReason: d.endReason,
-    };
+      restored: this.restored,
+      missingRelease: this.missingRelease,
+      restorationReason: this.restorationReason,
+      transientBotError: this.transientBotError,
+    });
   }
   private controls(identity: Identity) {
-    return (
-      identity.role === 'host' ||
-      (identity.role === 'player' && identity.seatId === this.data.ownerSeatId)
-    );
+    return controlsRoom(this.data, identity);
   }
   private managesSeats(identity: Identity) {
     return this.controls(identity);
@@ -983,7 +807,7 @@ export class RoomCoordinator {
     image?: AvatarImage,
   ): Promise<CommandReply> {
     try {
-      requireThat(!this.closing, 'service-closing');
+      requireThat(!this.operations.closing, 'service-closing');
       const parsed = CommandSchema.safeParse(input);
       requireThat(parsed.success, 'invalid-message');
       const envelope = parsed.data;
@@ -1655,12 +1479,12 @@ export class RoomCoordinator {
     return reply;
   }
   get botPaused() {
-    return this.closing || this.data.paused;
+    return this.operations.closing || this.data.paused;
   }
   automaticTask() {
     const d = this.data;
     if (
-      this.closing ||
+      this.operations.closing ||
       this.missingRelease ||
       d.paused ||
       d.botError ||

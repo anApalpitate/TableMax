@@ -9,6 +9,8 @@ import { build as esbuild } from 'esbuild';
 import { build as vite } from 'vite';
 import react from '@vitejs/plugin-react';
 import ts from 'typescript';
+import { dependencyViolation } from './dependency-boundaries.mjs';
+import { validateResourcePolicies } from './resource-policy.mjs';
 import {
   mediaFile,
   gameResourcesPlugin,
@@ -126,35 +128,10 @@ export function assertGameImport(gameId, file, request) {
     !location.startsWith(`assets/games/${gameId}/`)
   )
     return;
-  const publicImports = new Set([
-    '@tablemax/game-sdk',
-    '@tablemax/game-sdk/module-manifest',
-    '@tablemax/game-sdk/metadata',
-    '@tablemax/protocol',
-    '@tablemax/web-host',
-    'react',
-    'react/jsx-runtime',
-    'react/jsx-dev-runtime',
-    'react-dom',
-    'react-dom/client',
-  ]);
-  if (request.startsWith('.')) {
-    const target = posix(
-      relative(root, resolve(dirname(file), request.split('?')[0])),
-    );
-    if (
-      ![
-        `games/${gameId}/`,
-        `assets/games/${gameId}/`,
-        `docs/games/${gameId}/`,
-      ].some((prefix) => target.startsWith(prefix))
-    )
-      throw new Error(
-        `Private or cross-game import rejected: ${location} -> ${request}`,
-      );
-  } else if (!publicImports.has(request))
+  const reason = dependencyViolation(file, request, root);
+  if (reason)
     throw new Error(
-      `Non-public game import rejected: ${location} -> ${request}`,
+      `Private or cross-game import rejected: ${location} -> ${request} (${reason})`,
     );
 }
 export async function json(path) {
@@ -360,6 +337,10 @@ export async function inputsFor(unit, phase = createReadPhase('inputs')) {
       for (const item of importedFiles)
         assertGameImport(unit.module.id, file, item.fileName);
     }
+    for (const item of importedFiles) {
+      const reason = dependencyViolation(file, item.fileName, root);
+      if (reason) throw new Error(`${reason}: ${file} -> ${item.fileName}`);
+    }
     const typeOnly = new Set(
       syntax.statements
         .filter(
@@ -450,6 +431,7 @@ export async function inputsFor(unit, phase = createReadPhase('inputs')) {
     }
   }
   for (const file of unit.inputs) await visit(file);
+  for (const file of unit.resourceManifests ?? []) await visit(file);
   if (compressedNodeUnits.has(unit.id))
     await visit('tools/build/service-brotli.mjs');
   if (unit.kind === 'metadata')
@@ -461,6 +443,8 @@ export async function inputsFor(unit, phase = createReadPhase('inputs')) {
     'global.json',
     'tools/build/module-build.mjs',
     'tools/build/game-resources.mjs',
+    'tools/build/dependency-boundaries.mjs',
+    'tools/build/resource-policy.mjs',
     'tools/build/Move-BuildCache.ps1',
     'packages/game-sdk/src/index.ts',
     'packages/protocol/src/index.ts',
@@ -1017,32 +1001,37 @@ export async function gameResourceUnits(
     )
       throw new Error('Resource belongs to another game: ' + file);
   }
-  return ['common', 'variant'].flatMap((part) => {
+  const parts = [];
+  for (const part of ['common', 'variant']) {
     const inputs = media.filter(
       (path) => resourcePart(path, item.id, workspace) === part,
     );
-    return inputs.length
-      ? [
-          {
-            id: `game-${item.id}-resources-${part}`,
-            kind: 'resources',
-            module: item,
-            inputs,
-            resourceRoot: posix(relative(root, namespace)),
-            ...(includeUnreferenced
-              ? {
-                  resourceDiscovery: {
-                    mediaNamespace: item.id,
-                    workspace: posix(relative(root, resolve(workspace))) || '.',
-                    part,
-                    matches: discovered.filter(
-                      (path) => resourcePart(path, item.id, workspace) === part,
-                    ),
-                  },
-                }
-              : {}),
-          },
-        ]
-      : [];
-  });
+    if (inputs.length) {
+      parts.push({
+        id: `game-${item.id}-resources-${part}`,
+        kind: 'resources',
+        module: item,
+        inputs,
+        resourceManifests: await validateResourcePolicies(
+          inputs,
+          namespace,
+          root,
+        ),
+        resourceRoot: posix(relative(root, namespace)),
+        ...(includeUnreferenced
+          ? {
+              resourceDiscovery: {
+                mediaNamespace: item.id,
+                workspace: posix(relative(root, resolve(workspace))) || '.',
+                part,
+                matches: discovered.filter(
+                  (path) => resourcePart(path, item.id, workspace) === part,
+                ),
+              },
+            }
+          : {}),
+      });
+    }
+  }
+  return parts;
 }

@@ -3,6 +3,7 @@ import tseslint from 'typescript-eslint';
 import globals from 'globals';
 import hooks from 'eslint-plugin-react-hooks';
 import refresh from 'eslint-plugin-react-refresh';
+import { dependencyBoundaryRule } from './tools/build/dependency-boundaries.mjs';
 
 export default tseslint.config(
   {
@@ -21,6 +22,13 @@ export default tseslint.config(
   js.configs.recommended,
   ...tseslint.configs.recommended,
   { languageOptions: { globals: { ...globals.node, ...globals.browser } } },
+  {
+    files: ['packages/**/*.{ts,tsx,mjs}', 'games/**/*.{ts,tsx,mjs}'],
+    plugins: {
+      architecture: { rules: { boundaries: dependencyBoundaryRule } },
+    },
+    rules: { 'architecture/boundaries': 'error' },
+  },
   {
     files: ['apps/desktop/native/Bridge.js'],
     languageOptions: {

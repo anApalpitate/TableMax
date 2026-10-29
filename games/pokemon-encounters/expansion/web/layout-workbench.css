@@ -1,0 +1,319 @@
+/* Dedicated desktop decision workbench; portrait keeps its own compact flow. */
+.expansion-screen.player[data-layout='L'] .ex-heading-region {
+  grid-template-columns: minmax(0, 1fr) 440px;
+}
+.expansion-screen.player[data-layout='L'] .ex-actions {
+  grid-template-columns: minmax(0, 1fr) clamp(380px, 36vw, 460px);
+  grid-template-rows: minmax(0, 1fr);
+  gap: 24px;
+  padding: 12px 16px;
+  align-items: stretch;
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+}
+.expansion-screen.player[data-layout='L'] .player-field {
+  grid-column: 1;
+  grid-row: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  min-height: 0;
+  gap: 12px;
+}
+.expansion-screen.player[data-layout='L'] .player-decision-workbench {
+  grid-column: 2;
+  grid-row: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  padding: 18px;
+  gap: 12px;
+  border: 2px solid #c5ac70;
+  border-radius: 24px;
+  background: linear-gradient(155deg, #fffdf4fa, #f3e4bdf5);
+  box-shadow: 0 8px 24px #3b51362b;
+}
+.expansion-screen.player[data-layout='L'] .workbench-context {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  flex: 1;
+  min-height: 0;
+}
+.expansion-screen.player[data-layout='L'] .workbench-actions {
+  flex: none;
+  border-top: 1px solid #c5ac70;
+  padding-top: 12px;
+}
+.expansion-screen.player[data-layout='L'] .workbench-actions:empty {
+  display: none;
+}
+.expansion-screen.player[data-layout='L'] .desktop-action-heading {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px 16px;
+  border-radius: 16px;
+  background: #245b4d;
+  color: #fff9e7;
+  flex: none;
+}
+.expansion-screen.player[data-layout='L'] .desktop-action-heading span {
+  font-size: 16px;
+  line-height: 24px;
+}
+.expansion-screen.player[data-layout='L'] .desktop-action-heading h2 {
+  font-size: 22px;
+  line-height: 28px;
+  margin: 0;
+  color: inherit;
+}
+.expansion-screen.player[data-layout='L'] .ex-decision-context {
+  flex: 1;
+  gap: 12px;
+  justify-content: center;
+  min-height: 0;
+}
+.expansion-screen.player[data-layout='L'] .ex-decision-footer {
+  width: 100%;
+  gap: 8px;
+  margin: 0;
+  align-self: stretch;
+}
+.expansion-screen.player[data-layout='L'] .ex-decision-footer > .ex-submit {
+  flex-basis: 100%;
+}
+.expansion-screen.player[data-layout='L'] .ex-decision-footer button {
+  min-height: 48px;
+}
+.expansion-screen.player[data-layout='L'] .ex-draw-options {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  width: 100%;
+  align-self: stretch;
+}
+.expansion-screen.player[data-layout='L'] .ex-draw-options .ex-source {
+  padding: 10px 6px;
+  gap: 8px;
+  border-radius: 14px;
+  background: #fffbec;
+  border: 1px solid #c9b77e;
+  color: #245b4d;
+}
+.expansion-screen.player[data-layout='L'] .ex-source > strong {
+  font-size: 18px;
+  line-height: 24px;
+  width: auto;
+  flex: none;
+}
+.expansion-screen.player[data-layout='L']
+  .ex-source
+  :is(.pokemon-card, .ex-empty-source) {
+  width: 104px;
+  height: 146px;
+  --pile-width: 104px;
+  --pile-height: 146px;
+}
+.expansion-screen.player[data-layout='L'] .ex-source.ex-buffer-source {
+  flex-direction: row;
+  grid-column: 1/-1;
+  justify-content: flex-start;
+  min-height: 72px;
+  gap: 12px;
+}
+.expansion-screen.player[data-layout='L'] .ex-buffer-source .ex-source-face {
+  flex-direction: row;
+  gap: 12px;
+  width: auto;
+  flex: 1;
+  min-width: 0;
+  height: auto;
+  min-height: 0;
+}
+.expansion-screen.player[data-layout='L']
+  .ex-buffer-source
+  :is(.pokemon-card, .ex-buffer-empty) {
+  width: 44px;
+  height: 62px;
+  --pile-width: 44px;
+  --pile-height: 62px;
+}
+.expansion-screen.player[data-layout='L']
+  .ex-buffer-source
+  .ex-source-face
+  > span:not(.pokemon-card):not(.ex-buffer-empty) {
+  display: flex;
+  flex-direction: column;
+  text-align: left;
+  font-size: 16px;
+  line-height: 22px;
+}
+.expansion-screen.player[data-layout='L'] .ex-source.ex-reposition-source {
+  min-height: 48px;
+  height: auto;
+  padding: 8px;
+}
+.expansion-screen.player[data-layout='L'] .ex-held {
+  height: auto;
+  min-height: 224px;
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  padding: 0;
+  background: none;
+  border: 0;
+  box-shadow: none;
+}
+.expansion-screen.player[data-layout='L'] .ex-held > .pokemon-card {
+  width: 144px;
+  height: 202px;
+  flex: none;
+  --pile-width: 144px;
+  --pile-height: 202px;
+}
+.expansion-screen.player[data-layout='L'] .ex-held > div {
+  min-width: 0;
+  flex: 1;
+}
+.expansion-screen.player[data-layout='L'] .ex-held > div > strong {
+  display: block;
+  font-size: 22px;
+  line-height: 28px;
+}
+.expansion-screen.player[data-layout='L']
+  .ex-held
+  :is(.ex-held-label, .ex-held-summary, .ex-held-ability-used) {
+  display: block;
+  font-size: 16px;
+  line-height: 24px;
+}
+.expansion-screen.player[data-layout='L'] .ex-actions .pokemon-board {
+  width: min(100%, 480px);
+  max-width: none;
+  height: min(550px, calc(var(--pokemon-net-height, 720px) - 170px));
+  margin-inline: auto;
+}
+.expansion-screen.player[data-layout='L']
+  .player-field
+  :is(.ex-target-board, .ex-row-choice) {
+  width: 100%;
+  align-self: center;
+}
+.expansion-screen.player[data-layout='L'] .ex-private-peek {
+  width: min(100%, 480px);
+  max-width: none;
+  padding: 24px;
+}
+.expansion-screen.player[data-layout='L'] .ex-private-peek .pokemon-card {
+  width: 180px;
+  height: 252px;
+}
+.expansion-screen.player[data-layout='L'] .desktop-draw-prompt {
+  margin: 0;
+  text-align: center;
+  font-size: 18px;
+  line-height: 26px;
+  color: #245b4d;
+}
+.expansion-screen.player[data-layout='L'] .ex-wait {
+  font-size: 22px;
+  line-height: 30px;
+  padding: 18px;
+  border-radius: 16px;
+  background: #245b4d;
+  color: #fff9e7;
+}
+main.expansion-screen.player[data-layout='L'][data-below-minimum='true']
+  .ex-table-layout {
+  flex: none;
+  min-height: 260px;
+}
+.expansion-screen.player[data-layout='L']:has(.player-decision-workbench)
+  .ex-round-banner {
+  display: none;
+}
+.expansion-screen.player[data-layout='L'] .ex-held .card-name {
+  min-height: 26px;
+  line-height: 24px;
+}
+.expansion-screen.player[data-layout='L'] .ex-held .card-name-text {
+  line-height: 24px;
+}
+.expansion-screen.player[data-layout='L'] .ex-source:disabled {
+  opacity: 1;
+  color: #637561;
+  background: #ececdd;
+  border-style: dashed;
+}
+.expansion-screen.player[data-layout='L'] .ex-buffer-source .ex-source-face b {
+  font-weight: 400;
+  white-space: normal;
+}
+.expansion-screen.player[data-layout='L']
+  .player-decision-workbench:has(.ex-wait) {
+  align-self: center;
+  min-height: 0;
+}
+.expansion-screen.player[data-layout='L'] .player-decision-workbench {
+  height: 100%;
+  max-height: 700px;
+  align-self: center;
+  box-sizing: border-box;
+}
+@media (min-height: 900px) {
+  .expansion-screen.player[data-layout='L'] .ex-actions .pokemon-board {
+    width: min(100%, 600px);
+    height: 700px;
+  }
+  .expansion-screen.player[data-layout='L']
+    .ex-source
+    :is(.pokemon-card, .ex-empty-source) {
+    width: 132px;
+    height: 185px;
+    --pile-width: 132px;
+    --pile-height: 185px;
+  }
+  .expansion-screen.player[data-layout='L'] .ex-buffer-source .pokemon-card {
+    width: 44px;
+    height: 62px;
+    --pile-width: 44px;
+    --pile-height: 62px;
+  }
+}
+.expansion-screen.player[data-layout='L'] .desktop-action-heading > span {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+.expansion-screen.player[data-layout='L']
+  .player-decision-workbench:has(.ex-wait) {
+  height: auto;
+}
+.expansion-screen.player[data-layout='L'] .ex-buffer-source .card-name {
+  display: none;
+}
+.expansion-screen.player[data-layout='L'] .player-field .ex-private-peek {
+  align-self: center;
+}
+.expansion-screen.player[data-layout='L'] .desktop-actor-avatar {
+  width: 28px;
+  height: 28px;
+  object-fit: contain;
+  flex: none;
+}
+.expansion-screen.player[data-layout='L'] .desktop-actor {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.expansion-screen.player[data-layout='L'] .ex-wait {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}

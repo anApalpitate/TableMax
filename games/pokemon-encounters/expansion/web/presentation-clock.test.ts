@@ -1,6 +1,6 @@
 import { afterEach, expect, it, vi } from 'vitest';
 import type { View } from '../project';
-import { PresentationClock } from './PresentationContext';
+import { PresentationClock } from './presentation-clock';
 import { presentedWins, presentationSteps } from './playback';
 
 const game = {
@@ -17,6 +17,33 @@ const steps = (id: number) =>
     false,
   );
 afterEach(() => vi.useRealTimers());
+
+it('a branch change cancels queued timers and consumes restored events without replay', () => {
+  vi.useFakeTimers();
+  const clock = new PresentationClock('branch1', []);
+  clock.receive('branch1', [...steps(1), ...steps(2)], false, [1, 2]);
+  clock.receive('branch2', steps(3), false, [1, 2, 3]);
+  expect(clock.snapshot().current).toBeNull();
+  expect(vi.getTimerCount()).toBe(0);
+  clock.receive('branch2', steps(3), false, [1, 2, 3]);
+  expect(clock.snapshot().current).toBeNull();
+  clock.receive('branch2', steps(4), false, [1, 2, 3, 4]);
+  expect(clock.snapshot().current?.event.id).toBe(4);
+  clock.dispose();
+});
+
+it('geometry is supplied by the DOM adapter, deduplicated and retained for departing cards', () => {
+  const clock = new PresentationClock('round', []);
+  const listener = vi.fn();
+  clock.subscribe(listener);
+  const rect = { x: 12, y: 20, width: 40, height: 56 };
+  clock.measure({ A: rect });
+  clock.measure({ A: { ...rect } });
+  expect(listener).toHaveBeenCalledTimes(1);
+  clock.measure({ B: rect });
+  expect(clock.snapshot().anchors).toEqual({ A: rect, B: rect });
+  clock.dispose();
+});
 
 it('mount and fast reentry consume existing receipts without replay, then play a new save', () => {
   vi.useFakeTimers();

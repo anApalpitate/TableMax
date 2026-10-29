@@ -6,7 +6,7 @@ import {
   type EventEffect,
   type BoardEffects,
 } from './presentation';
-import { poseSequences } from './poses/timeline';
+import { entranceDescriptors } from './entrance-descriptors';
 
 export type SavedEvent = View['events'][number] & { effect?: EventEffect };
 export type PresentationStep = {
@@ -88,11 +88,11 @@ export function presentationSteps(
       add(event, 'event', reduced ? 450 : 1500, null, effects);
     if (event.kind === 'bond-placeholder')
       add(event, 'bond', reduced ? 450 : 1100, null, effects);
-    if (creature && poseSequences[creature])
+    if (creature && entranceDescriptors[creature])
       add(
         event,
         'ability',
-        reduced ? 350 : poseSequences[creature].durationMs,
+        reduced ? 350 : entranceDescriptors[creature].durationMs,
         creature,
         effects,
       );

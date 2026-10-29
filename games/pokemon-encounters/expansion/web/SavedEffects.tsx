@@ -9,7 +9,7 @@ import { CinematicEntrance } from './CinematicEntrance';
 import { coinArt } from '../../../../assets/games/pokemon-encounters/catalog';
 import { useExpansionPresentation } from './PresentationContext';
 import type { View } from '../project';
-import { poseSequences } from './poses/timeline';
+import { entranceDescriptors } from './entrance-descriptors';
 import { BoardEffects } from './BoardEffects';
 import { ordinaryTheme, type OrdinaryTheme } from './presentation';
 import { ResearchReward } from './ResearchReward';
@@ -182,7 +182,7 @@ export function SavedEffects({
   const { current, anchors } = useExpansionPresentation();
   if (!current) return null;
   const creature = current.kind === 'ability' ? current.creature : null;
-  const sequence = creature ? poseSequences[creature] : undefined;
+  const sequence = creature ? entranceDescriptors[creature] : undefined;
   const category = creature
     ? categoriesForProfile(game.rulesProfile).find(
         (c) => c.categoryId === 'special-' + creature,

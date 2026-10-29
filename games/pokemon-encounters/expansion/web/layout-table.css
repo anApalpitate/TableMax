@@ -1,0 +1,656 @@
+/* One responsive geometry authority for the expansion, above the art layer. */
+main.expansion-screen {
+  --pile-width: 80px;
+  --pile-height: 112px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  height: min(var(--pokemon-net-height, 100dvh), 1080px);
+  min-height: 0;
+  max-width: 1920px;
+  width: min(100%, var(--pokemon-net-width, 100vw));
+  margin: max(0px, calc((var(--pokemon-net-height, 100dvh) - 1080px) / 2)) auto;
+  box-sizing: border-box;
+  padding: max(6px, env(safe-area-inset-top))
+    max(12px, env(safe-area-inset-right)) max(6px, env(safe-area-inset-bottom))
+    max(12px, env(safe-area-inset-left));
+}
+.expansion-screen::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -2;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse at 30% 0%, #fffdf4, transparent 65%),
+    linear-gradient(130deg, #e9f0df, #fbf4de 60%, #e6efdf);
+}
+.expansion-screen .ex-heading-region {
+  display: contents;
+}
+.expansion-screen .ex-toolbar {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 6px;
+  min-height: 44px;
+  height: 44px;
+  margin: 0;
+  align-items: center;
+  flex: 0 0 44px;
+}
+.expansion-screen .ex-toolbar h1 {
+  margin: 0 auto 0 0;
+  font-size: 20px;
+  line-height: 24px;
+}
+.expansion-screen .ex-toolbar button,
+.expansion-screen .ex-toolbar a {
+  font-size: 18px;
+  min-height: 44px;
+  padding: 6px 10px;
+}
+.expansion-screen .ex-round-banner {
+  flex-shrink: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 12px;
+  padding: 4px 10px;
+  margin: 0;
+  line-height: 22px;
+  min-height: 0;
+  font-size: 16px;
+}
+.expansion-screen .ex-round-banner > strong {
+  display: block;
+  font-size: 18px;
+  white-space: normal;
+}
+.expansion-screen .ex-current-actor {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px;
+  min-width: 0;
+  max-width: 100%;
+  margin-left: auto;
+  font-size: 16px;
+  white-space: normal;
+  overflow: visible;
+}
+.expansion-screen .ex-actor-identity {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 16px;
+}
+.expansion-screen .ex-actor-identity img {
+  width: 24px;
+  height: 24px;
+}
+.expansion-screen
+  .ex-current-actor[data-simultaneous='true']
+  .ex-actor-identity
+  > span {
+  display: none;
+}
+.expansion-screen .ex-turn-progress {
+  flex: 0 0 100%;
+  height: 8px;
+  margin: 0;
+  padding: 0;
+}
+.expansion-screen .ex-turn-step {
+  font-size: 16px;
+}
+.expansion-screen .ex-turn-step > span {
+  display: none;
+}
+.expansion-screen .ex-table-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 300px;
+  grid-template-rows: minmax(0, 1fr);
+  flex: 1 1 0;
+  min-height: 0;
+  width: 100%;
+  height: auto;
+  gap: 12px;
+  margin: 0;
+}
+.expansion-screen .ex-players {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-rows: repeat(2, minmax(0, 1fr));
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  gap: 8px;
+  margin: 0;
+  overflow: visible;
+}
+.expansion-screen[data-players='2'] .ex-players {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-rows: minmax(0, 1fr);
+}
+.expansion-screen[data-players='3'] .ex-players {
+  grid-template-rows: minmax(0, 1fr);
+}
+.expansion-screen[data-players='4'] .ex-players {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.expansion-screen .ex-player {
+  display: grid;
+  grid-column: auto;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: 32px minmax(0, 1fr);
+  gap: 4px;
+  min-width: 0;
+  min-height: 0;
+  padding: 6px;
+  margin: 0;
+}
+.expansion-screen .ex-player:has(.ex-score) {
+  grid-template-rows: 32px minmax(0, 1fr) 44px;
+}
+.expansion-screen .ex-player > header {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+  margin: 0;
+  height: 32px;
+}
+.expansion-screen .ex-player > header img {
+  width: 28px;
+  height: 28px;
+}
+.expansion-screen .ex-player > header h2 {
+  font-size: 16px;
+  line-height: 18px;
+  margin: 0;
+  min-width: 0;
+  flex: 1;
+  white-space: normal;
+  overflow: visible;
+  text-overflow: clip;
+  overflow-wrap: anywhere;
+}
+.expansion-screen .ex-player > header .win-track {
+  flex: none;
+  padding: 0;
+  width: 56px;
+  background: none;
+}
+.expansion-screen .ex-player > header .win-pips i {
+  width: 18px;
+  height: 22px;
+  font-size: 18px;
+  line-height: 22px;
+}
+.expansion-screen .ex-seat-number {
+  width: 20px;
+  height: 20px;
+  font-size: 16px;
+  flex-shrink: 0;
+}
+.expansion-screen .win-pips {
+  margin: 0;
+  gap: 1px;
+  flex-shrink: 0;
+}
+.expansion-screen .win-pips svg {
+  width: 18px;
+  height: 18px;
+}
+.expansion-screen .pokemon-board {
+  display: grid;
+  grid-template-rows: repeat(3, minmax(0, 1fr));
+  gap: 4px;
+  width: 100%;
+  height: 100%;
+  max-width: 440px;
+  min-height: 0;
+  margin: 0 auto;
+  padding: 0;
+}
+/* Keep low-player-count cards proportional instead of filling one tall row. */
+.expansion-screen:not(.player):is([data-players='2'], [data-players='3'])
+  .ex-players {
+  container-type: size;
+}
+.expansion-screen:not(.player):is([data-players='2'], [data-players='3'])
+  .ex-player {
+  align-self: center;
+  justify-self: center;
+  width: 100%;
+  max-width: 400px;
+  height: auto;
+  grid-template-rows: 32px auto;
+}
+.expansion-screen:not(.player):is([data-players='2'], [data-players='3'])
+  .ex-player:has(.ex-score) {
+  grid-template-rows: 32px auto 44px;
+}
+.expansion-screen:not(.player):is([data-players='2'], [data-players='3'])
+  .pokemon-board {
+  /* Three rows of 5:7 cards, plus numbering; reserve result/header space. */
+  max-width: min(340px, calc((100cqh - 155px) / 1.4 + 8px));
+  height: auto;
+  grid-template-rows: repeat(3, auto);
+}
+.expansion-screen:not(.player):is([data-players='2'], [data-players='3'])
+  .card-slot {
+  height: auto;
+  grid-template-rows: auto 16px;
+}
+.expansion-screen:not(.player):is([data-players='2'], [data-players='3'])
+  .card-slot
+  > .pokemon-card {
+  height: auto;
+  aspect-ratio: 5 / 7;
+}
+.expansion-screen .card-slot {
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) 16px;
+  min-height: 0;
+  min-width: 0;
+  padding: 0;
+  margin: 0;
+  height: 100%;
+  background: none;
+  border: 0;
+  gap: 1px;
+}
+.expansion-screen .slot-index {
+  position: static;
+  height: 16px;
+  min-height: 0;
+  width: auto;
+  justify-self: center;
+  font-size: 16px;
+  line-height: 16px;
+}
+.expansion-screen .slot-index .ex-circular-badge {
+  width: 16px;
+  height: 16px;
+  font-size: 16px;
+}
+.expansion-screen .pokemon-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr) auto;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  aspect-ratio: auto;
+  padding: 0;
+  box-sizing: border-box;
+}
+.expansion-screen .pokemon-card.back {
+  display: grid;
+  place-items: center;
+}
+.expansion-screen .pokemon-card .card-heading {
+  position: absolute;
+  inset: 0 0 auto;
+  display: flex;
+  justify-content: flex-end;
+  min-height: 0;
+  height: 24px;
+  padding: 0;
+  z-index: 1;
+}
+.expansion-screen .card-value {
+  font-size: 22px;
+  line-height: 24px;
+  padding: 0 3px;
+}
+.expansion-screen .pokemon-card > img,
+.expansion-screen .pokemon-card > .card-portrait {
+  position: static;
+  grid-column: 1;
+  grid-row: 1;
+  display: block;
+  width: 100%;
+  height: 100%;
+  aspect-ratio: auto;
+  min-height: 0;
+  object-fit: contain;
+  padding: 4px;
+  max-height: none;
+}
+.expansion-screen .card-name {
+  display: block;
+  grid-column: 1;
+  grid-row: 2;
+  position: static;
+  padding: 1px;
+  margin: 0;
+  width: 100%;
+  min-height: 20px;
+  font-size: 16px;
+  line-height: 18px;
+  white-space: normal;
+  overflow: visible;
+}
+.expansion-screen .card-name-text {
+  font-size: inherit;
+  line-height: inherit;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  overflow: visible;
+  text-overflow: clip;
+}
+.expansion-screen .ex-score-source {
+  font-size: 16px;
+  line-height: 18px;
+}
+.expansion-screen .ex-score {
+  min-height: 44px;
+  height: 44px;
+  padding: 2px 6px;
+  margin: 0;
+  font-size: 16px;
+}
+.expansion-screen .ex-score strong {
+  font-size: 18px;
+}
+.expansion-screen .ex-score-summary {
+  display: flex;
+  gap: 4px;
+  font-size: 16px;
+}
+.expansion-screen .ex-supply {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  padding: 8px;
+  overflow: visible;
+}
+.expansion-screen .ex-supply-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 6px;
+}
+.expansion-screen .ex-supply-heading h2 {
+  margin: 0;
+  font-size: 20px;
+}
+.expansion-screen .ex-supply-heading span {
+  font-size: 16px;
+}
+.expansion-screen .ex-public-piles {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+}
+.expansion-screen .ex-public-piles:has([data-pile='discard-second']) {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+.expansion-screen .ex-public-piles section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+}
+.expansion-screen .ex-public-piles section > header {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 3px;
+  height: 40px;
+  font-size: 16px;
+  line-height: 20px;
+}
+.expansion-screen .ex-public-piles .pokemon-card,
+.expansion-screen .ex-empty-pile {
+  flex: none;
+  width: var(--pile-width);
+  height: var(--pile-height);
+  min-height: 0;
+}
+.expansion-screen .ex-public-held {
+  display: grid;
+  grid-template-columns: var(--pile-width) minmax(0, 1fr);
+  align-items: center;
+  gap: 6px;
+  height: calc(var(--pile-height) + 12px);
+  min-height: 0;
+  margin: 0;
+  padding: 6px;
+}
+.expansion-screen .ex-public-held .pokemon-card,
+.expansion-screen .ex-public-held > svg {
+  width: var(--pile-width);
+  height: var(--pile-height);
+  min-height: 0;
+}
+.expansion-screen .ex-public-held strong {
+  display: block;
+  font-size: 18px;
+  white-space: normal;
+}
+.expansion-screen .ex-public-held p,
+.expansion-screen .ex-public-held span {
+  font-size: 16px;
+  line-height: 20px;
+  margin: 2px 0;
+}
+.expansion-screen .ex-last-action {
+  margin: 0;
+  padding: 6px;
+  font-size: 16px;
+  line-height: 20px;
+  min-height: 64px;
+}
+.expansion-screen .ex-last-action p {
+  margin: 0;
+  font-size: 16px;
+}
+.expansion-screen:not(.player) .ex-supply > * {
+  flex-shrink: 0;
+}
+.expansion-screen:not(.player) .ex-supply .ex-last-action {
+  margin-top: auto;
+}
+@media (min-height: 900px) {
+  .expansion-screen:not(.player) .ex-supply {
+    --pile-width: 92px;
+    --pile-height: 129px;
+    gap: 12px;
+  }
+  .expansion-screen:not(.player) .ex-supply:has([data-pile='discard-second']) {
+    --pile-width: 80px;
+    --pile-height: 112px;
+  }
+}
+.expansion-screen .ex-position-phrase {
+  white-space: nowrap;
+}
+.expansion-screen .ex-active-research {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+}
+.expansion-screen .ex-research-strip {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+}
+.expansion-screen .ex-research-summary {
+  min-height: 44px;
+  padding: 4px;
+  font-size: 16px;
+}
+.expansion-screen .ex-research-summary > img,
+.expansion-screen .ex-research-summary > svg {
+  width: 32px;
+  height: 32px;
+}
+.expansion-screen .ex-research-summary strong {
+  font-size: 18px;
+}
+.expansion-screen .ex-paused,
+.expansion-screen .feedback {
+  margin: 0;
+  padding: 4px;
+  font-size: 16px;
+}
+.expansion-screen .ex-event-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  height: auto;
+  flex: none;
+  padding: 0 6px;
+  margin: 0;
+  font-size: 16px;
+  line-height: 22px;
+}
+.expansion-screen .ex-event-status details {
+  position: relative;
+  min-width: 0;
+}
+.expansion-screen .ex-event-status summary {
+  min-height: 44px;
+  min-width: 44px;
+  padding: 4px 2px;
+  line-height: 20px;
+}
+.expansion-screen .ex-event-status details[open] > p {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  z-index: 8;
+  width: min(290px, calc(100vw - 32px));
+  margin: 0;
+  padding: 10px;
+  border: 1px solid #abc9b6;
+  border-radius: 8px;
+  background: #f5faf4;
+  box-shadow: 0 4px 14px #243a2830;
+}
+.expansion-screen .ex-round-context {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+.expansion-screen .ex-event-status strong {
+  font-size: 18px;
+}
+.expansion-screen .ex-event-status img {
+  height: 24px;
+  width: 24px;
+  object-fit: contain;
+}
+.expansion-screen .ex-coin-result {
+  min-height: 32px;
+  height: 32px;
+  margin: 0;
+  font-size: 16px;
+}
+.expansion-screen .coin-face {
+  width: 28px;
+  height: 28px;
+}
+.expansion-screen .ex-victory {
+  padding: 6px 10px;
+  margin: 0;
+  gap: 8px;
+}
+.expansion-screen .ex-victory p {
+  font-size: 16px;
+  margin: 0;
+}
+.expansion-screen .ex-victory h2 {
+  font-size: 20px;
+  margin: 0;
+}
+.expansion-screen .ex-victory button {
+  min-height: 44px;
+  font-size: 18px;
+}
+.expansion-screen:has(.ex-victory) .ex-table-layout {
+  grid-template-columns: minmax(0, 1fr);
+}
+.expansion-screen > .ex-vote {
+  flex: 1;
+  min-height: 0;
+  overflow: visible;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.expansion-screen .ex-vote-options {
+  min-height: 0;
+}
+.expansion-screen:not(.player) .ex-vote-options {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  flex: 1;
+}
+.expansion-screen:not(.player) .ex-vote .ex-mission-option {
+  display: flex;
+  flex-direction: column;
+  padding: 8px;
+  min-height: 0;
+}
+.expansion-screen:not(.player) .ex-vote .ex-research-card {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  height: auto;
+  padding: 0;
+}
+.expansion-screen:not(.player) .ex-vote .ex-research-art {
+  height: 120px;
+  min-height: 0;
+  flex: none;
+  margin: 0;
+}
+.expansion-screen:not(.player) .ex-vote .ex-research-diagram {
+  display: none;
+}
+.expansion-screen:not(.player) .ex-vote .ex-research-copy {
+  padding: 0;
+}
+.expansion-screen:not(.player) .ex-vote .ex-research-copy p {
+  font-size: 16px;
+  line-height: 22px;
+  margin: 6px 0;
+}
+.expansion-screen:not(.player) .ex-vote .ex-research-title h3 {
+  font-size: 20px;
+  margin: 0;
+}
+.expansion-screen:not(.player) .ex-vote .ex-mission-option > button {
+  margin-top: auto;
+  min-height: 44px;
+  font-size: 18px;
+}
+.expansion-screen .ex-voter-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.expansion-screen .ex-voter-list > span {
+  padding: 4px;
+  min-width: 0;
+  font-size: 16px;
+}
+.expansion-screen .ex-voter-list img {
+  width: 24px;
+  height: 24px;
+}
