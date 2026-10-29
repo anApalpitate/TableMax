@@ -30,6 +30,7 @@ export function GameTable({
   names,
   portraits = {},
   player,
+  playerLayout = 'P',
   actions,
   locked,
   paused,
@@ -52,6 +53,7 @@ export function GameTable({
   names: Record<string, string>;
   portraits?: Record<string, string>;
   player: boolean;
+  playerLayout?: 'H' | 'P' | 'L';
   actions: readonly JsonValue[];
   locked: boolean;
   paused: boolean;
@@ -122,6 +124,17 @@ export function GameTable({
   const winners = game.matchWinners.length
     ? game.matchWinners
     : (game.roundResult?.winners ?? []);
+  const status = (
+    <TableStatus
+      view={game}
+      names={names}
+      portraits={portraits}
+      drawActions={paused || locked ? [] : actions}
+      onDraw={selfId ? choose : undefined}
+      player={player}
+      active={Boolean(selfId && actions.length && !paused && playing)}
+    />
+  );
   return (
     <ActionTargets.Provider value={targets}>
       <EffectTargets.Provider
@@ -150,17 +163,7 @@ export function GameTable({
             />
           )}
           <aside className="table-side" aria-label="当前局面与最近行动">
-            {!game.roundResult && (
-              <TableStatus
-                view={game}
-                names={names}
-                portraits={portraits}
-                drawActions={paused || locked ? [] : actions}
-                onDraw={selfId ? choose : undefined}
-                player={player}
-                active={Boolean(selfId && actions.length && !paused && playing)}
-              />
-            )}
+            {!game.roundResult && (!player || playerLayout !== 'L') && status}
             {!player && <ActivityFeed game={game} names={names} />}
             {game.roundResult && (
               <section
@@ -260,13 +263,25 @@ export function GameTable({
                       )}
                   </div>
                 </div>
-                {seat.id === selfId && actions.length && !paused && playing ? (
+                {seat.id === selfId &&
+                !game.roundResult &&
+                ((actions.length && !paused && playing) ||
+                  (player && playerLayout === 'L')) ? (
                   <PlayerControls
                     key={`${selectionKey}:${seat.id}`}
+                    landscape={playerLayout === 'L'}
+                    status={playerLayout === 'L' ? status : undefined}
+                    waiting={
+                      !actions.length || paused || !playing
+                        ? paused
+                          ? '游戏已暂停'
+                          : `等待 ${names[game.actorSeat ?? game.turnSeat] ?? '朋友'} 行动`
+                        : undefined
+                    }
                     view={game}
                     seatId={seat.id}
                     names={names}
-                    actions={actions}
+                    actions={paused || !playing ? [] : actions}
                     locked={locked}
                     choose={choose}
                     showRules={showRules}
@@ -276,6 +291,7 @@ export function GameTable({
                   <SeatResult view={game} seatId={seat.id} />
                 )}
                 {player &&
+                  playerLayout !== 'L' &&
                   !actions.length &&
                   !paused &&
                   playing &&

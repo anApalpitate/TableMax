@@ -129,6 +129,11 @@ for (const variant of ['original', 'expansion']) {
     for (const scene of ['draw', 'result'])
       add('host-1280', `${seats}p-${scene}`, { scene, seats });
   for (const scene of ['draw', 'place', 'peek', 'mew']) add('landscape', scene);
+  for (const scene of ['draw', 'place', 'waiting'])
+    add('landscape-1920', scene);
+  if (variant === 'expansion')
+    for (const scene of ['buffer', 'buffer-take', 'rocket', 'lucario'])
+      add('landscape', scene);
   for (const scene of ['draw', 'result']) add('host-tall', scene);
   add('frame-boundary', 'place', { outerFrame: true });
   for (const device of ['host-below-width', 'host-below-height'])
@@ -162,6 +167,7 @@ const sizes = {
   'portrait-probe': [360, 800],
   'portrait-390': [390, 844],
   landscape: [1280, 720],
+  'landscape-1920': [1920, 1080],
   'host-tall': [1920, 1200],
   'frame-boundary': [799, 900],
   'host-below-width': [1279, 720],
@@ -496,7 +502,13 @@ try {
             ),
           )
             .filter(visible)
-            .map((e) => ({ ...rect(e), face: e.classList.contains('face') }));
+            .map((e) => ({
+              ...rect(e),
+              face: e.classList.contains('face'),
+              presentation: e.closest('[data-layout="L"] .ex-buffer-source')
+                ? 'buffer-thumbnail'
+                : 'decision-card',
+            }));
           const diagnostics = Array.from(
             main.querySelectorAll(
               '.pile-display, .draw-pile, .decision-dashboard, .ex-round-banner, .ex-research-strip, .ex-buffer-card, .ex-table-layout, .ex-actions',
@@ -702,6 +714,54 @@ try {
         };
         const g = check.geometry;
         const contentHeight = g.viewport.height;
+        if (
+          item.device.startsWith('landscape') &&
+          ['draw', 'place'].includes(scene)
+        ) {
+          const desk = await surface.evaluate(() => {
+            const panel = document.querySelector('.player-decision-workbench');
+            if (!panel) return null;
+            const rect = panel.getBoundingClientRect();
+            const sources = [
+              ...panel.querySelectorAll('.draw-pile, .ex-source'),
+            ]
+              .filter((e) => e.getClientRects().length)
+              .map((e) => e.getBoundingClientRect());
+            const card = panel
+              .querySelector(
+                '.draw-pile .pokemon-card, .ex-source .pokemon-card, .held-pile .pokemon-card, .ex-held > .pokemon-card',
+              )
+              ?.getBoundingClientRect();
+            return {
+              height: rect.height,
+              withinViewport:
+                rect.top >= 0 &&
+                rect.bottom <= innerHeight &&
+                rect.right <= innerWidth,
+              sourcesContained: sources.every(
+                (r) =>
+                  r.width >= 44 &&
+                  r.height >= 44 &&
+                  r.left >= rect.left &&
+                  r.right <= rect.right &&
+                  r.bottom <= rect.bottom,
+              ),
+              cardWidth: card?.width ?? 0,
+            };
+          });
+          expect(
+            desk?.withinViewport && desk.height >= 500,
+            'Desktop decision workbench is absent, clipped or undersized',
+          );
+          expect(
+            desk?.sourcesContained,
+            'Desktop source controls escape their decision workbench',
+          );
+          expect(
+            desk?.cardWidth >= (item.variant === 'original' ? 128 : 100),
+            'Desktop decision cards still use compact phone sizing',
+          );
+        }
         if (
           item.device === 'landscape' &&
           scene === 'result' &&
@@ -978,10 +1038,39 @@ try {
         }
         if (role === 'player') {
           const privateScene = scene === 'peek' || scene === 'mewtwo-private';
+          const desktopPeek =
+            item.variant === 'original' &&
+            item.device.startsWith('landscape') &&
+            scene === 'peek';
           expect(
-            g.boards.length === (scene === 'vote' || privateScene ? 0 : 1),
-            `Expected one decision board (none during private view/vote), found ${g.boards.length}`,
+            g.boards.length ===
+              (scene === 'vote' || (privateScene && !desktopPeek) ? 0 : 1),
+            `Unexpected authorized field count: ${g.boards.length}`,
           );
+          if (desktopPeek) {
+            expect(
+              await surface.evaluate(() => {
+                const slot = Number(
+                  document
+                    .querySelector('.peek-caption')
+                    ?.textContent.match(/位置\s*(\d+)/)?.[1],
+                );
+                const card = document.querySelectorAll(
+                  '.player-field .card-slot',
+                )[slot - 1];
+                return (
+                  Boolean(card?.querySelector('.pokemon-card.back')) &&
+                  document.querySelectorAll(
+                    '.player-field button.card-slot:not(:disabled)',
+                  ).length === 0 &&
+                  document.querySelectorAll(
+                    '.player-decision-workbench .private-peek',
+                  ).length === 1
+                );
+              }),
+              'Private peek must keep the original field masked and read-only',
+            );
+          }
           if (privateScene)
             expect(
               g.privatePanels === 1,
@@ -1111,12 +1200,20 @@ try {
           check.frameWide = await measure();
         }
         expect(
-          g.cards.every(
-            (card) =>
-              !g.cards.length ||
-              (Math.abs(card.width - g.cards[0].width) <= 0.5 &&
-                Math.abs(card.height - g.cards[0].height) <= 0.5),
-          ),
+          g.cards.every((card) => {
+            // The desktop buffer is a labelled thumbnail, not a full source tile.
+            // Preserve equal front/back sizes within each presentation contract.
+            const peer = g.cards.find(
+              (c) => c.presentation === card.presentation,
+            );
+            return (
+              Math.abs(card.width - peer.width) <= 0.5 &&
+              Math.abs(card.height - peer.height) <= 0.5 &&
+              (card.presentation !== 'buffer-thumbnail' ||
+                (card.width >= 44 &&
+                  Math.abs(card.width / card.height - 5 / 7) < 0.02))
+            );
+          }),
           'Source / held front and back dimensions differ',
         );
         if (check.friends) {
@@ -1224,7 +1321,7 @@ try {
         if (
           role === 'player' &&
           scene === 'place' &&
-          item.device === 'portrait-390'
+          ['portrait-390', 'landscape'].includes(item.device)
         ) {
           const first = page.locator('button.card-slot:not(:disabled)').first();
           await first.click();
@@ -1232,7 +1329,11 @@ try {
             (await first.getAttribute('aria-pressed')) === 'true',
             'Card selection missing',
           );
-          await page.setViewportSize({ width: 1280, height: 720 });
+          await page.setViewportSize(
+            item.device === 'landscape'
+              ? { width: 390, height: 844 }
+              : { width: 1280, height: 720 },
+          );
           expect(
             (await first.getAttribute('aria-pressed')) === 'true',
             'Portrait/desktop layout switch lost selection draft',

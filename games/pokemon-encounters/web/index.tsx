@@ -236,6 +236,7 @@ function PokemonScreen({ session }: { session: RoomSession }) {
                 </div>
               )}
               <GameTable
+                playerLayout={viewport.layout}
                 game={game}
                 seats={seats}
                 selfId={self?.id ?? null}

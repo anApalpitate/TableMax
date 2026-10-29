@@ -25,6 +25,10 @@ import {
 } from '../cards';
 import { BoardGrid } from '../../ui/BoardGrid';
 import { CardSkin } from '../../ui/CardSkin';
+import {
+  LandscapeDecisionLayout,
+  PortraitDecisionLayout,
+} from '../../ui/PlayerDecisionLayout';
 import { WinTrack } from '../../ui/WinTrack';
 import { usePokemonViewport } from '../../ui/usePokemonViewport';
 import { ResearchCard, ResearchPicture } from './ResearchCard';
@@ -483,14 +487,17 @@ function PublicSupply({
 }
 
 function Actions({
+  landscape = false,
   session,
   game,
   showResearch,
 }: {
+  landscape?: boolean;
   session: GameHost;
   game: View;
   showResearch: (id: string) => void;
 }) {
+  const Layout = landscape ? LandscapeDecisionLayout : PortraitDecisionLayout;
   const { motion } = useExpansionPresentation();
   const actions = (session.view?.actions ?? []) as Action[];
   const [mode, setMode] = useState(''),
@@ -518,6 +525,10 @@ function Actions({
     ...new Set(working.flatMap((a) => ('seat' in a ? [a.seat] : []))),
   ];
   const chosenSeat = target || targets[0] || self;
+  const actorAvatar = avatarFor(
+    session.view?.seats.find((seat) => seat.id === (game.actorSeat ?? self))
+      ?.avatarId ?? 'builtin-1',
+  );
   const candidates = working.filter(
     (a) => !('seat' in a) || a.seat === chosenSeat,
   );
@@ -663,13 +674,27 @@ function Actions({
           <h2>{session.self?.name ?? '本人'}的场地</h2>
           <WinTrack wins={game.winsBySeat[self] ?? 0} />
         </header>
-        <div className="ex-wait" role="status">
-          {game.actorSeat
-            ? `${names[game.actorSeat]}正在行动`
-            : '等待其他玩家翻牌'}
-        </div>
-        <Board game={game} seat={self} motion={motion} />
-        <BufferCard game={game} seat={self} />
+        <Layout
+          context={
+            <>
+              <div className="ex-wait" role="status">
+                {landscape && (
+                  <img
+                    className="desktop-actor-avatar"
+                    src={actorAvatar}
+                    alt=""
+                  />
+                )}
+                {game.actorSeat
+                  ? `等待 ${names[game.actorSeat]} 行动`
+                  : '等待其他玩家翻牌'}
+              </div>
+              {landscape && <BufferCard game={game} seat={self} />}
+            </>
+          }
+          field={<Board game={game} seat={self} motion={motion} />}
+          actions={!landscape ? <BufferCard game={game} seat={self} /> : null}
+        />
       </section>
     );
   return (
@@ -681,392 +706,454 @@ function Actions({
         </h2>
         <WinTrack wins={game.winsBySeat[self] ?? 0} />
       </header>
-      <div className="ex-decision-context">
-        {game.coin && (
-          <div className="ex-coin-result" role="status">
-            <span className="coin-face">
-              <img src={coinArt[game.coin]} alt="" />
-            </span>
-            <strong>{game.coin === 'meowth' ? '喵喵面' : '皮卡丘面'}</strong>
-          </div>
-        )}
-        {game.held && (
-          <div className="ex-held" data-pile="held">
-            <Card profile={game.rulesProfile} face={game.held} />
-            <div>
-              <span className="ex-held-label">当前取牌</span>
-              <strong>{game.held.name}</strong>
-              {game.drawSource !== 'deck' && (
-                <span className="ex-source-rule">
-                  <span className="ex-source-label-full">
-                    {game.drawSource === 'buffer'
-                      ? '来自本人缓冲'
-                      : '来自弃牌堆'}
-                    ，必须使用
-                  </span>
-                  <span className="ex-source-label-compact">
-                    <span>
-                      {game.drawSource === 'buffer' ? '本人缓冲' : '弃牌堆'}
-                    </span>
-                    <span>必须换入</span>
-                  </span>
-                </span>
-              )}
-              <p
-                className={
-                  game.held.abilityUsed && game.held.ability
-                    ? 'ex-held-ability-used'
-                    : 'ex-held-summary'
-                }
-              >
-                {game.held.abilityUsed && game.held.ability ? (
-                  <>
-                    能力已使用
-                    <span className="ex-placement-reminder">
-                      ，选择位置换入
-                    </span>
-                  </>
-                ) : (
-                  categoryPresentation(game.held.categoryId, game.rulesProfile)
-                    .abilitySummary || '选择位置换入'
-                )}
-              </p>
-              {game.held.abilityText && !game.held.abilityUsed && (
-                <details>
-                  <summary>能力说明</summary>
-                  <p>{game.held.abilityText}</p>
-                </details>
-              )}
-              <BufferCard game={game} seat={self} />
-            </div>
-          </div>
-        )}
-        {!game.held && (
-          <span
-            className="ex-held-anchor"
-            data-pile="held"
-            aria-hidden="true"
-          />
-        )}
-        {(game.phase === 'draw' || game.phase === 'lucario-draw') && (
-          <div className="ex-draw-options">
-            <button
-              className="ex-source"
-              data-pile="deck"
-              data-action="draw"
-              data-source="deck"
-              disabled={
-                locked ||
-                !actions.some((a) => a.type === 'draw' && a.source === 'deck')
-              }
-              onClick={() => choose({ type: 'draw', source: 'deck' })}
-            >
-              <strong>摸牌堆</strong>
-              <div className="ex-source-face">
-                <Card profile={game.rulesProfile} face={null} compact />
+      <Layout
+        context={
+          <>
+            {landscape && (
+              <header className="desktop-action-heading">
                 <span>
-                  取一张牌<b>{game.deckCount} 张</b>
-                </span>
-              </div>
-            </button>
-            {(game.phase === 'draw'
-              ? bufferedProfile(game.rulesProfile)
-                ? [0]
-                : [0, 1]
-              : []
-            ).map((index) => {
-              const i = index as 0 | 1;
-              const face = game.discardOptions[i] ?? null;
-              return (
-                <button
-                  key={i}
-                  className="ex-source"
-                  data-pile={i === 0 ? 'discard' : 'discard-second'}
-                  data-action="draw"
-                  data-source="discard"
-                  data-discard-index={i}
-                  disabled={
-                    locked ||
-                    !actions.some(
-                      (a) =>
-                        a.type === 'draw' &&
-                        a.source === 'discard' &&
-                        a.discardIndex === i,
-                    )
-                  }
-                  onClick={() =>
-                    choose({ type: 'draw', source: 'discard', discardIndex: i })
-                  }
-                >
-                  <strong>
-                    {bufferedProfile(game.rulesProfile)
-                      ? '弃牌顶部'
-                      : `可选弃牌${i + 1}`}
-                  </strong>
-                  <div className="ex-source-face">
-                    {face ? (
-                      <Card profile={game.rulesProfile} face={face} compact />
-                    ) : (
-                      <span className="ex-empty-source">—</span>
-                    )}
-                    <span>
-                      {face?.name ?? '暂无卡牌'}
-                      <b>
-                        {face ? summaryOf(face, game.rulesProfile) : '不可选择'}
-                      </b>
-                    </span>
-                  </div>
-                </button>
-              );
-            })}
-            {game.buffersBySeat && game.phase === 'draw' && (
-              <button
-                className="ex-source ex-buffer-source"
-                data-pile="buffer"
-                data-seat={self}
-                data-action="draw-buffer"
-                disabled={
-                  locked || !actions.some((a) => a.type === 'draw-buffer')
-                }
-                onClick={() => choose({ type: 'draw-buffer' })}
-              >
-                <strong>本人缓冲</strong>
-                <div className="ex-source-face">
-                  {game.buffersBySeat[self] ? (
-                    <Card
-                      profile={game.rulesProfile}
-                      face={game.buffersBySeat[self]!}
-                      compact
+                  <span className="desktop-actor">
+                    <img
+                      className="desktop-actor-avatar"
+                      src={actorAvatar}
+                      alt=""
                     />
-                  ) : (
-                    <span className="ex-buffer-empty" aria-hidden="true">
-                      ＋
-                    </span>
-                  )}
-                  <span>
-                    {game.buffersBySeat[self]?.name ?? '空位'}
-                    <b>
-                      {game.buffersBySeat[self] ? '取出后必须使用' : '尚未存牌'}
-                    </b>
+                    {names[game.actorSeat ?? self] ?? session.self?.name}
                   </span>
-                </div>
-              </button>
+                  <span>第 {game.roundNumber} 小局</span>
+                </span>
+                <h2>{phaseText[game.phase]}</h2>
+              </header>
             )}
-            {game.phase === 'draw' && (
-              <button
-                className={`ex-source ex-reposition-source ${mode === 'reposition' ? 'selected' : ''}`}
-                disabled={
-                  locked || !actions.some((a) => a.type === 'reposition')
-                }
-                onClick={() => {
-                  setMode(mode === 'reposition' ? '' : 'reposition');
-                  setSlots([]);
-                }}
-              >
-                <strong>卡牌换位</strong>
-                <div className="ex-source-face">
-                  <span className="ex-swap-mark" aria-hidden="true">
-                    <svg viewBox="0 0 72 90">
-                      <rect x="5" y="9" width="30" height="47" rx="5" />
-                      <rect x="37" y="34" width="30" height="47" rx="5" />
-                      <path d="M12 71h18l-6-6m6 6-6 6M60 18H42l6-6m-6 6 6 6" />
-                    </svg>
+            <div className="ex-decision-context">
+              {game.coin && (
+                <div className="ex-coin-result" role="status">
+                  <span className="coin-face">
+                    <img src={coinArt[game.coin]} alt="" />
                   </span>
-                  <span>
-                    交换两格<b>结束本回合</b>
-                  </span>
+                  <strong>
+                    {game.coin === 'meowth' ? '喵喵面' : '皮卡丘面'}
+                  </strong>
                 </div>
-              </button>
-            )}
-          </div>
-        )}
-        {(targets.length > 0 || chosenSeat !== self) && (
-          <div className="ex-target-controls">
-            {targets.length > 0 && (
-              <div className="ex-target-list" aria-label="目标玩家">
-                {targets.map((id) => (
+              )}
+              {game.held && (
+                <div className="ex-held" data-pile="held">
+                  <Card profile={game.rulesProfile} face={game.held} />
+                  <div>
+                    <span className="ex-held-label">当前取牌</span>
+                    <strong>{game.held.name}</strong>
+                    {game.drawSource !== 'deck' && (
+                      <span className="ex-source-rule">
+                        <span className="ex-source-label-full">
+                          {game.drawSource === 'buffer'
+                            ? '来自本人缓冲'
+                            : '来自弃牌堆'}
+                          ，必须使用
+                        </span>
+                        <span className="ex-source-label-compact">
+                          <span>
+                            {game.drawSource === 'buffer'
+                              ? '本人缓冲'
+                              : '弃牌堆'}
+                          </span>
+                          <span>必须换入</span>
+                        </span>
+                      </span>
+                    )}
+                    <p
+                      className={
+                        game.held.abilityUsed && game.held.ability
+                          ? 'ex-held-ability-used'
+                          : 'ex-held-summary'
+                      }
+                    >
+                      {game.held.abilityUsed && game.held.ability ? (
+                        <>
+                          能力已使用
+                          <span className="ex-placement-reminder">
+                            ，选择位置换入
+                          </span>
+                        </>
+                      ) : (
+                        categoryPresentation(
+                          game.held.categoryId,
+                          game.rulesProfile,
+                        ).abilitySummary || '选择位置换入'
+                      )}
+                    </p>
+                    {game.held.abilityText && !game.held.abilityUsed && (
+                      <details>
+                        <summary>能力说明</summary>
+                        <p>{game.held.abilityText}</p>
+                      </details>
+                    )}
+                    <BufferCard game={game} seat={self} />
+                  </div>
+                </div>
+              )}
+              {!game.held && (
+                <span
+                  className="ex-held-anchor"
+                  data-pile="held"
+                  aria-hidden="true"
+                />
+              )}
+              {(game.phase === 'draw' || game.phase === 'lucario-draw') && (
+                <div className="ex-draw-options">
                   <button
-                    key={id}
-                    data-target-seat={id}
-                    className={chosenSeat === id ? 'selected' : ''}
+                    className="ex-source"
+                    data-pile="deck"
+                    data-action="draw"
+                    data-source="deck"
+                    disabled={
+                      locked ||
+                      !actions.some(
+                        (a) => a.type === 'draw' && a.source === 'deck',
+                      )
+                    }
+                    onClick={() => choose({ type: 'draw', source: 'deck' })}
+                  >
+                    <strong>摸牌堆</strong>
+                    <div className="ex-source-face">
+                      <Card profile={game.rulesProfile} face={null} compact />
+                      <span>
+                        取一张牌<b>{game.deckCount} 张</b>
+                      </span>
+                    </div>
+                  </button>
+                  {(game.phase === 'draw'
+                    ? bufferedProfile(game.rulesProfile)
+                      ? [0]
+                      : [0, 1]
+                    : []
+                  ).map((index) => {
+                    const i = index as 0 | 1;
+                    const face = game.discardOptions[i] ?? null;
+                    return (
+                      <button
+                        key={i}
+                        className="ex-source"
+                        data-pile={i === 0 ? 'discard' : 'discard-second'}
+                        data-action="draw"
+                        data-source="discard"
+                        data-discard-index={i}
+                        disabled={
+                          locked ||
+                          !actions.some(
+                            (a) =>
+                              a.type === 'draw' &&
+                              a.source === 'discard' &&
+                              a.discardIndex === i,
+                          )
+                        }
+                        onClick={() =>
+                          choose({
+                            type: 'draw',
+                            source: 'discard',
+                            discardIndex: i,
+                          })
+                        }
+                      >
+                        <strong>
+                          {bufferedProfile(game.rulesProfile)
+                            ? '弃牌顶部'
+                            : `可选弃牌${i + 1}`}
+                        </strong>
+                        <div className="ex-source-face">
+                          {face ? (
+                            <Card
+                              profile={game.rulesProfile}
+                              face={face}
+                              compact
+                            />
+                          ) : (
+                            <span className="ex-empty-source">—</span>
+                          )}
+                          <span>
+                            {face?.name ?? '暂无卡牌'}
+                            <b>
+                              {face
+                                ? summaryOf(face, game.rulesProfile)
+                                : '不可选择'}
+                            </b>
+                          </span>
+                        </div>
+                      </button>
+                    );
+                  })}
+                  {game.buffersBySeat && game.phase === 'draw' && (
+                    <button
+                      className="ex-source ex-buffer-source"
+                      data-pile="buffer"
+                      data-seat={self}
+                      data-action="draw-buffer"
+                      disabled={
+                        locked || !actions.some((a) => a.type === 'draw-buffer')
+                      }
+                      onClick={() => choose({ type: 'draw-buffer' })}
+                    >
+                      <strong>本人缓冲</strong>
+                      <div className="ex-source-face">
+                        {game.buffersBySeat[self] ? (
+                          <Card
+                            profile={game.rulesProfile}
+                            face={game.buffersBySeat[self]!}
+                            compact
+                          />
+                        ) : (
+                          <span className="ex-buffer-empty" aria-hidden="true">
+                            ＋
+                          </span>
+                        )}
+                        <span>
+                          {game.buffersBySeat[self]?.name ?? '空位'}
+                          <b>
+                            {game.buffersBySeat[self]
+                              ? '取出后必须使用'
+                              : '尚未存牌'}
+                          </b>
+                        </span>
+                      </div>
+                    </button>
+                  )}
+                  {game.phase === 'draw' && (
+                    <button
+                      className={`ex-source ex-reposition-source ${mode === 'reposition' ? 'selected' : ''}`}
+                      disabled={
+                        locked || !actions.some((a) => a.type === 'reposition')
+                      }
+                      onClick={() => {
+                        setMode(mode === 'reposition' ? '' : 'reposition');
+                        setSlots([]);
+                      }}
+                    >
+                      <strong>卡牌换位</strong>
+                      <div className="ex-source-face">
+                        <span className="ex-swap-mark" aria-hidden="true">
+                          <svg viewBox="0 0 72 90">
+                            <rect x="5" y="9" width="30" height="47" rx="5" />
+                            <rect x="37" y="34" width="30" height="47" rx="5" />
+                            <path d="M12 71h18l-6-6m6 6-6 6M60 18H42l6-6m-6 6 6 6" />
+                          </svg>
+                        </span>
+                        <span>
+                          交换两格<b>结束本回合</b>
+                        </span>
+                      </div>
+                    </button>
+                  )}
+                </div>
+              )}
+              {(targets.length > 0 || chosenSeat !== self) && (
+                <div className="ex-target-controls">
+                  {targets.length > 0 && (
+                    <div className="ex-target-list" aria-label="目标玩家">
+                      {targets.map((id) => (
+                        <button
+                          key={id}
+                          data-target-seat={id}
+                          className={chosenSeat === id ? 'selected' : ''}
+                          disabled={locked}
+                          onClick={() => {
+                            setTarget(id);
+                            setSlots([]);
+                          }}
+                        >
+                          {names[id] ?? id}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                  {chosenSeat !== self && (
+                    <details className="ex-own-preview">
+                      <summary>查看本人场地</summary>
+                      <Board game={game} seat={self} motion={motion} />
+                    </details>
+                  )}
+                </div>
+              )}
+            </div>
+          </>
+        }
+        field={
+          <>
+            {working.some((a) => a.type === 'row-target') ? (
+              <div className="ex-row-choice">
+                <p>
+                  与 {names[chosenSeat]} 交换第{' '}
+                  {game.rowAbility === 'groudon'
+                    ? 3
+                    : game.rowAbility === 'kyogre'
+                      ? 2
+                      : 1}{' '}
+                  行，朝向随牌移动。
+                </p>
+                <Board game={game} seat={chosenSeat} />
+              </div>
+            ) : selectingSlots ? (
+              <div className="ex-target-board">
+                <div className="ex-target-heading">
+                  <strong>
+                    {chosenSeat === self
+                      ? '本人场地'
+                      : `${names[chosenSeat]}的场地`}
+                  </strong>
+                  <span>
+                    {pairs.length ? '选择两个不同位置' : '选择一个位置'}
+                  </span>
+                </div>
+                <Board
+                  game={game}
+                  seat={chosenSeat}
+                  selected={slots}
+                  selectable={selectable}
+                  select={select}
+                  locked={locked}
+                  motion={motion}
+                />
+                {selectedType === 'ninja-target' && (
+                  <div className="ex-branch">
+                    <button
+                      className={!exchange ? 'selected' : ''}
+                      onClick={() => setExchange(false)}
+                    >
+                      只盖回
+                    </button>
+                    <button
+                      className={exchange ? 'selected' : ''}
+                      onClick={() => setExchange(true)}
+                    >
+                      盖回并交换
+                    </button>
+                  </div>
+                )}
+              </div>
+            ) : !game.peek ? (
+              <div className="ex-target-board ex-own-board">
+                <Board game={game} seat={self} motion={motion} />
+              </div>
+            ) : null}
+            {game.peek && (
+              <div className="ex-private-peek">
+                <h3>仅本人可见</h3>
+                <div>
+                  {game.peek.cards.map((p) => (
+                    <section key={p.slot}>
+                      <Card profile={game.rulesProfile} face={p.card} />
+                      <span>{p.slot + 1}号位</span>
+                      {actions.some(
+                        (a) =>
+                          a.type === 'mewtwo-exchange' && a.slot === p.slot,
+                      ) && (
+                        <button
+                          data-action="mewtwo-exchange"
+                          data-slot-index={p.slot}
+                          disabled={locked}
+                          onClick={() =>
+                            choose({ type: 'mewtwo-exchange', slot: p.slot })
+                          }
+                        >
+                          与此牌交换
+                        </button>
+                      )}
+                    </section>
+                  ))}
+                </div>
+              </div>
+            )}
+          </>
+        }
+        actions={
+          <>
+            <div className="ex-decision-footer">
+              {working.some((a) => a.type === 'row-target') ? (
+                <div className="ex-submit">
+                  <button
+                    data-action="row-target"
                     disabled={locked}
                     onClick={() => {
-                      setTarget(id);
-                      setSlots([]);
+                      const a = candidates.find((v) => v.type === 'row-target');
+                      if (a) choose(a);
                     }}
                   >
-                    {names[id] ?? id}
+                    确认交换这一整行
                   </button>
-                ))}
-              </div>
-            )}
-            {chosenSeat !== self && (
-              <details className="ex-own-preview">
-                <summary>查看本人场地</summary>
-                <Board game={game} seat={self} motion={motion} />
-              </details>
-            )}
-          </div>
-        )}
-      </div>
-      {working.some((a) => a.type === 'row-target') ? (
-        <div className="ex-row-choice">
-          <p>
-            与 {names[chosenSeat]} 交换第{' '}
-            {game.rowAbility === 'groudon'
-              ? 3
-              : game.rowAbility === 'kyogre'
-                ? 2
-                : 1}{' '}
-            行，朝向随牌移动。
-          </p>
-          <Board game={game} seat={chosenSeat} />
-        </div>
-      ) : selectingSlots ? (
-        <div className="ex-target-board">
-          <div className="ex-target-heading">
-            <strong>
-              {chosenSeat === self ? '本人场地' : `${names[chosenSeat]}的场地`}
-            </strong>
-            <span>{pairs.length ? '选择两个不同位置' : '选择一个位置'}</span>
-          </div>
-          <Board
-            game={game}
-            seat={chosenSeat}
-            selected={slots}
-            selectable={selectable}
-            select={select}
-            locked={locked}
-            motion={motion}
-          />
-          {selectedType === 'ninja-target' && (
-            <div className="ex-branch">
-              <button
-                className={!exchange ? 'selected' : ''}
-                onClick={() => setExchange(false)}
-              >
-                只盖回
-              </button>
-              <button
-                className={exchange ? 'selected' : ''}
-                onClick={() => setExchange(true)}
-              >
-                盖回并交换
-              </button>
-            </div>
-          )}
-        </div>
-      ) : !game.peek ? (
-        <div className="ex-target-board ex-own-board">
-          <Board game={game} seat={self} motion={motion} />
-        </div>
-      ) : null}
-      {game.peek && (
-        <div className="ex-private-peek">
-          <h3>仅本人可见</h3>
-          <div>
-            {game.peek.cards.map((p) => (
-              <section key={p.slot}>
-                <Card profile={game.rulesProfile} face={p.card} />
-                <span>{p.slot + 1}号位</span>
-                {actions.some(
-                  (a) => a.type === 'mewtwo-exchange' && a.slot === p.slot,
-                ) && (
+                </div>
+              ) : selectingSlots ? (
+                <div className="ex-submit">
                   <button
-                    data-action="mewtwo-exchange"
-                    data-slot-index={p.slot}
-                    disabled={locked}
-                    onClick={() =>
-                      choose({ type: 'mewtwo-exchange', slot: p.slot })
-                    }
+                    data-action={selectedType}
+                    disabled={locked || !chosen}
+                    onClick={() => {
+                      if (chosen) choose(chosen);
+                    }}
                   >
-                    与此牌交换
+                    {commandLabel}
+                    {slots.length > 0 && (
+                      <span className="ex-command-target">
+                        {slots.map((s) => s + 1).join('、')}号位
+                      </span>
+                    )}
                   </button>
-                )}
-              </section>
-            ))}
-          </div>
-        </div>
-      )}
-      <div className="ex-decision-footer">
-        {working.some((a) => a.type === 'row-target') ? (
-          <div className="ex-submit">
-            <button
-              data-action="row-target"
-              disabled={locked}
-              onClick={() => {
-                const a = candidates.find((v) => v.type === 'row-target');
-                if (a) choose(a);
-              }}
-            >
-              确认交换这一整行
-            </button>
-          </div>
-        ) : selectingSlots ? (
-          <div className="ex-submit">
-            <button
-              data-action={selectedType}
-              disabled={locked || !chosen}
-              onClick={() => {
-                if (chosen) choose(chosen);
-              }}
-            >
-              {commandLabel}
-              {slots.length > 0 && (
-                <span className="ex-command-target">
-                  {slots.map((s) => s + 1).join('、')}号位
-                </span>
+                </div>
+              ) : null}
+              {heldOptions}
+              {mode === 'reposition' && (
+                <button
+                  className="secondary ex-cancel"
+                  onClick={() => {
+                    setMode('');
+                    setSlots([]);
+                  }}
+                >
+                  取消换位
+                </button>
               )}
-            </button>
-          </div>
-        ) : null}
-        {heldOptions}
-        {mode === 'reposition' && (
-          <button
-            className="secondary ex-cancel"
-            onClick={() => {
-              setMode('');
-              setSlots([]);
-            }}
-          >
-            取消换位
-          </button>
-        )}
-        <div className="ex-simple-actions">
-          {actions
-            .filter((a) =>
-              [
-                'decline-ability',
-                'close-peek',
-                'activate-arceus',
-                'extra-draw',
-                'pass-direction',
-              ].includes(a.type),
-            )
-            .map((a) => (
-              <button
-                key={'direction' in a ? a.direction : a.type}
-                data-action={a.type}
-                data-direction={'direction' in a ? a.direction : undefined}
-                disabled={locked}
-                className={a.type === 'decline-ability' ? 'secondary' : ''}
-                onClick={() => choose(a)}
-              >
-                {'direction' in a
-                  ? a.direction === 'clockwise'
-                    ? '顺时针接力 ↻'
-                    : '逆时针接力 ↺'
-                  : a.type === 'decline-ability' &&
-                      game.phase === 'mewtwo-choice'
-                    ? '不交换'
-                    : labels[a.type]}
-              </button>
-            ))}
-        </div>
-        {game.phase !== 'draw' && !game.held && (
-          <BufferCard game={game} seat={self} />
-        )}
-      </div>
+              <div className="ex-simple-actions">
+                {actions
+                  .filter((a) =>
+                    [
+                      'decline-ability',
+                      'close-peek',
+                      'activate-arceus',
+                      'extra-draw',
+                      'pass-direction',
+                    ].includes(a.type),
+                  )
+                  .map((a) => (
+                    <button
+                      key={'direction' in a ? a.direction : a.type}
+                      data-action={a.type}
+                      data-direction={
+                        'direction' in a ? a.direction : undefined
+                      }
+                      disabled={locked}
+                      className={
+                        a.type === 'decline-ability' ? 'secondary' : ''
+                      }
+                      onClick={() => choose(a)}
+                    >
+                      {'direction' in a
+                        ? a.direction === 'clockwise'
+                          ? '顺时针接力 ↻'
+                          : '逆时针接力 ↺'
+                        : a.type === 'decline-ability' &&
+                            game.phase === 'mewtwo-choice'
+                          ? '不交换'
+                          : labels[a.type]}
+                    </button>
+                  ))}
+              </div>
+              {game.phase !== 'draw' && !game.held && (
+                <BufferCard game={game} seat={self} />
+              )}
+            </div>
+            {landscape && game.phase === 'draw' && (
+              <p className="desktop-draw-prompt">选择牌源，或交换本人两格</p>
+            )}
+          </>
+        }
+      />
     </section>
   );
 }
@@ -1645,7 +1732,12 @@ function ScreenBody({ session, game }: { session: GameHost; game: View }) {
       )}
       {game.phase === 'research-vote' ? (
         session.role === 'player' ? (
-          <Actions session={session} game={game} showResearch={showResearch} />
+          <Actions
+            landscape={viewport.layout === 'L'}
+            session={session}
+            game={game}
+            showResearch={showResearch}
+          />
         ) : (
           <section className="ex-vote">
             <div className="ex-vote-options">
@@ -1683,6 +1775,7 @@ function ScreenBody({ session, game }: { session: GameHost; game: View }) {
           {session.role === 'player' &&
           !['round-result', 'match-result'].includes(game.phase) ? (
             <Actions
+              landscape={viewport.layout === 'L'}
               key={session.view?.decisionId ?? game.phase}
               session={session}
               game={game}
