@@ -48,8 +48,18 @@ export function ExpansionPresentation({
     game?.roundNumber +
     ':' +
     session.role;
+  const authorityKey = JSON.stringify([
+    session.view?.instanceId,
+    session.view?.branch,
+    session.role,
+  ]);
   const [clock] = useState(
-    () => new PresentationClock(scope, game?.events.map((e) => e.id) ?? []),
+    () =>
+      new PresentationClock(
+        scope,
+        game?.events.map((e) => e.id) ?? [],
+        authorityKey,
+      ),
   );
   const state = useSyncExternalStore(clock.subscribe, clock.snapshot);
   const disabled =
@@ -86,8 +96,17 @@ export function ExpansionPresentation({
         : [],
       disabled,
       game?.events.map((e) => e.id) ?? [],
+      authorityKey,
     );
-  }, [clock, scope, disabled, game, session.feedback, session.motion]);
+  }, [
+    clock,
+    scope,
+    authorityKey,
+    disabled,
+    game,
+    session.feedback,
+    session.motion,
+  ]);
   useEffect(() => () => clock.dispose(), [clock]);
   const current = disabled || state.scope !== scope ? null : state.current;
   const sound =

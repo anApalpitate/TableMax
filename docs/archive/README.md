@@ -1,5 +1,11 @@
 # 归档索引
 
+[架构优化实施记录（2026-10-30）](architecture-optimization-20261030.md)：备份、源码拆分、边界约束、验证及失败纠正。现行职责见[架构](../reference/architecture.md)，余项见[实施状态](../reference/architecture-improvements.md)。
+
+[架构整理前原文](architecture-before-optimization-20261030.md)与[实施前建议](architecture-improvements-plan-20261030.md)：保留原判断、参数与历史证明边界；不作为第二份当前架构。
+
+[全部游戏布局完成记录（2026-10-29）](all-games-layout-rollout-completed-20261029.md)：保留源码冻结快照、失败纠正与原证据；真人和新安装器等未完成项仍见[接续](../tasks/all-games-layout-rollout.md)。
+
 [全部游戏布局实施前计划（2026-10-29）](all-games-layout-rollout-plan-2026-10-29.md)：保留八游戏九玩法的原实施方案、批次与门槛；源码结果和真机等剩余项见[接续](../tasks/all-games-layout-rollout.md)，当前复用职责归界面与架构正文。
 
 [德国小强UI全面重做（2026-10-24）](cockroach-poker-ui-redesign-20261024.md)：已完成三布局、弱文字动作、64张独立精修与统一灰背、完整状态验证及实际前后变化HTML；当前行为归游戏主题，未导出新安装器。

@@ -18,6 +18,38 @@ const steps = (id: number) =>
   );
 afterEach(() => vi.useRealTimers());
 
+it('a live next round plays only its new saved cues while a restored authority does not', () => {
+  vi.useFakeTimers();
+  const clock = new PresentationClock('round1', [1], 'instance:branch1:player');
+  clock.receive(
+    'round2',
+    steps(3),
+    false,
+    [1, 2, 3],
+    'instance:branch1:player',
+  );
+  expect(clock.snapshot().current?.event.id).toBe(3);
+  vi.runAllTimers();
+  clock.receive(
+    'round2',
+    steps(2),
+    false,
+    [1, 2, 3],
+    'instance:branch1:player',
+  );
+  expect(clock.snapshot().current).toBeNull();
+  clock.receive(
+    'restored-round1',
+    steps(4),
+    false,
+    [1, 2, 3, 4],
+    'instance:branch2:player',
+  );
+  expect(clock.snapshot().current).toBeNull();
+  expect(vi.getTimerCount()).toBe(0);
+  clock.dispose();
+});
+
 it('a branch change cancels queued timers and consumes restored events without replay', () => {
   vi.useFakeTimers();
   const clock = new PresentationClock('branch1', []);

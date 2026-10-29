@@ -2,13 +2,7 @@
 
 2026-10-29已按用户授权完成8款游戏、9个玩法的源码布局调整和逐游戏浏览器验证，实施前方案归[计划快照](../archive/all-games-layout-rollout-plan-2026-10-29.md)。共享净区、手机门禁、控件去重的长期设计见[界面复用](../reference/ui-composition.md)和[架构](../reference/architecture.md)，各游戏布局参数归自身主题。本页只保留证明边界和后续事项，不再作为待实施清单。
 
-## 本轮源码交接
-
-完整生产源码编译覆盖47单元，最终冻结快照为`0953ef081f0e103dbda765df099d1b898b7c961f48c05eccea0f5f25fa7fab7e`。编译完成后组装曾因其他工程测试运行被互斥拒绝；待其退出后，同一冻结快照组装成功，未绕过保护。组装输出为`build/desktop`，不是新安装器。版本保持原值，未发布或部署。
-
-[正式汇总](../../artifacts/maintenance/all-games-rollout-20261029/summary.json)与[真实渲染对照HTML](../../tmp/all-games-rollout-20261029/review/comparison.html)区分27入口基础检查、9玩法实际外框旋转检查及逐游戏能力／交互专项。历史失败与源码SHA保留，失败报告只可复用其中输入未变且明确通过的子项，不改写为整轮通过。HTML是当前审阅产物，临时目录清理后以正式报告／截图为准。
-
-本轮保留已有11项工作区改动原字节；没有修改规则、秘密投影、动作协议、存档格式或共享玩家默认契约。源视觉与服务事务、真实设备证明分层，详见[源码验证方法](../reference/source-visual-verification.md)。
+已完成的编译快照、失败原因、逐游戏证据及原字节保护归[完成记录](../archive/all-games-layout-rollout-completed-20261029.md)。本页不重复历史统计。
 
 ## 仍需独立接续
 

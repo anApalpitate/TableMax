@@ -15,6 +15,7 @@ type Snapshot = {
 };
 export class PresentationClock {
   private initialized = true;
+  private authorityKey: string;
   private queue = new PresentationQueue();
   private timer: ReturnType<typeof setTimeout> | undefined;
   private listeners = new Set<() => void>();
@@ -26,7 +27,12 @@ export class PresentationClock {
     anchors: {},
     seen: [],
   };
-  constructor(scope: string, committedIds: readonly number[]) {
+  constructor(
+    scope: string,
+    committedIds: readonly number[],
+    authorityKey = scope,
+  ) {
+    this.authorityKey = authorityKey;
     this.queue.reset(scope, committedIds);
     this.state = { ...this.state, scope, seen: [...committedIds] };
   }
@@ -61,20 +67,32 @@ export class PresentationClock {
     steps: PresentationStep[],
     disabled: boolean,
     committedIds: readonly number[],
+    authorityKey = scope,
   ) {
     if (!this.initialized) {
       this.initialized = true;
+      this.authorityKey = authorityKey;
       this.cancel(scope, committedIds);
       return;
     }
     if (disabled) {
+      this.authorityKey = authorityKey;
       this.cancel(scope, committedIds);
       return;
     }
     if (this.state.scope !== scope) {
-      // A changed instance/branch/round starts from its committed projection.
-      this.cancel(scope, committedIds);
-      return;
+      const continuing = this.authorityKey === authorityKey;
+      this.authorityKey = authorityKey;
+      // Restore/identity changes consume old feedback. A live next round within
+      // the same authority may still have a newly saved research/event cue.
+      const incoming = new Set(
+        continuing ? steps.map((step) => step.event.id) : [],
+      );
+      this.cancel(
+        scope,
+        committedIds.filter((id) => !incoming.has(id)),
+      );
+      if (!continuing) return;
     }
     const fresh = steps.filter((s) => !this.queue.has(s.event.id));
     if (!fresh.length) return;

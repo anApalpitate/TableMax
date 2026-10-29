@@ -31,6 +31,14 @@
 | [verify-module-build.mjs](verify-module-build.mjs)                                                   | `node tools/build/verify-module-build.mjs`                                           |
 | [verify-module-runtime-input.mjs](verify-module-runtime-input.mjs)                                   | `node tools/build/verify-module-runtime-input.mjs`                                   |
 
+## 依赖与资源政策
+
+[dependency-boundaries.mjs](dependency-boundaries.mjs)为ESLint和生产构建的同一依赖政策。测试夹具例外只在lint测试上下文生效；生产扫描不启用例外。公共导出或目录边界变化时，同步核对[反例测试](dependency-boundaries.test.mjs)，不复制另一份允许列表。
+
+[resource-policy.mjs](resource-policy.mjs)在实际引用发现之后读取同目录及祖先的来源manifest；仅启用含runtimePolicy的组。该组assets按同目录文件名白名单记录source、source_sha256、sha256、bytes、width、height；预算为maxWidth、maxHeight、maxFileBytes、maxTotalBytes。未引用原件不进入运行输入；有政策的清单进入构建指纹，但不打包成媒体。当前PNG／WebP头尺寸校验不代替完整图像解码。适用组及预算归素材主题，不在此重复数值。
+
+回归入口仍为范围runner：三份工具测试为dependency-boundaries.test.mjs、resource-policy.test.mjs和[runtime-boundaries.test.mjs](runtime-boundaries.test.mjs)，已进入scopes。集成测试扫描所有运行代码单元，并编译服务、宝可梦网页及其引用资源；使用普通内容寻址缓存。证据写入TABLEMAX_TEST_TMP指定任务目录，默认tmp/runtime-boundaries；调用者应显式指定自己的唯一任务目录。此入口不组装或导出安装器。
+
 ## 开发环境操作：初次配置
 
 首次工程基线按下列顺序；日常验证只选择实际改动范围，不重复首次全量流程。
