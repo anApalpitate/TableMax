@@ -32,16 +32,29 @@ export function AbilityEntrance({
       scene?.closest('.expansion-screen') ?? scene?.closest('.pokemon-screen');
     if (!scene || !screen) return;
     const measure = () => {
-      const dashboard = screen
-        .querySelector('.pokemon-status, .ex-round-banner')
+      const portraitPlayer =
+        screen.classList.contains('player') &&
+        (screen.getAttribute('data-layout') === 'P' ||
+          (!screen.hasAttribute('data-layout') && innerWidth <= innerHeight));
+      // Only horizontal heading regions bound the character banner. The host
+      // status dashboard and landscape player decisions live beside the board.
+      const heading = screen
+        .querySelector(
+          portraitPlayer
+            ? '.pokemon-status, .ex-round-banner'
+            : '.ex-round-banner',
+        )
         ?.getBoundingClientRect();
       const toolbar = screen
-        .querySelector('.game-toolbar')
+        .querySelector('.game-toolbar, .ex-toolbar')
         ?.getBoundingClientRect();
       const actions = screen
         .querySelector('.player-action-bar, .ex-confirm-bar')
         ?.getBoundingClientRect();
-      const top = Math.max(toolbar?.bottom ?? 0, dashboard?.bottom ?? 0) + 8;
+      const top = Math.min(
+        innerHeight,
+        Math.max(toolbar?.bottom ?? 0, heading?.bottom ?? 0) + 8,
+      );
       const bottom =
         actions && actions.bottom > top && actions.top < innerHeight
           ? Math.max(top, actions.top - 8)

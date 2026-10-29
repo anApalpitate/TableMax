@@ -344,6 +344,26 @@
   font-size: 16px;
   line-height: 18px;
 }
+.pokemon-screen:not(.player)
+  .decision-progress:is(
+    [data-step-count='4'],
+    [data-step-count='5'],
+    [data-step-count='6']
+  ) {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  row-gap: 6px;
+}
+.pokemon-screen:not(.player) .decision-progress[data-step-count='4'] {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.pokemon-screen:not(.player) .progress-segment {
+  line-height: 24px;
+  white-space: normal;
+  overflow: visible;
+  text-overflow: clip;
+  overflow-wrap: anywhere;
+}
 .pokemon-screen .progress-track {
   height: 8px;
 }
@@ -1484,4 +1504,51 @@
   .game-table[data-phase='place']
   .decision-dashboard[data-player-zone='held'] {
   min-height: 180px;
+}
+
+/* The portrait table owns the available height, including waiting turns. */
+.pokemon-screen.player[data-layout='P'] .game-table[data-seats][data-layout] {
+  flex: 1 0 auto;
+}
+.pokemon-screen.player[data-layout='P'] .game-seats {
+  flex: 1 0 auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.pokemon-screen.player[data-layout='P'] .game-seat {
+  width: 100%;
+}
+.pokemon-screen.player[data-layout='P']
+  .game-table:is([data-phase='draw'], [data-phase='place'])
+  .game-seats {
+  justify-content: flex-start;
+  padding-top: 24px;
+}
+.pokemon-screen.player[data-layout='P'] .pokemon-board {
+  width: 100%;
+  height: clamp(260px, calc(var(--pokemon-net-height, 844px) - 440px), 350px);
+}
+.pokemon-screen.player[data-layout='P'] .pokemon-player {
+  gap: 10px;
+}
+.pokemon-screen.player[data-layout='P'] .player-action-bar {
+  margin-top: 8px;
+}
+.pokemon-screen:not(.player) .table-side > .decision-dashboard {
+  flex: 1;
+  align-content: space-between;
+  padding: 8px;
+}
+.pokemon-screen:not(.player) .table-side {
+  gap: 6px;
+}
+.pokemon-screen:not(.player) .table-side > .action-announcement {
+  margin-top: auto;
+}
+@media (min-height: 900px) {
+  .pokemon-screen:not(.player) .table-side > .decision-dashboard {
+    --pile-width: 96px;
+    --pile-height: 134px;
+  }
 }

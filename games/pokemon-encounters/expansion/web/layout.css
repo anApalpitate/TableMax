@@ -452,6 +452,23 @@ main.expansion-screen {
   margin: 0;
   font-size: 16px;
 }
+.expansion-screen:not(.player) .ex-supply > * {
+  flex-shrink: 0;
+}
+.expansion-screen:not(.player) .ex-supply .ex-last-action {
+  margin-top: auto;
+}
+@media (min-height: 900px) {
+  .expansion-screen:not(.player) .ex-supply {
+    --pile-width: 92px;
+    --pile-height: 129px;
+    gap: 12px;
+  }
+  .expansion-screen:not(.player) .ex-supply:has([data-pile='discard-second']) {
+    --pile-width: 80px;
+    --pile-height: 112px;
+  }
+}
 .expansion-screen .ex-position-phrase {
   white-space: nowrap;
 }
@@ -1431,16 +1448,77 @@ main.expansion-screen:not(.player)[data-below-minimum='true'] .ex-table-layout {
   padding: 4px;
 }
 .expansion-screen.player[data-layout='P'] .ex-table-layout {
-  display: block;
-  flex: none;
+  display: flex;
+  flex: 1 0 auto;
   width: 100%;
   height: auto;
+  min-height: 0;
 }
 .expansion-screen.player[data-layout='P'] .ex-actions {
   display: flex;
   flex-direction: column;
+  flex: 1 0 auto;
   height: auto;
   padding: 6px;
+}
+.expansion-screen.player[data-layout='P'] .ex-decision-context,
+.expansion-screen.player[data-layout='P'] .ex-decision-footer {
+  flex-shrink: 0;
+}
+.expansion-screen.player[data-layout='P']
+  :is(.ex-target-board, .ex-row-choice) {
+  display: flex;
+  flex: 1 0 210px;
+  flex-direction: column;
+  justify-content: center;
+  gap: 4px;
+}
+.expansion-screen.player[data-layout='P'] .ex-actions .pokemon-board {
+  flex: 1 1 0;
+  width: min(100%, 354px);
+  height: auto;
+  min-height: 210px;
+  max-height: 456px;
+}
+.expansion-screen.player[data-layout='P'] :is(.ex-target-heading, .ex-branch) {
+  flex-shrink: 0;
+}
+.expansion-screen.player[data-layout='P'] .ex-decision-footer {
+  margin-top: auto;
+}
+.expansion-screen.player[data-layout='P']:is(
+    [data-phase='draw'],
+    [data-phase='place']
+  )
+  .ex-decision-footer {
+  /* Keep the same confirmation budget before and after an ordinary draw. */
+  min-height: 44px;
+}
+.expansion-screen.player[data-layout='P'][data-phase='draw'] .ex-own-board {
+  /* The place target includes this gap below its 20px heading. */
+  padding-top: 4px;
+}
+.expansion-screen.player[data-layout='P'] .ex-actions.ex-observing {
+  justify-content: center;
+  gap: 12px;
+}
+.expansion-screen.player[data-layout='P']
+  .ex-actions.ex-observing
+  > .pokemon-board {
+  flex: none;
+  height: clamp(280px, calc(var(--pokemon-net-height, 100dvh) - 300px), 456px);
+}
+.expansion-screen.player[data-layout='P']:has(.ex-victory) .ex-players {
+  flex: 1;
+  height: auto;
+}
+.expansion-screen.player[data-layout='P']:has(.ex-victory)
+  .ex-player
+  .pokemon-board {
+  width: min(100%, 354px);
+  height: 100%;
+  min-height: 210px;
+  max-height: 456px;
 }
 .expansion-screen.player[data-layout='P'] .ex-action-heading {
   display: none;

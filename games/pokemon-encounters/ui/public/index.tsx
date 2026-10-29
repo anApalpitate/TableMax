@@ -205,6 +205,7 @@ export function TableStatus({
         </div>
         <div
           className="decision-progress"
+          data-step-count={progress.labels.length}
           role="progressbar"
           aria-label={progress.label}
           aria-valuemin={0}

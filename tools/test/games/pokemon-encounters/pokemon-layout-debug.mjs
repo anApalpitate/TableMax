@@ -65,6 +65,12 @@ for (const variant of ['original', 'expansion']) {
     add('host-1280', scene);
   add('host-1920', 'draw');
   add('host-4k', 'draw');
+  for (const device of ['host-1280', 'portrait-390', 'landscape'])
+    add(device, 'zapdos-entrance', { scene: 'zapdos-self', entrance: true });
+  if (variant === 'original') {
+    add('host-1280', 'zapdos-self');
+    add('host-1920', 'zapdos-receive');
+  }
   for (const seats of [2, 3]) {
     for (const scene of ['draw', 'initial', 'place', 'result'])
       add('host-1280', `${seats}p-${scene}`, { scene, seats });
@@ -308,6 +314,7 @@ try {
                           'event-coin',
                           'buffer',
                           'buffer-take',
+                          'zapdos-self',
                         ].includes(scene)
                       ? 'place'
                       : 'draw',
@@ -333,6 +340,7 @@ try {
                 'mewtwo-private': 'mewtwo',
                 'event-details': 'kyogre',
                 'event-coin': 'team-rocket',
+                'zapdos-self': 'zapdos',
               }[scene],
               targetStage: ['mew-target', 'mewtwo-target'].includes(scene),
               privateStage: scene === 'mewtwo-private',
@@ -424,7 +432,38 @@ try {
             }));
           const boards = Array.from(main.querySelectorAll('.pokemon-board'))
             .filter(visible)
-            .map(rect);
+            .map((e) => {
+              const container = e.parentElement;
+              const style = getComputedStyle(container);
+              return {
+                ...rect(e),
+                containerWidth:
+                  container.clientWidth -
+                  parseFloat(style.paddingLeft) -
+                  parseFloat(style.paddingRight),
+              };
+            });
+          const progress = Array.from(
+            main.querySelectorAll('.decision-progress .progress-segment'),
+          )
+            .filter(visible)
+            .map((e) => {
+              const label = e.querySelector('.progress-label');
+              const glyphs = document.createRange();
+              glyphs.selectNodeContents(label);
+              return {
+                ...rect(e),
+                label: label.textContent.trim(),
+                font: parseFloat(getComputedStyle(label).fontSize),
+                textOverflow: getComputedStyle(e).textOverflow,
+                glyphs: Array.from(glyphs.getClientRects()).map((r) => ({
+                  x: r.x,
+                  y: r.y,
+                  right: r.right,
+                  bottom: r.bottom,
+                })),
+              };
+            });
           const boardCards = Array.from(
             main.querySelectorAll(
               '.game-seat .pokemon-board .pokemon-card, .ex-player .pokemon-board .pokemon-card',
@@ -543,6 +582,7 @@ try {
             main: rect(main),
             grids,
             boards,
+            progress,
             boardCards,
             cards,
             controls,
@@ -573,12 +613,145 @@ try {
         sha256: hash(bytes),
         bytes: bytes.length,
       });
+      if (item.entrance) {
+        if (item.variant === 'expansion')
+          assert.ok(
+            check.fixture.events.some(
+              (event) => event.effect?.entrance === 'zapdos',
+            ),
+            'Expansion fixture must save the legal Zapdos pass-direction entrance',
+          );
+        await page.emulateMedia({ reducedMotion: 'no-preference' });
+        await surface.evaluate(
+          ({ variant, settings }) =>
+            variant === 'original'
+              ? window.setPokemonFixture({ ...settings, animate: true })
+              : window.redesignShow({ ...settings, animate: true }),
+          { variant: item.variant, settings },
+        );
+        await surface.locator('.anime-entrance').waitFor({ state: 'visible' });
+        check.entranceGeometry = await surface
+          .locator('.anime-entrance')
+          .evaluate((e) => {
+            for (const animation of e.getAnimations({ subtree: true })) {
+              animation.pause();
+              const duration = animation.effect.getTiming().duration;
+              if (typeof duration === 'number')
+                animation.currentTime = duration * 0.45;
+            }
+            const rect = (element) => {
+              const r = element.getBoundingClientRect();
+              return {
+                x: r.x,
+                y: r.y,
+                width: r.width,
+                height: r.height,
+                right: r.right,
+                bottom: r.bottom,
+              };
+            };
+            const style = getComputedStyle(e);
+            return {
+              scene: e.dataset.scene,
+              viewport: { width: innerWidth, height: innerHeight },
+              surface: rect(e),
+              energy: rect(e.querySelector('.entrance-energy-field')),
+              banner: rect(e.querySelector('.anime-cut-in')),
+              safeTop: parseFloat(style.getPropertyValue('--entrance-top')),
+              safeHeight: parseFloat(
+                style.getPropertyValue('--entrance-height'),
+              ),
+              pointerEvents: style.pointerEvents,
+            };
+          });
+        const entrancePng = join(work, `${item.id}-effect.png`);
+        await captureBrowserScreenshot(page, { path: entrancePng });
+        const entranceBytes = await readFile(entrancePng);
+        report.screenshots.push({
+          id: `${item.id}-effect`,
+          path: relative(resolve('.'), entrancePng).replaceAll('\\', '/'),
+          sha256: hash(entranceBytes),
+          bytes: entranceBytes.length,
+        });
+        await page.emulateMedia({ reducedMotion: 'reduce' });
+        check.entranceReducedMotionHidden = !(await surface
+          .locator('.anime-entrance')
+          .isVisible());
+        await surface.evaluate(
+          ({ variant, settings }) =>
+            variant === 'original'
+              ? window.setPokemonFixture(settings)
+              : window.redesignShow(settings),
+          { variant: item.variant, settings },
+        );
+        check.entranceStaticSyncCount = await surface
+          .locator('.anime-entrance')
+          .count();
+      }
       if (phase === 'after') {
         const expect = (condition, reason) => {
           if (!condition) check.failures.push(reason);
         };
         const g = check.geometry;
         const contentHeight = g.viewport.height;
+        if (item.entrance) {
+          const effect = check.entranceGeometry;
+          expect(effect.scene === 'zapdos', 'Expected saved Zapdos entrance');
+          for (const [name, r] of [
+            ['surface', effect.surface],
+            ['energy', effect.energy],
+          ])
+            expect(
+              Math.abs(r.x) <= 1 &&
+                Math.abs(r.y) <= 1 &&
+                Math.abs(r.width - effect.viewport.width) <= 1 &&
+                Math.abs(r.height - effect.viewport.height) <= 1,
+              `Ability ${name} does not fill the complete viewport`,
+            );
+          expect(
+            effect.banner.y >= effect.safeTop - 1 &&
+              effect.banner.bottom <= effect.safeTop + effect.safeHeight + 1 &&
+              effect.banner.y >= 0 &&
+              effect.banner.bottom <= effect.viewport.height + 1,
+            'Character banner leaves its independent safe region',
+          );
+          expect(
+            effect.pointerEvents === 'none',
+            'Decorative entrance intercepts actions',
+          );
+          expect(
+            check.entranceReducedMotionHidden &&
+              check.entranceStaticSyncCount === 0,
+            'Reduced motion or static synchronization replays an entrance',
+          );
+        }
+        if (item.variant === 'original' && role === 'host') {
+          if (scene.startsWith('zapdos'))
+            expect(
+              g.progress.length === (item.seats ?? 6) &&
+                g.progress[0].label.endsWith('自己换入') &&
+                g.progress
+                  .at(-1)
+                  .label.endsWith(`传牌 ${(item.seats ?? 6) - 1}`),
+              'Legal Zapdos manager projection lost a relay step',
+            );
+          expect(
+            g.progress.every(
+              (step) =>
+                step.font >= 16 &&
+                step.textOverflow !== 'ellipsis' &&
+                step.glyphs.length > 0 &&
+                step.glyphs.every(
+                  (glyph) =>
+                    glyph.x >= step.x - 1 &&
+                    glyph.right <= step.right + 1 &&
+                    glyph.y >= step.y - 1 &&
+                    glyph.bottom <= step.bottom + 1,
+                ),
+            ),
+            'Manager progress glyphs are clipped or replaced by ellipsis',
+          );
+        }
         if (item.seats) {
           expect(g.boards.length === item.seats, 'Unexpected seat count');
         }
@@ -685,6 +858,20 @@ try {
             ),
             'Original player board artwork is squeezed below 32px or loses its contain fit',
           );
+        if (item.device === 'portrait-390') {
+          expect(
+            g.boards.every((r) => r.width >= r.containerWidth * 0.9),
+            'Portrait board uses less than 90% of its available container width',
+          );
+          if (scene === 'waiting')
+            expect(
+              g.boards.length > 0 &&
+                g.boards.every(
+                  (r) => r.y + r.height / 2 >= contentHeight / 2 - 1,
+                ),
+              'Waiting board remains concentrated above the viewport center',
+            );
+        }
         if (item.device !== 'below-minimum' && !item.belowMinimum)
           expect(
             g.targets.every(

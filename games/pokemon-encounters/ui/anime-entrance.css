@@ -55,10 +55,8 @@
 }
 .pokemon-screen .entrance-energy-field {
   position: absolute;
-  top: var(--entrance-top);
-  left: 0;
-  width: 100%;
-  height: var(--entrance-height);
+  /* Ambient energy fills the screen; only the character banner avoids UI. */
+  inset: 0;
   overflow: hidden;
 }
 .pokemon-screen .anime-entrance .scene-wash {

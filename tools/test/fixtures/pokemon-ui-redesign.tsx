@@ -331,7 +331,19 @@ function fixture(settings: Settings) {
     errorId: '',
     credential: role === 'player' ? 'fixture-owner' : null,
     motion: settings.animate === false ? [] : changed,
-    feedback: null,
+    feedback:
+      settings.animate === false
+        ? null
+        : {
+            instanceId: view.instanceId,
+            revision: view.revision,
+            branch: view.branch,
+            events: events.map(({ kind, text, action }) => ({
+              kind,
+              text,
+              ...(action ? { action } : {}),
+            })),
+          },
     command(command: { type: string; decisionId?: string; action?: Action }) {
       if (command.type !== 'game' || !command.action) return;
       if (command.decisionId !== decisionId(state, actor))
@@ -375,15 +387,30 @@ function fixture(settings: Settings) {
     join() {},
     retry() {},
   } as unknown as RoomSession;
-  return { session, state, game, events };
+  return { session, state, game, events, before };
 }
 let lastSettings: Settings = {};
 let mountedSerial = 0;
 function renderFixture(settings: Settings, remount: boolean) {
   lastSettings = settings;
-  const { session, game, events } = fixture(settings);
+  const { session, game, events, before } = fixture(settings);
   if (remount) mountedSerial++;
   document.body.className = '';
+  if (remount && settings.animate !== false) {
+    // A first synchronized snapshot is intentionally silent. Mount the legal
+    // pre-action projection, then deliver its saved rule result as one receipt.
+    const baseline = {
+      ...session,
+      view: { ...session.view!, gameView: before },
+      motion: [],
+      feedback: null,
+    } as RoomSession;
+    flushSync(() =>
+      root.render(
+        <PlatformGame key={mountedSerial} session={baseline} client={client} />,
+      ),
+    );
+  }
   flushSync(() =>
     root.render(
       <PlatformGame key={mountedSerial} session={session} client={client} />,
