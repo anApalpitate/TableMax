@@ -89,7 +89,15 @@ for (const variant of ['original', 'expansion']) {
   ])
     add('portrait-390', scene);
   for (const scene of ['draw', 'place', 'friends']) add('portrait-390', scene);
-  for (const scene of ['draw', 'place', 'friends', 'mew'])
+  for (const scene of [
+    'draw',
+    'place',
+    'friends',
+    'mew',
+    'initial',
+    'waiting',
+    'result',
+  ])
     add('landscape', scene);
   for (const scene of ['draw', 'place']) add('portrait-probe', scene);
   if (variant === 'expansion') {
@@ -694,6 +702,50 @@ try {
         };
         const g = check.geometry;
         const contentHeight = g.viewport.height;
+        if (
+          item.device === 'landscape' &&
+          scene === 'result' &&
+          item.variant === 'original'
+        ) {
+          const separated = await surface.evaluate(() => {
+            const board = document
+              .querySelector('.game-seat > .pokemon-board')
+              ?.getBoundingClientRect();
+            const score = document
+              .querySelector('.score-detail')
+              ?.getBoundingClientRect();
+            return board && score && score.top >= board.bottom;
+          });
+          expect(separated, 'Score detail overlaps desktop result field');
+        }
+        if (
+          item.device === 'landscape' &&
+          ['draw', 'place', 'waiting'].includes(scene)
+        ) {
+          expect(
+            g.boards.every(
+              (r) =>
+                r.width >= (item.variant === 'original' ? 600 : 440) &&
+                r.height >= 450,
+            ),
+            'Desktop field does not use its available space',
+          );
+          if (scene === 'place') {
+            const decision = await surface.evaluate(() => {
+              const source = document
+                .querySelector('.decision-dashboard, .ex-decision-context')
+                ?.getBoundingClientRect();
+              const footer = document
+                .querySelector('.player-action-bar, .ex-decision-footer')
+                ?.getBoundingClientRect();
+              return source && footer ? footer.top - source.bottom : null;
+            });
+            expect(
+              decision !== null && decision >= 0 && decision <= 100,
+              'Confirmation detached from current decision',
+            );
+          }
+        }
         if (item.entrance) {
           const effect = check.entranceGeometry;
           expect(effect.scene === 'zapdos', 'Expected saved Zapdos entrance');

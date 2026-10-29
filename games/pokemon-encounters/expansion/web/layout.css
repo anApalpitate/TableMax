@@ -1643,6 +1643,49 @@ main.expansion-screen:not(.player)[data-below-minimum='true'] .ex-table-layout {
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 6px;
 }
+
+/* Desktop decisions stay together; the nine-card field owns the right side. */
+.expansion-screen.player[data-layout='L'] .ex-private-peek {
+  max-width: 480px;
+  padding: 16px;
+}
+.expansion-screen.player[data-layout='L'] .ex-private-peek .pokemon-card {
+  width: 144px;
+  height: 200px;
+}
+.expansion-screen.player[data-layout='L'] .ex-heading-region {
+  grid-template-columns: 340px minmax(0, 1fr);
+}
+.expansion-screen.player[data-layout='L'] .ex-actions {
+  grid-template-columns: minmax(280px, 340px) minmax(0, 1fr);
+  grid-template-rows: auto auto minmax(0, 1fr);
+  gap: 12px 24px;
+  padding: 16px;
+}
+.expansion-screen.player[data-layout='L'] .ex-decision-footer {
+  align-self: start;
+  margin-top: 0;
+}
+.expansion-screen.player[data-layout='L']
+  :is(.ex-target-board, .ex-row-choice, .ex-private-peek) {
+  grid-row: 1 / -1;
+  align-self: center;
+  justify-self: center;
+  width: 100%;
+}
+.expansion-screen.player[data-layout='L'] .ex-actions .pokemon-board {
+  width: min(100%, 480px);
+  max-width: none;
+  height: min(550px, calc(var(--pokemon-net-height, 720px) - 170px));
+  margin-inline: auto;
+}
+.expansion-screen.player[data-layout='L']
+  .ex-actions.ex-observing
+  > .pokemon-board {
+  grid-row: 1 / -1;
+  align-self: center;
+  justify-self: center;
+}
 main.expansion-screen.player[data-layout='L'][data-below-minimum='true']
   .ex-table-layout {
   flex: none;

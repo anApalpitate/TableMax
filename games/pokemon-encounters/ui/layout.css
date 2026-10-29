@@ -1552,3 +1552,35 @@
     --pile-height: 134px;
   }
 }
+
+/* Desktop players: keep the decision together beside a generous field. */
+.pokemon-screen.player[data-layout='L'] .game-toolbar {
+  justify-content: flex-start;
+  gap: 10px;
+}
+.pokemon-screen.player[data-layout='L'] .toolbar-menu {
+  margin-left: auto;
+}
+.pokemon-screen.player[data-layout='L'] .game-table[data-seats][data-layout] {
+  grid-template-columns: minmax(280px, 340px) minmax(0, 1fr);
+  grid-template-rows: auto auto auto auto minmax(0, 1fr);
+  gap: 12px 24px;
+  padding: 16px;
+}
+.pokemon-screen.player[data-layout='L'] .player-action-bar {
+  align-self: start;
+}
+.pokemon-screen.player[data-layout='L'] .pokemon-player > .pokemon-board,
+.pokemon-screen.player[data-layout='L'] .game-seat > .pokemon-board,
+.pokemon-screen.player[data-layout='L'] .target-board {
+  width: min(100%, 660px);
+  max-width: none;
+  height: min(520px, calc(var(--pokemon-net-height, 720px) - 140px));
+}
+.pokemon-screen.player[data-layout='L']
+  .result-table
+  .game-seat
+  > .pokemon-board {
+  grid-row: 1 / 4;
+  height: min(480px, calc(var(--pokemon-net-height, 720px) - 180px));
+}
