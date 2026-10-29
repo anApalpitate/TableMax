@@ -16,6 +16,7 @@ const task = option('task');
 const evidence = option('evidence');
 const phase = option('phase') ?? 'after';
 const only = option('only')?.split(',');
+const cinematicCapture = option('cinematic-capture') === 'true';
 assert.match(task ?? '', /^tmp\/[a-z0-9][a-z0-9-]{1,90}$/);
 assert.match(evidence ?? '', /^[a-z0-9][a-z0-9-]{1,70}$/);
 assert(['before', 'after'].includes(phase));
@@ -40,6 +41,7 @@ const report = {
   ],
   checks: [],
   screenshots: [],
+  videos: [],
   errors: [],
   inputs: [],
   verifier: {
@@ -67,6 +69,23 @@ for (const variant of ['original', 'expansion']) {
   add('host-4k', 'draw');
   for (const device of ['host-1280', 'portrait-390', 'landscape'])
     add(device, 'zapdos-entrance', { scene: 'zapdos-self', entrance: true });
+  if (variant === 'expansion') {
+    for (const creature of [
+      'mewtwo',
+      'mew',
+      'arceus',
+      'groudon',
+      'kyogre',
+      'rayquaza',
+      'greninja',
+      'team-rocket',
+    ])
+      add('landscape', `${creature}-entrance`, {
+        scene: 'cinematic',
+        creature,
+        entrance: true,
+      });
+  }
   if (variant === 'original') {
     add('host-1280', 'zapdos-self');
     add('host-1920', 'zapdos-receive');
@@ -248,6 +267,9 @@ try {
       deviceScaleFactor: item.device === 'host-4k' ? 2 : 1,
       isMobile: false,
       hasTouch: !item.device.startsWith('host'),
+      ...(cinematicCapture && item.entrance
+        ? { recordVideo: { dir: work, size: { width, height } } }
+        : {}),
     });
     const page = await context.newPage();
     let surface = page;
@@ -315,6 +337,7 @@ try {
                   : scene === 'result'
                     ? 'result'
                     : [
+                          'cinematic',
                           'place',
                           'peek',
                           'mew',
@@ -343,19 +366,21 @@ try {
               ].includes(scene)
                 ? '6'
                 : undefined,
-              creature: {
-                peek: 'charizard',
-                mew: 'mew',
-                rocket: 'team-rocket',
-                lucario: 'lucario',
-                weather: 'kyogre',
-                'mew-target': 'mew',
-                'mewtwo-target': 'mewtwo',
-                'mewtwo-private': 'mewtwo',
-                'event-details': 'kyogre',
-                'event-coin': 'team-rocket',
-                'zapdos-self': 'zapdos',
-              }[scene],
+              creature:
+                item.creature ??
+                {
+                  peek: 'charizard',
+                  mew: 'mew',
+                  rocket: 'team-rocket',
+                  lucario: 'lucario',
+                  weather: 'kyogre',
+                  'mew-target': 'mew',
+                  'mewtwo-target': 'mewtwo',
+                  'mewtwo-private': 'mewtwo',
+                  'event-details': 'kyogre',
+                  'event-coin': 'team-rocket',
+                  'zapdos-self': 'zapdos',
+                }[scene],
               targetStage: ['mew-target', 'mewtwo-target'].includes(scene),
               privateStage: scene === 'mewtwo-private',
               event: ['weather', 'event-details', 'event-coin'].includes(scene)
@@ -382,6 +407,9 @@ try {
         Array.from(document.images).every(
           (i) => i.complete && i.naturalWidth > 0,
         ),
+      );
+      await surface.evaluate(() =>
+        Promise.all(Array.from(document.images, (image) => image.decode())),
       );
       await surface.evaluate(
         () =>
@@ -637,9 +665,9 @@ try {
         if (item.variant === 'expansion')
           assert.ok(
             check.fixture.events.some(
-              (event) => event.effect?.entrance === 'zapdos',
+              (event) => event.effect?.entrance === (item.creature ?? 'zapdos'),
             ),
-            'Expansion fixture must save the legal Zapdos pass-direction entrance',
+            'Expansion fixture must save the requested legal ability entrance',
           );
         await page.emulateMedia({ reducedMotion: 'no-preference' });
         await surface.evaluate(
@@ -808,7 +836,10 @@ try {
         }
         if (item.entrance) {
           const effect = check.entranceGeometry;
-          expect(effect.scene === 'zapdos', 'Expected saved Zapdos entrance');
+          expect(
+            effect.scene === (item.creature ?? 'zapdos'),
+            'Expected requested saved ability entrance',
+          );
           if (item.device === 'landscape') {
             expect(
               effect.banner.height >= effect.viewport.height * 0.3,
@@ -1356,6 +1387,18 @@ try {
           );
           expect(count === 1, 'Expected one legal confirmed command');
         }
+        if (cinematicCapture && item.entrance && item.variant === 'expansion') {
+          // A second fresh saved transaction plays at real speed for video review.
+          // No CSS seeking, synthetic poses or rendering replacement in this run.
+          await page.emulateMedia({ reducedMotion: 'no-preference' });
+          await surface.evaluate(
+            (settings) => window.redesignShow({ ...settings, animate: true }),
+            settings,
+          );
+          await surface.locator('.ex-cinematic').waitFor({ state: 'visible' });
+          await surface.locator('.ex-cinematic').waitFor({ state: 'detached' });
+          check.liveCinematicCompleted = true;
+        }
         check.result = check.failures.length ? 'failed' : 'passed';
       } else check.result = 'observed';
     } catch (error) {
@@ -1368,6 +1411,18 @@ try {
       `${check.result} ${item.id}${check.failures.length ? ': ' + check.failures.join('; ').slice(0, 900) : ''}`,
     );
     await context.close();
+    if (cinematicCapture && item.entrance) {
+      const path = join(work, `${item.id}-live.webm`);
+      await page.video().saveAs(path);
+      await page.video().delete();
+      const bytes = await readFile(path);
+      report.videos.push({
+        id: item.id,
+        path: relative(resolve('.'), path).replaceAll('\\', '/'),
+        bytes: bytes.length,
+        sha256: hash(bytes),
+      });
+    }
   }
   report.result = failed || report.errors.length ? 'failed' : 'passed';
 } catch (error) {

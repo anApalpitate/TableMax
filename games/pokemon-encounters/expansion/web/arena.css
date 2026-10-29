@@ -1,0 +1,508 @@
+/* Expansion's arena skin. Geometry stays in layout.css; cards keep their art,
+   physical proportions and projected information. The original game is untouched. */
+main.expansion-screen {
+  --ex-ink: #e8f4ff;
+  --ex-green: #65e8e3;
+  --ex-gold: #ffe17d;
+  color: #e8f4ff;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+}
+main.expansion-screen::before {
+  background:
+    radial-gradient(ellipse at 27% 15%, #183d55 0, transparent 55%),
+    linear-gradient(125deg, #07131f, #101a2a 55%, #07111c);
+}
+.ex-arena-atmosphere {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  pointer-events: none;
+}
+.ex-arena-orbit {
+  position: absolute;
+  inset: 12% 10% -42%;
+  border: 1px solid #6fd6e41f;
+  border-radius: 50%;
+  transform: rotateX(55deg);
+  box-shadow:
+    0 0 0 36px #6fd6e405,
+    0 0 0 37px #6fd6e414,
+    0 0 0 120px #6fd6e404,
+    0 0 0 121px #6fd6e40f;
+}
+.ex-arena-atmosphere i {
+  position: absolute;
+  left: var(--particle-x);
+  top: var(--particle-y);
+  width: 3px;
+  height: 3px;
+  background: #9cefff;
+  box-shadow: 0 0 8px #6ae4ff;
+  opacity: 0.24;
+  animation: ex-arena-drift var(--particle-duration) var(--particle-delay)
+    linear infinite;
+}
+@keyframes ex-arena-drift {
+  from {
+    transform: translate(0, 60px);
+    opacity: 0;
+  }
+  25%,
+  70% {
+    opacity: 0.32;
+  }
+  to {
+    transform: translate(45px, -100px);
+    opacity: 0;
+  }
+}
+main.expansion-screen .ex-environment-wallpaper {
+  opacity: 0.22;
+  background-image:
+    linear-gradient(#06132566, #061325d9),
+    var(--event-wallpaper, var(--event-paper));
+}
+main.expansion-screen .ex-environment-drift {
+  opacity: 0.07;
+}
+main.expansion-screen :is(button, .secondary) {
+  border-radius: 8px;
+}
+main.expansion-screen button {
+  color: #091c2a;
+  background: #75e5e5;
+  border-color: #93f0ec;
+  box-shadow: 0 2px 0 #0b3c49;
+}
+main.expansion-screen :is(button.secondary, .secondary, .ex-toolbar button) {
+  color: #e3f5ff;
+  background: #132c3e;
+  border-color: #3d6175;
+  box-shadow: none;
+}
+main.expansion-screen button:disabled {
+  opacity: 0.55;
+}
+main.expansion-screen button:focus-visible {
+  outline: 3px solid #fff09b;
+  outline-offset: 3px;
+}
+main.expansion-screen .ex-toolbar h1 {
+  color: #e9f6ff;
+  letter-spacing: 0.03em;
+}
+main.expansion-screen .ex-toolbar h1 span {
+  border-radius: 3px;
+  background: #ffe180;
+  color: #162131;
+}
+main.expansion-screen .ex-toolbar {
+  border-bottom: 1px solid #6291a84d;
+}
+main.expansion-screen :is(.ex-round-banner, .desktop-action-heading) {
+  color: #f1fbff;
+  background: linear-gradient(110deg, #194c60, #142b41);
+  border-radius: 6px;
+  box-shadow: inset 3px 0 #79ece7;
+}
+main.expansion-screen.player[data-layout='L'] .desktop-action-heading {
+  background: linear-gradient(110deg, #194c60, #142b41);
+  border-radius: 6px;
+}
+main.expansion-screen
+  :is(
+    .ex-player,
+    .ex-supply,
+    .ex-actions,
+    .ex-research-vote,
+    .ex-research-panel
+  ) {
+  color: #e8f4ff;
+  background: #112333eb;
+  border: 1px solid #416277;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px #01071140;
+}
+main.expansion-screen .ex-player.active {
+  border-color: #ffe17d;
+  box-shadow:
+    inset 0 3px #ffe17d,
+    0 0 18px #ffcf4520;
+  background: linear-gradient(145deg, #233849, #112333);
+}
+main.expansion-screen .ex-player header {
+  color: #e8f4ff;
+}
+main.expansion-screen
+  :is(
+    .ex-player .ex-player-name,
+    .ex-wait,
+    .ex-hint,
+    .ex-source-count,
+    .ex-source-label,
+    .ex-held-summary,
+    .ex-held-label
+  ) {
+  color: #c8e0ed;
+}
+main.expansion-screen
+  :is(
+    .ex-public-held,
+    .ex-last-action,
+    .ex-held,
+    .ex-private-peek,
+    .ex-event-status,
+    .ex-bond-status
+  ) {
+  color: #e8f4ff;
+  background: #173347;
+  border-color: #547b90;
+  border-radius: 8px;
+}
+main.expansion-screen .ex-last-action {
+  border-left: 3px solid #e9c66d;
+}
+main.expansion-screen .ex-empty-pile {
+  color: #c3dce9;
+  background: #102433;
+  border-color: #4d7187;
+}
+main.expansion-screen .ex-score {
+  color: #f0f9ff;
+  background: #203e50;
+}
+main.expansion-screen .ex-connection.online {
+  color: #7cebc6;
+}
+main.expansion-screen .ex-progress {
+  color: #d2e7f3;
+}
+main.expansion-screen .ex-progress .current {
+  color: #ffe17d;
+  border-color: #ffe17d;
+}
+main.expansion-screen .ex-stepper > * {
+  color: #c7e5f5;
+  border-color: #496779;
+}
+main.expansion-screen .ex-stepper .active {
+  color: #ffe17d;
+  border-color: #ffe17d;
+}
+main.expansion-screen.player[data-layout='L'] .ex-actions {
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+}
+main.expansion-screen.player[data-layout='L'] .player-decision-workbench {
+  color: #e8f4ff;
+  background: linear-gradient(145deg, #1a3448f5, #0d2033f5);
+  border: 1px solid #638697;
+  border-top: 3px solid #81e5e4;
+  border-radius: 12px;
+  box-shadow: 0 15px 45px #02081580;
+}
+main.expansion-screen.player[data-layout='L'] .workbench-actions {
+  border-color: #416277;
+}
+main.expansion-screen.player[data-layout='L'] .ex-held {
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+}
+main.expansion-screen.player[data-layout] .ex-draw-options .ex-source {
+  color: #e5f3ff;
+  background: linear-gradient(145deg, #214359, #152f43);
+  border: 2px solid #6b95a9;
+  border-radius: 8px;
+  box-shadow: inset 0 1px #ffffff15;
+}
+main.expansion-screen.player[data-layout] .ex-draw-options .ex-source:hover {
+  background: #28536a;
+  border-color: #9aeee9;
+}
+main.expansion-screen.player[data-layout] .ex-draw-options .ex-source:disabled {
+  background: #142a39;
+}
+main.expansion-screen :is(button.selected, button[aria-pressed='true']) {
+  color: #172434;
+  background: #ffe18b;
+  border-color: #fff3b5;
+}
+main.expansion-screen.player .ex-held details[open] p {
+  background: #153449;
+  color: #edf8ff;
+  border-color: #75c8d5;
+}
+main.expansion-screen
+  :is(.ex-sheet, .ex-sheet-panel, .ex-dialog, .ex-victory, .ex-help-panel) {
+  color: #e9f4ff;
+  background: #122b3e;
+  border-color: #678a9e;
+}
+main.expansion-screen .ex-event-panel {
+  color: #e9f4ff;
+  background: #163146;
+}
+main.expansion-screen .ex-research-card {
+  color: #e9f4ff;
+  background: #173348;
+  border-color: #527b93;
+}
+main.expansion-screen .ex-research-card :is(h3, p) {
+  color: inherit;
+}
+/* Card labels remain dark on their pale physical faces, including disabled cards. */
+main.expansion-screen .pokemon-card {
+  color: #17232c;
+}
+main.expansion-screen .card-slot {
+  background: transparent;
+  box-shadow: none;
+}
+main.expansion-screen .pokemon-card .card-index {
+  color: #e7faff;
+  background: #1c5267;
+}
+@media (orientation: portrait) {
+  main.expansion-screen.player .ex-actions {
+    background: #102537d9;
+    border-color: #45687c;
+    box-shadow: none;
+  }
+  .ex-arena-atmosphere i:nth-of-type(n + 9) {
+    display: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ex-arena-atmosphere i {
+    display: none;
+  }
+}
+
+main.expansion-screen .ex-toolbar h1 {
+  background: transparent;
+}
+main.expansion-screen
+  :is(
+    .ex-target-heading,
+    .ex-buffer-label,
+    .ex-buffer-empty,
+    .ex-supply-heading > span,
+    .ex-public-held > div > span,
+    .ex-last-action > span,
+    .ex-vote-status
+  ) {
+  color: #bcd7e7;
+}
+main.expansion-screen.player[data-layout='L'] .desktop-draw-prompt {
+  color: #c3e1ef;
+}
+main.expansion-screen.player[data-layout='L'] .ex-wait {
+  background: #194257;
+  color: #ecf9ff;
+  border-radius: 6px;
+}
+main.expansion-screen .ex-buffer-card {
+  color: #dceefa;
+  background: #152f43;
+  border-color: #66899e;
+}
+main.expansion-screen .ex-research-summary {
+  color: #e5f2ff;
+  background: #1b394d;
+  border-color: #5d8598;
+  box-shadow: none;
+}
+main.expansion-screen .ex-research-risk {
+  color: #ffc594;
+}
+main.expansion-screen .ex-vote {
+  color: #e8f4ff;
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+}
+main.expansion-screen .ex-mission-option {
+  color: #e5f4ff;
+  background: #153046;
+  border: 1px solid #65879c;
+  border-radius: 10px;
+  box-shadow: 0 8px 22px #020a1838;
+  overflow: hidden;
+}
+main.expansion-screen .ex-mission-option.selected {
+  border-color: #ffe17d;
+  box-shadow: inset 0 0 0 2px #ffe17d;
+}
+main.expansion-screen.player .ex-vote-choice {
+  background: #1c3c53;
+  color: #eaf7ff;
+  border-color: transparent;
+  box-shadow: none;
+  text-align: left;
+}
+main.expansion-screen.player .ex-vote-choice:disabled {
+  opacity: 1;
+  background: #183042;
+}
+main.expansion-screen.player .selected .ex-vote-choice {
+  background: #334b4a;
+}
+main.expansion-screen.player .ex-research-details {
+  background: #142d40;
+  color: #b9ebf5;
+  border-color: #537489;
+  border-radius: 6px;
+}
+main.expansion-screen.player[data-layout='L'] .ex-vote {
+  justify-content: center;
+  gap: 24px;
+}
+main.expansion-screen.player[data-layout='L'] .ex-vote-options {
+  align-items: stretch;
+  width: 100%;
+}
+main.expansion-screen.player[data-layout='L'] .ex-vote .ex-mission-option {
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+}
+main.expansion-screen.player[data-layout='L'] .ex-vote-choice {
+  position: relative;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+  gap: 0;
+}
+main.expansion-screen.player[data-layout='L'] .ex-vote-choice .ex-research-art {
+  display: block;
+  flex: none;
+  width: 100%;
+  height: clamp(160px, 28vh, 300px);
+  margin: 0;
+  border: 0;
+  border-radius: 0;
+}
+main.expansion-screen.player[data-layout='L'] .ex-vote-choice .ex-vote-mark {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+}
+main.expansion-screen.player[data-layout='L'] .ex-vote-copy {
+  width: 100%;
+  padding: 20px;
+  gap: 10px;
+}
+main.expansion-screen.player[data-layout='L'] .ex-vote-copy strong {
+  font-size: 22px;
+  line-height: 28px;
+}
+main.expansion-screen.player[data-layout='L'] .ex-vote .ex-research-details {
+  padding-inline: 20px;
+  border-radius: 0;
+}
+main.expansion-screen.player[data-layout='P'][data-phase='place']
+  .ex-decision-context {
+  /* Draw context is 185px; target heading plus gap uses the remaining 20px. */
+  min-height: 165px;
+}
+main.expansion-screen.player[data-layout='L']
+  .ex-buffer-source
+  .ex-source-face
+  > span {
+  color: #bbd5e5;
+}
+main.expansion-screen .ex-research-missing {
+  display: grid;
+  place-items: center;
+  height: 100%;
+  color: #c7dbe8;
+  font-size: 18px;
+}
+main.expansion-screen .ex-event-status details[open] > p {
+  background: #17364c;
+  color: #e5f4ff;
+  border-color: #6895a9;
+}
+main.expansion-screen .ex-score :is(span, strong, b) {
+  color: #e5f4ff;
+}
+main.expansion-screen.player[data-layout='L']
+  .ex-actions.ex-observing
+  .player-field
+  > .pokemon-board {
+  height: min(550px, calc(var(--pokemon-net-height, 720px) - 170px));
+  flex: none;
+}
+main.expansion-screen.player[data-layout='L']:has(.ex-victory)
+  .ex-table-layout {
+  display: flex;
+  justify-content: center;
+}
+main.expansion-screen.player[data-layout='L']:has(.ex-victory) .ex-players {
+  display: flex;
+  width: min(760px, 100%);
+  margin-inline: auto;
+}
+main.expansion-screen.player[data-layout='L']:has(.ex-victory) .ex-player {
+  width: 100%;
+  max-width: none;
+}
+main.expansion-screen.player[data-layout='L']:has(.ex-victory)
+  .ex-player
+  .pokemon-board {
+  width: min(600px, 100%);
+  height: 100%;
+  max-height: none;
+  margin-inline: auto;
+}
+.expansion-screen.ex-friends,
+.expansion-screen.ex-research-detail {
+  --ex-ink: #e8f4ff;
+  color: #e8f4ff;
+  background: #112839;
+}
+.expansion-screen.ex-friends .ex-player {
+  color: #e8f4ff;
+  background: #193447;
+  border-color: #5f8094;
+  border-radius: 10px;
+  box-shadow: none;
+}
+.expansion-screen.ex-friends .pokemon-card {
+  color: #17362f;
+}
+.expansion-screen.ex-research-detail .ex-research-card {
+  color: #e8f4ff;
+  background: #193447;
+  border-color: #5f8094;
+}
+dialog:has(.expansion-screen) {
+  background: #102839;
+  color: #e8f4ff;
+  border-color: #64879c;
+}
+dialog:has(.expansion-screen) > header {
+  background: #163246;
+  color: #e8f4ff;
+}
+dialog:has(.expansion-screen) .secondary {
+  color: #e8f4ff;
+  background: #23465d;
+  border-color: #7293a6;
+}
+@media (max-height: 850px) {
+  main.expansion-screen:not(.player):not([data-players='6'])
+    .ex-supply
+    .ex-research-art {
+    height: 84px;
+    min-height: 0;
+    aspect-ratio: auto;
+    margin: 0;
+  }
+}

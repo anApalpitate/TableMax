@@ -46,7 +46,10 @@ export function ResearchPicture({
           decoding="async"
         />
       )}
-      {(!latest || !source) && (
+      {latest && !source && (
+        <span className="ex-research-missing">主题插画待补</span>
+      )}
+      {!latest && (
         <span className="ex-research-subjects" aria-hidden="true">
           {presentation.subjects.map((categoryId, index, subjects) => {
             const bounds = portraitBoundsFor(categoryId);

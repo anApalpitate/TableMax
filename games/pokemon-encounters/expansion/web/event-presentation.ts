@@ -45,6 +45,24 @@ export function faceEffectText(face: Face) {
 // Explicit runtime-only allowlist: source originals and audit metadata stay local.
 const files = import.meta.glob<string>(
   [
+    '../../../../assets/games/pokemon-encounters/expansion/cinematic/research-R01.webp',
+    '../../../../assets/games/pokemon-encounters/expansion/cinematic/research-R06.webp',
+    '../../../../assets/games/pokemon-encounters/expansion/cinematic/research-R08.webp',
+    '../../../../assets/games/pokemon-encounters/expansion/cinematic/research-R11.webp',
+    '../../../../assets/games/pokemon-encounters/expansion/cinematic/research-R14.webp',
+    '../../../../assets/games/pokemon-encounters/expansion/cinematic/research-R15.webp',
+    '../../../../assets/games/pokemon-encounters/expansion/cinematic/research-R16.webp',
+    '../../../../assets/games/pokemon-encounters/expansion/cinematic/research-R17.webp',
+    '../../../../assets/games/pokemon-encounters/expansion/cinematic/research-R19.webp',
+    '../../../../assets/games/pokemon-encounters/expansion/cinematic/research-R23.webp',
+    '../../../../assets/games/pokemon-encounters/expansion/cinematic/event-rain.webp',
+    '../../../../assets/games/pokemon-encounters/expansion/cinematic/event-sun.webp',
+    '../../../../assets/games/pokemon-encounters/expansion/cinematic/research-R02.webp',
+    '../../../../assets/games/pokemon-encounters/expansion/cinematic/research-R03.webp',
+    '../../../../assets/games/pokemon-encounters/expansion/cinematic/research-R13.webp',
+    '../../../../assets/games/pokemon-encounters/expansion/cinematic/research-R18.webp',
+    '../../../../assets/games/pokemon-encounters/expansion/cinematic/research-R22.webp',
+    '../../../../assets/games/pokemon-encounters/expansion/cinematic/research-R24.webp',
     '../../../../assets/games/pokemon-encounters/expansion/events/runtime/event-rain.webp',
     '../../../../assets/games/pokemon-encounters/expansion/events/runtime/event-sandstorm.webp',
     '../../../../assets/games/pokemon-encounters/expansion/events/runtime/event-sun.webp',
@@ -64,7 +82,12 @@ const files = import.meta.glob<string>(
   { eager: true, query: '?url', import: 'default' },
 );
 export function runtimePicture(name: string) {
-  return files[
-    `../../../../assets/games/pokemon-encounters/expansion/events/runtime/${name}.webp`
-  ];
+  return (
+    files[
+      `../../../../assets/games/pokemon-encounters/expansion/cinematic/${name}.webp`
+    ] ??
+    files[
+      `../../../../assets/games/pokemon-encounters/expansion/events/runtime/${name}.webp`
+    ]
+  );
 }

@@ -61,6 +61,8 @@ import {
 } from './PresentationContext';
 import './legacy.css';
 import './layout.css';
+import './arena.css';
+import { ArenaAtmosphere } from './ArenaAtmosphere';
 
 const poseDurations = Object.fromEntries(
   Object.entries(poseSequences).map(([id, sequence]) => [
@@ -632,6 +634,12 @@ function Actions({
                 }
                 onClick={() => choose({ type: 'vote-research', taskId: t.id })}
               >
+                {landscape && (
+                  <ResearchPicture
+                    id={t.id}
+                    profile={game.rulesProfile ?? 'research-buffer-v2'}
+                  />
+                )}
                 <CircularBadge
                   className="ex-vote-mark"
                   value={game.ownVote === t.id ? '✓' : i + 1}
@@ -1518,6 +1526,7 @@ function ScreenBody({ session, game }: { session: GameHost; game: View }) {
       data-play-mode={session.view?.playMode}
       data-rules-profile={profile}
     >
+      <ArenaAtmosphere />
       <EventEnvironment game={game} />
       <div className="ex-heading-region">
         <header className="ex-toolbar">

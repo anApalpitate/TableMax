@@ -1,0 +1,305 @@
+/* A single saved clock: pressure → rupture → close-up hold → directional exit.
+   The portal keeps the full viewport independent of board transforms/clipping. */
+.ex-cinematic.anime-entrance {
+  all: initial;
+  position: fixed;
+  inset: 0;
+  z-index: 180;
+  overflow: hidden;
+  pointer-events: none;
+  font-family: system-ui, sans-serif;
+  --entrance-top: 56px;
+  --entrance-height: calc(100dvh - 64px);
+  --cinematic-accent: #ffe52c;
+  animation: ex-cinema-life var(--cinematic-ms) linear both;
+}
+.ex-cinematic *,
+.ex-cinematic *::before,
+.ex-cinematic *::after {
+  box-sizing: border-box;
+}
+.ex-cinematic::before,
+.ex-cinematic::after,
+.ex-cinematic .ex-brush-stage::before,
+.ex-cinematic .ex-brush-stage::after {
+  display: none;
+}
+.ex-cinematic .ex-cinematic-energy {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+.ex-cinematic .ex-pressure-wash {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at 35% 45%, #06142499, #02050bea 75%);
+  animation: ex-pressure var(--cinematic-ms) both;
+}
+.ex-cinematic .ex-impact-lines {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  fill: var(--cinematic-accent);
+  opacity: 0.5;
+  animation: ex-rush var(--cinematic-ms) cubic-bezier(0.16, 0.8, 0.2, 1) both;
+}
+.ex-cinematic .ex-brush-stage {
+  all: initial;
+  position: absolute;
+  top: calc(var(--entrance-top) + var(--entrance-height) * 0.5);
+  left: -5%;
+  width: 110%;
+  height: min(52dvh, 600px);
+  transform: translateY(-50%);
+  pointer-events: none;
+  font-family: inherit;
+}
+.ex-cinematic .ex-brush-rim,
+.ex-cinematic .ex-brush-aperture {
+  position: absolute;
+  inset: 0;
+  mask: url('../../../../assets/games/pokemon-encounters/expansion/cinematic/brush-mask.webp')
+    center / 100% 100% no-repeat;
+  animation: ex-rip var(--cinematic-ms) cubic-bezier(0.16, 0.8, 0.2, 1) both;
+}
+.ex-cinematic .ex-brush-rim {
+  background: var(--cinematic-accent);
+  transform: scaleY(1.1);
+}
+.ex-cinematic .ex-brush-aperture {
+  background: #090e17;
+}
+.ex-cinematic .ex-halftone {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(#10172388 1px, transparent 1.5px) 0 0 / 7px 7px,
+    linear-gradient(104deg, var(--cinematic-accent) 0 52%, #101521 52.2%);
+}
+.ex-cinematic .ex-motif-mark {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  stroke: var(--cinematic-accent);
+  stroke-width: 13;
+  fill: none;
+  opacity: 0.55;
+}
+.ex-cinematic .ex-closeup-camera {
+  position: absolute;
+  left: 8%;
+  top: 0;
+  width: 53%;
+  height: 100%;
+  transform-origin: var(--portrait-focus);
+  animation: ex-camera var(--cinematic-ms) cubic-bezier(0.12, 0.85, 0.2, 1) both;
+  mix-blend-mode: multiply;
+}
+.ex-cinematic .ex-closeup {
+  width: 100%;
+  height: 100%;
+  filter: grayscale(0.35) contrast(1.35);
+}
+.ex-cinematic .ex-ink-speed {
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    174deg,
+    transparent 0 30px,
+    #07111b 31px 33px,
+    transparent 34px 67px
+  );
+  opacity: 0.24;
+  mask-image: linear-gradient(90deg, #000, transparent 28% 55%, #000);
+  animation: ex-speed var(--cinematic-ms) linear both;
+}
+.ex-cinematic .ex-cinematic-caption {
+  position: absolute;
+  top: 37%;
+  left: 58%;
+  right: 8%;
+  color: white;
+  transform: rotate(-5deg);
+  animation: ex-caption var(--cinematic-ms) both;
+  text-shadow: 3px 3px 0 #04070e;
+}
+.ex-cinematic .ex-cinematic-caption strong {
+  display: block;
+  font-size: clamp(36px, 5vw, 88px);
+  font-weight: 1000;
+  font-style: italic;
+  line-height: 1.05;
+  color: var(--cinematic-accent);
+  -webkit-text-stroke: 1px #090e17;
+}
+.ex-cinematic .ex-cinematic-caption span {
+  display: block;
+  font-size: clamp(18px, 1.8vw, 28px);
+  font-weight: 800;
+  line-height: 1.4;
+  margin-top: 14px;
+  max-width: 30em;
+}
+.ex-cinematic .ex-rocket-insignia {
+  position: absolute;
+  right: 5%;
+  top: 10%;
+  color: #f33e64;
+  font: italic 900 260px/1 system-ui;
+  opacity: 0.25;
+}
+.ex-cinematic-local .ex-cinematic-energy {
+  display: none;
+}
+.ex-cinematic-local .ex-brush-stage {
+  left: 14%;
+  width: 72%;
+  height: min(36dvh, 330px);
+}
+.ex-cinematic-local .ex-cinematic-caption strong {
+  font-size: clamp(30px, 4vw, 64px);
+}
+.ex-cinematic-local .ex-cinematic-caption span {
+  font-size: 18px;
+}
+@keyframes ex-cinema-life {
+  0%,
+  100% {
+    opacity: 0;
+  }
+  5%,
+  88% {
+    opacity: 1;
+  }
+}
+@keyframes ex-pressure {
+  0% {
+    opacity: 0;
+  }
+  10%,
+  82% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+@keyframes ex-rip {
+  0%,
+  7% {
+    translate: -110% 0;
+    opacity: 0;
+  }
+  17% {
+    translate: -18% 0;
+    opacity: 1;
+  }
+  27%,
+  83% {
+    translate: 0 0;
+    opacity: 1;
+  }
+  100% {
+    translate: 110% 0;
+    opacity: 0;
+  }
+}
+@keyframes ex-camera {
+  0%,
+  14% {
+    transform: translateX(-25%) scale(1.65);
+  }
+  31% {
+    transform: translateX(0) scale(1.15);
+  }
+  79% {
+    transform: translateX(2%) scale(1.2);
+  }
+  100% {
+    transform: translateX(40%) scale(1.27);
+  }
+}
+@keyframes ex-rush {
+  0%,
+  10% {
+    transform: translateX(-60%);
+    opacity: 0;
+  }
+  23% {
+    opacity: 0.75;
+  }
+  65% {
+    opacity: 0.3;
+  }
+  100% {
+    transform: translateX(28%);
+    opacity: 0;
+  }
+}
+@keyframes ex-caption {
+  0%,
+  23% {
+    opacity: 0;
+    translate: 60px 0;
+  }
+  34%,
+  82% {
+    opacity: 1;
+    translate: 0 0;
+  }
+  100% {
+    opacity: 0;
+    translate: 120px -12px;
+  }
+}
+@keyframes ex-speed {
+  from {
+    transform: translateX(-10%);
+  }
+  to {
+    transform: translateX(12%);
+  }
+}
+@media (orientation: portrait) {
+  .ex-cinematic .ex-brush-stage {
+    height: 48dvh;
+    width: 145%;
+    left: -22.5%;
+  }
+  .ex-cinematic .ex-closeup-camera {
+    left: 12%;
+    top: 0;
+    width: 76%;
+    height: 100%;
+  }
+  .ex-cinematic .ex-halftone {
+    background:
+      radial-gradient(#10172388 1px, transparent 1.5px) 0 0 / 7px 7px,
+      var(--cinematic-accent);
+  }
+  .ex-cinematic .ex-cinematic-caption {
+    top: 68%;
+    left: 23%;
+    right: 18%;
+    padding: 8px 12px;
+    background: #090e17ed;
+  }
+  .ex-cinematic .ex-cinematic-caption strong {
+    font-size: 36px;
+  }
+  .ex-cinematic .ex-cinematic-caption span {
+    margin-top: 4px;
+    font-size: 18px;
+  }
+  .ex-cinematic-local .ex-brush-stage {
+    height: 36dvh;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ex-cinematic.anime-entrance {
+    display: none;
+  }
+}

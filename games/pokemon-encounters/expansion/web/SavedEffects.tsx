@@ -1,70 +1,20 @@
-import { useEffect, useRef, useState, type CSSProperties } from 'react';
+import { useEffect, useRef, type CSSProperties } from 'react';
 import type { GameHost } from '@tablemax/web-host';
 import {
   categoriesForProfile,
   abilityTextForProfile,
   categoryPresentation,
 } from '../cards';
-import { AbilityEntrance } from '../../ui/AbilityEntrance';
+import { CinematicEntrance } from './CinematicEntrance';
 import { coinArt } from '../../../../assets/games/pokemon-encounters/catalog';
 import { useExpansionPresentation } from './PresentationContext';
 import type { View } from '../project';
-import { PoseArt } from './poses';
 import { poseSequences } from './poses/timeline';
 import { BoardEffects } from './BoardEffects';
 import { ordinaryTheme, type OrdinaryTheme } from './presentation';
 import { ResearchReward } from './ResearchReward';
 import { EventEntrance } from './EventEnvironment';
 
-/** The parent is keyed by saved event and branch. A cancelled clock never resumes. */
-function MotionPose({
-  creatureId,
-  durationMs,
-}: {
-  creatureId: string;
-  durationMs: number;
-}) {
-  const [progress, setProgress] = useState(0);
-  useEffect(() => {
-    const media = matchMedia('(prefers-reduced-motion: reduce)');
-    let frame = 0,
-      start: number | undefined,
-      stopped = media.matches,
-      last = -1;
-    const tick = (now: number) => {
-      if (stopped) return;
-      start ??= now;
-      const elapsed = now - start;
-      if (elapsed - last >= 30 || elapsed >= durationMs) {
-        setProgress(Math.min(1, elapsed / durationMs));
-        last = elapsed;
-      }
-      if (elapsed < durationMs) frame = requestAnimationFrame(tick);
-    };
-    const cancel = () => {
-      if (!media.matches) return;
-      stopped = true;
-      cancelAnimationFrame(frame);
-      setProgress(1);
-    };
-    if (!stopped) frame = requestAnimationFrame(tick);
-    media.addEventListener('change', cancel);
-    return () => {
-      stopped = true;
-      cancelAnimationFrame(frame);
-      media.removeEventListener('change', cancel);
-    };
-  }, [durationMs]);
-  return (
-    <PoseArt
-      creatureId={creatureId}
-      progress={progress}
-      className="ex-pose-art"
-    />
-  );
-}
-
-/** Lightweight, distinct themes around a newly drawn public card, not hidden slots. */
 function OrdinaryBurst({ theme }: { theme: OrdinaryTheme }) {
   const ref = useRef<SVGSVGElement>(null);
   useEffect(() => {
@@ -259,77 +209,18 @@ export function SavedEffects({
       )}
       {creature && sequence && category && (
         <>
-          {sequence.fullscreen ? (
-            <div
-              className="pokemon-screen ex-original-effects"
-              data-sequence={creature}
-              key={'pose:' + key}
-            >
-              <AbilityEntrance
-                image={undefined}
-                character={
-                  <MotionPose
-                    creatureId={creature}
-                    durationMs={current.durationMs}
-                  />
-                }
-                definition={{
-                  id: creature,
-                  motif:
-                    creature === 'team-rocket'
-                      ? 'comic'
-                      : ['zapdos', 'arceus', 'lucario'].includes(creature)
-                        ? 'electric'
-                        : 'psychic',
-                  side: 'left',
-                  duration: current.durationMs,
-                  title: category.name,
-                  subtitle: categoryPresentation(
-                    category.categoryId,
-                    game.rulesProfile,
-                  ).abilitySummary,
-                }}
-              />
-            </div>
-          ) : (
-            <div
-              className={'ex-local-ability ex-theme-' + creature}
-              key={'pose:' + key}
-              data-sequence={creature}
-              style={
-                { '--ex-duration': current.durationMs + 'ms' } as CSSProperties
-              }
-              aria-hidden="true"
-            >
-              <div
-                className={`ex-cinematic-creature ${creature === 'lucario' ? 'ex-lucario-wave' : ''}`}
-              >
-                {creature === 'lucario' ? (
-                  <>
-                    <i className="ex-aura-ring" />
-                    <img
-                      className="ex-aura-portrait"
-                      src={portraitFor(category.categoryId)}
-                      alt=""
-                    />
-                    <i className="ex-aura-pulse" />
-                  </>
-                ) : (
-                  <MotionPose
-                    creatureId={creature}
-                    durationMs={current.durationMs}
-                  />
-                )}
-              </div>
-              <strong>{category.name}</strong>
-              <span>
-                {
-                  categoryPresentation(category.categoryId, game.rulesProfile)
-                    .abilitySummary
-                }
-              </span>
-            </div>
-          )}
+          <CinematicEntrance
+            key={'cinematic:' + key}
+            creature={creature}
+            image={portraitFor(category.categoryId)}
+            title={category.name}
+            subtitle={
+              categoryPresentation(category.categoryId, game.rulesProfile)
+                .abilitySummary
+            }
+            durationMs={current.durationMs}
+            fullscreen={sequence.fullscreen}
+          />
           <aside className="ex-static-hero" role="status">
             {portraitFor(category.categoryId) && (
               <img src={portraitFor(category.categoryId)} alt="" />

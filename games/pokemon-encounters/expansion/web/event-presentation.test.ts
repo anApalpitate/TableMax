@@ -3,9 +3,35 @@ import {
   eventLabels,
   scoreEffectText,
   roleEffectText,
+  runtimePicture,
 } from './event-presentation';
 
 describe('authorized weather value labels', () => {
+  it('ships the sixteen prepared research paintings and leaves the missing one explicit', () => {
+    for (const id of [
+      'R01',
+      'R02',
+      'R03',
+      'R06',
+      'R08',
+      'R11',
+      'R13',
+      'R14',
+      'R15',
+      'R16',
+      'R17',
+      'R18',
+      'R19',
+      'R22',
+      'R23',
+      'R24',
+    ]) {
+      expect(runtimePicture(`research-${id}`)).toMatch(/\.webp/);
+    }
+    expect(runtimePicture('research-R05')).toBeUndefined();
+    for (const kind of ['rain', 'sun', 'sandstorm', 'snow', 'trick-room'])
+      expect(runtimePicture(`event-${kind}`)).toMatch(/\.webp/);
+  });
   it('distinguishes physical print from a transformed authorized role and leaves legacy faces alone', () => {
     expect(
       roleEffectText({
