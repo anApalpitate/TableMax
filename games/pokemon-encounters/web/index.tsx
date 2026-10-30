@@ -5,6 +5,7 @@ import type { JsonValue } from '@tablemax/game-sdk';
 import type { PokemonView } from '../rules/project';
 import { SeatResult, PublicLog } from '../ui/public';
 import { GameTable } from '../ui/table';
+import { Settlement } from '../ui/Settlement';
 import { SoundControl } from '../ui/audio';
 import { SavedMotion, savedChanges, savedMotionDuration } from '../ui/motion';
 import type { GameClient, GameHost as RoomSession } from '@tablemax/web-host';
@@ -59,8 +60,9 @@ function PokemonScreen({ session }: { session: RoomSession }) {
   };
   const actions = (view?.actions ?? []) as readonly JsonValue[];
   const seats = (
-    view?.seats.filter((seat) => role !== 'player' || seat.id === self?.id) ??
-    []
+    view?.seats.filter(
+      (seat) => game?.roundResult || role !== 'player' || seat.id === self?.id,
+    ) ?? []
   ).map((seat) => ({
     ...seat,
     portrait: avatarFor(seat.avatarId),
@@ -235,45 +237,76 @@ function PokemonScreen({ session }: { session: RoomSession }) {
                   )}
                 </div>
               )}
-              <GameTable
-                playerLayout={viewport.layout}
-                game={game}
-                seats={seats}
-                selfId={self?.id ?? null}
-                names={names}
-                portraits={portraits}
-                player={role === 'player'}
-                actions={actions}
-                locked={locked}
-                paused={view.paused}
-                playing={view.status === 'playing'}
-                playMode={view.playMode}
-                feedback={feedback}
-                selectionKey={`${view.instanceId}:${view.branch}:${view.selectionToken ?? 'none'}`}
-                motionKey={`${view.instanceId}:${view.branch}:${feedback?.revision ?? 'sync'}`}
-                choose={choose}
-                showRules={(chapter) => {
-                  setRuleChapter(chapter);
-                  setPanel('rules');
-                }}
-                showFriends={() => setPanel('friends')}
-                friendsInToolbar={role === 'player'}
-                guidanceEnabled={guidanceEnabled}
-                {...(canControl && view.status === 'ended'
-                  ? { playAgain: () => command({ type: 'replay' }) }
-                  : {})}
-                {...(canControl && !view.paused && view.lifecycleActions.length
-                  ? {
-                      nextRound: () =>
-                        command({
-                          type: 'lifecycle',
-                          action: view.lifecycleActions[0] as {
-                            type: 'next-round';
-                          },
-                        }),
-                    }
-                  : {})}
-              />
+              {game.roundResult ? (
+                <Settlement
+                  key={`${view.instanceId}:${view.branch}:${game.roundNumber}:${self?.id}`}
+                  game={game}
+                  seats={seats}
+                  selfId={self?.id ?? null}
+                  player={role === 'player'}
+                  layout={viewport.layout}
+                  locked={locked}
+                  showHistory={() => setPanel('history')}
+                  nextRound={
+                    canControl && !view.paused && view.lifecycleActions.length
+                      ? () =>
+                          command({
+                            type: 'lifecycle',
+                            action: view.lifecycleActions[0] as {
+                              type: 'next-round';
+                            },
+                          })
+                      : undefined
+                  }
+                  playAgain={
+                    canControl && view.status === 'ended'
+                      ? () => command({ type: 'replay' })
+                      : undefined
+                  }
+                />
+              ) : (
+                <GameTable
+                  playerLayout={viewport.layout}
+                  game={game}
+                  seats={seats}
+                  selfId={self?.id ?? null}
+                  names={names}
+                  portraits={portraits}
+                  player={role === 'player'}
+                  actions={actions}
+                  locked={locked}
+                  paused={view.paused}
+                  playing={view.status === 'playing'}
+                  playMode={view.playMode}
+                  feedback={feedback}
+                  selectionKey={`${view.instanceId}:${view.branch}:${view.selectionToken ?? 'none'}`}
+                  motionKey={`${view.instanceId}:${view.branch}:${feedback?.revision ?? 'sync'}`}
+                  choose={choose}
+                  showRules={(chapter) => {
+                    setRuleChapter(chapter);
+                    setPanel('rules');
+                  }}
+                  showFriends={() => setPanel('friends')}
+                  friendsInToolbar={role === 'player'}
+                  guidanceEnabled={guidanceEnabled}
+                  {...(canControl && view.status === 'ended'
+                    ? { playAgain: () => command({ type: 'replay' }) }
+                    : {})}
+                  {...(canControl &&
+                  !view.paused &&
+                  view.lifecycleActions.length
+                    ? {
+                        nextRound: () =>
+                          command({
+                            type: 'lifecycle',
+                            action: view.lifecycleActions[0] as {
+                              type: 'next-round';
+                            },
+                          }),
+                      }
+                    : {})}
+                />
+              )}
             </>
           )}
         </div>

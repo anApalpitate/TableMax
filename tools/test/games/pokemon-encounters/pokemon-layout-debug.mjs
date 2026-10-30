@@ -195,6 +195,9 @@ for (const variant of ['original', 'expansion']) {
   }
   if (variant === 'original') {
     for (const device of ['host-1280', 'portrait-390', 'landscape'])
+      add(device, 'match-result');
+    for (const device of ['host-1920', 'host-4k']) add(device, 'result');
+    for (const device of ['host-1280', 'portrait-390', 'landscape'])
       for (const scene of ['menu', 'rules', 'paused']) add(device, scene);
     for (const device of ['portrait-390', 'landscape']) add(device, 'history');
     for (const device of ['host-1280', 'portrait-390', 'landscape'])
@@ -953,7 +956,116 @@ try {
           window.updatePokemonSession({ animate: false }),
         );
       }
-      if (phase === 'after') {
+      if (
+        phase === 'after' &&
+        item.variant === 'original' &&
+        ['result', 'match-result'].includes(scene)
+      ) {
+        check.settlement = await surface.evaluate(() => {
+          const root = document.querySelector('.settlement');
+          const cards = [
+            ...root.querySelectorAll('.pokemon-board .pokemon-card'),
+          ];
+          return {
+            count: cards.length,
+            selected: root.querySelectorAll(
+              '.settlement-selected .pokemon-board',
+            ).length,
+            invalid: cards.filter((el) => {
+              const r = el.getBoundingClientRect();
+              return (
+                r.width < 20 ||
+                r.height < 20 ||
+                Math.abs(r.width / r.height - 5 / 7) > 0.04 ||
+                r.bottom > innerHeight + 1
+              );
+            }).length,
+            stale: root.querySelectorAll(
+              '.bot-thinking,.pile-zone,.recent-actions',
+            ).length,
+            overflow: document.documentElement.scrollWidth - innerWidth,
+          };
+        });
+        assert.equal(
+          check.settlement.count,
+          role === 'player' ? 6 : (item.seats ?? 6) * 6,
+        );
+        assert.equal(check.settlement.invalid, 0);
+        assert.equal(check.settlement.stale, 0);
+        assert(check.settlement.overflow <= 1);
+        if (role === 'player') {
+          assert.equal(check.settlement.selected, 1);
+          const choices = surface.locator('.settlement-roster button');
+          for (let i = 0; i < (await choices.count()); i++) {
+            await choices.nth(i).click();
+            assert.equal(
+              await surface
+                .locator('.settlement-selected .pokemon-board')
+                .count(),
+              1,
+            );
+            assert.equal(
+              await choices.nth(i).getAttribute('aria-pressed'),
+              'true',
+            );
+          }
+          assert.equal(
+            await surface.evaluate(() => window.pokemonCommands.length),
+            0,
+          );
+          const oldViewport = page.viewportSize();
+          await page.setViewportSize(
+            item.device === 'portrait-390'
+              ? { width: 1280, height: 720 }
+              : { width: 390, height: 844 },
+          );
+          await page.waitForTimeout(100);
+          assert.equal(
+            await surface
+              .locator('.settlement-roster button')
+              .last()
+              .getAttribute('aria-pressed'),
+            'true',
+          );
+          await page.setViewportSize(oldViewport);
+          await page.waitForTimeout(100);
+        }
+        await surface.locator('.score-breakdown').first().click();
+        assert.equal(await surface.locator('dialog[open]').count(), 1);
+        await surface
+          .locator('dialog[open]')
+          .getByRole('button', { name: '关闭', exact: true })
+          .click();
+        for (const reducedMotion of ['reduce', 'no-preference']) {
+          await page.emulateMedia({ reducedMotion });
+          const before = await surface
+            .locator('.settlement .pokemon-board')
+            .first()
+            .boundingBox();
+          await surface.evaluate(() =>
+            window.updatePokemonSession({ animate: true }),
+          );
+          await page.waitForTimeout(60);
+          const during = await surface
+            .locator('.settlement .pokemon-board')
+            .first()
+            .boundingBox();
+          assert(
+            Object.keys(before).every(
+              (key) => Math.abs(before[key] - during[key]) <= 1,
+            ),
+            'Settlement effect changed board geometry',
+          );
+          await surface.evaluate(() =>
+            window.updatePokemonSession({ animate: false }),
+          );
+          assert.equal(
+            await surface.locator('.settlement .saved-effects').count(),
+            0,
+          );
+        }
+        check.result = 'passed';
+      } else if (phase === 'after') {
         const expect = (condition, reason) => {
           if (!condition) check.failures.push(reason);
         };

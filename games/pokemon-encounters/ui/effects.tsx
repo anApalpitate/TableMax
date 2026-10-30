@@ -66,7 +66,7 @@ function SavedActionTrails({
   const theme = actionEffects(action, game).theme;
   useLayoutEffect(() => {
     const svg = surface.current;
-    const table = svg?.closest('.game-table');
+    const table = svg?.closest('.game-table, .settlement');
     if (!svg || !table) return;
     svg.replaceChildren();
     const scope = actionTrailScope(action, viewerSeat);
@@ -229,7 +229,9 @@ function SavedActionTrails({
         gradient,
       );
       for (const [index, board] of [
-        ...table.querySelectorAll('.game-seat.winner .pokemon-board'),
+        ...table.querySelectorAll(
+          '.game-seat.winner .pokemon-board, .settlement-seat.winner .pokemon-board',
+        ),
       ].entries()) {
         const rect = visibleRect(board);
         if (!rect) continue;
