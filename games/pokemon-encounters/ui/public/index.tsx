@@ -94,8 +94,6 @@ export function TableStatus({
   player?: boolean;
   active?: boolean;
 }) {
-  const gallery = useRef<HTMLDialogElement>(null);
-  const galleryTitle = useId();
   const motion = useContext(SavedMotion);
   const progress = decisionProgress(view);
   const actingSeats =
@@ -301,36 +299,6 @@ export function TableStatus({
               </span>
             )}
           </div>
-          {view.discard && view.discard.length > 0 && (
-            <div className="discard-control">
-              <button
-                className="secondary"
-                onClick={() => gallery.current?.showModal()}
-              >
-                查看弃牌
-              </button>
-              <dialog
-                ref={gallery}
-                className="card-gallery-panel"
-                aria-labelledby={galleryTitle}
-              >
-                <header className="gallery-heading">
-                  <h2 id={galleryTitle}>弃牌 底 → 顶</h2>
-                  <button
-                    className="secondary"
-                    onClick={() => gallery.current?.close()}
-                  >
-                    关闭
-                  </button>
-                </header>
-                <div className="discard-gallery">
-                  {view.discard.map((card, i) => (
-                    <CardFace key={i} card={card} />
-                  ))}
-                </div>
-              </dialog>
-            </div>
-          )}
         </div>
       )}
       {showHeld && (
