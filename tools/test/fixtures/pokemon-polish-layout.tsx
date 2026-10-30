@@ -53,6 +53,7 @@ declare global {
   interface Window {
     setPokemonFixture(setting: Partial<Omit<Setting, 'serial'>>): void;
     updatePokemonSession(setting: Partial<Setting>): void;
+    applyPokemonSavedAction(action: Action): void;
     pokemonFixture: {
       phase: string;
       step: number;
@@ -176,6 +177,22 @@ function Fixture() {
   };
   window.updatePokemonSession = (next) => {
     flushSync(() => setSetting((prior) => ({ ...prior, ...next })));
+  };
+  window.applyPokemonSavedAction = (action) => {
+    const actor =
+      current.state.phase === 'zapdos-receive'
+        ? current.state.recipientQueue[current.state.recipientIndex]!
+        : current.state.turnSeat;
+    if (
+      !(rules.legalActions(current.state, actor) as Action[]).some(
+        (legal) => JSON.stringify(legal) === JSON.stringify(action),
+      )
+    )
+      throw new Error('Illegal saved-action fixture');
+    flushSync(() => {
+      setCurrent({ ...current, state: apply(current.state, action, actor) });
+      setSetting((prior) => ({ ...prior, animate: true }));
+    });
   };
   Object.defineProperty(document, 'fullscreenEnabled', {
     configurable: true,

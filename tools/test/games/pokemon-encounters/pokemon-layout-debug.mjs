@@ -87,6 +87,8 @@ for (const variant of ['original', 'expansion']) {
       });
   }
   if (variant === 'original') {
+    for (const device of ['host-1280', 'portrait-390', 'landscape'])
+      add(device, 'trajectory-isolation');
     add('host-1280', 'zapdos-self');
     add('host-1920', 'zapdos-receive');
   }
@@ -326,6 +328,7 @@ try {
                   paused: 'draw',
                   friends: 'draw',
                   mew: 'mew-other',
+                  'trajectory-isolation': 'draw',
                 }[scene] ?? scene,
               paused: scene === 'paused',
               animate: false,
@@ -743,11 +746,90 @@ try {
           .locator('.anime-entrance')
           .count();
       }
+      if (item.variant === 'original' && scene === 'trajectory-isolation') {
+        await page.emulateMedia({ reducedMotion: 'no-preference' });
+        check.trajectorySequence = [];
+        for (const [label, action] of [
+          ['own-draw', { type: 'draw', source: 'deck' }],
+          ['own-discard', { type: 'discard-held' }],
+          ['other-draw', { type: 'draw', source: 'deck' }],
+          ['other-discard', { type: 'discard-held' }],
+        ]) {
+          await surface.evaluate(
+            (action) => window.applyPokemonSavedAction(action),
+            action,
+          );
+          await surface.evaluate(
+            () =>
+              new Promise((done) =>
+                requestAnimationFrame(() => requestAnimationFrame(done)),
+              ),
+          );
+          const observed = await surface.evaluate(() => ({
+            paths: document.querySelectorAll(
+              '.saved-action-trails .saved-trail',
+            ).length,
+            impacts: document.querySelectorAll(
+              '.saved-action-trails .target-impact, .saved-action-trails .draw-motif, .saved-action-trails .discarded-landing',
+            ).length,
+          }));
+          check.trajectorySequence.push({ label, ...observed });
+          const path = join(work, `${item.id}-${label}.png`);
+          await captureBrowserScreenshot(page, { path });
+          const bytes = await readFile(path);
+          report.screenshots.push({
+            id: `${item.id}-${label}`,
+            path: relative(resolve('.'), path).replaceAll('\\', '/'),
+            sha256: hash(bytes),
+            bytes: bytes.length,
+          });
+        }
+        await surface.evaluate(() =>
+          window.updatePokemonSession({ animate: false }),
+        );
+        check.restoredTrails = await surface
+          .locator('.saved-action-trails')
+          .count();
+        await page.emulateMedia({ reducedMotion: 'reduce' });
+        await surface.evaluate(() =>
+          window.updatePokemonSession({ animate: true }),
+        );
+        check.reducedForeignImpacts = await surface
+          .locator('.saved-action-trails .discarded-landing')
+          .count();
+        await surface.evaluate(() =>
+          window.updatePokemonSession({ animate: false }),
+        );
+      }
       if (phase === 'after') {
         const expect = (condition, reason) => {
           if (!condition) check.failures.push(reason);
         };
         const g = check.geometry;
+        if (item.variant === 'original' && scene === 'trajectory-isolation') {
+          for (const row of check.trajectorySequence) {
+            const shouldPlay =
+              role !== 'player' || row.label.startsWith('own-');
+            expect(
+              shouldPlay
+                ? row.label.endsWith('draw')
+                  ? row.paths + row.impacts > 0
+                  : row.paths > 0
+                : row.paths === 0 && row.impacts === 0,
+              `Original ${row.label}: local trajectories must match the viewer`,
+            );
+          }
+          expect(
+            check.restoredTrails === 0,
+            'Restored original snapshots must not replay trails',
+          );
+          expect(
+            role === 'player'
+              ? check.reducedForeignImpacts === 0
+              : check.reducedForeignImpacts > 0,
+            'Reduced-motion discard landing must respect player ownership while preserving host feedback',
+          );
+        }
         if (item.variant === 'expansion' && scene.startsWith('trajectory-')) {
           check.trajectory = await surface.evaluate(async (settings) => {
             const observed = new Set();

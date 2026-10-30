@@ -4,6 +4,7 @@ import { face, project } from '../rules/project';
 import type { State } from '../rules/state';
 import {
   actionEffects,
+  actionTrailScope,
   decisionProgress,
   publicZeroColumns,
   soundCues,
@@ -37,6 +38,46 @@ function action(
 }
 
 describe('public presentation preserves information boundaries', () => {
+  it('owns local draw/discard/replace trails by saved actor, not by visible or cached piles', () => {
+    for (const verb of ['draw', 'discard', 'replace', 'zapdos-pass', 'swap']) {
+      const saved = action(verb, 'ordinary-6');
+      expect(actionTrailScope(saved, 'S1')).toEqual({
+        local: true,
+        targets: saved.targets,
+      });
+      expect(actionTrailScope(saved, null)).toEqual({
+        local: true,
+        targets: saved.targets,
+      });
+      expect(actionTrailScope(saved, 'S2')).toEqual({
+        local: false,
+        targets: [],
+      });
+      expect(actionTrailScope(saved, '')).toEqual({
+        local: false,
+        targets: [],
+      });
+    }
+    expect(actionTrailScope(undefined, 'S1')).toEqual({
+      local: false,
+      targets: [],
+    });
+  });
+  it('keeps other actors public impacts on the viewer board without transferring through local piles', () => {
+    const saved = {
+      ...action('rocket-refill', 'special-team-rocket'),
+      targets: [
+        { seat: 'S1', slots: [2] },
+        { seat: 'S2', slots: [2] },
+        { seat: 'S3', slots: [2] },
+      ],
+    };
+    expect(actionTrailScope(saved, 'S2')).toEqual({
+      local: false,
+      targets: [{ seat: 'S2', slots: [2] }],
+    });
+    expect(saved.targets).toHaveLength(3);
+  });
   it('keeps the incoming card, ability and public target distinct during Mew replacement', () => {
     const replacement: PublicAction = {
       actor: 'S1',

@@ -13,7 +13,7 @@ import {
 import { drawMotifs, effectScene, additionalEntrances } from './effect-scene';
 import { SavedMotion } from './motion';
 import type { PublicAction, RoomFeedback } from '@tablemax/web-host';
-import { actionEffects } from './presentation-state';
+import { actionEffects, actionTrailScope } from './presentation-state';
 import './effects.css';
 import { AbilityEntrance } from './AbilityEntrance';
 import { abilityEntrances } from '../variants/original-presentation';
@@ -52,12 +52,14 @@ function SavedActionTrails({
   result,
   discardSources,
   trailAnchors,
+  viewerSeat,
 }: {
   game: PokemonView;
   action: PublicAction | undefined;
   result: boolean;
   discardSources?: readonly DiscardSource[] | undefined;
   trailAnchors?: (() => TrailAnchors) | undefined;
+  viewerSeat: string | null;
 }) {
   const surface = useRef<SVGSVGElement>(null);
   const clipPrefix = useId().replace(/:/g, '');
@@ -67,6 +69,7 @@ function SavedActionTrails({
     const table = svg?.closest('.game-table');
     if (!svg || !table) return;
     svg.replaceChildren();
+    const scope = actionTrailScope(action, viewerSeat);
     if (
       table.closest<HTMLElement>('.pokemon-screen')?.dataset.playMode === 'test'
     )
@@ -123,7 +126,7 @@ function SavedActionTrails({
         ),
       );
       const landing = discardLanding(
-        discardSources,
+        scope.local ? discardSources : [],
         target
           ? {
               x: target.left - bounds.left,
@@ -307,12 +310,18 @@ function SavedActionTrails({
         slot.querySelector('.card-surface'),
       ]),
     );
-    const targets = action.targets
+    const targets = scope.targets
       .flatMap(({ seat, slots: positions }) =>
         positions.map((slot) => slots.get(`${seat}:${slot}`)),
       )
       .filter((target): target is Element => Boolean(target))
       .slice(0, 6);
+    if (!scope.local) {
+      // Retain saved impacts on this player's board, never use their cached
+      // held/discard coordinates for another player's transfer.
+      for (const target of targets) burst(target, true);
+      return;
+    }
     switch (action.verb) {
       case 'draw':
         if (action.source) trail(point(pile(action.source)), point(held));
@@ -373,7 +382,16 @@ function SavedActionTrails({
     if (theme || ['replace', 'zapdos-pass'].includes(action.verb))
       for (const target of targets)
         burst(target, action.verb === 'rocket-refill');
-  }, [action, clipPrefix, discardSources, game, result, theme, trailAnchors]);
+  }, [
+    action,
+    clipPrefix,
+    discardSources,
+    game,
+    result,
+    theme,
+    trailAnchors,
+    viewerSeat,
+  ]);
   return (
     <svg
       ref={surface}
@@ -388,11 +406,13 @@ export function SavedEffects({
   game,
   feedback = null,
   trailAnchors,
+  viewerSeat = null,
 }: {
   game: PokemonView;
   feedback?: RoomFeedback | null;
   trailAnchors?: (() => TrailAnchors) | undefined;
   names?: Record<string, string>;
+  viewerSeat?: string | null;
 }) {
   const motion = useContext(SavedMotion);
   const saved = motion.includes('@saved');
@@ -433,6 +453,7 @@ export function SavedEffects({
             saved ? game.events.at(-1)?.effect?.discardSources : undefined
           }
           trailAnchors={trailAnchors}
+          viewerSeat={viewerSeat}
         />
       )}
       {(result || coin || scene || rocketReturn) && (

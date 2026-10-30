@@ -73,8 +73,17 @@ export function GameTable({
   const motion = useContext(SavedMotion);
   const tableElement = useRef<HTMLElement>(null);
   const trailAnchors = useRef<TrailAnchors>({});
-  const readTrailAnchors = useCallback(() => trailAnchors.current, []);
+  const anchorOwner = player ? (selfId ?? '') : null;
+  const cachedOwner = useRef(anchorOwner);
+  const readTrailAnchors = useCallback(
+    () => (cachedOwner.current === anchorOwner ? trailAnchors.current : {}),
+    [anchorOwner],
+  );
   useLayoutEffect(() => {
+    if (cachedOwner.current !== anchorOwner) {
+      trailAnchors.current = {};
+      cachedOwner.current = anchorOwner;
+    }
     const capture = () => {
       const anchors: TrailAnchors = {};
       for (const [key, selector] of [
@@ -160,6 +169,7 @@ export function GameTable({
               feedback={feedback}
               names={names}
               trailAnchors={readTrailAnchors}
+              viewerSeat={anchorOwner}
             />
           )}
           <aside className="table-side" aria-label="当前局面与最近行动">

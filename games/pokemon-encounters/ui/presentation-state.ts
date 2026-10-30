@@ -4,6 +4,21 @@ import { COIN_LAND_MS, SOUND_MAX_LATE_MS } from './sound-timing';
 import { creatureCries, creatureThemes } from '../shared/presentation';
 import { original } from '../variants/original';
 import { topology } from '../shared/topology';
+
+/** null is the public table; an unidentified player cannot own local anchors. */
+export function actionTrailScope(
+  action: PublicAction | undefined,
+  viewerSeat: string | null,
+) {
+  const local =
+    viewerSeat === null || Boolean(viewerSeat && action?.actor === viewerSeat);
+  return {
+    local,
+    targets: (action?.targets ?? []).filter(
+      (target) => local || Boolean(viewerSeat && target.seat === viewerSeat),
+    ),
+  };
+}
 const originalGrid = topology(original.layout);
 
 export type EffectTheme = 'mew' | 'zapdos' | 'snorlax' | 'charizard' | 'rocket';
