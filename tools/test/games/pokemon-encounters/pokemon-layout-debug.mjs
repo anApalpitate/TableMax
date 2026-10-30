@@ -20,8 +20,8 @@ const cinematicCapture = option('cinematic-capture') === 'true';
 const contrastAudit = option('contrast-audit') === 'true';
 // Inspect actual inherited text colors on solid/light-gradient surfaces. Image
 // backgrounds are reported as unmeasured rather than guessed from CSS alone.
-async function auditLightText(surface) {
-  return surface.evaluate(() => {
+async function auditLightText(surface, variant) {
+  return surface.evaluate((variant) => {
     const rgb = (value) => value.match(/[\d.]+/g)?.map(Number) ?? [];
     const luminance = (c) =>
       c.slice(0, 3).reduce((sum, n, i) => {
@@ -35,7 +35,7 @@ async function auditLightText(surface) {
     const samples = [],
       unmeasured = [];
     for (const el of document.querySelectorAll(
-      'main.expansion-screen *, .dialog-surface *',
+      'main.expansion-screen *, main.pokemon-screen *, .dialog-surface *',
     )) {
       const text = [...el.childNodes]
         .filter((node) => node.nodeType === Node.TEXT_NODE)
@@ -50,6 +50,7 @@ async function auditLightText(surface) {
         continue;
       const foreground = rgb(getComputedStyle(el).color);
       if (
+        variant !== 'original' &&
         luminance(foreground) < 0.45 &&
         !el.matches('.ex-paused, .ex-wait, .ex-coin-result strong')
       )
@@ -113,10 +114,14 @@ async function auditLightText(surface) {
     }
     return {
       samples,
-      issues: samples.filter((row) => row.ratio < 4.5),
+      issues: samples.filter(
+        (row) =>
+          row.ratio < 4.5 &&
+          (variant !== 'original' || luminance(row.foreground) >= 0.45),
+      ),
       unmeasured,
     };
-  });
+  }, variant);
 }
 assert.match(task ?? '', /^tmp\/[a-z0-9][a-z0-9-]{1,90}$/);
 assert.match(evidence ?? '', /^[a-z0-9][a-z0-9-]{1,70}$/);
@@ -188,6 +193,9 @@ for (const variant of ['original', 'expansion']) {
       });
   }
   if (variant === 'original') {
+    for (const device of ['host-1280', 'portrait-390', 'landscape'])
+      for (const scene of ['menu', 'rules', 'paused']) add(device, scene);
+    for (const device of ['portrait-390', 'landscape']) add(device, 'history');
     for (const device of ['host-1280', 'portrait-390', 'landscape'])
       add(device, 'trajectory-isolation');
     add('host-1280', 'zapdos-self');
@@ -438,6 +446,9 @@ try {
                   result: 'round-result',
                   paused: 'draw',
                   friends: 'draw',
+                  menu: 'draw',
+                  rules: 'draw',
+                  history: 'place',
                   mew: 'mew-other',
                   'trajectory-isolation': 'draw',
                 }[scene] ?? scene,
@@ -541,7 +552,16 @@ try {
       if (scene === 'event-details')
         await surface.locator('.ex-event-status summary').click();
       const openAuditPanel = async () => {
-        if (item.variant !== 'expansion') return;
+        if (item.variant === 'original') {
+          if (scene === 'menu') await surface.locator('.toolbar-menu').click();
+          if (scene === 'rules')
+            await surface
+              .getByRole('button', { name: '规则', exact: true })
+              .click();
+          if (scene === 'history')
+            await surface.locator('.toolbar-history').click();
+          return;
+        }
         if (scene === 'menu') await surface.locator('.ex-menu-entry').click();
         if (scene === 'rules')
           await surface
@@ -784,8 +804,8 @@ try {
         }));
       }
       const png = join(work, `${item.id}.png`);
-      if (contrastAudit && item.variant === 'expansion')
-        check.lightText = await auditLightText(surface);
+      if (contrastAudit)
+        check.lightText = await auditLightText(surface, item.variant);
       await captureBrowserScreenshot(page, {
         path: png,
         fullPage:
@@ -1748,8 +1768,11 @@ try {
             bytes: detailBytes.length,
           });
         }
-        if (contrastAudit && item.variant === 'expansion') {
-          check.lightTextAfterInteraction = await auditLightText(surface);
+        if (contrastAudit) {
+          check.lightTextAfterInteraction = await auditLightText(
+            surface,
+            item.variant,
+          );
           expect(
             check.lightText.issues.length === 0 &&
               check.lightTextAfterInteraction.issues.length === 0,

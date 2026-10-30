@@ -1682,6 +1682,7 @@
   min-height: 4px;
 }
 .pokemon-screen.player[data-layout='L'] .decision-status .coin-result {
+  color: #68410f;
   order: 3;
   height: auto;
 }
