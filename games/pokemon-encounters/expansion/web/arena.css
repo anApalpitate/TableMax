@@ -252,8 +252,22 @@ main.expansion-screen .ex-research-card {
   background: #173348;
   border-color: #527b93;
 }
-main.expansion-screen .ex-research-card :is(h3, p) {
+.expansion-screen .ex-research-card :is(h3, p) {
   color: inherit;
+}
+/* Research cards also render in the detail portal, outside the main screen.
+   Pair text with its own surface instead of inheriting the dark theme's ink. */
+.expansion-screen .ex-research-title b {
+  color: #b9f5df;
+  background: #183e3e;
+}
+.expansion-screen .ex-research-card .ex-research-risk {
+  color: #ffe0bd;
+  background: #392d26;
+  border-left-color: #e5ad70;
+}
+.expansion-screen .ex-research-diagram {
+  color: #1f4646;
 }
 /* Card labels remain dark on their pale physical faces, including disabled cards. */
 main.expansion-screen .pokemon-card {

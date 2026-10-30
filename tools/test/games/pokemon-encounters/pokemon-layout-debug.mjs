@@ -1399,6 +1399,85 @@ try {
           await surface.locator('.ex-cinematic').waitFor({ state: 'detached' });
           check.liveCinematicCompleted = true;
         }
+        if (item.variant === 'expansion' && scene === 'vote') {
+          const probeResearchText = () =>
+            surface.evaluate(() => {
+              const rgb = (value) => value.match(/[\d.]+/g)?.map(Number) ?? [];
+              const luminance = (color) =>
+                color.slice(0, 3).reduce((sum, c, i) => {
+                  const v = c / 255;
+                  return (
+                    sum +
+                    (v <= 0.04045 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4) *
+                      [0.2126, 0.7152, 0.0722][i]
+                  );
+                }, 0);
+              return [
+                ...document.querySelectorAll(
+                  '.expansion-screen .ex-research-title b, .expansion-screen .ex-research-card h3, .expansion-screen .ex-research-copy p, .expansion-screen .ex-research-risk, .expansion-screen .ex-research-diagram figcaption, .expansion-screen .ex-diagram-notes, .expansion-screen .ex-diagram-roles',
+                ),
+              ]
+                .filter(
+                  (el) =>
+                    el.getClientRects().length &&
+                    getComputedStyle(el).visibility !== 'hidden',
+                )
+                .map((el) => {
+                  const foreground = rgb(getComputedStyle(el).color);
+                  let background;
+                  for (let parent = el; parent; parent = parent.parentElement) {
+                    const candidate = rgb(
+                      getComputedStyle(parent).backgroundColor,
+                    );
+                    if (candidate.length === 3 || candidate[3] === 1) {
+                      background = candidate;
+                      break;
+                    }
+                  }
+                  if (!background)
+                    throw Error(
+                      'Research text lacks a measurable opaque background',
+                    );
+                  const a = luminance(foreground),
+                    b = luminance(background);
+                  return {
+                    text: el.textContent.trim(),
+                    className: el.className,
+                    color: foreground,
+                    background,
+                    ratio: (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05),
+                  };
+                });
+            });
+          check.researchContrast = await probeResearchText();
+          await surface
+            .locator('.ex-mission-option .secondary')
+            .first()
+            .click();
+          await surface
+            .locator('.ex-research-detail')
+            .waitFor({ state: 'visible' });
+          check.researchDetailContrast = await probeResearchText();
+          expect(
+            check.researchDetailContrast.length > 0,
+            'Research detail contrast coverage missing',
+          );
+          expect(
+            [...check.researchContrast, ...check.researchDetailContrast].every(
+              (row) => row.ratio >= 4.5,
+            ),
+            'Research copy/reward/risk/diagram text contrast below 4.5:1',
+          );
+          const detailPng = join(work, `${item.id}-research-detail.png`);
+          await captureBrowserScreenshot(page, { path: detailPng });
+          const detailBytes = await readFile(detailPng);
+          report.screenshots.push({
+            id: `${item.id}-research-detail`,
+            path: relative(resolve('.'), detailPng).replaceAll('\\', '/'),
+            sha256: hash(detailBytes),
+            bytes: detailBytes.length,
+          });
+        }
         check.result = check.failures.length ? 'failed' : 'passed';
       } else check.result = 'observed';
     } catch (error) {
