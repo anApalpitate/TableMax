@@ -320,6 +320,17 @@ main.expansion-screen.player[data-layout='L'] .ex-wait {
   color: #ecf9ff;
   border-radius: 6px;
 }
+/* These notices retain their light surfaces; keep their ink independent of
+   the arena's inherited light text. The landscape waiting panel stays dark. */
+main.expansion-screen .ex-paused {
+  color: #68410f;
+}
+main.expansion-screen .ex-coin-result {
+  color: #65460c;
+}
+main.expansion-screen .ex-observing .ex-wait {
+  color: #244e43;
+}
 main.expansion-screen .ex-buffer-card {
   color: #dceefa;
   background: #152f43;

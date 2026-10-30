@@ -17,6 +17,107 @@ const evidence = option('evidence');
 const phase = option('phase') ?? 'after';
 const only = option('only')?.split(',');
 const cinematicCapture = option('cinematic-capture') === 'true';
+const contrastAudit = option('contrast-audit') === 'true';
+// Inspect actual inherited text colors on solid/light-gradient surfaces. Image
+// backgrounds are reported as unmeasured rather than guessed from CSS alone.
+async function auditLightText(surface) {
+  return surface.evaluate(() => {
+    const rgb = (value) => value.match(/[\d.]+/g)?.map(Number) ?? [];
+    const luminance = (c) =>
+      c.slice(0, 3).reduce((sum, n, i) => {
+        const v = n / 255;
+        return (
+          sum +
+          (v <= 0.04045 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4) *
+            [0.2126, 0.7152, 0.0722][i]
+        );
+      }, 0);
+    const samples = [],
+      unmeasured = [];
+    for (const el of document.querySelectorAll(
+      'main.expansion-screen *, .dialog-surface *',
+    )) {
+      const text = [...el.childNodes]
+        .filter((node) => node.nodeType === Node.TEXT_NODE)
+        .map((node) => node.textContent.trim())
+        .filter(Boolean)
+        .join(' ');
+      if (
+        !text ||
+        !el.checkVisibility({ checkOpacity: true, checkVisibilityCSS: true }) ||
+        el.closest('[disabled], [aria-hidden="true"]')
+      )
+        continue;
+      const foreground = rgb(getComputedStyle(el).color);
+      if (
+        luminance(foreground) < 0.45 &&
+        !el.matches('.ex-paused, .ex-wait, .ex-coin-result strong')
+      )
+        continue;
+      let background = null,
+        layer = [0, 0, 0, 0];
+      for (let parent = el; parent; parent = parent.parentElement) {
+        // The arena paints its full viewport on ::before, above the pale body.
+        // Do not mistake that underlying body for a transparent panel's surface.
+        const style = parent.matches('main.expansion-screen')
+          ? getComputedStyle(parent, '::before')
+          : getComputedStyle(parent);
+        if (style.backgroundImage !== 'none') {
+          const stops = [
+            ...style.backgroundImage.matchAll(/rgba?\([^)]+\)/g),
+          ].map((m) => rgb(m[0]));
+          if (
+            style.backgroundImage.includes('url(') ||
+            !stops.length ||
+            stops.some((c) => (c[3] ?? 1) < 1)
+          )
+            break;
+          background = stops.reduce((a, b) =>
+            luminance(a) < luminance(b) ? a : b,
+          );
+          break;
+        }
+        const color = rgb(style.backgroundColor),
+          alpha = color[3] ?? 1;
+        const a = layer[3] + alpha * (1 - layer[3]);
+        if (a)
+          layer = [0, 1, 2]
+            .map(
+              (i) =>
+                (layer[i] * layer[3] + color[i] * alpha * (1 - layer[3])) / a,
+            )
+            .concat(a);
+        if (a >= 0.999) {
+          background = layer;
+          break;
+        }
+      }
+      const selector =
+        el.tagName.toLowerCase() +
+        (el.classList.length ? '.' + [...el.classList].join('.') : '');
+      if (!background) {
+        unmeasured.push({ selector, text: text.slice(0, 100) });
+        continue;
+      }
+      if (luminance(background) < 0.5) continue;
+      const a = luminance(foreground),
+        b = luminance(background);
+      samples.push({
+        selector,
+        parent: el.parentElement.className,
+        text: text.slice(0, 160),
+        foreground,
+        background,
+        ratio: (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05),
+      });
+    }
+    return {
+      samples,
+      issues: samples.filter((row) => row.ratio < 4.5),
+      unmeasured,
+    };
+  });
+}
 assert.match(task ?? '', /^tmp\/[a-z0-9][a-z0-9-]{1,90}$/);
 assert.match(evidence ?? '', /^[a-z0-9][a-z0-9-]{1,70}$/);
 assert(['before', 'after'].includes(phase));
@@ -173,6 +274,16 @@ for (const variant of ['original', 'expansion']) {
     for (const device of ['host-1280', 'portrait-390', 'landscape'])
       add(device, 'event-details');
     add('host-1280', 'event-coin');
+    add('host-1280', 'paused');
+    add('landscape', 'paused');
+    for (const device of ['host-1280', 'portrait-390', 'landscape'])
+      for (const scene of [
+        'menu',
+        'rules',
+        'score-details',
+        'research-details',
+      ])
+        add(device, scene);
     for (const device of ['host-1280', 'portrait-390', 'landscape'])
       for (const scene of ['trajectory-own', 'trajectory-other'])
         add(device, scene);
@@ -337,39 +448,39 @@ try {
           : {
               seats: item.seats ?? 6,
               role,
-              scenario:
-                scene === 'vote'
-                  ? 'vote'
-                  : scene === 'result'
-                    ? 'result'
-                    : [
-                          'cinematic',
-                          'trajectory-own',
-                          'trajectory-other',
-                          'place',
-                          'peek',
-                          'mew',
-                          'rocket',
-                          'lucario',
-                          'weather',
-                          'mew-target',
-                          'mewtwo-target',
-                          'mewtwo-private',
-                          'event-details',
-                          'event-coin',
-                          'buffer',
-                          'buffer-take',
-                          'zapdos-self',
-                        ].includes(scene)
-                      ? 'place'
-                      : 'draw',
+              scenario: ['vote', 'research-details'].includes(scene)
+                ? 'vote'
+                : ['result', 'score-details'].includes(scene)
+                  ? 'result'
+                  : [
+                        'cinematic',
+                        'trajectory-own',
+                        'trajectory-other',
+                        'place',
+                        'peek',
+                        'mew',
+                        'rocket',
+                        'lucario',
+                        'weather',
+                        'mew-target',
+                        'mewtwo-target',
+                        'mewtwo-private',
+                        'event-details',
+                        'event-coin',
+                        'buffer',
+                        'buffer-take',
+                        'zapdos-self',
+                      ].includes(scene)
+                    ? 'place'
+                    : 'draw',
               initial: scene === 'initial',
-              terminal: scene === 'result',
+              terminal: ['result', 'score-details'].includes(scene),
               ordinary: scene.startsWith('trajectory-')
                 ? 'piplup'
                 : [
                       'place',
                       'result',
+                      'score-details',
                       'weather',
                       'buffer',
                       'buffer-take',
@@ -429,6 +540,21 @@ try {
       );
       if (scene === 'event-details')
         await surface.locator('.ex-event-status summary').click();
+      const openAuditPanel = async () => {
+        if (item.variant !== 'expansion') return;
+        if (scene === 'menu') await surface.locator('.ex-menu-entry').click();
+        if (scene === 'rules')
+          await surface
+            .getByRole('button', { name: '规则', exact: true })
+            .click();
+        if (scene === 'score-details')
+          await surface.locator('.ex-score').first().click();
+        if (scene === 'research-details')
+          await surface
+            .locator('.ex-mission-option .secondary')
+            .first()
+            .click();
+      };
       const measure = async () =>
         surface.evaluate(() => {
           const main = document.querySelector(
@@ -648,6 +774,7 @@ try {
           };
         });
       check.geometry = await measure();
+      await openAuditPanel();
       if (scene === 'friends') {
         await surface.getByRole('button', { name: /朋友/ }).first().click();
         check.friends = await surface.locator('dialog[open]').evaluate((e) => ({
@@ -657,6 +784,8 @@ try {
         }));
       }
       const png = join(work, `${item.id}.png`);
+      if (contrastAudit && item.variant === 'expansion')
+        check.lightText = await auditLightText(surface);
       await captureBrowserScreenshot(page, {
         path: png,
         fullPage:
@@ -1213,7 +1342,10 @@ try {
             scene === 'peek';
           expect(
             g.boards.length ===
-              (scene === 'vote' || (privateScene && !desktopPeek) ? 0 : 1),
+              (['vote', 'research-details'].includes(scene) ||
+              (privateScene && !desktopPeek)
+                ? 0
+                : 1),
             `Unexpected authorized field count: ${g.boards.length}`,
           );
           if (desktopPeek) {
@@ -1615,6 +1747,18 @@ try {
             sha256: hash(detailBytes),
             bytes: detailBytes.length,
           });
+        }
+        if (contrastAudit && item.variant === 'expansion') {
+          check.lightTextAfterInteraction = await auditLightText(surface);
+          expect(
+            check.lightText.issues.length === 0 &&
+              check.lightTextAfterInteraction.issues.length === 0,
+            'Light text on light surfaces: ' +
+              JSON.stringify([
+                ...check.lightText.issues,
+                ...check.lightTextAfterInteraction.issues,
+              ]),
+          );
         }
         check.result = check.failures.length ? 'failed' : 'passed';
       } else check.result = 'observed';
