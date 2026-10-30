@@ -3,6 +3,7 @@ import {
   ordinaryTheme,
   presentationCreature,
   savedBoardEffects,
+  boardEffectsForViewer,
   type EventEffect,
   type BoardEffects,
 } from './presentation';
@@ -44,6 +45,7 @@ export function presentationSteps(
   events: readonly SavedEvent[],
   revision: number,
   reduced: boolean,
+  viewerSeat: string | null = null,
 ): PresentationStep[] {
   const steps: PresentationStep[] = [];
   const add = (
@@ -83,7 +85,11 @@ export function presentationSteps(
   ];
   for (const event of ordered) {
     const creature = presentationCreature(event.action, event.effect ?? {});
-    const effects = savedBoardEffects(event.action, game.boards, event.effect);
+    const effects = boardEffectsForViewer(
+      savedBoardEffects(event.action, game.boards, event.effect),
+      event.action,
+      viewerSeat,
+    );
     if (event.kind === 'special-event')
       add(event, 'event', reduced ? 450 : 1500, null, effects);
     if (event.kind === 'bond-placeholder')
@@ -98,7 +104,9 @@ export function presentationSteps(
       );
     if (
       Object.values(effects).some((v) => v.length) ||
-      ordinaryTheme(event.action)
+      (ordinaryTheme(event.action) &&
+        (viewerSeat === null ||
+          (viewerSeat && event.action?.actor === viewerSeat)))
     )
       add(event, 'board', reduced ? 180 : 540, null, effects);
     if (event.kind === 'research')

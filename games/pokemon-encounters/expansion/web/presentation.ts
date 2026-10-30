@@ -25,6 +25,27 @@ export type BoardEffects = {
   pulse: string[];
 };
 
+/** Shared piles/held anchors on a player screen belong to that player's actions.
+ * Other actors may still change this player's board, but must not animate a
+ * transfer through their local decision area (including cached anchors).
+ */
+export function boardEffectsForViewer(
+  effects: BoardEffects,
+  action: VisibleAction | undefined,
+  viewerSeat: string | null,
+): BoardEffects {
+  if (viewerSeat === null || (viewerSeat && action?.actor === viewerSeat))
+    return effects;
+  const own = (id: string) =>
+    Boolean(viewerSeat) && id.startsWith(viewerSeat + ':');
+  return {
+    moves: [],
+    cover: effects.cover.filter(own),
+    reveal: effects.reveal.filter(own),
+    pulse: effects.pulse.filter(own),
+  };
+}
+
 /** Public saved facts only. Private choices never enter a board trajectory. */
 export function savedBoardEffects(
   action: VisibleAction | undefined,

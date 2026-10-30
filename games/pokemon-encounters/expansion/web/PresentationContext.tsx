@@ -40,6 +40,8 @@ export function ExpansionPresentation({
   game: View | null;
   children: ReactNode;
 }) {
+  const viewerSeat =
+    session.role === 'player' ? (session.self?.id ?? '') : null;
   const scope =
     session.view?.instanceId +
     ':' +
@@ -47,11 +49,14 @@ export function ExpansionPresentation({
     ':' +
     game?.roundNumber +
     ':' +
-    session.role;
+    session.role +
+    ':' +
+    viewerSeat;
   const authorityKey = JSON.stringify([
     session.view?.instanceId,
     session.view?.branch,
     session.role,
+    viewerSeat,
   ]);
   const [clock] = useState(
     () =>
@@ -92,6 +97,7 @@ export function ExpansionPresentation({
             events,
             session.feedback.revision,
             matchMedia('(prefers-reduced-motion: reduce)').matches,
+            viewerSeat,
           )
         : [],
       disabled,
@@ -106,6 +112,7 @@ export function ExpansionPresentation({
     game,
     session.feedback,
     session.motion,
+    viewerSeat,
   ]);
   useEffect(() => () => clock.dispose(), [clock]);
   const current = disabled || state.scope !== scope ? null : state.current;

@@ -171,6 +171,9 @@ for (const variant of ['original', 'expansion']) {
     for (const device of ['host-1280', 'portrait-390', 'landscape'])
       add(device, 'event-details');
     add('host-1280', 'event-coin');
+    for (const device of ['host-1280', 'portrait-390', 'landscape'])
+      for (const scene of ['trajectory-own', 'trajectory-other'])
+        add(device, scene);
   }
 }
 if (only)
@@ -338,6 +341,8 @@ try {
                     ? 'result'
                     : [
                           'cinematic',
+                          'trajectory-own',
+                          'trajectory-other',
                           'place',
                           'peek',
                           'mew',
@@ -357,15 +362,17 @@ try {
                       : 'draw',
               initial: scene === 'initial',
               terminal: scene === 'result',
-              ordinary: [
-                'place',
-                'result',
-                'weather',
-                'buffer',
-                'buffer-take',
-              ].includes(scene)
-                ? '6'
-                : undefined,
+              ordinary: scene.startsWith('trajectory-')
+                ? 'piplup'
+                : [
+                      'place',
+                      'result',
+                      'weather',
+                      'buffer',
+                      'buffer-take',
+                    ].includes(scene)
+                  ? '6'
+                  : undefined,
               creature:
                 item.creature ??
                 {
@@ -392,7 +399,7 @@ try {
                   : scene === 'buffer-take'
                     ? 'take'
                     : undefined,
-              waiting: scene === 'waiting',
+              waiting: scene === 'waiting' || scene === 'trajectory-other',
               paused: scene === 'paused',
               animate: false,
             };
@@ -741,6 +748,55 @@ try {
           if (!condition) check.failures.push(reason);
         };
         const g = check.geometry;
+        if (item.variant === 'expansion' && scene.startsWith('trajectory-')) {
+          check.trajectory = await surface.evaluate(async (settings) => {
+            const observed = new Set();
+            const sample = () => {
+              document
+                .querySelectorAll(
+                  '.ex-board-transfer, .ex-ordinary-burst, .ex-discard-landing',
+                )
+                .forEach((element) =>
+                  observed.add(
+                    element.classList[0] +
+                      ':' +
+                      (element.getAttribute('data-from') ?? '') +
+                      ':' +
+                      (element.getAttribute('data-to') ?? ''),
+                  ),
+                );
+            };
+            const observer = new MutationObserver(sample);
+            observer.observe(document.body, { subtree: true, childList: true });
+            const result = window.redesignShow({ ...settings, animate: true });
+            sample();
+            await new Promise((done) => setTimeout(done, 900));
+            observer.disconnect();
+            return { observed: [...observed], events: result.events };
+          }, settings);
+          const shouldPlay = role !== 'player' || scene === 'trajectory-own';
+          expect(
+            shouldPlay
+              ? check.trajectory.observed.some((entry) =>
+                  entry.startsWith('ex-board-transfer:'),
+                ) &&
+                  check.trajectory.observed.some((entry) =>
+                    entry.startsWith('ex-ordinary-burst:'),
+                  )
+              : check.trajectory.observed.length === 0,
+            'Local trajectories/bursts must belong to the player; host must retain all public playback',
+          );
+          await surface.evaluate(
+            (settings) => window.redesignShow({ ...settings, animate: false }),
+            settings,
+          );
+          expect(
+            (await surface
+              .locator('.ex-board-effects, .ex-ordinary-burst')
+              .count()) === 0,
+            'Restored snapshots must not replay trajectories',
+          );
+        }
         const contentHeight = g.viewport.height;
         if (
           item.device.startsWith('landscape') &&

@@ -204,7 +204,11 @@ export function SavedEffects({
           effects={current.effects}
           delay={0}
           anchors={anchors}
-          savedDiscardSources={current.event.effect?.discardSources}
+          savedDiscardSources={
+            current.effects.moves.some((move) => move.to === '@discard')
+              ? current.event.effect?.discardSources
+              : []
+          }
         />
       )}
       {creature && sequence && category && (

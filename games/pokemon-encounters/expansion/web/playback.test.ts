@@ -19,6 +19,69 @@ const game = {
   matchWinners: [],
   roundResult: null,
 } as unknown as View;
+it('isolates local draw, discard and buffer tracks by viewer while retaining host playback', () => {
+  for (const reduced of [false, true]) {
+    for (const verb of [
+      'draw',
+      'discard-held',
+      'draw-buffer',
+      'store-buffer',
+      'replace',
+    ]) {
+      const event = {
+        id: 20,
+        kind: 'action',
+        text: '',
+        action: {
+          ...action,
+          verb,
+          ability: null,
+          cardCategory: 'ordinary-piplup',
+          targets: [{ seat: 'A', slots: [2] }],
+        },
+        effect:
+          verb === 'discard-held' ? { discardSources: ['@held' as const] } : {},
+      };
+      for (const viewer of ['B', ''])
+        expect(
+          presentationSteps(game, [event], 1, reduced, viewer),
+          `${verb}/${viewer}`,
+        ).toEqual([]);
+      for (const viewer of ['A', null]) {
+        const steps = presentationSteps(game, [event], 1, reduced, viewer);
+        expect(steps.map((step) => step.kind)).toEqual(['board']);
+        expect(steps[0]!.effects.moves.length).toBeGreaterThan(0);
+      }
+    }
+  }
+});
+it('retains public ability entrances and changes to the viewer board without foreign transfers', () => {
+  const event = {
+    id: 21,
+    kind: 'action',
+    text: '',
+    action: {
+      ...action,
+      verb: 'replace',
+      targets: [{ seat: 'B', slots: [2] }],
+    },
+    effect: {
+      entrance: 'team-rocket' as const,
+      discardSources: ['@held' as const, { seat: 'B', slot: 2 }],
+    },
+  };
+  const steps = presentationSteps(game, [event], 1, false, 'B');
+  expect(steps.map((step) => step.kind)).toEqual(['ability', 'board']);
+  expect(steps[1]!.effects).toEqual({
+    moves: [],
+    cover: [],
+    reveal: [],
+    pulse: ['B:2'],
+  });
+  expect(
+    presentationSteps(game, [event], 1, false, 'C').map((step) => step.kind),
+  ).toEqual(['ability']);
+});
 it('reveals the actual research win award only when the saved result presentation completes', () => {
   const awarded = {
     winsBySeat: { A: 3, B: 1 },
