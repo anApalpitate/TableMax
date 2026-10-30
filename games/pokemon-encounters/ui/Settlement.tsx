@@ -81,7 +81,11 @@ export function Settlement(props: Props) {
             {s.name}
             {s.id === selfId ? ' · 你' : ''}
           </h3>
-          <span>
+          <span
+            className="settlement-place"
+            data-rank={s.rank}
+            title={`第 ${s.rank} 名${s.matchWinner ? ' · 大局赢家' : s.roundWinner ? ' · 本局获胜' : ''}`}
+          >
             第 {s.rank} 名
             {s.matchWinner ? ' · 大局赢家' : s.roundWinner ? ' · 本局获胜' : ''}
           </span>
@@ -170,9 +174,11 @@ type Content = {
 function HostResults({ header, continuation, boards }: Content) {
   return (
     <>
-      {header}
+      <div className="settlement-top">
+        {header}
+        {continuation}
+      </div>
       <div className="settlement-boards">{boards}</div>
-      {continuation}
     </>
   );
 }

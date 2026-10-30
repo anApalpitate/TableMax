@@ -354,11 +354,6 @@
   white-space: nowrap;
   padding: 0;
 }
-.pokemon-screen .settlement-H .settlement-continuation {
-  position: absolute;
-  right: 110px;
-  top: 16px;
-}
 .pokemon-screen .settlement-H {
   position: relative;
 }
@@ -459,4 +454,101 @@
   left: 50%;
   bottom: -20px !important;
   transform: translateX(-50%);
+}
+/* Host results: continuation participates in the top row, never overlays it. */
+.pokemon-screen .settlement-H .settlement-top {
+  display: flex;
+  align-items: stretch;
+  gap: 12px;
+  flex: none;
+  min-width: 0;
+}
+.pokemon-screen .settlement-H .settlement-top > .settlement-heading {
+  flex: 1;
+  min-width: 0;
+  min-height: 52px !important;
+  padding: 6px 14px;
+}
+.pokemon-screen .settlement-H .settlement-top > .settlement-continuation {
+  position: static;
+  flex: none;
+  margin: 0;
+  padding: 8px 14px;
+  border: 1px solid #d6c48b;
+  border-radius: 14px;
+  background: #fff8dd;
+  white-space: nowrap;
+  justify-content: center;
+}
+.pokemon-screen .settlement-H .settlement-continuation p {
+  font-size: 16px;
+  line-height: 24px;
+  white-space: nowrap;
+  margin: 0;
+}
+.pokemon-screen .settlement-H[data-count='6'] .settlement-card {
+  grid-template-rows: 32px minmax(0, 1fr);
+  padding: 6px 8px 20px;
+  gap: 4px;
+}
+.pokemon-screen .settlement-H[data-count='6'] .settlement-card > header {
+  gap: 6px;
+}
+.pokemon-screen .settlement-H[data-count='6'] .settlement-card > header > img {
+  width: 26px;
+  height: 26px;
+}
+.pokemon-screen .settlement-H[data-count='6'] .settlement-card > header > div {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.pokemon-screen .settlement-H[data-count='6'] .settlement-card h3 {
+  font-size: 16px;
+  line-height: 24px;
+  white-space: nowrap;
+  overflow: visible;
+  overflow-wrap: normal;
+}
+.pokemon-screen .settlement-H[data-count='6'] .settlement-place {
+  font-size: 0;
+  white-space: nowrap;
+}
+.pokemon-screen .settlement-H[data-count='6'] .settlement-place::after {
+  content: '#' attr(data-rank);
+  font-size: 16px;
+}
+.pokemon-screen
+  .settlement-H[data-count='6']
+  .settlement-card
+  > header
+  > .win-track {
+  padding: 0 4px;
+}
+.pokemon-screen .settlement-H[data-count='6'] .score-breakdown {
+  padding: 4px 6px;
+  min-height: 32px;
+  white-space: nowrap;
+}
+.pokemon-screen
+  .settlement-H[data-count='6']
+  .settlement-card
+  > .pokemon-board {
+  width: min(
+    100%,
+    calc((var(--pokemon-net-height, 100dvh) - 242px) * 0.46875)
+  ) !important;
+}
+.pokemon-screen .settlement-H[data-count='6'] .settlement-card .card-name {
+  white-space: nowrap;
+  height: 22px !important;
+  min-height: 22px;
+  line-height: 22px;
+}
+.pokemon-screen
+  .settlement-H[data-count='6']
+  .settlement-card
+  .pokemon-card.face
+  > img {
+  height: calc(100% - 22px) !important;
 }

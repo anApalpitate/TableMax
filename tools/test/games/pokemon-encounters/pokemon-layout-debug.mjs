@@ -968,6 +968,41 @@ try {
           ];
           return {
             count: cards.length,
+            singleLineIssues: root.matches('.settlement-H[data-count="6"]')
+              ? [
+                  ...root.querySelectorAll(
+                    '.card-name-text, .settlement-card h3, .settlement-continuation p',
+                  ),
+                ]
+                  .filter((el) => {
+                    const range = document.createRange();
+                    range.selectNodeContents(el);
+                    const text = range.getBoundingClientRect(),
+                      box = el.getBoundingClientRect();
+                    const style = getComputedStyle(el);
+                    return (
+                      text.width > box.width + 1 ||
+                      text.height > parseFloat(style.lineHeight) + 1 ||
+                      style.textOverflow === 'ellipsis'
+                    );
+                  })
+                  .map((el) => el.textContent)
+              : [],
+            continuationFits:
+              !root.matches('.settlement-H') ||
+              (() => {
+                const top = root
+                  .querySelector('.settlement-top')
+                  .getBoundingClientRect();
+                const footer = root
+                  .querySelector('.settlement-continuation')
+                  .getBoundingClientRect();
+                return (
+                  footer.y >= top.y - 1 &&
+                  footer.bottom <= top.bottom + 1 &&
+                  footer.right <= innerWidth
+                );
+              })(),
             selected: root.querySelectorAll(
               '.settlement-selected .pokemon-board',
             ).length,
@@ -991,6 +1026,8 @@ try {
           role === 'player' ? 6 : (item.seats ?? 6) * 6,
         );
         assert.equal(check.settlement.invalid, 0);
+        assert.deepEqual(check.settlement.singleLineIssues, []);
+        assert.equal(check.settlement.continuationFits, true);
         assert.equal(check.settlement.stale, 0);
         assert(check.settlement.overflow <= 1);
         if (role === 'player') {
