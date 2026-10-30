@@ -8,6 +8,7 @@ import react from '@vitejs/plugin-react';
 import { launchTestBrowser } from '../../support/browser-test.mjs';
 import { serveFixture } from '../../support/fixture-server.mjs';
 import { captureBrowserScreenshot } from '../../support/screenshots.mjs';
+import { auditOverlayLayout } from './overlay-layout-audit.mjs';
 
 process.env.TABLEMAX_AUTO_MAINTENANCE = '0';
 const option = (name) =>
@@ -282,6 +283,8 @@ for (const variant of ['original', 'expansion']) {
     for (const device of ['host-1280', 'portrait-390', 'landscape'])
       add(device, 'event-details');
     add('host-1280', 'event-coin');
+    for (const device of ['portrait-390', 'landscape'])
+      add(device, 'overlay-layout');
     add('host-1280', 'paused');
     add('landscape', 'paused');
     for (const device of ['host-1280', 'portrait-390', 'landscape'])
@@ -1781,6 +1784,35 @@ try {
                 ...check.lightText.issues,
                 ...check.lightTextAfterInteraction.issues,
               ]),
+          );
+        }
+        if (item.variant === 'expansion' && scene === 'overlay-layout') {
+          check.overlayLayout = await auditOverlayLayout(
+            page,
+            surface,
+            work,
+            item.device,
+            report,
+            option('overlay-kinds')?.split(','),
+          );
+          expect(
+            check.overlayLayout.every(
+              (c) =>
+                c.changes.length === 0 &&
+                c.blocked.length === 0 &&
+                c.restored === 0 &&
+                c.overlays.length > 0,
+            ),
+            'Overlay changed base content or intercepted input: ' +
+              JSON.stringify(
+                check.overlayLayout.filter(
+                  (c) =>
+                    c.changes.length ||
+                    c.blocked.length ||
+                    c.restored ||
+                    !c.overlays.length,
+                ),
+              ),
           );
         }
         check.result = check.failures.length ? 'failed' : 'passed';

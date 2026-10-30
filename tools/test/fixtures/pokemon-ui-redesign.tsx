@@ -33,6 +33,7 @@ type Settings = {
   connected?: boolean;
   branch?: number;
   terminal?: boolean;
+  researchPublication?: boolean;
   commonWinner?: boolean;
   emptyDiscard?: boolean;
   waiting?: boolean;
@@ -73,6 +74,7 @@ function fixture(settings: Settings) {
   let eventRandom: number | undefined;
   const ctx = { seats, random: { next: () => eventRandom ?? random.next() } };
   let state = rules.initialize(ctx);
+  const beforeResearch = rules.project(state, { role: 'public' });
   if (settings.commonWinner) state.researchCandidates = ['R01', 'R02', 'R03'];
   const apply = (action: Action) => {
     const actor =
@@ -90,7 +92,7 @@ function fixture(settings: Settings) {
         seat,
         ctx,
       ).state;
-    if (!settings.initial)
+    if (!settings.initial && !settings.researchPublication)
       for (const seat of seats)
         state = rules.apply(
           state,
@@ -161,8 +163,13 @@ function fixture(settings: Settings) {
     state.deck.push(...state.discard);
     state.discard = [];
   }
-  const before = rules.project(state, { role: 'public' });
-  if (!['vote', 'draw'].includes(settings.scenario ?? '')) {
+  const before = settings.researchPublication
+    ? beforeResearch
+    : rules.project(state, { role: 'public' });
+  if (
+    !settings.researchPublication &&
+    !['vote', 'draw'].includes(settings.scenario ?? '')
+  ) {
     const category = settings.ordinary
       ? `ordinary-${settings.ordinary}`
       : `special-${settings.creature ?? 'mewtwo'}`;

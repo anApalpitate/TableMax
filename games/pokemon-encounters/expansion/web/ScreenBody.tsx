@@ -120,8 +120,13 @@ export function ScreenBody({
       data-seat={s.id}
     >
       <header>
-        {resultReady && game.matchWinners.includes(s.id) && (
-          <span className="winner-crown" role="img" aria-label="大局赢家皇冠">
+        {game.matchWinners.includes(s.id) && (
+          <span
+            className="winner-crown"
+            role="img"
+            aria-label="大局赢家皇冠"
+            style={{ visibility: resultReady ? 'visible' : 'hidden' }}
+          >
             ♛
           </span>
         )}
@@ -151,9 +156,10 @@ export function ScreenBody({
         />
       </header>
       <Board game={game} seat={s.id} motion={motion} />
-      {game.roundResult && resultReady && (
+      {game.roundResult && (
         <button
           className="ex-score ex-settlement-text"
+          style={{ visibility: resultReady ? 'visible' : 'hidden' }}
           onClick={() => {
             setDetail(s.id);
             setPanel('score');
@@ -181,7 +187,7 @@ export function ScreenBody({
   return (
     <main
       data-pokemon-viewport={viewport.id}
-      className={`expansion-screen ${session.role} ${game.roundResult && !resultReady ? 'ex-pending-settlement' : ''}`}
+      className={`expansion-screen ${session.role}`}
       data-layout={viewport.layout}
       data-below-minimum={viewport.belowMinimum || undefined}
       data-net-width={viewport.width}
@@ -337,9 +343,10 @@ export function ScreenBody({
           对局已暂停，当前牌面与研究保留。
         </div>
       )}
-      {game.roundResult && resultReady && (
+      {game.roundResult && (
         <section
           className="ex-victory ex-settlement-text"
+          style={{ visibility: resultReady ? 'visible' : 'hidden' }}
           aria-label="本局结果"
         >
           <span className="ex-winner-emblem" aria-hidden="true">

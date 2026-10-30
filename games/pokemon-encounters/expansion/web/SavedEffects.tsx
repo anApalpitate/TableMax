@@ -1,4 +1,5 @@
 import { useEffect, useRef, type CSSProperties } from 'react';
+import { createPortal } from 'react-dom';
 import type { GameHost } from '@tablemax/web-host';
 import {
   categoriesForProfile,
@@ -225,21 +226,24 @@ export function SavedEffects({
             durationMs={current.durationMs}
             fullscreen={sequence.fullscreen}
           />
-          <aside className="ex-static-hero" role="status">
-            {portraitFor(category.categoryId) && (
-              <img src={portraitFor(category.categoryId)} alt="" />
-            )}
-            <div>
-              <strong>{category.name}</strong>
-              <p>
-                {category.ability
-                  ? abilityTextForProfile(
-                      game.rulesProfile ?? 'research-buffer-v2',
-                    )[category.ability]
-                  : '复制相邻有效值'}
-              </p>
-            </div>
-          </aside>
+          {createPortal(
+            <aside className="ex-static-hero" role="status">
+              {portraitFor(category.categoryId) && (
+                <img src={portraitFor(category.categoryId)} alt="" />
+              )}
+              <div>
+                <strong>{category.name}</strong>
+                <p>
+                  {category.ability
+                    ? abilityTextForProfile(
+                        game.rulesProfile ?? 'research-buffer-v2',
+                      )[category.ability]
+                    : '复制相邻有效值'}
+                </p>
+              </div>
+            </aside>,
+            document.body,
+          )}
         </>
       )}
       {coin && (
@@ -259,20 +263,23 @@ export function SavedEffects({
           </div>
         </div>
       )}
-      {current.kind === 'research' && current.research && (
-        <div
-          key={'research:' + key}
-          className="ex-research-reveal"
-          data-research-event={current.event.id}
-        >
-          <span>研究任务发布</span>
-          <strong>{current.research.name}</strong>
-          <p>{current.research.description}</p>
-          <b>
-            <ResearchReward task={current.research} />
-          </b>
-        </div>
-      )}
+      {current.kind === 'research' &&
+        current.research &&
+        createPortal(
+          <div
+            key={'research:' + key}
+            className="ex-research-reveal"
+            data-research-event={current.event.id}
+          >
+            <span>研究任务发布</span>
+            <strong>{current.research.name}</strong>
+            <p>{current.research.description}</p>
+            <b>
+              <ResearchReward task={current.research} />
+            </b>
+          </div>,
+          document.body,
+        )}
       {current.kind === 'result' && (
         <div
           className="pokemon-screen ex-original-effects"

@@ -578,8 +578,15 @@
     display: none;
   }
   .ex-research-reveal {
-    position: static;
+    position: fixed;
     inset: auto;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    box-sizing: border-box;
+    width: min(620px, calc(100vw - 32px));
+    max-height: calc(100dvh - 32px);
+    animation: none;
     background: #fff2bf;
     color: #305d4d;
     border: 2px solid #d9ba66;
@@ -592,6 +599,10 @@
   }
   .ex-research-reveal p {
     font-size: 18px;
+  }
+  .ex-research-reveal b {
+    font-size: 20px;
+    margin: 12px 0;
   }
 }
 
@@ -704,6 +715,17 @@
 }
 .ex-static-hero {
   display: none;
+  position: fixed;
+  z-index: 185;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: min(460px, calc(100vw - 32px));
+  max-height: calc(100dvh - 32px);
+  box-sizing: border-box;
+  overflow: hidden;
+  pointer-events: none;
+  color: #3b301b;
 }
 
 /* Vector joints supply the body motion; the wrapper supplies only the camera. */
@@ -933,7 +955,7 @@
     align-items: center;
     gap: 12px;
     padding: 12px;
-    margin-top: 12px;
+    margin: 0;
     border: 2px solid #d3b058;
     border-radius: 16px;
     background: #fff3c8;
