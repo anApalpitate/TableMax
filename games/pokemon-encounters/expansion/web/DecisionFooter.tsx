@@ -3,7 +3,6 @@ import type { PlayerDecisionProps } from './player-decision-contract';
 import { labels } from './view-model';
 export function DecisionFooter({
   game,
-  landscape,
   heldOptions,
   decision,
 }: PlayerDecisionProps) {
@@ -104,9 +103,6 @@ export function DecisionFooter({
           <BufferCard game={game} seat={self} />
         )}
       </div>
-      {landscape && game.phase === 'draw' && (
-        <p className="desktop-draw-prompt">选择牌源，或交换本人两格</p>
-      )}
     </>
   );
 }

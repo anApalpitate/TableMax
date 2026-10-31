@@ -1119,8 +1119,8 @@
   justify-content: space-between;
   gap: 6px 10px;
 }
-.uno-reaction--penalty strong {
-  font-size: 18px;
+.uno-reaction--penalty > .uno-primary {
+  width: 100%;
 }
 .uno-catch-control {
   font-variant-numeric: tabular-nums;

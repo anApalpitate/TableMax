@@ -15,6 +15,7 @@ interface RoomTableProps {
   lobby: boolean;
   status: string;
   everyoneReady: boolean;
+  showReadySummary?: boolean;
   removableIds?: string[];
   removalLocked?: boolean;
   removeSeat?(id: string): void;
@@ -27,6 +28,7 @@ export function RoomTable({
   lobby,
   status,
   everyoneReady,
+  showReadySummary = true,
   removableIds = [],
   removalLocked = false,
   removeSeat,
@@ -123,15 +125,17 @@ export function RoomTable({
         <span className="room-table__logo" aria-hidden="true">
           T
         </span>
-        <strong>
-          {seats.length === 0
-            ? '朋友们，请入座'
-            : lobby
-              ? everyoneReady
-                ? '准备就绪'
-                : '等朋友们准备'
-              : status}
-        </strong>
+        {(!lobby || !everyoneReady || showReadySummary) && (
+          <strong>
+            {seats.length === 0
+              ? '朋友们，请入座'
+              : lobby
+                ? everyoneReady
+                  ? '准备就绪'
+                  : '等朋友们准备'
+                : status}
+          </strong>
+        )}
         <span className="room-table__table-label">
           {expanded
             ? `已入座 ${seats.length} / ${visibleCapacity} 人`

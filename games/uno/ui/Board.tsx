@@ -136,20 +136,19 @@ export function Seats({
                 <span className="uno-seat-points">{player.score} 分</span>
               </span>
             </div>
-            {compact && game.turnSeat && (
-              <span className="uno-seat-order">
-                {game.turnSeat === id
-                  ? '正在行动'
-                  : game.seatOrder[
-                        (game.seatOrder.indexOf(game.turnSeat) +
-                          game.direction +
-                          game.seatOrder.length) %
-                          game.seatOrder.length
-                      ] === id
-                    ? '下一位'
-                    : `第 ${index + 1} 席`}
-              </span>
-            )}
+            {compact &&
+              game.turnSeat &&
+              (game.turnSeat === id ||
+                game.seatOrder[
+                  (game.seatOrder.indexOf(game.turnSeat) +
+                    game.direction +
+                    game.seatOrder.length) %
+                    game.seatOrder.length
+                ] === id) && (
+                <span className="uno-seat-order">
+                  {game.turnSeat === id ? '正在行动' : '下一位'}
+                </span>
+              )}
             <div className="uno-mini-hand" aria-hidden="true">
               {Array.from(
                 { length: Math.min(player.handCount, 5) },

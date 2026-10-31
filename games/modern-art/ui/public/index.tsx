@@ -193,9 +193,6 @@ export function MarketBoard({
             >
               {artist.currentValue}
             </strong>
-            <span className="ma-artist__meaning">
-              {settled ? '每幅兑现' : '预估兑现'}
-            </span>
             <span className="ma-artist__breakdown">
               <span>
                 历史 {marketValueParts(artist, view.round).historical}

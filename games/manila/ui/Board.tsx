@@ -790,9 +790,6 @@ export function HarborBoard({
                               label={names[entry.occupant!] ?? entry.occupant!}
                             />
                           ))}
-                          {!crewMembers.length && (
-                            <span className="mn-manifest-empty">空舱</span>
-                          )}
                         </span>
                         {vacancy && (
                           <span className="mn-manifest-target">

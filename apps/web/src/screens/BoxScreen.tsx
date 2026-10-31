@@ -233,7 +233,6 @@ function BoxScreenContent({ session }: { session: RoomSession }) {
           <div className="room-heading">
             <div className="room-heading__identity">
               <div className="room-heading__title">
-                <h2>聚会牌桌</h2>
                 <span
                   className="room-capacity"
                   aria-label={`已入座 ${view?.seats.length ?? 0} 人，最多 ${view?.game?.max ?? 6} 人，${roomStatus}`}
@@ -325,10 +324,6 @@ function BoxScreenContent({ session }: { session: RoomSession }) {
                 </button>
                 <div className="player-profile">
                   <strong title={self.name}>{self.name}</strong>
-                  <span>
-                    {view!.seats.findIndex((seat) => seat.id === self.id) + 1}{' '}
-                    号位
-                  </span>
                 </div>
                 {lobby && (
                   <button
@@ -570,6 +565,7 @@ function BoxScreenContent({ session }: { session: RoomSession }) {
             lobby={lobby}
             status={roomStatus}
             everyoneReady={everyoneReady}
+            showReadySummary={!isHost}
             removableIds={
               canManageSeats
                 ? (view?.seats ?? [])

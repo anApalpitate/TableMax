@@ -505,7 +505,6 @@ function AvalonScreen({ session }: { session: GameHost }) {
           )}
           {!player && game.phase !== 'ended' && (
             <div className="av-public-footer">
-              <span>角色与任务牌保持秘密</span>
               <button type="button" onClick={() => setPanel('history')}>
                 议会记录
               </button>

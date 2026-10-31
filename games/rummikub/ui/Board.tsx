@@ -34,7 +34,6 @@ export function DraftBoard({
       {!draft.groups.length && (
         <div className="rk-empty-table">
           <span aria-hidden="true">▥</span>
-          <p>选牌，建立第一个牌组</p>
         </div>
       )}
       {draft.groups.map((group, index) => {

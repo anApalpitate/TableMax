@@ -200,23 +200,28 @@ export function Council({
                 )}
               </span>
               <strong>{seat?.name ?? `座位 ${index + 1}`}</strong>
-              <span className="av-seat-status">
-                {game.discussion?.current === id
-                  ? '正在发言'
-                  : game.phase === 'assassinate' && game.assassin === id
-                    ? '刺客'
-                    : submitted
-                      ? '已提交'
-                      : ballot
-                        ? ballot === 'approve'
-                          ? '赞成'
-                          : '反对'
-                        : leader
-                          ? '队长'
-                          : member
-                            ? '远征队员'
-                            : '圆桌成员'}
-              </span>
+              {(game.discussion?.current === id ||
+                (game.phase === 'assassinate' && game.assassin === id) ||
+                submitted ||
+                ballot ||
+                leader ||
+                member) && (
+                <span className="av-seat-status">
+                  {game.discussion?.current === id
+                    ? '正在发言'
+                    : game.phase === 'assassinate' && game.assassin === id
+                      ? '刺客'
+                      : submitted
+                        ? '已提交'
+                        : ballot
+                          ? ballot === 'approve'
+                            ? '赞成'
+                            : '反对'
+                          : leader
+                            ? '队长'
+                            : '远征队员'}
+                </span>
+              )}
             </button>
           );
         })}

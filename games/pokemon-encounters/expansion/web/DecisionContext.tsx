@@ -206,16 +206,12 @@ export function DecisionContext(props: PlayerDecisionProps) {
                       </span>
                     )}
                   </>,
-                  <>
+                  game.buffersBySeat[self] ? (
                     <span>
-                      {game.buffersBySeat[self]?.name ?? '空位'}
-                      <b>
-                        {game.buffersBySeat[self]
-                          ? '取出后必须使用'
-                          : '尚未存牌'}
-                      </b>
+                      {game.buffersBySeat[self].name}
+                      <b>取出后必须使用</b>
                     </span>
-                  </>,
+                  ) : null,
                 )}
               </button>
             )}

@@ -241,13 +241,11 @@ export function TableStatus({
             );
           })}
         </div>
-        <p className="progress-caption">
-          {view.phase === 'initial-flip'
-            ? `已翻牌 ${progress.completed} / ${progress.total}`
-            : view.phase === 'draw'
-              ? '从牌库或弃牌顶取一张牌'
-              : progress.label}
-        </p>
+        {view.phase === 'initial-flip' && (
+          <p className="progress-caption">
+            已翻牌 {progress.completed} / {progress.total}
+          </p>
+        )}
         {view.coin && (
           <span className="coin-result">
             <span

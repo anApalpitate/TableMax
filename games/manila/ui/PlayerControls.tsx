@@ -127,8 +127,13 @@ export function PlayerControls({
       aria-label="本人行动"
       data-stage={game.phase}
     >
-      <div className="mn-controls-heading">
-        <h2 tabIndex={-1}>{title}</h2>
+      <div
+        className="mn-controls-heading"
+        hidden={places.length > 0 && !work.carry}
+      >
+        <h2 className={places.length ? 'mn-sr-only' : undefined} tabIndex={-1}>
+          {title}
+        </h2>
         {bids.length > 0 && (
           <span className="mn-bid-range">
             出价范围{' '}

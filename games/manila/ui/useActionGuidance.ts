@@ -19,7 +19,9 @@ export function useActionGuidance({
     if (!enabled || seen === boundary) return;
     const owner = scrollRef.current;
     const area = owner?.querySelector<HTMLElement>('#mn-action-area');
-    const heading = area?.querySelector<HTMLElement>('h2');
+    const heading =
+      area?.querySelector<HTMLElement>('h2:not(.mn-sr-only)') ??
+      area?.querySelector<HTMLElement>('[data-mn-primary-control]');
     if (!owner || !area || !heading) return;
     const visible = (node: HTMLElement) => {
       const root = owner.getBoundingClientRect();
@@ -76,7 +78,10 @@ export function useActionGuidance({
       '(prefers-reduced-motion: reduce)',
     ).matches;
     setSeen(boundary);
-    target.querySelector<HTMLElement>('h2')?.focus({ preventScroll: true });
+    const anchor =
+      target.querySelector<HTMLElement>('h2:not(.mn-sr-only)') ??
+      target.querySelector<HTMLElement>('[data-mn-primary-control]');
+    anchor?.focus({ preventScroll: true });
     owner.scrollTo({
       top:
         owner.scrollTop +

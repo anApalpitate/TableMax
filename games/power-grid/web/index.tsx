@@ -396,7 +396,7 @@ function PowerGridScreen({ session }: { session: RoomSession }) {
             )}
           </div>
         )}
-        {game && (
+        {game && role !== 'player' && (
           <span className="pg-round">
             第 {game.round} 轮 <b>第{game.step}阶段</b>
           </span>

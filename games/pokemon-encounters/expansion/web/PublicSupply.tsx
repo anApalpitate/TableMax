@@ -23,7 +23,6 @@ export function PublicSupply({
   return (
     <aside className="ex-supply">
       <header className="ex-supply-heading">
-        <h2>公开牌区</h2>
         <span>弃牌共 {game.discardCount} 张</span>
       </header>
       {game.coin && (
@@ -94,9 +93,7 @@ export function PublicSupply({
             </svg>
             <div>
               <span>暂持区</span>
-              <strong>
-                {game.phase === 'draw' ? '等待取牌' : '本次操作已完成'}
-              </strong>
+              {game.phase !== 'draw' && <strong>本次操作已完成</strong>}
             </div>
           </>
         )}

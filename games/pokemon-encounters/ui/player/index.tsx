@@ -366,12 +366,6 @@ export function PlayerControls({
                 </div>
               </>
             )}
-            {landscape && !waiting && view.phase === 'draw' && (
-              <p className="desktop-draw-prompt">
-                <strong>选择一个牌源</strong>
-                <span>点击取牌，再决定换入的位置</span>
-              </p>
-            )}
           </>
         }
       />

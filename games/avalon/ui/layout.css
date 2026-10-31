@@ -44,6 +44,13 @@
 .avalon-screen[data-av-layout='L'] .av-council--expanded .av-council-center {
   width: 44%;
 }
+.avalon-screen[data-av-layout='L']
+  .av-council--expanded
+  .av-council-center
+  > .av-relic {
+  width: 48px;
+  height: 48px;
+}
 .avalon-screen[data-av-layout='L'] .av-council--expanded .av-seat:nth-child(1) {
   grid-area: 1 / 1;
 }

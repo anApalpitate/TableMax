@@ -130,30 +130,27 @@ export function AuctionTheme({
       {kind === 'fixed' && (
         <>
           <div className="ma-theme__price-tag">
-            <span>一口价</span>
             <strong>
               {auction.fixedPrice === null
                 ? '待定价'
                 : money(auction.fixedPrice)}
             </strong>
           </div>
-          <div className="ma-theme__lead">
-            {message ??
-              (acting ? (
-                <>
-                  {identity(acting)}
-                  <span>
-                    {auction.fixedPrice === null
-                      ? '正在定价'
-                      : acting === auction.seller
-                        ? '卖家自购'
-                        : '正在询价'}
-                  </span>
-                </>
-              ) : (
-                '等待买入'
-              ))}
-          </div>
+          {(message || auction.fixedPrice !== null) && (
+            <div className="ma-theme__lead">
+              {message ??
+                (acting ? (
+                  <>
+                    {identity(acting)}
+                    <span>
+                      {acting === auction.seller ? '卖家自购' : '正在询价'}
+                    </span>
+                  </>
+                ) : (
+                  '等待买入'
+                ))}
+            </div>
+          )}
           <span className="ma-theme__caption">
             顺时针询价 → 无人买入则卖家按原价自购
           </span>

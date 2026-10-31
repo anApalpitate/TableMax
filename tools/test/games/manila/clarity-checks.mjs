@@ -53,7 +53,9 @@ export async function registerClarityChecks({
     page.evaluate(() => {
       const area = document.querySelector('#mn-action-area');
       const owner = document.querySelector('.mn-player-scroll');
-      const heading = area?.querySelector('h2');
+      const heading =
+        area?.querySelector('h2:not(.mn-sr-only)') ??
+        area?.querySelector('[data-mn-primary-control]');
       const control =
         area?.querySelector('[data-mn-primary-control]:not(:disabled)') ??
         area?.querySelector(
@@ -94,7 +96,10 @@ export async function registerClarityChecks({
     );
   const naturalArrival = async () => {
     await page.locator('.mn-player-scroll').evaluate((owner) => {
-      const heading = owner.querySelector('#mn-action-area h2');
+      const area = owner.querySelector('#mn-action-area');
+      const heading =
+        area?.querySelector('h2:not(.mn-sr-only)') ??
+        area?.querySelector('[data-mn-primary-control]');
       if (!heading) throw new Error('Missing action heading');
       owner.scrollTo({
         top:

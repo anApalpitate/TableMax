@@ -391,9 +391,6 @@ function UnoScreen({ session }: { session: GameHost }) {
                   )}
                   {acceptPenalty && (
                     <section className="uno-reaction uno-reaction--penalty">
-                      <strong>
-                        补牌累计 {game.drawPenalty?.count ?? 2} 张
-                      </strong>
                       <button
                         className="uno-primary"
                         type="button"

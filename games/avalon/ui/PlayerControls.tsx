@@ -76,12 +76,6 @@ export function PlayerControls({
         </>
       ) : game.phase === 'discussion' ? (
         <>
-          <div className="av-action-copy">
-            <span>
-              {game.discussion?.completed.length ?? 0} / {game.seatOrder.length}{' '}
-              已完成
-            </span>
-          </div>
           {action('finish-discussion') && (
             <button
               type="button"
