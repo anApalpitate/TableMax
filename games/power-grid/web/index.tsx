@@ -44,10 +44,36 @@ import { PlayModeBadge } from '@tablemax/web-host';
 import { PlayModeControl } from '@tablemax/web-host';
 import { DecisionCountdown } from '@tablemax/web-host';
 import { RulesGuide } from '@tablemax/web-host';
-import { powerGridRulebook } from '../ui/RulesGuide';
+import { powerGridRulebookFor } from '../ui/RulesGuide';
 import { avatarFor } from '@tablemax/web-host';
 import { useAudioOutput } from '@tablemax/web-host';
 import { useViewportSnapshot } from '@tablemax/web-host';
+
+const logCategories = [
+  { id: 'all', label: '全部记录', verbs: [] as string[] },
+  {
+    id: 'auction',
+    label: '电厂竞拍',
+    verbs: [
+      'offer',
+      'bid',
+      'pass',
+      'pass-round',
+      'purchase-plant',
+      'discard-plant',
+      'salvage',
+      'discard-salvage',
+    ],
+  },
+  {
+    id: 'resource',
+    label: '资源采购与转存',
+    verbs: ['buy-resource', 'transfer', 'swap-resources'],
+  },
+  { id: 'build', label: '区域与建城', verbs: ['regions', 'build'] },
+  { id: 'production', label: '发电与补给', verbs: ['run', 'supply'] },
+  { id: 'progress', label: '轮次与阶段', verbs: ['round', 'step', 'end'] },
+] as const;
 
 function artFor(id: number): CSSProperties {
   const art = plantImage(getPlant(id).fuel, id);
@@ -60,6 +86,7 @@ function artFor(id: number): CSSProperties {
 
 function PowerGridScreen({ session }: { session: RoomSession }) {
   const viewportId = useId();
+  const [logCategory, setLogCategory] = useState('all');
   const net = useViewportSnapshot(
     `[data-pg-viewport="${viewportId}"]`,
     '--pg-safe-',
@@ -69,7 +96,7 @@ function PowerGridScreen({ session }: { session: RoomSession }) {
   const game = view?.gameView as PowerGridView | null;
   const canPlay = useAudioOutput();
   const [panel, setPanel] = useState<
-    'menu' | 'map' | 'companies' | 'rules' | null
+    'menu' | 'map' | 'companies' | 'rules' | 'history' | null
   >(null);
   const [marketTab, setMarketTab] = useState<{
     phase: string;
@@ -634,6 +661,8 @@ function PowerGridScreen({ session }: { session: RoomSession }) {
       />
       {panel && (
         <OverlayPanel
+          navigation={panel === 'menu'}
+          {...(panel === 'history' ? { back: () => setPanel('menu') } : {})}
           title={
             panel === 'rules' ? (
               <>
@@ -644,6 +673,8 @@ function PowerGridScreen({ session }: { session: RoomSession }) {
               '德国电网'
             ) : panel === 'companies' ? (
               '各家电力公司'
+            ) : panel === 'history' ? (
+              '电网记录'
             ) : (
               '电网菜单'
             )
@@ -651,10 +682,47 @@ function PowerGridScreen({ session }: { session: RoomSession }) {
           close={() => setPanel(null)}
         >
           {panel === 'rules' ? (
-            <RulesGuide {...powerGridRulebook} />
+            <RulesGuide {...powerGridRulebookFor(game?.seatOrder.length)} />
           ) : (
             <div className="pg-screen pg-panel">
-              {panel === 'map' ? (
+              {panel === 'history' ? (
+                <>
+                  <label className="pg-log-filter">
+                    记录类别
+                    <select
+                      value={logCategory}
+                      onChange={(event) => setLogCategory(event.target.value)}
+                    >
+                      {logCategories.map((category) => (
+                        <option key={category.id} value={category.id}>
+                          {category.label}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  <ol className="pg-log">
+                    {[...(game?.history ?? [])]
+                      .filter(
+                        (entry) =>
+                          logCategory === 'all' ||
+                          (
+                            logCategories.find(
+                              (category) => category.id === logCategory,
+                            )?.verbs as readonly string[] | undefined
+                          )?.includes(entry.verb),
+                      )
+                      .reverse()
+                      .map((entry) => (
+                        <li key={entry.id}>
+                          <strong>
+                            {entry.actor ? names[entry.actor] : '电网'}
+                          </strong>
+                          <span>{entry.text}</span>
+                        </li>
+                      ))}
+                  </ol>
+                </>
+              ) : panel === 'map' ? (
                 <div className="pg-panel-map">{map}</div>
               ) : panel === 'companies' && game ? (
                 <CompanyInspector
@@ -672,17 +740,13 @@ function PowerGridScreen({ session }: { session: RoomSession }) {
                     <DisplaySettings role={role} />
                   </div>
                   {canControl && <RoomManagement session={session} />}
-                  <h2>已保存的电网记录</h2>
-                  <ol className="pg-log">
-                    {[...(game?.history ?? [])].reverse().map((entry) => (
-                      <li key={entry.id}>
-                        <strong>
-                          {entry.actor ? names[entry.actor] : '电网'}
-                        </strong>
-                        <span>{entry.text}</span>
-                      </li>
-                    ))}
-                  </ol>
+                  <button
+                    type="button"
+                    className="game-menu-entry"
+                    onClick={() => setPanel('history')}
+                  >
+                    电网记录
+                  </button>
                 </>
               )}
             </div>

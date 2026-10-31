@@ -5,7 +5,13 @@ import { ResearchCard } from './ResearchCard';
 import { AbilityLegend, GuideScene } from '../../ui/RuleDiagrams';
 import { bufferedProfile } from './view-model';
 
-export function Rulebook({ profile }: { profile: RulesProfile }) {
+export function Rulebook({
+  profile,
+  activeResearchIds = [],
+}: {
+  profile: RulesProfile;
+  activeResearchIds?: readonly string[];
+}) {
   const buffered = bufferedProfile(profile);
   const latest = profile === 'events-research-v3';
   return (
@@ -34,7 +40,7 @@ export function Rulebook({ profile }: { profile: RulesProfile }) {
               </p>
               <GuideScene
                 name="setup"
-                caption="九宫格扩展：牌位与数字由下方代码表示。"
+                caption="九宫格扩展：三行三列，每人先翻一张。"
               >
                 <div className="ex-rule-grid">
                   {Array.from({ length: 9 }, (_, i) => (
@@ -100,35 +106,38 @@ export function Rulebook({ profile }: { profile: RulesProfile }) {
                   .filter((c) => c.ability || c.copy)
                   .map((c) => (
                     <li key={c.categoryId}>
-                      <strong>{c.name}：</strong>
-                      {c.copy
-                        ? (c.copy === 'horizontal' ? '横向' : '纵向') +
-                          '复制紧邻分值。'
-                        : c.ability === 'charizard'
-                          ? '可私看本人一张暗牌，牌留原位朝下。'
-                          : c.ability === 'mewtwo'
-                            ? latest
-                              ? '私看一名对手一格，可交换该张牌或放弃；确认后完成本人换入。'
-                              : '看同一对手两格后，可交换一张或放弃；确认后完成本人换入。'
-                            : c.ability === 'arceus'
-                              ? '全桌含自身盖回，每人随机一明，每小局全桌一次，不洗牌重发。'
-                              : c.ability === 'greninja'
-                                ? '任意一名玩家两格盖回，或盖回并公开交换。'
-                                : c.ability === 'lucario'
-                                  ? '仅从牌库额外摸一张，可按规则回洗补充牌库；无牌可摸时不可发动。额外牌不发动主动能力。'
-                                  : c.ability === 'groudon'
-                                    ? '交换对手第三行。'
-                                    : c.ability === 'kyogre'
-                                      ? '交换对手第二行。'
-                                      : c.ability === 'rayquaza'
-                                        ? '交换对手第一行。'
-                                        : c.ability === 'snorlax'
-                                          ? '可交换本人两格，朝向随牌移动。'
-                                          : c.ability === 'zapdos'
-                                            ? '选择顺／逆时针，每位其他玩家接牌换入一次，末牌弃底。'
-                                            : c.ability === 'mew'
-                                              ? '换入对手一格，再把所得牌换入本人。'
-                                              : '抛币；喵喵面换入本人，皮卡丘面处理全员同格，弃底补位。'}
+                      <details>
+                        <summary>{c.name}</summary>
+                        <strong>{c.name}：</strong>
+                        {c.copy
+                          ? (c.copy === 'horizontal' ? '横向' : '纵向') +
+                            '复制紧邻分值。'
+                          : c.ability === 'charizard'
+                            ? '可私看本人一张暗牌，牌留原位朝下。'
+                            : c.ability === 'mewtwo'
+                              ? latest
+                                ? '私看一名对手一格，可交换该张牌或放弃；确认后完成本人换入。'
+                                : '看同一对手两格后，可交换一张或放弃；确认后完成本人换入。'
+                              : c.ability === 'arceus'
+                                ? '全桌含自身盖回，每人随机一明，每小局全桌一次，不洗牌重发。'
+                                : c.ability === 'greninja'
+                                  ? '任意一名玩家两格盖回，或盖回并公开交换。'
+                                  : c.ability === 'lucario'
+                                    ? '仅从牌库额外摸一张，可按规则回洗补充牌库；无牌可摸时不可发动。额外牌不发动主动能力。'
+                                    : c.ability === 'groudon'
+                                      ? '交换对手第三行。'
+                                      : c.ability === 'kyogre'
+                                        ? '交换对手第二行。'
+                                        : c.ability === 'rayquaza'
+                                          ? '交换对手第一行。'
+                                          : c.ability === 'snorlax'
+                                            ? '可交换本人两格，朝向随牌移动。'
+                                            : c.ability === 'zapdos'
+                                              ? '选择顺／逆时针，每位其他玩家接牌换入一次，末牌弃底。'
+                                              : c.ability === 'mew'
+                                                ? '换入对手一格，再把所得牌换入本人。'
+                                                : '抛币；喵喵面换入本人，皮卡丘面处理全员同格，弃底补位。'}
+                      </details>
                     </li>
                   ))}
               </ul>
@@ -193,7 +202,13 @@ export function Rulebook({ profile }: { profile: RulesProfile }) {
               </p>
               <div className="expansion-screen ex-research-reference ex-rule-tasks">
                 {tasksForProfile(profile).map((t) => (
-                  <ResearchCard key={t.id} task={t} profile={profile} />
+                  <details key={t.id} open={activeResearchIds.includes(t.id)}>
+                    <summary>
+                      {t.name}
+                      {activeResearchIds.includes(t.id) ? '（本局）' : ''}
+                    </summary>
+                    <ResearchCard task={t} profile={profile} />
+                  </details>
                 ))}
               </div>
             </>

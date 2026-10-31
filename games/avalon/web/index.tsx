@@ -1,3 +1,4 @@
+import { BotDifficultyHelp } from '../ui/BotDifficultyHelp';
 /* eslint-disable react-refresh/only-export-components -- Lazy game-client exports. */
 import { useEffect, useId, useState, type CSSProperties } from 'react';
 import type { JsonValue } from '@tablemax/game-sdk';
@@ -287,8 +288,8 @@ function AvalonScreen({ session }: { session: GameHost }) {
               type="button"
               className="av-identity-entry"
               onClick={() => setPanel('identity')}
-              aria-label="查看我的秘密身份"
-              title="查看我的秘密身份"
+              aria-label="我的身份"
+              title="我的身份"
             >
               <svg
                 viewBox="0 0 24 24"
@@ -505,7 +506,11 @@ function AvalonScreen({ session }: { session: GameHost }) {
           )}
           {!player && game.phase !== 'ended' && (
             <div className="av-public-footer">
-              <button type="button" onClick={() => setPanel('history')}>
+              <button
+                type="button"
+                className="game-menu-entry"
+                onClick={() => setPanel('history')}
+              >
                 议会记录
               </button>
             </div>
@@ -514,7 +519,9 @@ function AvalonScreen({ session }: { session: GameHost }) {
       )}
       {panel && (
         <OverlayPanel
-          key={panel === 'identity' ? identityScope : panel}
+          navigation={panel === 'menu'}
+          {...(panel === 'history' ? { back: () => setPanel('menu') } : {})}
+          key={identityScope}
           title={
             panel === 'rules'
               ? '阿瓦隆 图文规则'
@@ -597,8 +604,12 @@ function AvalonScreen({ session }: { session: GameHost }) {
               ) : (
                 <>
                   {player && game?.self && game.phase !== 'ended' && (
-                    <button type="button" onClick={() => setPanel('identity')}>
-                      查看我的秘密身份
+                    <button
+                      type="button"
+                      className="game-menu-entry"
+                      onClick={() => setPanel('identity')}
+                    >
+                      我的身份
                     </button>
                   )}
 
@@ -609,23 +620,11 @@ function AvalonScreen({ session }: { session: GameHost }) {
                   {canControl && <RoomManagement session={session} />}
                   <button
                     type="button"
-                    className="av-history-entry"
+                    className="av-history-entry game-menu-entry"
                     onClick={() => setPanel('history')}
                   >
-                    查看议会与任务记录
+                    议会与任务记录
                   </button>
-                  <h3>电脑玩家</h3>
-                  <p>
-                    <strong>默认</strong>
-                    按本人知识与公开结果选择队伍、表决和任务牌。
-                  </p>
-                  <p>
-                    <strong>豆包</strong>结合否决与任务记录更新可疑程度。
-                  </p>
-                  <p>
-                    <strong>绝悟</strong>
-                    比较与公开失败数量一致的阵营组合，兼顾隐匿与刺杀判断。所有等级均只使用本人授权信息。
-                  </p>
                 </>
               )}
             </div>
@@ -639,6 +638,7 @@ function AvalonScreen({ session }: { session: GameHost }) {
 }
 
 export const client: GameClient = {
+  BotDifficultyHelp,
   Screen: AvalonScreen,
   savedChanges(before, after) {
     const previous = before as AvalonView;

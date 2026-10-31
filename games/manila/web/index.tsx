@@ -577,6 +577,7 @@ function ManilaScreen({ session }: { session: GameHost }) {
       </div>
       {panel && (
         <OverlayPanel
+          navigation={panel === 'menu'}
           className={`mn-overlay mn-theme mn-overlay--${panel}`}
           title={
             panel === 'rules'

@@ -219,3 +219,27 @@
     gap: 8px;
   }
 }
+
+/* Menu subpages replace the menu content inside its existing modal. */
+.overlay-panel > [hidden] {
+  display: none !important;
+}
+.menu-subpage-content {
+  min-width: 0;
+}
+.menu-subpage-content > .panel-heading {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+.menu-subpage-content > .panel-heading h2 {
+  flex: 1;
+  margin: 0;
+}
+.menu-subpage-content > .panel-heading > button {
+  min-width: 44px;
+  min-height: 44px;
+}
+.menu-subpage-content .box-overlay-panel__content {
+  overflow: visible;
+}

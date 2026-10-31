@@ -29,7 +29,7 @@ export function RollbackHistory({ session }: { session: RoomSession }) {
     .slice()
     .reverse();
   const describe = (h: (typeof view.history)[number]) =>
-    `${h.roundNumber ? `第 ${h.roundNumber} 小局 · ` : ''}第 ${h.step} 步 · ${h.seatId ? (view.seats.find((s) => s.id === h.seatId)?.name ?? '玩家') : '管理／历史步骤'} · ${h.label}`;
+    `${h.roundNumber ? `第 ${h.roundNumber} 小局，` : ''}第 ${h.step} 步，${h.seatId ? (view.seats.find((s) => s.id === h.seatId)?.name ?? '玩家') : '管理／历史步骤'}，${h.label}`;
   const selectedStep = view.history.find((entry) => entry.id === selected);
   return (
     <>
@@ -46,6 +46,7 @@ export function RollbackHistory({ session }: { session: RoomSession }) {
       </div>
       {open && (
         <OverlayPanel
+          embedded
           title="决策点回退"
           close={() => {
             setOpen(false);
@@ -101,8 +102,18 @@ export function RollbackHistory({ session }: { session: RoomSession }) {
                 disabled={locked}
                 onClick={() => setSelected(h.id)}
               >
-                {describe(h)}
-                {h.revealedInformation ? ' · 含揭示' : ''}
+                <span className="rollback-step">
+                  {h.roundNumber ? `第 ${h.roundNumber} 小局` : '对局'} 第{' '}
+                  {h.step} 步
+                </span>
+                <strong>
+                  {h.seatId
+                    ? (view.seats.find((seat) => seat.id === h.seatId)?.name ??
+                      '玩家')
+                    : '管理操作'}
+                </strong>
+                <span>{h.label}</span>
+                {h.revealedInformation && <span>含信息揭示</span>}
               </button>
             ))}
             {history.length > limit && (

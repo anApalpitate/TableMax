@@ -8,6 +8,7 @@ import {
   RoomManagement,
   OverlayPanel,
   DisplaySettings,
+  CountdownSettings,
   avatarFor,
   PlayModeControl,
   type GameClient,
@@ -122,17 +123,21 @@ function Screen({ session }: { session: GameHost }) {
       )}
       {panel && (
         <OverlayPanel
-          title={panel === 'rules' ? '德国小强图文规则' : '牌桌管理与设置'}
+          navigation={panel === 'menu'}
+          title={panel === 'rules' ? '德国小强图文规则' : '牌桌菜单'}
           close={() => setPanel(null)}
           className="cp-dialog"
         >
           {panel === 'rules' ? (
-            <PokerRules />
+            <PokerRules playerCount={view?.seats.length ?? 3} />
           ) : (
             <>
+              <div className="dialog-actions game-menu-settings">
+                <CountdownSettings session={session} />
+                <DisplaySettings role={role} />
+              </div>
               <RoomManagement session={session} />
               <PlayModeControl session={session} />
-              <DisplaySettings role={role} />
             </>
           )}
         </OverlayPanel>

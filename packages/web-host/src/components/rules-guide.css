@@ -6,7 +6,7 @@
 html:has(.overlay-panel[open] .rules-guide) {
   overflow: hidden;
 }
-.overlay-panel:has(.rules-guide) {
+.dialog-surface.overlay-panel:has(.rules-guide) {
   width: min(94vw, 980px);
   overflow-x: hidden;
 }
@@ -151,5 +151,119 @@ html:has(.overlay-panel[open] .rules-guide) {
   .rules-guide .rules-guide__summary,
   .rules-guide figure {
     padding: 10px;
+  }
+}
+
+/* The reader keeps navigation reachable while the dialog owns scrolling. */
+.rules-guide--reader {
+  grid-template-columns: 210px minmax(0, 1fr);
+  align-items: start;
+  gap: 16px 24px;
+}
+.rules-guide--reader .rules-guide__nav {
+  position: sticky;
+  top: 72px;
+  grid-column: 1;
+  grid-row: 2;
+  display: grid;
+  gap: 6px;
+}
+.rules-guide--reader .rules-guide__nav button {
+  text-align: left;
+  flex: none;
+  padding: 8px 10px;
+}
+.rules-guide--reader .rules-guide__nav button[aria-current] {
+  background: var(--rules-accent);
+  color: white;
+}
+.rules-guide--reader .rules-guide__chapters {
+  grid-column: 2;
+  grid-row: 2;
+  min-width: 0;
+}
+.rules-guide--reader .rules-guide__mode {
+  grid-column: 2;
+  justify-self: end;
+  min-height: 44px;
+  font-size: 18px;
+  white-space: nowrap;
+}
+.rules-guide__tools {
+  grid-column: 1 / -1;
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+.rules-guide__mobile-nav {
+  display: none;
+}
+.rules-guide--reader details > summary {
+  cursor: pointer;
+  padding: 12px 4px;
+  min-height: 44px;
+  font-size: 18px;
+}
+.rules-guide--reader details[open] > summary {
+  margin-bottom: 10px;
+}
+.rules-guide--reader table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+.rules-guide--reader th,
+.rules-guide--reader td {
+  padding: 8px;
+  border-bottom: 1px solid var(--rules-line);
+  text-align: left;
+  vertical-align: top;
+  font-size: 16px;
+  overflow-wrap: anywhere;
+}
+.rules-guide--reader th {
+  background: var(--rules-paper);
+}
+.rules-guide--reader caption {
+  padding-block: 8px;
+  font-size: 18px;
+  text-align: left;
+}
+@media (max-width: 700px), (max-height: 650px) {
+  .rules-guide--reader {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .rules-guide--reader .rules-guide__nav {
+    display: none;
+  }
+  .rules-guide--reader .rules-guide__chapters {
+    grid-column: 1;
+    grid-row: auto;
+  }
+  .rules-guide--reader .rules-guide__mode {
+    grid-column: 1;
+  }
+  .rules-guide__mobile-nav {
+    display: block;
+    flex: 1;
+    min-width: 0;
+    background: var(--rules-paper);
+    padding: 6px;
+  }
+  .rules-guide__tools {
+    position: sticky;
+    top: 60px;
+    z-index: 1;
+    background: var(--rules-paper);
+    align-items: center;
+  }
+  .rules-guide__mobile-nav select {
+    width: 100%;
+    min-height: 44px;
+    font-size: 18px;
+  }
+  .rules-guide--reader h3 {
+    scroll-margin-top: 132px;
   }
 }

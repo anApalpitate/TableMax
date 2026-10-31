@@ -50,6 +50,7 @@ export interface GameSetupSettingsProps {
   onChange(value: JsonValue): void;
 }
 export interface GameClient {
+  BotDifficultyHelp?: ComponentType;
   SetupSettings?: ComponentType<GameSetupSettingsProps>;
   Screen: ComponentType<{ session: GameHost }>;
   savedChanges(before: unknown, after: unknown): string[];

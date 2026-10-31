@@ -219,3 +219,56 @@
     gap: 8px;
   }
 }
+
+.dialog-surface .panel-heading[hidden] {
+  display: none;
+}
+.dialog-surface .game-menu-entry {
+  display: block;
+  width: 100%;
+  min-height: 46px;
+  margin-block: 10px;
+  font-size: 18px;
+  text-align: left;
+}
+.dialog-surface .rollback-history > button {
+  display: grid;
+  gap: 6px;
+  text-align: left;
+  overflow-wrap: anywhere;
+}
+.dialog-surface .menu-subpage:empty {
+  display: none;
+}
+.dialog-surface .panel-heading h2 {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.dialog-surface .panel-heading h2 .rules-guide__title-part {
+  font-size: inherit;
+  color: inherit;
+}
+
+/* Menu subpages replace the menu content inside its existing modal. */
+.overlay-panel > [hidden] {
+  display: none !important;
+}
+.menu-subpage-content {
+  min-width: 0;
+}
+.menu-subpage-content > .panel-heading {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+.menu-subpage-content > .panel-heading h2 {
+  flex: 1;
+  margin: 0;
+}
+.menu-subpage-content > .panel-heading > button {
+  min-width: 44px;
+  min-height: 44px;
+}
+.menu-subpage-content .box-overlay-panel__content {
+  overflow: visible;
+}

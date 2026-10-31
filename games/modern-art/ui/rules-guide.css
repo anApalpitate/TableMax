@@ -83,7 +83,7 @@
 .ma-rulebook__boundaries p {
   margin: 0;
 }
-.ma-rulebook__table {
+.rules-guide .ma-rulebook__table {
   border-collapse: collapse;
   width: calc(100% - 24px);
   margin: 12px;
@@ -139,5 +139,35 @@
   .ma-rulebook__table th,
   .ma-rulebook__table td {
     padding: 8px 2px;
+  }
+}
+
+.ma-rulebook__auction-facts {
+  display: grid;
+  gap: 12px;
+  margin: 14px 0;
+  min-width: 0;
+}
+.ma-rulebook__auction-facts > div {
+  display: grid;
+  grid-template-columns: 6em minmax(0, 1fr);
+  gap: 12px;
+  align-items: start;
+}
+.ma-rulebook__auction-facts dt {
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1.5;
+}
+.ma-rulebook__auction-facts dd {
+  margin: 0;
+  font-size: 18px;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+@media (max-width: 480px) {
+  .ma-rulebook__auction-facts > div {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 4px;
   }
 }

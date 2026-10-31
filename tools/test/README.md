@@ -24,6 +24,18 @@
 
 相同入口的`--review-only --task=tmp/<安全任务名> --evidence=<新轮名>`精确归`tooling`，读取任务`review/review-source.json`绑定HTML与相对图片SHA，再检查离线解码、筛选、原始像素和窄屏页面。一次性HTML生成脚本留任务`work`，不登记为永久工具入口；审阅QA不另增产品场景统计。服务路由／权限、原生桥接、配置、声音和安装器均须各自证据。
 
+### 规则与菜单的隔离源码复核
+
+[verify-rule-menu-ui.mjs](platform/verify-rule-menu-ui.mjs) 接受 `--task=tmp/<安全任务名> --evidence=<新轮名> --phase=before|after`，通过 `box,shared` 与八游戏范围的 version 1 显式计划执行。输入为任务内冻结的 `work/before`／`work/after` 源码和资源，以及真实规则推进生成的 `legal-fixtures.json`；冻结清单应保留各文件 SHA、原工作区改动与对照来源。每个游戏使用新浏览器上下文，经真实开发模块 registry 加载，不引入原型页面或其他游戏主入口样式。夹具缺少宝可梦玩法 metadata 时按明确 case ID 选择 original／expansion；源码验证不使用发行 releaseRef，不证明生产模块服务或旧档恢复。
+
+入口复核章节／完整阅读切换、同局阅读记忆、设置嵌入、UNO 实际设置模块、关闭热区与零游戏命令，并按明确视口截图。`--panels=rules|menu`、`--roles=host|player`、`--widths=<逗号列表>`、`--games=<逗号列表>`用于定向复验；`--owner`／`--paused`是明确标注的权限与暂停 UI 契约夹具。`--navigation`仅运行[共享导航专项](platform/rule-menu-navigation.mjs)，覆盖设置返回／焦点、回退确认与盒子座位操作；合成 checkpoint 只证明界面交互，不证明真实回退保存。
+
+[verify-rule-menu-supplement.mjs](platform/verify-rule-menu-supplement.mjs)以相同范围及`--task`／`--evidence`读取任务内补例模板和清单，检查扩展规则 profile、UNO 配置、阿瓦隆公开规则投影及双人德国小强图示。输入配置校验与组件展示不等同旧存档恢复。普通截图及完整文本留任务临时目录，正式报告进入对应 maintenance 目录；[隔离加载助手](platform/rule-menu-fixture.mjs)仅供这些工具组合，不是独立产品服务。浏览器DPR／缩小CSS可用区均须标为模拟，不升级为Windows系统DPI或实体设备证明。
+
+`--states`运行[状态专项](platform/rule-menu-states.mjs)：暂停 UI 契约、合法终局公开投影，以及实际 HTTP 503 设置加载失败与重试。它不提交游戏命令，也不证明旧档恢复。
+
+[verify-uno-module-settings.mjs](platform/verify-uno-module-settings.mjs)使用 `--task=<安全任务名> --evidence=<新轮名>`，通过 `box,shared,game:uno` 显式计划执行。它启动实际服务并经 HTTP 加载当前开发 assembly 的生产网页及 UNO 动态模块，检查开局设置；需先官方构建并组装当前源码，不生成安装器。每轮保留快照、请求和截图；该证据与上述开发 registry 夹具分开，不代替原生桥接或旧档恢复。
+
 ### 当前原生入口与历史矩阵
 
 [verify-host-only-native.mjs](desktop/verify-host-only-native.mjs)的参数为`--task=tmp/<安全任务名> --evidence=<新轮名> [--executable=<实际开发EXE>] [--foreground] [--checks=<真实检查id逗号列表>]`，通过`box,shared,game:uno`显式计划执行；默认13项，定向参数只选择已有检查，不重复累计原通过项。`verify-desktop.mjs`与`verify-display.mjs`默认在旧临时目录／解包副作用前转入此入口；这是实际管理窗口与合法UNO状态专项，不是旧多窗／全DPI矩阵。foreground与隐藏运行分别认定，不以后台截图冒充前台。

@@ -11,7 +11,7 @@ export function BoxPanelScope({ children }: { children: ReactNode }) {
 export function BoxOverlayPanel(props: ComponentProps<typeof OverlayPanel>) {
   return (
     <BoxPanelScope>
-      <OverlayPanel {...props} />
+      <OverlayPanel embedded {...props} />
     </BoxPanelScope>
   );
 }

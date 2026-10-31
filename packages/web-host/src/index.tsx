@@ -1,9 +1,11 @@
+import { RuleReadingContext } from './components/rule-reading-context';
 /* eslint-disable react-refresh/only-export-components -- Shared ESM host API. */
 import {
   createContext,
   useContext,
   useRef,
   useLayoutEffect,
+  useMemo,
   type ReactNode,
   type AnchorHTMLAttributes,
 } from 'react';
@@ -110,6 +112,8 @@ export function HostedGame({
   presentation: GameHostSlots;
   resourceUrl?: (id: string) => string;
 }) {
+  const scope = `${session.view?.instanceId}:${session.view?.game?.id}:${session.view?.game?.variantId}:${session.view?.game?.releaseRef}`;
+  const reading = useMemo(() => ({ scope, value: new Map() }), [scope]);
   const latest = useRef(session);
   useLayoutEffect(() => {
     latest.current = session;
@@ -155,7 +159,9 @@ export function HostedGame({
   const Screen = client.Screen;
   return (
     <Context.Provider value={presentation}>
-      <Screen session={host} />
+      <RuleReadingContext.Provider key={scope} value={reading.value}>
+        <Screen session={host} />
+      </RuleReadingContext.Provider>
     </Context.Provider>
   );
 }

@@ -1,3 +1,4 @@
+import { BotDifficultyHelp } from '../ui/BotDifficultyHelp';
 /* eslint-disable react-refresh/only-export-components -- The lazy game module exports its platform client. */
 import { useEffect, useId, useState, type CSSProperties } from 'react';
 import type { JsonValue } from '@tablemax/game-sdk';
@@ -80,7 +81,9 @@ function UnoScreen({ session }: { session: GameHost }) {
   );
   const { role, view, connected, locked, canControl, command } = session;
   const game = view?.gameView as UnoView | null;
-  const [panel, setPanel] = useState<'menu' | 'rules' | 'players' | null>(null);
+  const [panel, setPanel] = useState<
+    'menu' | 'rules' | 'players' | 'history' | null
+  >(null);
   const [dismissedEvidence, setDismissedEvidence] = useState('');
   const [announcedEvidence, setAnnouncedEvidence] = useState('');
   const canPlay = useAudioOutput();
@@ -588,12 +591,16 @@ function UnoScreen({ session }: { session: GameHost }) {
       )}
       {panel && (
         <OverlayPanel
+          navigation={panel === 'menu'}
+          {...(panel === 'history' ? { back: () => setPanel('menu') } : {})}
           title={
             panel === 'rules'
               ? 'UNO 经典版图文规则'
               : panel === 'players'
                 ? '积分榜'
-                : 'UNO 菜单'
+                : panel === 'history'
+                  ? '对局记录'
+                  : 'UNO 菜单'
           }
           close={() => setPanel(null)}
           className="uno-overlay"
@@ -606,35 +613,8 @@ function UnoScreen({ session }: { session: GameHost }) {
             />
           ) : (
             <div className="uno-panel">
-              {panel === 'players' ? (
-                game && view && <Leaderboard game={game} seats={view.seats} />
-              ) : (
+              {panel === 'history' ? (
                 <>
-                  <div className="dialog-actions game-menu-settings">
-                    <CountdownSettings session={session} />
-                    <DisplaySettings role={role} />
-                  </div>
-                  {canControl && (
-                    <RoomManagement
-                      session={session}
-                      lifecycleLabel="开始下一局"
-                    />
-                  )}
-                  <h2>电脑玩家</h2>
-                  <div className="uno-bot-guide">
-                    <p>
-                      <strong>默认</strong> 优先出普通牌，选择手中较多的颜色。
-                    </p>
-                    <p>
-                      <strong>豆包</strong>{' '}
-                      比较牌分和颜色衔接，也会关注下家的张数。
-                    </p>
-                    <p>
-                      <strong>绝悟</strong>{' '}
-                      结合公开出牌与各人张数安排攻击和留牌，只使用本人获授权的信息。
-                    </p>
-                  </div>
-                  <h2>对局记录</h2>
                   {game?.results.length ? (
                     <div className="uno-history">
                       {game.results.map((entry) => (
@@ -650,6 +630,28 @@ function UnoScreen({ session }: { session: GameHost }) {
                     <p>本局尚未结算。</p>
                   )}
                 </>
+              ) : panel === 'players' ? (
+                game && view && <Leaderboard game={game} seats={view.seats} />
+              ) : (
+                <>
+                  <div className="dialog-actions game-menu-settings">
+                    <CountdownSettings session={session} />
+                    <DisplaySettings role={role} />
+                  </div>
+                  {canControl && (
+                    <RoomManagement
+                      session={session}
+                      lifecycleLabel="开始下一局"
+                    />
+                  )}
+                  <button
+                    type="button"
+                    className="game-menu-entry"
+                    onClick={() => setPanel('history')}
+                  >
+                    对局记录
+                  </button>
+                </>
               )}
             </div>
           )}
@@ -661,6 +663,7 @@ function UnoScreen({ session }: { session: GameHost }) {
 }
 
 export const client: GameClient = {
+  BotDifficultyHelp,
   Screen: UnoScreen,
   SetupSettings: UnoSetupSettings,
   savedChanges(before, after) {

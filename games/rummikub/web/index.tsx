@@ -32,7 +32,9 @@ function RummikubScreen({ session }: { session: GameHost }) {
   const { role, view, connected, locked, canControl, command } = session;
   const net = useViewportSnapshot('.rk-screen[data-rk-layout]', '--rk-inset-');
   const game = view?.gameView as RummikubView | null;
-  const [panel, setPanel] = useState<'menu' | 'rules' | 'players' | null>(null);
+  const [panel, setPanel] = useState<
+    'menu' | 'rules' | 'players' | 'history' | null
+  >(null);
   const canPlay = useAudioOutput();
   const currentFeedback =
     session.feedback?.instanceId === view?.instanceId &&
@@ -394,6 +396,8 @@ function RummikubScreen({ session }: { session: GameHost }) {
       )}
       {panel && (
         <OverlayPanel
+          navigation={panel === 'menu'}
+          {...(panel === 'history' ? { back: () => setPanel('menu') } : {})}
           title={
             panel === 'rules' ? (
               <>
@@ -402,6 +406,8 @@ function RummikubScreen({ session }: { session: GameHost }) {
               </>
             ) : panel === 'players' ? (
               '围桌玩家'
+            ) : panel === 'history' ? (
+              '对局记录'
             ) : (
               '拉密菜单'
             )
@@ -413,21 +419,8 @@ function RummikubScreen({ session }: { session: GameHost }) {
             <RulesGuide {...rummikubRulebook} />
           ) : (
             <div className="rk-screen rk-panel">
-              {panel === 'players' ? (
-                seatStrip
-              ) : (
+              {panel === 'history' ? (
                 <>
-                  <div className="dialog-actions game-menu-settings">
-                    <CountdownSettings session={session} />
-                    <DisplaySettings role={role} />
-                  </div>
-                  {canControl && (
-                    <RoomManagement
-                      session={session}
-                      lifecycleLabel="开始下一局"
-                    />
-                  )}
-                  <h2>对局记录</h2>
                   {game?.results.length ? (
                     <div className="rk-history">
                       {game.results.map((entry) => (
@@ -454,6 +447,28 @@ function RummikubScreen({ session }: { session: GameHost }) {
                   ) : (
                     <p>本局尚未结算。</p>
                   )}
+                </>
+              ) : panel === 'players' ? (
+                seatStrip
+              ) : (
+                <>
+                  <div className="dialog-actions game-menu-settings">
+                    <CountdownSettings session={session} />
+                    <DisplaySettings role={role} />
+                  </div>
+                  {canControl && (
+                    <RoomManagement
+                      session={session}
+                      lifecycleLabel="开始下一局"
+                    />
+                  )}
+                  <button
+                    type="button"
+                    className="game-menu-entry"
+                    onClick={() => setPanel('history')}
+                  >
+                    对局记录
+                  </button>
                 </>
               )}
             </div>

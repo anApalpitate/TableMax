@@ -15,7 +15,7 @@ main.expansion-screen {
     max(12px, env(safe-area-inset-right)) max(6px, env(safe-area-inset-bottom))
     max(12px, env(safe-area-inset-left));
 }
-.expansion-screen::before {
+main.expansion-screen::before {
   content: '';
   position: fixed;
   inset: 0;

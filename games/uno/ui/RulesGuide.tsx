@@ -157,12 +157,37 @@ export function unoRulebook(setup: Readonly<UnoSetup> = legacyUnoSetup) {
               则仅在手里没有当前颜色时才合法；同数字或同符号、但不同颜色的牌，不阻止使用
               +4。
             </p>
+            <table>
+              <caption>单张 +4 的处理</caption>
+              <thead>
+                <tr>
+                  <th>选择与结果</th>
+                  <th>罚摸</th>
+                  <th>下一步</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <th>接受</th>
+                  <td>接牌者 4 张</td>
+                  <td>失去回合</td>
+                </tr>
+                <tr>
+                  <th>质疑成功</th>
+                  <td>出牌者 4 张</td>
+                  <td>质疑者正常行动</td>
+                </tr>
+                <tr>
+                  <th>质疑失败</th>
+                  <td>质疑者 6 张</td>
+                  <td>失去回合</td>
+                </tr>
+              </tbody>
+            </table>
             <p>
-              被指向的下一位可接受并摸四张，失去回合；也可提出质疑。只有质疑者能查看出牌者当时的手牌证据。确有当前颜色，出牌者罚摸四张，质疑者正常继续；出牌合法，质疑者摸六张并失去回合。
+              只有被指向的下一位可质疑，并查看出牌者当时的手牌证据；其他玩家不能查看。
             </p>
-            <p>
-              平台保留实体规则允许的诈唬与质疑，不提前以秘密手牌替对手做判断。颜色选择是出牌的一部分，提交后公开显示应跟的颜色。
-            </p>
+            <p>允许诈唬；对手通过质疑判断 +4 是否合法。选色后才提交出牌。</p>
             {setup.drawPenaltyStacking && (
               <p>
                 补牌传递中，+4
@@ -179,25 +204,22 @@ export function unoRulebook(setup: Readonly<UnoSetup> = legacyUnoSetup) {
         title: '剩一张前，大声喊 UNO!',
         content: (
           <>
-            <Diagram caption="倒数第二张牌保存后，本人可立即喊 UNO；其他人的抓漏按钮按本局设置开放。">
+            <Diagram caption="剩一张时须喊 UNO。">
               <div className="uno-rule-cards">
                 <Card card={face('red', 3)} />
                 <Card card={face('yellow', 8)} />
               </div>
               <strong className="uno-rule-call">UNO!</strong>
             </Diagram>
+            <ol>
+              <li>打出倒数第二张后，本人可立即喊 UNO。</li>
+              <li>本局延迟结束后，其他人可抓漏；先成功保存者生效。</li>
+              <li>下一位开始出牌、摸牌或响应 +4 后，抓漏窗口关闭。</li>
+            </ol>
             <p>
-              打出倒数第二张时须喊 UNO。数字平台采用出牌后独立抢按：本人按
-              UNO，其他玩家按“抓漏 UNO”，先成功保存者生效；漏喊被抓住罚摸两张。
-              {setup.catchUnoDelayMs > 0
-                ? `本局抓漏延迟 ${setup.catchUnoDelayMs / 1000} 秒`
-                : '本局抓漏无额外延迟'}
-              ，本人喊牌与下一位行动不受影响。新局默认 0.5
-              秒，房主可在开局前调整为 0–5 秒；旧局继续原来的无延迟规则。
-            </p>
-            <p>
-              抓漏必须发生在下一位开始行动之前。平台的窗口持续到下一位出牌、摸牌或响应
-              +4；抓漏延迟只控制按钮开放，不强制等待，也不自动处罚。下一位行动开始后就不能再抓漏。
+              漏喊被抓住罚摸两张，不自动处罚。本局抓漏延迟{' '}
+              {setup.catchUnoDelayMs / 1000}{' '}
+              秒，只控制其他人的抓漏按钮；本人喊牌与下一位行动不必等待。房主仅可在开局前调整延迟。
             </p>
           </>
         ),

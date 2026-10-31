@@ -266,6 +266,16 @@ const verificationScopes = {
   ],
   'tools/release/verify-windows-editions.mjs': ['box', 'shared', 'tooling'],
   'tools/test/platform/verify-game-introduction.mjs': ['box'],
+  'tools/test/platform/verify-rule-menu-supplement.mjs': [
+    'box',
+    'shared',
+    ...gameScopes,
+  ],
+  'tools/test/platform/verify-rule-menu-ui.mjs': [
+    'box',
+    'shared',
+    ...gameScopes,
+  ],
   'packages/game-sdk/src/metadata.test.mjs': ['box', 'shared', 'tooling'],
   'tools/build/lean-catalog.test.mjs': ['box', 'shared', 'tooling'],
   'tools/build/introduction-resources.test.mjs': ['box', 'shared', 'tooling'],
@@ -369,6 +379,11 @@ const verificationScopes = {
     ...gameScopes,
   ],
   'tools/test/platform/verify-phone-orientation.mjs': ['box', 'shared'],
+  'tools/test/platform/verify-uno-module-settings.mjs': [
+    'box',
+    'shared',
+    'game:uno',
+  ],
   'tools/test/platform/verify-shared-controls.mjs': ['box', 'shared'],
   'tools/test/platform/verify-viewport-measurement.mjs': ['shared', 'tooling'],
   'tools/test/games/power-grid/verify-power-grid-ui.mjs': ['game:power-grid'],

@@ -236,9 +236,44 @@ export const rummikubRulebook = {
           <p>
             同时重组两枚百搭也一样：两枚都须各自完成合法替代，并在当回合加入新的合法牌组。
           </p>
+          <details>
+            <summary>同数组替换示例：橙色 9 或蓝色 9 均可</summary>
+            <Diagram caption="示例使用橙色 9 替换；也可使用蓝色 9。取出的百搭立即加入新的蓝色顺子。">
+              <div>
+                <strong>原组</strong>
+                <RuleSet
+                  faces={[
+                    { color: 'black', value: 9 },
+                    { color: 'orange', value: 9, joker: true },
+                    { color: 'red', value: 9 },
+                  ]}
+                />
+              </div>
+              <div>
+                <strong>替换后</strong>
+                <RuleSet
+                  faces={[
+                    { color: 'black', value: 9 },
+                    { color: 'orange', value: 9 },
+                    { color: 'red', value: 9 },
+                  ]}
+                />
+              </div>
+              <div>
+                <strong>百搭重新使用</strong>
+                <RuleSet
+                  faces={[
+                    { color: 'blue', value: 4 },
+                    { color: 'blue', value: 5 },
+                    { color: 'blue', value: 6, joker: true },
+                  ]}
+                />
+              </div>
+            </Diagram>
+          </details>
+          <p>本回合仍须至少打出一张本人牌。</p>
           <p>
-            在草稿中选中百搭，打开“更多”指定颜色数字；替换后改绑并重组。提交会核验释放和重用条件，且本回合仍至少要打出
-            1 张本人牌。
+            在草稿中选中百搭，打开“更多”指定颜色数字；替换后改绑并重组，完成后提交。
           </p>
         </>
       ),

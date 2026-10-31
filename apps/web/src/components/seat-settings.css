@@ -160,3 +160,24 @@
     height: 48px;
   }
 }
+
+.seat-difficulty-help > summary {
+  min-height: 44px;
+  display: list-item;
+  padding: 10px 12px;
+  cursor: pointer;
+  font-size: 18px;
+}
+.seat-difficulty-help dl {
+  display: grid;
+  gap: 12px;
+  margin: 12px;
+  font-size: 16px;
+  line-height: 1.5;
+}
+.seat-difficulty-help dt {
+  font-weight: 700;
+}
+.seat-difficulty-help dd {
+  margin: 4px 0 0;
+}

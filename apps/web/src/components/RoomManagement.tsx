@@ -32,17 +32,6 @@ export function RoomManagement({
       aria-label={display === 'actions' ? '牌桌操作' : '牌桌管理'}
     >
       {display === 'full' && <SessionFeedback session={session} />}
-      {display === 'full' && <h3>{isHost ? '管理员设置' : '房主控制'}</h3>}
-      {showDetails && isHost && (
-        <div className="room-management-section">
-          <OwnerControl session={session} />
-        </div>
-      )}
-      {showDetails && isHost && (
-        <div className="room-management-section">
-          <DeviceTransferRequests session={session} />
-        </div>
-      )}
       {showActions && view.status === 'playing' && (
         <>
           <button
@@ -112,6 +101,12 @@ export function RoomManagement({
             清空牌桌
           </button>
         )}
+      {showDetails && isHost && (
+        <div className="room-management-section">
+          <OwnerControl session={session} />
+          <DeviceTransferRequests session={session} />
+        </div>
+      )}
       {showDetails && isHost && view.status !== 'lobby' && (
         <RollbackHistory key={view.instanceId} session={session} />
       )}

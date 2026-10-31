@@ -385,6 +385,8 @@ function ModernArtScreen({ session }: { session: RoomSession }) {
       )}
       {panel && (
         <OverlayPanel
+          navigation={panel === 'menu'}
+          {...(panel === 'log' ? { back: () => setPanel('menu') } : {})}
           title={
             panel === 'museums' ? (
               '各家博物馆'
@@ -442,12 +444,13 @@ function ModernArtScreen({ session }: { session: RoomSession }) {
                 <RoomManagement session={session} lifecycleLabel="开始下一轮" />
               )}
               {game && (
-                <>
-                  <h3>已保存的拍卖记录</h3>
-                  <div className="ma-screen ma-panel">
-                    <PublicLog view={game} names={names} />
-                  </div>
-                </>
+                <button
+                  type="button"
+                  className="game-menu-entry"
+                  onClick={() => setPanel('log')}
+                >
+                  拍卖记录
+                </button>
               )}
             </>
           )}

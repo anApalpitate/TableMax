@@ -70,16 +70,17 @@ export function avalonRulebookFor(game?: AvalonView | null) {
               <>
                 <div className="av-rule-configurations">
                   {Object.entries(PLAYER_SETUPS).map(([count, setup]) => (
-                    <section
+                    <details
+                      open={Number(count) === game?.seatOrder.length}
                       key={count}
                       data-current={Number(count) === game?.seatOrder.length}
                     >
-                      <strong>
+                      <summary>
                         {count} 人
                         {Number(count) === game?.seatOrder.length
-                          ? ' · 本局'
+                          ? '（本局）'
                           : ''}
-                      </strong>
+                      </summary>
                       <div>
                         <b>忠诚阵营</b>
                         <span>梅林、派西维尔、忠臣 × {setup.servants}</span>
@@ -92,9 +93,46 @@ export function avalonRulebookFor(game?: AvalonView | null) {
                             .join('、')}
                         </span>
                       </div>
-                    </section>
+                    </details>
                   ))}
                 </div>
+                <table className="av-rule-knowledge">
+                  <caption>角色的初始知识；不对应本局实际玩家</caption>
+                  <thead>
+                    <tr>
+                      <th>角色</th>
+                      <th>能看见</th>
+                      <th>不能分辨</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <th>梅林</th>
+                      <td>除莫德雷德外的邪恶（包括奥伯伦）</td>
+                      <td>具体邪恶角色</td>
+                    </tr>
+                    <tr>
+                      <th>派西维尔</th>
+                      <td>梅林与莫甘娜两名候选</td>
+                      <td>谁是真正梅林</td>
+                    </tr>
+                    <tr>
+                      <th>刺客／莫甘娜／爪牙／莫德雷德</th>
+                      <td>除奥伯伦外的邪恶同伴</td>
+                      <td>同伴具体角色、奥伯伦</td>
+                    </tr>
+                    <tr>
+                      <th>奥伯伦</th>
+                      <td>无其他人的初始身份</td>
+                      <td>其他邪恶；其他邪恶也不认识他</td>
+                    </tr>
+                    <tr>
+                      <th>忠臣</th>
+                      <td>无其他人的初始身份</td>
+                      <td>所有其他角色</td>
+                    </tr>
+                  </tbody>
+                </table>
                 <div className="av-rule-roles">
                   {(
                     [
@@ -108,29 +146,35 @@ export function avalonRulebookFor(game?: AvalonView | null) {
                       'oberon',
                     ] as Role[]
                   ).map((role) => (
-                    <RoleCard key={role} role={role} compact />
+                    <details key={role}>
+                      <summary>{ROLE_NAMES[role]}</summary>
+                      <RoleCard role={role} compact />
+                      <p>
+                        {
+                          (
+                            {
+                              merlin:
+                                '看见除莫德雷德外的邪恶，包括奥伯伦；不知道具体角色，须隐藏本人身份。',
+                              percival:
+                                '看见梅林与莫甘娜两名候选，无法分辨真假。',
+                              servant: '没有其他人的初始身份知识。',
+                              morgana:
+                                '可冒充梅林；认识除奥伯伦外的邪恶同伴，不知道具体角色。',
+                              assassin:
+                                '认识除奥伯伦外的邪恶同伴，不知道具体角色；最后负责刺杀。',
+                              minion:
+                                '认识除奥伯伦外的邪恶同伴，不知道具体角色。',
+                              mordred:
+                                '梅林看不到他；与除奥伯伦外的邪恶互认，不知道具体角色。',
+                              oberon:
+                                '与其他邪恶互不认识，但梅林能看见他；7人与10人局使用。',
+                            } satisfies Record<Role, string>
+                          )[role]
+                        }
+                      </p>
+                    </details>
                   ))}
                 </div>
-                <p>
-                  <strong>梅林：</strong>
-                  看见除莫德雷德外的全部邪恶，包括奥伯伦；不知道他们具体是哪个角色，必须隐藏本人身份。
-                </p>
-                <p>
-                  <strong>派西维尔与莫甘娜：</strong>
-                  派西维尔看见梅林和莫甘娜两名候选，无法直接分辨真假；莫甘娜可以冒充梅林。
-                </p>
-                <p>
-                  <strong>莫德雷德：</strong>
-                  属于邪恶，梅林看不到他；他与其他邪恶互认，但不认识奥伯伦。
-                </p>
-                <p>
-                  <strong>奥伯伦：</strong>
-                  属于邪恶，与其他邪恶互不认识，但梅林能看见他。7人与10人局使用此角色。
-                </p>
-                <p>
-                  <strong>刺客、爪牙与普通忠臣：</strong>
-                  刺客、爪牙认识除奥伯伦外的邪恶同伴；忠臣没有初始他人知识。邪恶同伴之间不显示具体角色。
-                </p>
               </>
             ) : (
               <>
@@ -161,7 +205,7 @@ export function avalonRulebookFor(game?: AvalonView | null) {
               </>
             )}
             <p>
-              不加入湖中女神或其他扩展。管理员和公共屏只能看到公开信息。刺杀阶段显示当前刺客的行动席位，其他角色在整局结束后才公开；这是数字操作的适配。
+              不加入湖中女神或其他扩展。管理员只能看到公开信息。刺杀阶段显示当前刺客的行动席位，其他角色在整局结束后才公开；这是数字操作的适配。
             </p>
           </>
         ),
@@ -279,9 +323,7 @@ export function avalonRulebookFor(game?: AvalonView | null) {
             <p>
               “查看身份”打开本人角色与秘密知识，关闭、失焦或切到后台会收起。倒计时只提醒，不代投票、代出任务牌或自动刺杀。管理员或获授权房主可暂停、恢复和原班人马再玩一局。只有电脑管理员能回退对局。
             </p>
-            <p>
-              全屏演出与声音只表达已保存的公开结果；恢复、回退和首次同步不重播。可静音，减少动态设置会保留简洁落点。
-            </p>
+            <p>可在菜单调整本设备声音与互动特效。</p>
           </>
         ),
       },

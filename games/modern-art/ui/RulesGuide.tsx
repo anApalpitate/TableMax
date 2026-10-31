@@ -54,35 +54,31 @@ const auctions: {
     image: 'auction-open',
     steps: ['自由加价', '确认当前价', '全员确认后成交'],
     detail:
-      '公开报价必须高于当前价。点击“本次不加价”只确认眼前的价格；有人加价后，旧确认清空，可以重新选择。领先者视为确认，其余人全部确认才成交。没人报价时，全部确认后免费归拍卖人。',
+      '“本次不加价”只确认眼前价格；有人加价后旧确认清空，可重新选择。领先者视为确认。没人报价时，全员确认后免费归拍卖人。',
   },
   {
     kind: 'once',
     image: 'auction-once',
     steps: ['从拍卖人左侧开始', '逐席出价一次或放弃', '拍卖人最后决定'],
-    detail:
-      '沿座位顺序，每人只有一次出价机会；出价须高于当前价。最高价得画。所有人都不出价时，画作免费归拍卖人。',
+    detail: '所有人都不出价时，画作免费归拍卖人。',
   },
   {
     kind: 'sealed',
     image: 'auction-sealed',
     steps: ['秘密填写金额', '提交后锁定', '全员提交一起揭标'],
-    detail:
-      '每人提交一次，0 表示不投标。最高价得画；最高价相同，实际拍卖人优先，否则从他左侧顺时针找最近的同价玩家。全部为 0 时，免费归拍卖人。提交状态公开，揭标前金额保密。',
+    detail: '全部为 0 时，免费归拍卖人。提交状态公开，揭标前金额保密。',
   },
   {
     kind: 'fixed',
     image: 'auction-fixed',
     steps: ['拍卖人设定价格', '左侧起逐席询问', '首位买入或卖家自购'],
-    detail:
-      '拍卖人只能设定自己付得起的价格。第一位接受者买入；其他人都拒绝时，拍卖人按原价付银行并取得画作。TableMax 允许定价为 0，以便资金耗尽时仍可推进；这是项目采用项。',
+    detail: '无人买入时，卖家必须按原价付银行自购。允许定价 0 是项目采用项。',
   },
   {
     kind: 'double',
     image: 'auction-double',
     steps: ['双拍首幅上拍', '补同画家非双拍牌', '按第二幅的方式合卖'],
-    detail:
-      '先问原拍卖人是否补画，再从他左侧逐席询问。第二幅不能也是双拍。别人补画，就由补画者接任拍卖人，收全部货款；下一次从他左侧出画，中间玩家的出画机会跳过。无人补画，首幅免费归原拍卖人。',
+    detail: '别人补画后，下一次从补画者左侧出画，中间玩家的出画机会跳过。',
   },
 ];
 
@@ -106,7 +102,7 @@ export const modernArtRulebook = {
           </p>
           <GuideImage
             name="hand-to-auction"
-            caption="规则示意：私人手牌进入拍卖台，得标画作进入公开收藏；并非游戏界面截图。"
+            caption="手牌上拍，得标画作加入收藏。"
           >
             <RuleFlow
               steps={['本人手牌选一幅', '按角标进行拍卖', '得标者加入公开收藏']}
@@ -230,23 +226,68 @@ export const modernArtRulebook = {
           <p>
             报价以整数千元计，不得超过本人现金。公开与一次拍卖必须高于当前价。双拍两幅必须是同一画家，合起来只进行一次拍卖。
           </p>
+          <div className="ma-rulebook__payment" aria-label="拍卖货款去向">
+            <span>他人买入 → 实际拍卖人</span>
+            <span>拍卖人自购 → 银行</span>
+            <span>双拍 → 补画后的实际拍卖人收全部货款</span>
+          </div>
           <div className="ma-rulebook__auctions">
             {auctions.map(({ kind, image, steps, detail }) => (
-              <section key={kind}>
+              <details key={kind}>
+                <summary>{auctionNames[kind]}</summary>
                 <h4>
                   <span className="ma-rulebook__auction-mark">
                     <AuctionMark kind={kind} />
                   </span>
                   {auctionNames[kind]}
                 </h4>
-                <GuideImage
-                  name={image}
-                  caption={`${auctionNames[kind]}规则示意；步骤与数字由界面文字准确说明。`}
-                >
+                <GuideImage name={image} caption={auctionNames[kind]}>
                   <RuleFlow steps={steps} />
                 </GuideImage>
-                <p>{detail}</p>
-              </section>
+                <dl className="ma-rulebook__auction-facts">
+                  <div>
+                    <dt>谁行动</dt>
+                    <dd>
+                      {kind === 'open'
+                        ? '全员自由加价'
+                        : kind === 'sealed'
+                          ? '全员秘密提交'
+                          : kind === 'once'
+                            ? '拍卖人左侧起逐席，拍卖人最后'
+                            : kind === 'fixed'
+                              ? '卖家定价，左侧起逐席决定'
+                              : '原拍卖人先决定补画，再从左侧逐席询问'}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt>如何报价</dt>
+                    <dd>
+                      {kind === 'open' || kind === 'once'
+                        ? '整数千元，高于当前价，不超过本人现金'
+                        : kind === 'sealed'
+                          ? '整数千元，0 为不投标；提交后锁定'
+                          : kind === 'fixed'
+                            ? '卖家设定自己付得起的价格，可为 0'
+                            : '第二幅必须同画家且不是双拍，按其方式合卖'}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt>如何成交</dt>
+                    <dd>
+                      {kind === 'open'
+                        ? '其余玩家全部确认当前价'
+                        : kind === 'sealed'
+                          ? '全员揭标，最高价得画；同价先拍卖人，再按其左侧顺序'
+                          : kind === 'once'
+                            ? '每人一次机会，最高价得画'
+                            : kind === 'fixed'
+                              ? '首位接受者买入，无人接受则卖家自购'
+                              : '由补画者接任拍卖人；无人补画则首幅免费归原拍卖人'}
+                    </dd>
+                  </div>
+                </dl>
+                <p className="ma-rulebook__auction-exception">{detail}</p>
+              </details>
             ))}
           </div>
           <p>

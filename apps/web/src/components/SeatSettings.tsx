@@ -11,6 +11,7 @@ import { feedbackText } from '../content/feedback';
 import { useNotifications } from './notifications/context';
 import { avatarFor } from '../assets/avatars';
 import './seat-settings.css';
+import { useGameClient } from '../game-clients/registry';
 
 const difficultyNames: Record<BotDifficulty, string> = {
   default: '默认',
@@ -34,6 +35,12 @@ export function SeatSettings({
   const [hint, setHint] = useState('');
   const nameInput = useRef<HTMLInputElement>(null);
   const nameError = playerNameError(draftName);
+  const { client } = useGameClient(
+    view?.game?.id,
+    view?.game?.variantId,
+    view?.game?.releaseRef,
+  );
+  const BotDifficultyHelp = client?.BotDifficultyHelp;
   if (!canManageSeats || !view) return null;
   const selected = view.seats.find((seat) => seat.id === selectedId);
   const playing = view.status === 'playing';
@@ -45,6 +52,13 @@ export function SeatSettings({
   };
   return (
     <>
+      {BotDifficultyHelp &&
+        view.seats.some((seat) => seat.controller === 'bot') && (
+          <details className="seat-difficulty-help">
+            <summary>电脑玩家等级说明</summary>
+            <BotDifficultyHelp />
+          </details>
+        )}
       <div className="seat-manager__list">
         {view.seats.map((seat, index) => (
           <div

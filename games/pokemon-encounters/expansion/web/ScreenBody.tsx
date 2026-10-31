@@ -59,7 +59,14 @@ export function ScreenBody({
   const { motion, resultReady } = presentation;
   const profile = game.rulesProfile ?? 'legacy';
   const [panel, setPanel] = useState<
-      'menu' | 'rules' | 'friends' | 'research' | 'score' | null
+      | 'menu'
+      | 'rules'
+      | 'friends'
+      | 'research'
+      | 'score'
+      | 'history'
+      | 'votes'
+      | null
     >(null),
     [detail, setDetail] = useState(''),
     names = namesOf(session);
@@ -476,6 +483,10 @@ export function ScreenBody({
       />
       {panel && (
         <OverlayPanel
+          navigation={panel === 'menu'}
+          {...(panel === 'history' || panel === 'votes'
+            ? { back: () => setPanel('menu') }
+            : {})}
           {...(panel === 'friends'
             ? { className: 'pokemon-expansion-friends-panel' }
             : {})}
@@ -491,13 +502,50 @@ export function ScreenBody({
                 <span>{names[detail] ?? '玩家'}</span>
                 <span>计分明细</span>
               </span>
+            ) : panel === 'history' ? (
+              '对局记录'
+            ) : panel === 'votes' ? (
+              '研究投票结果'
             ) : (
               '牌桌菜单'
             )
           }
           close={() => setPanel(null)}
         >
-          {panel === 'research' ? (
+          {panel === 'history' || panel === 'votes' ? (
+            <>
+              {panel === 'votes' ? (
+                <>
+                  {' '}
+                  {game.voteCounts && (
+                    <section className="ex-vote-results">
+                      <h2>研究投票结果</h2>
+                      {game.researchCandidates.map((t) => (
+                        <p key={t.id}>
+                          {t.name}：{game.voteCounts![t.id]}票
+                          {game.activeResearch[0]?.id === t.id
+                            ? '，本局采用'
+                            : ''}
+                        </p>
+                      ))}
+                    </section>
+                  )}
+                </>
+              ) : (
+                <>
+                  <section className="ex-event-log">
+                    <h2>已保存记录</h2>
+                    {game.events
+                      .slice(-12)
+                      .reverse()
+                      .map((e) => (
+                        <p key={e.id}>{eventDescription(e, names)}</p>
+                      ))}
+                  </section>
+                </>
+              )}
+            </>
+          ) : panel === 'research' ? (
             <div className="expansion-screen ex-research-detail">
               <ResearchCard task={task(detail, profile)} profile={profile} />
             </div>
@@ -555,7 +603,10 @@ export function ScreenBody({
               )}
             </div>
           ) : panel === 'rules' ? (
-            <Rulebook profile={profile} />
+            <Rulebook
+              profile={profile}
+              activeResearchIds={game.activeResearch.map((task) => task.id)}
+            />
           ) : panel === 'friends' ? (
             <div className="expansion-screen ex-friends">
               {seats.filter((s) => s.id !== session.self?.id).map(renderSeat)}
@@ -568,25 +619,21 @@ export function ScreenBody({
               </div>
               {session.canControl && <RoomManagement session={session} />}
               {game.voteCounts && (
-                <section className="ex-vote-results">
-                  <h2>研究投票结果</h2>
-                  {game.researchCandidates.map((t) => (
-                    <p key={t.id}>
-                      {t.name}：{game.voteCounts![t.id]}票
-                      {game.activeResearch[0]?.id === t.id ? '，本局采用' : ''}
-                    </p>
-                  ))}
-                </section>
+                <button
+                  type="button"
+                  className="game-menu-entry"
+                  onClick={() => setPanel('votes')}
+                >
+                  研究投票结果
+                </button>
               )}
-              <section className="ex-event-log">
-                <h2>已保存记录</h2>
-                {game.events
-                  .slice(-12)
-                  .reverse()
-                  .map((e) => (
-                    <p key={e.id}>{eventDescription(e, names)}</p>
-                  ))}
-              </section>
+              <button
+                type="button"
+                className="game-menu-entry"
+                onClick={() => setPanel('history')}
+              >
+                对局记录
+              </button>
             </>
           )}
         </OverlayPanel>

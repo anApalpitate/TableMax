@@ -312,6 +312,7 @@ function PokemonScreen({ session }: { session: RoomSession }) {
         </div>
         {panel && (
           <OverlayPanel
+            navigation={panel === 'menu'}
             {...(panel === 'friends'
               ? { className: 'pokemon-friends-panel' }
               : {})}

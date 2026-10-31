@@ -1,6 +1,7 @@
 import { RulesGuide } from '@tablemax/web-host';
 import { asset, Card } from './Theme';
-export function PokerRules() {
+export function PokerRules({ playerCount = 3 }: { playerCount?: number }) {
+  const threshold = playerCount === 2 ? 5 : 4;
   return (
     <RulesGuide
       className="cp-rulebook"
@@ -43,9 +44,32 @@ export function PokerRules() {
           label: '判断',
           title: '判断错的人收牌',
           content: (
-            <p>
-              接收者直接相信或质疑。判断正确，由最近声称并传牌者收下；判断错误，由判断者收下。牌面公开放到收牌者面前，由其开始下一轮。
-            </p>
+            <>
+              <table>
+                <thead>
+                  <tr>
+                    <th>声明</th>
+                    <th>相信</th>
+                    <th>质疑</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <th>真实</th>
+                    <td>传牌者收牌</td>
+                    <td>判断者收牌</td>
+                  </tr>
+                  <tr>
+                    <th>虚假</th>
+                    <td>判断者收牌</td>
+                    <td>传牌者收牌</td>
+                  </tr>
+                </tbody>
+              </table>
+              <p>
+                传牌者指最近声明并传出此牌的人。收牌者把牌公开放到面前，并开始下一轮。
+              </p>
+            </>
           ),
         },
         {
@@ -64,13 +88,18 @@ export function PokerRules() {
           title: '四张同类就输；双人是五张',
           content: (
             <>
-              <div className="cp-rule-threshold" aria-label="四张同类">
+              <div
+                className="cp-rule-threshold"
+                aria-label={`${threshold}张同类`}
+              >
                 <span aria-hidden="true">
-                  {[0, 1, 2, 3].map((card) => (
-                    <Card key={card} card={card} />
-                  ))}
+                  {Array.from({ length: threshold }, (_, card) => card).map(
+                    (card) => (
+                      <Card key={card} card={card} />
+                    ),
+                  )}
                 </span>
-                <strong>4</strong>
+                <strong>{threshold}</strong>
               </div>
               <p>
                 3–6人中，收下第4张同类立即失败；双人是第5张。或轮到某人开始新一轮，而其手牌已空，此人失败。打出最后一张本身不会立即失败。其余玩家共同获胜。
