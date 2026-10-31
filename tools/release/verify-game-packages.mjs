@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { readFile, writeFile, mkdtemp, mkdir } from 'node:fs/promises';
+import { readFile, writeFile, mkdtemp, mkdir, lstat } from 'node:fs/promises';
 import { createPublicKey } from 'node:crypto';
 import { resolve, join } from 'node:path';
 import {
@@ -117,8 +117,14 @@ export async function verifyGamePackages({
     resourceUrl('uno/audio/place-v1.flac'),
     ' /assets/games/uno/audio/place-v1.flac'.trim(),
   );
+  const taskRoot = process.env.TABLEMAX_PACKAGE_TASK_ROOT;
+  if (taskRoot) assert.match(taskRoot, /^tmp\/[a-z0-9][a-z0-9-]{0,95}$/);
   await mkdir('tmp', { recursive: true });
-  const probe = await mkdtemp(resolve('tmp/game-resource-byte-proof-'));
+  assert.ok(!(await lstat('tmp')).isSymbolicLink());
+  const workRoot = resolve(taskRoot ?? 'tmp');
+  await mkdir(workRoot, { recursive: true });
+  assert.ok(!(await lstat(workRoot)).isSymbolicLink());
+  const probe = await mkdtemp(join(workRoot, 'game-resource-byte-proof-'));
   await writeFile(
     join(probe, 'entry.ts'),
     "import texture from './texture.webp';export default texture;",

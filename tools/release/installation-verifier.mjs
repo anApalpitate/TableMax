@@ -1,6 +1,7 @@
 import {
   verifyPreservedRuntime,
   verifyResourceCleanup,
+  verifyRestoredGameInventory,
   noLinks,
   archiveInstallationLog,
   preserveVerifiedRuntime,
@@ -12,6 +13,7 @@ export {
   verifyPreservedRuntime,
   archiveInstallationLog,
   installedProgramFootprint,
+  verifyRestoredGameInventory,
 } from './installation-evidence.mjs';
 import assert from 'node:assert/strict';
 import { execFile } from 'node:child_process';
@@ -35,6 +37,7 @@ import {
   installationInventory,
 } from './installation-package.mjs';
 import { hash } from './installation-toolchain.mjs';
+
 import {
   assertWorkspaceRoot,
   isDirectExecution,
@@ -689,6 +692,14 @@ export async function verifyInstallationDelivery({
   );
   assert.equal(hash(await readFile(unknown)), originalHash);
   const footprint = await installedProgramFootprint(root, manifest);
+  const installedCatalogBytes = await readFile(
+    join(root, 'data/app/preinstalled-games/catalog.json'),
+  );
+  const installedCatalogRecord = manifest.files.find(
+    (file) => file.path === 'data/app/preinstalled-games/catalog.json',
+  );
+  assert.equal(installedCatalogBytes.length, installedCatalogRecord.bytes);
+  assert.equal(hash(installedCatalogBytes), installedCatalogRecord.sha256);
   const links = await shortcuts(root, fixture);
   verifyShortcuts(links, root);
   const capacityObservedAtUtc = new Date().toISOString();
@@ -841,7 +852,12 @@ export async function verifyInstallationDelivery({
     const restoredRegistration = await registration(manifest.productId);
     verifyRegistration(restoredRegistration, root, manifest, fixture);
     const restoredFootprint = await installedProgramFootprint(root, manifest);
-    assert.deepEqual(restoredFootprint.games, footprint.games);
+    verifyRestoredGameInventory({
+      before: footprint.games,
+      after: restoredFootprint.games,
+      catalog: installedCatalogRecord,
+      receipt: firstResourceCleanup.receipt,
+    });
     const restoredLinks = await shortcuts(root, fixture);
     verifyShortcuts(restoredLinks, root);
     assert.deepEqual(restoredLinks, links);

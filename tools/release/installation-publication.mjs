@@ -10,6 +10,7 @@ import {
 import { INSTALLATION_PRODUCT_ID } from './installation-package.mjs';
 import { MAXIMUM_PACKAGE_BYTES } from './package-limits.mjs';
 import { windowsExecutableName } from './windows-executable-name.mjs';
+import { verifyRestoredGameInventory } from './installation-evidence.mjs';
 
 export function installationUpdateDescription(delivery, releaseVersion) {
   assert.equal(delivery.deliveryType, 'installer');
@@ -72,7 +73,7 @@ export async function loadIsolationEvidence(proof) {
   };
 }
 
-export function verifyLifecycleAndCapacity(proof) {
+export function verifyLifecycleAndCapacity(proof, installationManifest) {
   const verifyRegistration = (registration) => {
     assert.equal(registration.DisplayName, 'TableMax');
     assert.equal(registration.DisplayVersion, proof.buildVersion);
@@ -200,7 +201,11 @@ export function verifyLifecycleAndCapacity(proof) {
         new Set(decisions.map((file) => file.path)).size,
         decisions.length,
       );
-      for (const file of proof.footprint.games) {
+      const beforeUninstall =
+        group === 'finalUninstall'
+          ? (restored.footprint.games ?? proof.footprint.games)
+          : proof.footprint.games;
+      for (const file of beforeUninstall) {
         const entry = decisions.find(
           (item) => item.path === 'games/' + file.path,
         );
@@ -214,10 +219,37 @@ export function verifyLifecycleAndCapacity(proof) {
   verifyRegistration(restored.registration);
   assert.deepEqual(restored.shortcuts, proof.shortcuts);
   assert.equal(restored.footprint.programBytes, proof.footprint.programBytes);
+  const firstCleanup = restored.gameResourceCleanup?.firstUninstall?.receipt;
+  const retainedCatalog = firstCleanup?.preservedArchives?.some((file) =>
+    file.path.startsWith('games/.resource-archives/catalogs/'),
+  );
+  const catalogRecord = installationManifest?.files?.find(
+    (file) => file.path === 'data/app/preinstalled-games/catalog.json',
+  );
+  assert.ok(
+    !retainedCatalog || catalogRecord,
+    'Retained catalog must bind to the installed manifest',
+  );
+  const retainedCatalogBytes = catalogRecord
+    ? verifyRestoredGameInventory({
+        before: proof.footprint.games,
+        after: restored.footprint.games,
+        catalog: catalogRecord,
+        receipt: firstCleanup ?? {},
+      })
+    : 0;
   assert.equal(
     restored.footprint.currentGamesBytes,
-    proof.footprint.currentGamesBytes,
+    proof.footprint.currentGamesBytes + retainedCatalogBytes,
   );
+  if (catalogRecord) {
+    for (const footprint of [proof.footprint, restored.footprint])
+      assert.equal(
+        footprint.currentGamesBytes,
+        footprint.games.reduce((sum, file) => sum + file.bytes, 0),
+        'Game footprint subtotal must equal its exact inventory',
+      );
+  }
   assert.ok(
     restored.footprint.frameworkBytes > 0 &&
       restored.footprint.identityBytes > 0,
@@ -516,7 +548,7 @@ export function verifyInstallationAcceptance({
   );
   assert.match(proof.isolationEvidenceSha256, /^[a-f0-9]{64}$/);
   assert.equal(proof.isolationEvidenceSha256, isolationEvidenceSha256);
-  verifyLifecycleAndCapacity(proof);
+  verifyLifecycleAndCapacity(proof, installationManifest);
   return { delivery, proof };
 }
 

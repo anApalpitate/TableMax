@@ -457,6 +457,7 @@ namespace TableMax.Installation
             if (previous != null) InstallationCore.Atomic(Path.Combine(transaction, "previous.json"), previous);
             State(transaction, "preparing", root);
             Dictionary<string, ManagedFile> snapshot = null;
+            if (previous != null) CleanupResources(previous, lease, next, candidate, true);
             if (previous != null) snapshot = Snapshot(root, transaction, previous);
             var staged = 0; Progress("stage", 0, next.files.Length);
             foreach (var file in next.files) { CopyVerified(InstallationCore.Member(candidate, file.path), InstallationCore.Member(Path.Combine(transaction, "next-files"), file.path), file); Progress("stage", ++staged, next.files.Length); }
@@ -793,9 +794,9 @@ namespace TableMax.Installation
             while ((count = reader.Read(block, 0, block.Length)) != 0) { if (value.Length + count > limit) throw new IOException("资源分析输出过长，已保留资源。"); value.Append(block, 0, count); }
             return value.ToString();
         }
-        private static Dictionary<string, object> RunResourcePlanner(InstallationManifest identity, object input, string work)
+        private static Dictionary<string, object> RunResourcePlanner(InstallationManifest identity, object input, string work, string runtimeRoot = null)
         {
-            var node = identity.files.Single(file => file.path == "data/app/node.exe"); var path = InstallationCore.Member(identity.root, node.path);
+            var node = identity.files.Single(file => file.path == "data/app/node.exe"); var path = InstallationCore.Member(runtimeRoot ?? identity.root, node.path);
             if (!File.Exists(path) || new FileInfo(InstallationCore.IO(path)).Length != node.bytes || InstallationCore.HashFile(path) != node.sha256) throw new IOException("受管分析运行时不可用，已保留游戏资源。");
             string script;
             using (var resource = typeof(UpdateHelper).Assembly.GetManifestResourceStream("TableMax.InstallationCleanupPlan.mjs"))
@@ -867,8 +868,75 @@ namespace TableMax.Installation
             }
             InstallationCore.Atomic(audit, value, ResourceAuditLimit); InstallationCore.Atomic(stable, value, ResourceAuditLimit);
         }
-        private static void CleanupResources(InstallationManifest identity, MigrationLease lease)
+        private static void PreserveArchiveFile(string source, string target, ManagedFile expected)
         {
+            InstallationCore.Safe(source); InstallationCore.Safe(target);
+            using (var input = new FileStream(InstallationCore.IO(source), FileMode.Open, FileAccess.Read, FileShare.None))
+            {
+                if (input.Length != expected.bytes || StreamHash(input) != expected.sha256) throw new IOException("资源归档源已改变，未替换旧程序。");
+                if (File.Exists(target))
+                {
+                    using (var existing = new FileStream(InstallationCore.IO(target), FileMode.Open, FileAccess.Read, FileShare.None))
+                        if (existing.Length != expected.bytes || StreamHash(existing) != expected.sha256) throw new IOException("资源归档目标包含未知或变化内容，未覆盖。");
+                    return;
+                }
+                Directory.CreateDirectory(Path.GetDirectoryName(target)); InstallationCore.Safe(target);
+                var temporary = target + "." + Guid.NewGuid().ToString("N") + ".tmp";
+                try
+                {
+                    input.Position = 0;
+                    using (var output = new FileStream(InstallationCore.IO(temporary), FileMode.CreateNew, FileAccess.Write, FileShare.None)) { input.CopyTo(output); output.Flush(true); }
+                    if (new FileInfo(InstallationCore.IO(temporary)).Length != expected.bytes || InstallationCore.HashFile(temporary) != expected.sha256) throw new IOException("资源归档副本校验失败，未替换旧程序。");
+                    File.Move(InstallationCore.IO(temporary), InstallationCore.IO(target));
+                }
+                finally
+                {
+                    if (File.Exists(temporary) && new FileInfo(InstallationCore.IO(temporary)).Length == expected.bytes && InstallationCore.HashFile(temporary) == expected.sha256) File.Delete(InstallationCore.IO(temporary));
+                }
+            }
+        }
+        private static object[] PreserveResourceArchives(InstallationManifest identity, AnalysisSource catalog, Dictionary<string, object> plan)
+        {
+            var blobs = plan.TryGetValue("archiveBlobs", out var value) ? value as object[] : null;
+            if (blobs == null) throw new IOException("资源归档计划缺少明确成员，未替换旧程序。");
+            var preserved = new List<object>(); var seen = new HashSet<string>(StringComparer.Ordinal);
+            foreach (var item in blobs)
+            {
+                var record = InstallationCore.Object(item); InstallationCore.Keys(record, "blobId", "bytes", "sha256");
+                var id = InstallationCore.Digest(record, "blobId"); var bytes = Convert.ToInt64(record["bytes"]); var sha = InstallationCore.Digest(record, "sha256");
+                if (!seen.Add(id) || bytes <= 0 || bytes >= 120000000) throw new IOException("资源归档成员身份无效。");
+                var sourceName = "data/app/preinstalled-games/blobs/" + id + ".zip";
+                var expected = identity.files.SingleOrDefault(file => file.path == sourceName);
+                if (expected == null || expected.bytes != bytes || expected.sha256 != sha) throw new IOException("资源归档不属于原受管程序，未复制未知内容。");
+                var destination = "games/.resource-archives/blobs/" + id + ".zip";
+                PreserveArchiveFile(InstallationCore.Member(identity.root, sourceName), InstallationCore.Member(identity.boxRoot, destination), expected);
+                preserved.Add(ResourceFile(destination, bytes, sha, "精确保全存档引用的签名资源归档。"));
+            }
+            if (preserved.Count != 0)
+            {
+                var destination = "games/.resource-archives/catalogs/" + catalog.Sha256 + ".json";
+                // Publish the signed catalog last, after every required ZIP has
+                // been flushed and verified; the store never trusts partial copies.
+                PreserveArchiveFile(catalog.CopyPath, InstallationCore.Member(identity.boxRoot, destination), new ManagedFile { bytes = checked((int)catalog.Bytes), sha256 = catalog.Sha256 });
+                preserved.Add(ResourceFile(destination, catalog.Bytes, catalog.Sha256, "原始签名目录字节，最后发布。"));
+            }
+            return preserved.ToArray();
+        }
+        private static void CleanupResources(InstallationManifest identity, MigrationLease lease, InstallationManifest successor = null, string candidateRoot = null, bool preserveOnly = false)
+        {
+            var archiveRequired = identity.files.Any(file => file.path.StartsWith("data/app/preinstalled-games/blobs/", StringComparison.Ordinal) && file.path.EndsWith(".zip", StringComparison.Ordinal));
+            if (preserveOnly)
+            {
+                if (successor == null || candidateRoot == null) throw new IOException("缺少已核验的替换程序，未保全旧资源。");
+                successor.Verify(candidateRoot);
+                var oldCatalog = identity.files.SingleOrDefault(file => file.path == "data/app/preinstalled-games/catalog.json");
+                var newCatalog = successor.files.SingleOrDefault(file => file.path == "data/app/preinstalled-games/catalog.json");
+                // An exact repair has the same immutable resource closure. The
+                // verified candidate replaces a damaged old Node/catalog safely.
+                var sameArchives = identity.files.Where(file => file.path.StartsWith("data/app/preinstalled-games/blobs/", StringComparison.Ordinal) && file.path.EndsWith(".zip", StringComparison.Ordinal)).All(file => successor.files.Any(nextFile => nextFile.path == file.path && nextFile.bytes == file.bytes && nextFile.sha256 == file.sha256));
+                if (!archiveRequired || (oldCatalog != null && newCatalog != null && oldCatalog.bytes == newCatalog.bytes && oldCatalog.sha256 == newCatalog.sha256 && identity.currentMappingSha256 == successor.currentMappingSha256 && sameArchives)) { lease.Verify(); return; }
+            }
+            var archiveSafetyConfirmed = !archiveRequired;
             const string conservative = "无法可靠确认全部存档与发行依赖，游戏资源已保留。";
             var auditDirectory = Path.Combine(identity.boxRoot, "updates", "uninstall-cleanup-" + Guid.NewGuid().ToString("N")); var audit = Path.Combine(auditDirectory, "receipt.json");
             Directory.CreateDirectory(auditDirectory);
@@ -893,8 +961,15 @@ namespace TableMax.Installation
                 var indexPath = Path.Combine(identity.boxRoot, "games", "index.json"); AnalysisSource index = null;
                 if (File.Exists(indexPath)) { index = new AnalysisSource(indexPath, Path.Combine(work, "index.json"), null, ownCopy); sources.Add(index); }
                 var databases = lease.CopyDatabaseInputs(work, ownCopy);
-                receipt["sources"] = new { catalog = catalog.Record, mapping = mapping.Record, index = index?.Record, databases };
-                var plan = RunResourcePlanner(identity, new { schemaVersion = 1, productId = identity.productId, installationId = identity.installationId, root = identity.root, boxRoot = identity.boxRoot, dataDirectory = lease.SourceDataDirectory, databaseFingerprint = receipt["databaseFingerprint"], databases, catalog = catalog.Record, mapping = mapping.Record, index = index?.Record, recoveryUncertain = lease.RecoveryUncertain }, work);
+                AnalysisSource successorCatalog = null;
+                if (successor != null)
+                {
+                    var record = successor.files.Single(file => file.path == "data/app/preinstalled-games/catalog.json");
+                    successorCatalog = new AnalysisSource(InstallationCore.Member(candidateRoot, record.path), Path.Combine(work, "successor-catalog.json"), record, ownCopy); sources.Add(successorCatalog);
+                }
+                receipt["sources"] = new { catalog = catalog.Record, successorCatalog = successorCatalog?.Record, mapping = mapping.Record, index = index?.Record, databases };
+                var successorArchives = successor == null ? null : successor.files.Where(file => file.path.StartsWith("data/app/preinstalled-games/blobs/", StringComparison.Ordinal) && file.path.EndsWith(".zip", StringComparison.Ordinal)).Select(file => new { blobId = Path.GetFileNameWithoutExtension(file.path), bytes = file.bytes, sha256 = file.sha256 }).ToArray();
+                var plan = RunResourcePlanner(successor ?? identity, new { schemaVersion = 1, productId = identity.productId, installationId = identity.installationId, root = identity.root, boxRoot = identity.boxRoot, dataDirectory = lease.SourceDataDirectory, databaseFingerprint = receipt["databaseFingerprint"], databases, catalog = catalog.Record, successorCatalog = successorCatalog?.Record, successorArchives, mapping = mapping.Record, index = index?.Record, recoveryUncertain = lease.RecoveryUncertain }, work, candidateRoot);
                 foreach (var key in new[] { "productId", "installationId", "root", "boxRoot", "dataDirectory", "databaseFingerprint" }) if (InstallationCore.Text(plan, key) != (string)receipt[key]) throw new IOException("资源分析身份不匹配，已保留资源。");
                 var files = plan["files"] as object[] ?? throw new IOException("资源分析成员无效。"); var pending = new List<Tuple<string, Dictionary<string, object>>>();
                 foreach (var value in files)
@@ -907,6 +982,14 @@ namespace TableMax.Installation
                     if (InstallationCore.Text(file, "action") == "delete") pending.Add(Tuple.Create(target, tuple)); else retained.Add(tuple);
                 }
                 receipt["referencedReleaseIds"] = plan["referencedReleaseIds"]; receipt["retainedBlobIds"] = plan["retainedBlobIds"];
+                lease.Verify();
+                if (archiveRequired)
+                {
+                    receipt["preservedArchives"] = PreserveResourceArchives(identity, catalog, plan);
+                    archiveSafetyConfirmed = plan.TryGetValue("archiveReliable", out var reliable) && reliable is bool && (bool)reliable;
+                    if (!archiveSafetyConfirmed) throw new IOException("资源归档依赖仍不确定，已保全可确认归档并阻止删除旧程序。");
+                }
+                if (preserveOnly) { receipt["result"] = "preserved"; receipt["reason"] = "已保全旧存档所需资源归档，未清理游戏仓库。"; WriteResourceReceipt(identity, audit, receipt); return; }
                 if (InstallationCore.Text(plan, "status") != "complete") throw new IOException(conservative);
                 var leases = new List<InstallationLaunch.CleanupLease>();
                 try
@@ -931,6 +1014,7 @@ namespace TableMax.Installation
                 foreach (var source in sources) source.Dispose(); sources.Clear();
                 retained.Clear(); entries.Clear(); deferred.Clear(); RetainedInventory(identity.boxRoot, retained, entries, conservative);
                 receipt["result"] = "retained"; receipt["reason"] = conservative; WriteResourceReceipt(identity, audit, receipt); Console.Error.WriteLine(conservative);
+                if (!archiveSafetyConfirmed || preserveOnly) throw new HelperError(10, "旧程序资源未能可靠保全，已停止替换或卸载；原程序与存档均保留。");
             }
             finally
             {

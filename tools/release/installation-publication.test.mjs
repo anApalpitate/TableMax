@@ -11,6 +11,7 @@ import { INSTALLATION_PRODUCT_ID } from './installation-package.mjs';
 import {
   installationUpdateDescription,
   verifyInstallationPublication,
+  verifyLifecycleAndCapacity,
 } from './installation-publication.mjs';
 
 const { privateKey, publicKey } = generateKeyPairSync('rsa', {
@@ -316,5 +317,93 @@ test('new-layout publication binds both uninstall resource receipts and rejects 
     const changed = fixture(true);
     mutate(changed.proof);
     assert.throws(() => verifyInstallationPublication(changed));
+  }
+});
+
+function retainedCatalogFixture() {
+  const input = fixture(true);
+  input.proof.footprint.games[0].bytes =
+    input.proof.footprint.currentGamesBytes;
+  for (const evidence of Object.values(
+    input.proof.postUninstallReinstall.gameResourceCleanup,
+  ))
+    evidence.receipt.retained[0].bytes =
+      input.proof.footprint.currentGamesBytes;
+  const bytes = Buffer.from('{"signed":"installed raw catalog"}');
+  const catalog = {
+    path: `.resource-archives/catalogs/${hash(bytes)}.json`,
+    bytes: bytes.length,
+    sha256: hash(bytes),
+  };
+  input.installationManifest.files.push({
+    ...catalog,
+    path: 'data/app/preinstalled-games/catalog.json',
+  });
+  const restored = input.proof.postUninstallReinstall;
+  restored.footprint = structuredClone(restored.footprint);
+  restored.footprint.games = [...input.proof.footprint.games, catalog].sort(
+    (a, b) => a.path.localeCompare(b.path),
+  );
+  restored.footprint.currentGamesBytes += catalog.bytes;
+  restored.footprint.total += catalog.bytes;
+  const first = restored.gameResourceCleanup.firstUninstall;
+  first.receipt.preservedArchives = [
+    { ...catalog, path: 'games/' + catalog.path },
+  ];
+  const final = restored.gameResourceCleanup.finalUninstall;
+  final.receipt.retained.push({ ...catalog, path: 'games/' + catalog.path });
+  for (const evidence of [first, final]) {
+    evidence.raw = JSON.stringify(evidence.receipt);
+    evidence.bytes = Buffer.byteLength(evidence.raw);
+    evidence.sha256 = hash(Buffer.from(evidence.raw));
+  }
+  return input;
+}
+
+test('publication lifecycle accepts only manifest-bound retained catalog capacity', () => {
+  const input = retainedCatalogFixture();
+  verifyLifecycleAndCapacity(input.proof, input.installationManifest);
+});
+
+test('publication lifecycle rejects extra restored files, forged catalog binding and capacity omissions', () => {
+  for (const change of [
+    (input) =>
+      input.proof.postUninstallReinstall.footprint.games.push({
+        path: 'unknown.bin',
+        bytes: 1,
+        sha256: 'f'.repeat(64),
+      }),
+    (input) =>
+      (input.installationManifest.files.find((file) =>
+        file.path.endsWith('catalog.json'),
+      ).sha256 = 'f'.repeat(64)),
+    (input) => input.proof.postUninstallReinstall.footprint.currentGamesBytes--,
+    (input) => {
+      input.proof.footprint.currentGamesBytes++;
+      input.proof.postUninstallReinstall.footprint.currentGamesBytes++;
+      input.proof.postUninstallReinstall.footprint.total++;
+    },
+    (input) => {
+      const evidence =
+        input.proof.postUninstallReinstall.gameResourceCleanup.firstUninstall;
+      delete evidence.receipt.preservedArchives;
+      evidence.raw = JSON.stringify(evidence.receipt);
+      evidence.bytes = Buffer.byteLength(evidence.raw);
+      evidence.sha256 = hash(Buffer.from(evidence.raw));
+    },
+    (input) => {
+      const e =
+        input.proof.postUninstallReinstall.gameResourceCleanup.finalUninstall;
+      e.receipt.retained.pop();
+      e.raw = JSON.stringify(e.receipt);
+      e.bytes = Buffer.byteLength(e.raw);
+      e.sha256 = hash(Buffer.from(e.raw));
+    },
+  ]) {
+    const input = retainedCatalogFixture();
+    change(input);
+    assert.throws(() =>
+      verifyLifecycleAndCapacity(input.proof, input.installationManifest),
+    );
   }
 });

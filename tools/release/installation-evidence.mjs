@@ -16,6 +16,43 @@ import {
   PACKAGE_BUDGET_BYTES,
 } from './package-limits.mjs';
 
+export function verifyRestoredGameInventory({
+  before,
+  after,
+  catalog: installedCatalog,
+  receipt,
+}) {
+  assert.ok(installedCatalog);
+  const { sha256, bytes } = installedCatalog;
+  assert.match(sha256, /^[a-f0-9]{64}$/);
+  assert.ok(Number.isSafeInteger(bytes) && bytes > 0);
+  const catalog = {
+    path: `.resource-archives/catalogs/${sha256}.json`,
+    bytes,
+    sha256,
+  };
+  const preserved = (receipt.preservedArchives ?? []).filter((file) =>
+    file.path.startsWith('games/.resource-archives/catalogs/'),
+  );
+  assert.ok(preserved.length <= 1, 'Duplicate retained catalog record');
+  const expected = [...before];
+  if (preserved.length) {
+    assert.equal(preserved[0].path, 'games/' + catalog.path);
+    assert.equal(preserved[0].bytes, catalog.bytes);
+    assert.equal(preserved[0].sha256, catalog.sha256);
+    const existing = expected.find((file) => file.path === catalog.path);
+    if (existing) assert.deepEqual(existing, catalog);
+    else expected.push(catalog);
+  }
+  assert.deepEqual(
+    after,
+    expected.sort((a, b) => a.path.localeCompare(b.path)),
+  );
+  return (
+    expected.reduce((sum, file) => sum + file.bytes, 0) -
+    before.reduce((sum, file) => sum + file.bytes, 0)
+  );
+}
 export const databaseMembers = [
   'foundation.sqlite',
   'foundation.sqlite-wal',
@@ -205,7 +242,15 @@ export async function installedProgramFootprint(root, manifest) {
     programBytes + frameworkBytes + identityBytes + currentGamesBytes;
   assert.ok(
     total < MAXIMUM_PACKAGE_BYTES,
-    'First startup complete program must be strictly below 120,000,000 bytes',
+    'First startup complete program must be strictly below 120,000,000 bytes: ' +
+      JSON.stringify({
+        programBytes,
+        frameworkBytes,
+        identityBytes,
+        currentGamesBytes,
+        total,
+        maximumBytes: MAXIMUM_PACKAGE_BYTES,
+      }),
   );
   return {
     programBytes,

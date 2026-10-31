@@ -444,6 +444,97 @@ function fixture(text = 'first') {
   };
 }
 describe('signed immutable package store', () => {
+  it('serves signed preinstalled resource archives without a second tree, retains old archives and rejects changed bytes', async () => {
+    const f = fixture();
+    const data = Buffer.from('exact original image bytes');
+    const archive = zip([['image.webp', data]]);
+    const resource: PackageBlob = {
+      id: '',
+      kind: 'resources',
+      files: [{ path: 'image.webp', size: data.length, sha256: sha256(data) }],
+      archiveBytes: archive.length,
+      archiveSha256: sha256(archive),
+      installedBytes: data.length,
+      assetName: 'resource.zip',
+      releaseTag: 'v1.0.6',
+    };
+    resource.id = blobIdentity(resource);
+    f.release.resources = [resource.id];
+    f.release.resourceMap = {
+      'uno/image.webp': { blobId: resource.id, path: 'image.webp' },
+    };
+    f.release.releaseId = releaseIdentity(f.release);
+    f.envelope.payload.blobs.push(resource);
+    f.envelope.signature = sign(
+      null,
+      Buffer.from(canonical(f.envelope.payload)),
+      f.privateKey,
+    ).toString('base64');
+    const source = join(f.root, 'app/preinstalled-games');
+    mkdirSync(join(source, 'blobs'), { recursive: true });
+    const catalog = Buffer.from(JSON.stringify(f.envelope));
+    writeFileSync(join(source, 'catalog.json'), catalog);
+    writeFileSync(
+      join(source, 'bootstrap.json'),
+      JSON.stringify({ schemaVersion: 1, releaseIds: [f.release.releaseId] }),
+    );
+    writeFileSync(join(source, 'blobs', f.blob.id + '.zip'), f.archive);
+    const resourcePath = join(source, 'blobs', resource.id + '.zip');
+    writeFileSync(resourcePath, archive);
+    const options = {
+      root: join(f.root, 'games'),
+      publicKey: f.publicKey,
+      protectedReleaseIds: () => [],
+    };
+    const store = new LocalModuleStore(options);
+    await store.importPreinstalled(source);
+    expect(existsSync(join(options.root, 'uno/blobs', resource.id))).toBe(
+      false,
+    );
+    expect(store.resolveModule(f.release.releaseId)).toBeDefined();
+    expect(
+      store.resolvePublicResource(f.release.releaseId, 'uno/image.webp')?.data,
+    ).toEqual(data);
+    expect(
+      store.resolvePublicResource(f.release.releaseId, '../image.webp'),
+    ).toBeUndefined();
+    expect(
+      store.resolvePublicResource(f.release.releaseId, 'web/private.cjs'),
+    ).toBeUndefined();
+    const retained = join(options.root, '.resource-archives');
+    mkdirSync(join(retained, 'catalogs'), { recursive: true });
+    mkdirSync(join(retained, 'blobs'));
+    writeFileSync(
+      join(retained, 'catalogs', sha256(catalog) + '.json'),
+      catalog,
+    );
+    writeFileSync(join(retained, 'blobs', resource.id + '.zip'), archive);
+    const reinstalled = new LocalModuleStore(options);
+    await reinstalled.importPreinstalled(source);
+    expect(existsSync(join(retained, 'blobs', resource.id + '.zip'))).toBe(
+      false,
+    );
+    expect(
+      existsSync(join(retained, 'catalogs', sha256(catalog) + '.json')),
+    ).toBe(true);
+    writeFileSync(join(retained, 'blobs', resource.id + '.zip'), archive);
+    rmSync(source, { recursive: true });
+    const restarted = new LocalModuleStore(options);
+    expect(restarted.resolveModule(f.release.releaseId)).toBeDefined();
+    expect(restarted.current('uno')).toBeUndefined();
+    expect(
+      restarted.resolvePublicResource(f.release.releaseId, 'uno/image.webp')
+        ?.data,
+    ).toEqual(data);
+    writeFileSync(
+      join(retained, 'blobs', resource.id + '.zip'),
+      Buffer.alloc(archive.length),
+    );
+    expect(() =>
+      restarted.resolvePublicResource(f.release.releaseId, 'uno/image.webp'),
+    ).toThrow('archive-hash-mismatch');
+    expect(restarted.resolveModule(f.release.releaseId)).toBeUndefined();
+  });
   it('merges concurrent release commits into the latest durable index', async () => {
     const first = fixture('first'),
       second = fixture('second');

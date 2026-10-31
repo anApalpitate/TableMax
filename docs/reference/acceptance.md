@@ -4,6 +4,14 @@
 
 本页只维护当前状态及进入原证明的索引，不维护验证政策或可复制操作命令。政策与复用条件见[验证范围与证据](validation.md)，安装必须证明什么见[安装验收要求](installation-validation.md)，具体CLI见[测试工具](../../tools/test/README.md)。历史原文、失败、候选与旧SHA见[整理前记录](../archive/acceptance-before-consolidation-2026-10-23.md)，24处历史地址的可用性见[逐项核查](../archive/historical-evidence-audit-2026-10-23.md)。
 
+## 当前安装交付（2026-10-31）
+
+本地 [current](../../artifacts/package-payloads/v1.0.8/current.json) 已推广为 **1.0.8.10**，预装 8 款游戏／9 个玩法，未发布。[完整安装器](../../artifacts/releases/v1.0.8/1.0.8.10/TableMax-1.0.8.10-installer-win-x64.exe)为 41,531,127 字节，SHA `09db4df6731e89f82f7e0ce449da8cda30a5f60aa9f9fe7f81485d67b3dbaa9c`；冻结快照 `dfb2cb9f23c8274f0bd7b2d620f41d96cff16af3a3a3cb31b3dc0f0df8946408`。内部 payload 为 49,786,309 字节，SHA `269527b10eec39dc74148774f6bf60fd1982613748f8107354426a2804bd9955`；安装清单 SHA `4fe0042945547021472a014fe107efc758191aad390bf56fe5a3788c93eaaaaf`。三位公开版本仍为 1.0.8。
+
+[system-r3 封存证明](../../artifacts/maintenance/installer-export-20261031/system-r3/sealed-proof.json)绑定上述原件：原路径原 EXE 的标准 Medium 启动与向导通过，干净标准账户完成安装、健康启动、修复、默认卸载及重装；三条更新／恢复链各 8/8 通过。首次健康安装逻辑体积为 111,001,325 字节（程序 103,423,520、框架 5,299,681、身份 20,706、G 2,257,418），同包复装 111,865,000，卸载后重装 111,198,959，均低于 120,000,000 硬限并触发 110,000,000 预警。资源从已验签预装 ZIP 读取，避免再次实体化；旧局所需归档保全契约见[安装布局](build-and-run.md#windows-安装与整个程序更新)。验收账户 SID 末尾 1061 及 profile 已清理。
+
+初次候选首次健康物化超限、CSS 导入资源拆分故障及 system-r2 对重装 G 完全相等的旧断言均保留原账；后者仅遗漏新机制保留的原始签名 catalog，修正精确期望后以同一最终 EXE 完整重跑 system-r3。组件检查与边界见[实现汇总](../../artifacts/maintenance/installer-export-20261031/implementation-summary.json)。本次系统链不补齐实体手机、真实 LAN／公网、真人听感及多物理 DPI 证明。下述旧源码和 1.0.8.9 记录保留其原日期范围，不再代表当前交付；旧 1.0.8.9 EXE 已按推广保留策略退役，原 SHA 及证明保留。
+
 ## 当前源码与本地交付
 
 2026-10-24当前源码已取消独立公共屏，仅保留管理兼展示与玩家。旧`/public`／`/public/game`含单尾斜杠及查询返回HTTP 410与玩家入口；管理页只授予真实管理员，未认证入口显示说明及44px玩家入口。独立公共窗口、菜单及优先音频已从当前源码移除；显示配置读v1的host并写仅host的v2。SDK public投影、匿名wire、旧ABI与原局固定发行继续保留。运行契约见[构建与运行](build-and-run.md#管理兼展示与旧入口迁移2026-10-24)，检查边界见[迁移验证](validation.md#管理兼展示的迁移验证2026-10-24)。本轮为源码和开发程序专项，未导出或安装新installer；下述current、旧包字节、SHA及历史结论不变。
@@ -22,16 +30,16 @@
 
 移除清单及逐文件SHA见[退役记录](../../assets/retired-cockroach-salad-20261024.json)。源码目录／拒绝加载及真实服务保存回归、Worker、类型、格式与链接检查见[本次汇总](../../artifacts/maintenance/remove-salad-20261024/summary.json)；[盒子73项](../../artifacts/maintenance/box-lobby-20261023/remove-salad-20261024-r2/report.json)与[德国小强29项](../../artifacts/maintenance/cockroach-source/remove-salad-20261024-r2/report.json)源码浏览器检查通过，不升级为旧安装器已移除或实体设备验收。沙箱临时缓存、realpath与Edge启动失败保留原账；普通权限复验仅覆盖受影响项。另行探测的旧`game-registry.test.ts`仍因早期“初始游戏为空”断言失败，未纳入本次通过项，原用例未修改。
 
-2026-10-23本轮只读核对：package.json公开版本1.0.8；本地current为1.0.8.9。源码、候选、本地current及线上发行分别认定，工作区后续代码不因同一公开版本自动进入原EXE，也不继承其通过结论。
+2026-10-23本轮只读核对：package.json公开版本1.0.8；当时本地current为1.0.8.9。源码、候选、本地current及线上发行分别认定，工作区后续代码不因同一公开版本自动进入原EXE，也不继承其通过结论。
 
-| 对象         | 当前记录与权威入口                                                                                                                             | 证明边界                                                                            |
-| ------------ | ---------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- |
-| 工作区源码   | 以Git HEAD、本任务diff及实际文件SHA确定；已有盒子与玩家布局等后续改动                                                                          | 源码专项报告只对应其冻结输入，不保证当前所有源码、游戏或设备通过                    |
-| 本地完整交付 | [current指针](../../artifacts/package-payloads/v1.0.8/current.json)，1.0.8.9，预装9游戏／10玩法                                                | 指针选中的原EXE、内部payload、安装清单与原passed证明逐SHA相符；本轮未重新启动或安装 |
-| 待验候选     | 由本任务明确指定的candidate及其状态确定                                                                                                        | 不从current或历史候选标题推定已完成，不默认推广任何候选                             |
-| 线上发行     | 上次确认于2026-10-21，公开v1.0.8附件为1.0.8.7，见[原发布核查](../archive/acceptance-before-consolidation-2026-10-23.md#v108附件替换2026-10-21) | 本轮未联网复核，不把本地1.0.8.9称作已发布或线上latest的实时证明                     |
+| 对象               | 当前记录与权威入口                                                                                                                             | 证明边界                                                                            |
+| ------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- |
+| 工作区源码         | 以Git HEAD、本任务diff及实际文件SHA确定；已有盒子与玩家布局等后续改动                                                                          | 源码专项报告只对应其冻结输入，不保证当前所有源码、游戏或设备通过                    |
+| 2026-10-23本地交付 | [current指针](../../artifacts/package-payloads/v1.0.8/current.json)，1.0.8.9，预装9游戏／10玩法                                                | 指针选中的原EXE、内部payload、安装清单与原passed证明逐SHA相符；本轮未重新启动或安装 |
+| 待验候选           | 由本任务明确指定的candidate及其状态确定                                                                                                        | 不从current或历史候选标题推定已完成，不默认推广任何候选                             |
+| 线上发行           | 上次确认于2026-10-21，公开v1.0.8附件为1.0.8.7，见[原发布核查](../archive/acceptance-before-consolidation-2026-10-23.md#v108附件替换2026-10-21) | 本轮未联网复核，不把本地1.0.8.9称作已发布或线上latest的实时证明                     |
 
-本地原EXE为[TableMax-1.0.8.9-installer-win-x64.exe](../../artifacts/releases/v1.0.8/1.0.8.9/TableMax-1.0.8.9-installer-win-x64.exe)，38,552,763字节，SHA `76c828598990b166e45cbdf24f09d55d2c40e454f79961128c48829b6d63b409`；冻结快照`809678d5ba3586d0bf6fe7b5fa77d14d3f79f77aa7e4c18c88eef3f471797281`。内部payload SHA `8e5fcd9ee5e302e88c6ddb7636523c238e47d0847b55b83f2070d13aa2604a80`，安装清单SHA `6449729ac85e60c83240fd5affa0f57ce301cb204107fb4b3ce2735d27038b54`。具体程序、全部成员与安装身份从指针及其清单读取，不在任务页复制“当前版本”。
+本地原EXE为`TableMax-1.0.8.9-installer-win-x64.exe`（已退役；[原清单](../../artifacts/releases/v1.0.8/1.0.8.9/TableMax-1.0.8.9-installer-win-x64-manifest.json)保留），38,552,763字节，SHA `76c828598990b166e45cbdf24f09d55d2c40e454f79961128c48829b6d63b409`；冻结快照`809678d5ba3586d0bf6fe7b5fa77d14d3f79f77aa7e4c18c88eef3f471797281`。内部payload SHA `8e5fcd9ee5e302e88c6ddb7636523c238e47d0847b55b83f2070d13aa2604a80`，安装清单SHA `6449729ac85e60c83240fd5affa0f57ce301cb204107fb4b3ce2735d27038b54`。具体程序、全部成员与安装身份从指针及其清单读取，不在任务页复制“当前版本”。
 
 [原正式完整安装证明](../../artifacts/maintenance/v1.0.8/windows-editions/809678d5ba3586d0bf6fe7b5fa77d14d3f79f77aa7e4c18c88eef3f471797281/shipping-executable-checks-full.json)记录结果passed、同一EXE与payload、干净标准账户／实际安装与卸载等原检查；首次健康启动118,984,447字节，低于120,000,000硬限并触发110,000,000预警，不表示安装过程绝对峰值。该证明、[安装器更新原记录](../archive/acceptance-before-consolidation-2026-10-23.md#实体牌运行资源与安装器更新2026-10-23)与本轮只读身份核对各保留原范围，不计为本轮再次安装通过。
 

@@ -266,11 +266,12 @@ export async function createService(
       '/game-packages/:ref/*',
       (request, reply) => {
         const suffix = request.params['*'];
-        const path = packages.resolvePublicFile(
+        const resource = packages.resolvePublicResource(
           request.params.ref,
           suffix.startsWith('resources/') ? suffix.slice(10) : suffix,
         );
-        if (!path) return reply.code(404).send();
+        if (!resource) return reply.code(404).send();
+        const { path, data } = resource;
         const ext = path.split('.').pop();
         const mime: Record<string, string> = {
           js: 'text/javascript',
@@ -287,7 +288,39 @@ export async function createService(
         };
         reply.type(mime[ext ?? ''] ?? 'application/octet-stream');
         reply.header('Cache-Control', 'public, max-age=31536000, immutable');
-        return reply.send(createReadStream(path));
+        if (data) {
+          reply.header('Accept-Ranges', 'bytes');
+          const range = request.headers.range;
+          if (range) {
+            const match = /^bytes=(\d*)-(\d*)$/.exec(range);
+            const start = match?.[1]
+              ? Number(match[1])
+              : Math.max(0, data.length - Number(match?.[2]));
+            const end =
+              match?.[1] && match[2]
+                ? Math.min(data.length - 1, Number(match[2]))
+                : data.length - 1;
+            if (
+              !match ||
+              (!match[1] && !match[2]) ||
+              !Number.isSafeInteger(start) ||
+              !Number.isSafeInteger(end) ||
+              start < 0 ||
+              start > end ||
+              start >= data.length
+            ) {
+              return reply
+                .code(416)
+                .header('Content-Range', `bytes */${data.length}`)
+                .send();
+            }
+            return reply
+              .code(206)
+              .header('Content-Range', `bytes ${start}-${end}/${data.length}`)
+              .send(data.subarray(start, end + 1));
+          }
+        }
+        return reply.send(data ?? createReadStream(path));
       },
     );
   }

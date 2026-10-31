@@ -37,6 +37,8 @@
 
 [resource-policy.mjs](resource-policy.mjs)在实际引用发现之后读取同目录及祖先的来源manifest；仅启用含runtimePolicy的组。该组assets按同目录文件名白名单记录source、source_sha256、sha256、bytes、width、height；预算为maxWidth、maxHeight、maxFileBytes、maxTotalBytes。未引用原件不进入运行输入；有政策的清单进入构建指纹，但不打包成媒体。当前PNG／WebP头尺寸校验不代替完整图像解码。适用组及预算归素材主题，不在此重复数值。
 
+[game-resources.mjs](game-resources.mjs)在 CSS `@import` 展开后按各声明的原始文件路径解析资源 URL，保留 `layer` 层叠关系，避免导入样式引用的媒体进入代码 blob。
+
 回归入口仍为范围runner：三份工具测试为dependency-boundaries.test.mjs、resource-policy.test.mjs和[runtime-boundaries.test.mjs](runtime-boundaries.test.mjs)，已进入scopes。集成测试扫描所有运行代码单元，并编译服务、宝可梦网页及其引用资源；使用普通内容寻址缓存。证据写入TABLEMAX_TEST_TMP指定任务目录，默认tmp/runtime-boundaries；调用者应显式指定自己的唯一任务目录。此入口不组装或导出安装器。
 
 ## 开发环境操作：初次配置

@@ -118,6 +118,9 @@ export function gameResourcesPlugin(root) {
   return {
     name: 'tablemax-logical-resources',
     enforce: 'pre',
+    config() {
+      return { css: { postcss: { plugins: [gameResourcesCssPlugin(root)] } } };
+    },
     resolveId(source, importer) {
       if (!importer || !mediaFile(source) || !source.startsWith('.')) return;
       const file = resolve(dirname(importer), source.split('?')[0]);
@@ -129,14 +132,6 @@ export function gameResourcesPlugin(root) {
       return `import {resourceUrl} from '@tablemax/web-host';export default resourceUrl(${JSON.stringify(id.slice('\0tablemax-resource:'.length))},import.meta.url);`;
     },
     transform(source, file) {
-      if (file.endsWith('.css'))
-        return source.replace(
-          /url\(\s*(['"]?)([^)'"\s]+)\1\s*\)/g,
-          (token, quote, path) => {
-            if (!path.startsWith('.') || !mediaFile(path)) return token;
-            return `url("../resources/${logicalResource(resolve(dirname(file), path), root)}")`;
-          },
-        );
       if (!/\.[jt]sx?$/.test(file)) return;
       const globs = mediaGlobs(source, file, root);
       if (!globs.length) return;
@@ -156,6 +151,27 @@ export function gameResourcesPlugin(root) {
         `import {resourceUrl as __tablemaxResourceUrl} from '@tablemax/web-host';\n` +
         source
       );
+    },
+  };
+}
+
+// Vite inlines CSS @imports after its transform hooks. PostCSS retains each
+// declaration's original source, including imports nested inside cascade layers.
+export function gameResourcesCssPlugin(root) {
+  return {
+    postcssPlugin: 'tablemax-logical-css-resources',
+    OnceExit(sheet) {
+      sheet.walkDecls((declaration) => {
+        const file = declaration.source?.input.file;
+        if (!file) return;
+        declaration.value = declaration.value.replace(
+          /url\(\s*(['"]?)([^)'"\s]+)\1\s*\)/g,
+          (token, quote, path) => {
+            if (!path.startsWith('.') || !mediaFile(path)) return token;
+            return `url("../resources/${logicalResource(resolve(dirname(file), path), root)}")`;
+          },
+        );
+      });
     },
   };
 }

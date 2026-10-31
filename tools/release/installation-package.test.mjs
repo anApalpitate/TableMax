@@ -61,7 +61,7 @@ test('uninstall bootstrap validates its own binary before execution and only rem
   assert.doesNotMatch(uninstall, /\{app\}\\UpdateHelper\.exe|FileCopy|DelTree/);
   const memoryHash = uninstall.indexOf('GetSHA256OfString(Data)');
   const fileHash = uninstall.indexOf('GetSHA256OfFile(Temporary)');
-  const execute = uninstall.indexOf('Exec(Temporary,');
+  const execute = uninstall.indexOf('ExecAndLogOutput(Temporary,');
   assert.ok(memoryHash >= 0 && fileHash > memoryHash && execute > fileHash);
   assert.ok(uninstall.includes('if OwnFile then if not DeleteFile(Temporary)'));
   assert.ok(

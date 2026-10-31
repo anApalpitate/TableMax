@@ -40,6 +40,10 @@ candidate以dontcopy内嵌，在 PrepareToInstall 显式提取并同步完成hel
 
 配置根 `B=I/data`，运行资源为 `B/app`，当前及历史模块为 `B/games`。配置 `TableMax.config.json` 默认 `dataDirectory:"."`，数据根 `D=B`；外置 D 保持原指针，更换配置仍在重启后生效。目录不可写直接报错，不回退 C 盘。受管理身份 `.install.json`、实际外层摘要 `.installer-receipt.json`、更新暂存和事务只用于程序核验，不能作为删除任意同目录文件的依据。
 
+当前预装资源直接从 `B/app/preinstalled-games` 内、由签名 catalog 授权的资源 ZIP 读取，不再重复展开至游戏仓库 `G=B/games`；代码模块仍实体化到 G，旧版已实体化的资源继续兼容。每个资源归档校验大小、SHA、成员路径及逐成员摘要，资源 URL 仍绑定固定发行；ZIP 读取不扩大公开文件范围，也不授予历史 catalog 新局选版权限。
+
+整程序更新／卸载移除旧 app 前，依据全部存档及 checkpoint 的固定发行闭包保全仍需的旧资源：归档保存在 `G/.resource-archives/blobs/<blobId>.zip`，对应签名 catalog 按原始字节 SHA 命名保存在 `G/.resource-archives/catalogs/<rawSHA>.json`。更新目标已提供完全相同的 blob 时不重复保全；新预装及映射全部核验成功后，才移除内容已核实且被当前预装替代的受管保留归档。历史 catalog 仅支持原局恢复。依赖未知或无法可靠解析时保守保全全部可能需要的资源；归档完整性或保全结果无法确认时，停止替换／卸载并保留原程序与存档，不以节省空间为由继续。
+
 `Updater.exe` 双击先显示中文启动反馈，再通过 `--check-updates` 打开主机原生盒子的「程序更新」面板；已运行时仅唤起同用户、同安装实例的面板，重复点击聚焦现有窗口，不关闭游戏。`UpdateHelper.exe` 无参数打开时给出中文引导。可信同版明确显示「已是最新版本」，可信远端旧版单独说明，不降级；网络、签名及发布描述失败分别报错，不能当作最新。面板提供主动检查、发布页、下载进度／取消及明确重启更新，不自动应用、不提供手动在线降级。原生更新权限只属于可信顶层管理窗口；普通浏览器和子frame无此权限，旧包中的公共屏同样无权。下载期间可以继续使用，未验签或失败的文件不执行；应用更新在服务串行队列确认无playing对局后同步拒收、排空、保存并关闭，再取得实际Stop确认与原Native退出码0，才调用同一个完整installer升级原目录。保存失败、超时或失联时明确停止更新并安全退出旧盒子，不能留作“可更新”或启动helper提交。稳定入口无需再次解压另一份自解压载荷，健康确认核对实际新Native／Node、I/B/D、安装实例、四位版本及当前映射。正式成功后保持新版普通主机运行。
 
 更新执行在保存关闭前，把已核验helper和完整installer原字节复制到当前用户实际TEMP中新建的私有短目录，绑定安装身份、原签名目标及双副本SHA后再交接。该临时副本不改变I／B／D／G，也不把数据移入TEMP；原下载和B内审计记录保留。原因是.NET Framework使用的[CreateProcessW空applicationName形式](https://learn.microsoft.com/en-us/windows/win32/api/processthreadsapi/nf-processthreadsapi-createprocessw)仍限制命令行中的模块路径长度，内部文件IO支持长路径不代表可以从同一路径启动EXE。TEMP本身过深或为磁盘根时须在关闭服务前报错，不改系统长路径策略或已有目录权限。停止与更新交接还必须在发出关闭请求前持有原进程句柄，直到核验正常退出码后才释放，避免进程退出后只凭PID无法取得退出状态。证据须记录实际进程句柄查询的短helper／installer模块路径、PID、原件／副本及元数据／审计rawSHA，不能把计划路径当实际启动证明。具体证据要求见[验证](installation-validation.md#完整安装与程序更新的证据分层)。

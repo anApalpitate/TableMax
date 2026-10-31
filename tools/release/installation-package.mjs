@@ -385,8 +385,18 @@ export async function createInstallationExecutable({
       frozenInstallation.recipe.inputs,
       'Frozen installer recipe changed; create a new delivery',
     );
-  await mkdir(resolve('tmp'), { recursive: true });
-  const work = await mkdtemp(resolve('tmp/installation-package-'));
+  const taskRoot = process.env.TABLEMAX_PACKAGE_TASK_ROOT;
+  if (taskRoot) assert.match(taskRoot, /^tmp\/[a-z0-9][a-z0-9-]{0,95}$/);
+  const workRoot = resolve(taskRoot ?? 'tmp');
+  await mkdir(workRoot, { recursive: true });
+  for (const directory of new Set([resolve('tmp'), workRoot])) {
+    const entry = await lstat(directory);
+    assert.ok(
+      entry.isDirectory() && !entry.isSymbolicLink(),
+      'Unsafe package work root',
+    );
+  }
+  const work = await mkdtemp(join(workRoot, 'installation-package-'));
   const candidate = join(work, 'candidate');
   const app = join(candidate, 'data/app');
   await mkdir(app, { recursive: true });

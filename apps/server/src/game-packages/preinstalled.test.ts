@@ -47,8 +47,9 @@ afterEach(() => {
     rmSync(root, { recursive: true, force: true });
 });
 function fixture(payload = true) {
-  mkdirSync('tmp', { recursive: true });
-  const root = mkdtempSync(resolve('tmp/preinstalled-games-'));
+  const temporaryRoot = resolve(process.env.TABLEMAX_TEST_TMP_ROOT ?? 'tmp');
+  mkdirSync(temporaryRoot, { recursive: true });
+  const root = mkdtempSync(join(temporaryRoot, 'preinstalled-games-'));
   roots.push(root);
   const webDir = join(root, 'app', 'web');
   const source = join(root, 'app', 'preinstalled-games');
@@ -105,7 +106,9 @@ it('bootstraps all current compatible signed gameplays before the full service o
         .update(readFileSync(join(f.source, 'bootstrap.json')))
         .digest('hex'),
     );
-    const installed = new PackageStore(f.options).snapshot();
+    const inspected = new PackageStore(f.options);
+    await inspected.importPreinstalled(f.source);
+    const installed = inspected.snapshot();
     expect(Object.keys(installed.index.releases)).toHaveLength(
       currentReleases.length,
     );
@@ -295,9 +298,9 @@ it('preserves existing exact selections and refs, repairs indexed missing files,
   expect(restarted.resolveModule(uno.releaseId)).toBeDefined();
   restarted.uninstall(uno.releaseId);
   await new PackageStore(f.options).importPreinstalled(f.source);
-  expect(
-    new PackageStore(f.options).resolveModule(uno.releaseId),
-  ).toBeDefined();
+  const reopened = new PackageStore(f.options);
+  await reopened.importPreinstalled(f.source);
+  expect(reopened.resolveModule(uno.releaseId)).toBeDefined();
 }, 30000);
 
 it('rejects corrupt or absent complete payloads without changing saved bytes', async () => {

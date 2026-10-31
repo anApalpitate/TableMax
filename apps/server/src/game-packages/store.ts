@@ -73,6 +73,13 @@ export class PackageStore {
   private listeners = new Set<() => void>();
   private verifiedDirectories = new Set<string>();
   private activeReleases = new Map<string, GameRelease>();
+  private resourceArchives = new Map<
+    string,
+    { path: string; blob: PackageBlob }
+  >();
+  private retainedResourceIds = new Set<string>();
+  private resourceCache:
+    { id: string; members: Map<string, Buffer> } | undefined;
   readonly root: string;
   constructor(private readonly options: PackageStoreOptions) {
     this.root = resolve(options.root);
@@ -82,6 +89,7 @@ export class PackageStore {
     if (existsSync(join(this.root, 'index.json')))
       this.index = this.readIndex(join(this.root, 'index.json'));
     this.recover();
+    this.loadRetainedResources();
   }
   subscribe(listener: () => void): () => void {
     this.listeners.add(listener);
@@ -135,6 +143,10 @@ export class PackageStore {
     if (release) {
       try {
         for (const blobId of [release.code, ...release.resources]) {
+          if (this.resourceArchives.has(blobId)) {
+            this.readResourceArchive(blobId);
+            continue;
+          }
           const directory = join(this.root, release.gameId, 'blobs', blobId);
           if (!this.verifiedDirectories.has(directory)) {
             this.verifyInstalled(directory, this.index.blobs[blobId]!);
@@ -173,9 +185,90 @@ export class PackageStore {
     if (!resource && !relative.startsWith('web/')) return undefined;
     if (!this.index.blobs[blobId]?.files.some((file) => file.path === relative))
       return undefined;
+    if (this.resourceArchives.has(blobId)) return undefined;
     const target = join(this.root, release.gameId, 'blobs', blobId, relative);
     this.assertSafe(target);
     return target;
+  }
+  /** Same public namespace, with immutable signed resource members served in memory. */
+  resolvePublicResource(
+    releaseId: string,
+    path: string,
+  ): { path: string; data?: Buffer } | undefined {
+    if (!safePath(path)) return undefined;
+    const release = this.index.releases[releaseId];
+    const resource = release?.resourceMap[path];
+    if (resource && this.resourceArchives.has(resource.blobId)) {
+      if (/\.cjs(?:\.br)?$/i.test(resource.path)) return undefined;
+      const blob = this.index.blobs[resource.blobId];
+      const archive = this.resourceArchives.get(resource.blobId)!;
+      if (!blob || canonical(blob) !== canonical(archive.blob))
+        return undefined;
+      const data = this.readResourceArchive(resource.blobId).get(resource.path);
+      return data ? { path: resource.path, data } : undefined;
+    }
+    const file = this.resolvePublicFile(releaseId, path);
+    return file ? { path: file } : undefined;
+  }
+
+  private readArchiveFile(path: string): Buffer {
+    for (let cursor = resolve(path); ; cursor = dirname(cursor)) {
+      if (lstatSync(cursor).isSymbolicLink())
+        throw new Error('resource-link-rejected');
+      if (dirname(cursor) === cursor) break;
+    }
+    if (!lstatSync(path).isFile()) throw new Error('invalid-resource-archive');
+    return readFileSync(path);
+  }
+
+  private readResourceArchive(id: string): Map<string, Buffer> {
+    const source = this.resourceArchives.get(id)!;
+    if (lstatSync(source.path).size !== source.blob.archiveBytes)
+      throw new Error('archive-hash-mismatch');
+    const bytes = this.readArchiveFile(source.path);
+    if (sha256(bytes) !== source.blob.archiveSha256)
+      throw new Error('archive-hash-mismatch');
+    if (this.resourceCache?.id === id) return this.resourceCache.members;
+    const members = readZip(bytes);
+    if (members.size !== source.blob.files.length)
+      throw new Error('extra-package-file');
+    for (const file of source.blob.files) {
+      const data = members.get(file.path);
+      if (!data || data.length !== file.size || sha256(data) !== file.sha256)
+        throw new Error('package-file-hash-mismatch');
+    }
+    this.resourceCache = undefined;
+    if (
+      source.blob.files.reduce((sum, file) => sum + file.size, 0) <=
+      16 * 1024 * 1024
+    )
+      this.resourceCache = { id, members };
+    return members;
+  }
+
+  private loadRetainedResources(): void {
+    const root = join(this.root, '.resource-archives');
+    const catalogs = join(root, 'catalogs');
+    if (!existsSync(catalogs)) return;
+    this.assertSafe(catalogs);
+    for (const name of readdirSync(catalogs)) {
+      if (!/^[a-f0-9]{64}\.json$/.test(name))
+        throw new Error('invalid-resource-catalog');
+      const bytes = this.readArchiveFile(join(catalogs, name));
+      if (sha256(bytes) + '.json' !== name)
+        throw new Error('resource-catalog-hash-mismatch');
+      const catalog = verifyCatalog(
+        JSON.parse(bytes.toString()),
+        this.options.publicKey,
+      );
+      for (const blob of catalog.blobs) {
+        const path = join(root, 'blobs', blob.id + '.zip');
+        if (blob.kind !== 'resources' || !existsSync(path)) continue;
+        this.resourceArchives.set(blob.id, { path, blob });
+        this.readResourceArchive(blob.id);
+        this.retainedResourceIds.add(blob.id);
+      }
+    }
   }
   async importOffline(file: string): Promise<string> {
     if (statSync(file).size >= 64_000_000)
@@ -293,6 +386,10 @@ export class PackageStore {
       const bytes = readLocal(path);
       if (sha256(bytes) !== blob.archiveSha256)
         throw new Error('archive-hash-mismatch');
+      if (blob.kind === 'resources') {
+        this.resourceArchives.set(blob.id, { path, blob });
+        this.readResourceArchive(blob.id);
+      }
       archives.set(id, bytes);
       progress?.();
     }
@@ -313,6 +410,28 @@ export class PackageStore {
       releases.map((release) => [releaseKey(release), release]),
     );
     this.verifiedMappingSha256 = sha256(bootstrapBytes);
+    // Reinstallation can make a managed retained archive redundant. Only remove
+    // a previously signature-verified archive after the entire new preload and
+    // its release mapping have succeeded; unknown files and catalogs stay intact.
+    for (const id of closure) {
+      if (!this.retainedResourceIds.has(id)) continue;
+      const blob = catalog.blobs.find((item) => item.id === id)!;
+      if (blob.kind !== 'resources') continue;
+      const retained = join(
+        this.root,
+        '.resource-archives',
+        'blobs',
+        id + '.zip',
+      );
+      const bytes = this.readArchiveFile(retained);
+      if (
+        bytes.length !== blob.archiveBytes ||
+        sha256(bytes) !== blob.archiveSha256
+      )
+        throw new Error('retained-resource-hash-mismatch');
+      rmSync(retained);
+      this.retainedResourceIds.delete(id);
+    }
     return releases.map((release) => release.releaseId);
   }
   cancel(releaseId: string): void {
@@ -368,6 +487,11 @@ export class PackageStore {
     );
     this.activeReleases.set(releaseId, release);
     const missing = blobs.filter((b) => {
+      const archive = this.resourceArchives.get(b.id);
+      if (archive && canonical(archive.blob) === canonical(b)) {
+        this.readResourceArchive(b.id);
+        return false;
+      }
       const directory = join(this.root, release.gameId, 'blobs', b.id);
       try {
         if (!this.index.blobs[b.id]) return true;

@@ -4,6 +4,8 @@
 
 本页维护打包、签名和推广的精确操作参数；当前已验交付及线上边界统一见[验收](../../docs/reference/acceptance.md#当前源码与本地交付)，产品发布规则见[Release流程](../../docs/reference/release.md)。
 
+任务封包设置 `TABLEMAX_PACKAGE_TASK_ROOT=tmp/<安全任务名>`，将安装器临时展开与编译文件集中在该任务目录；安全任务名仅含小写字母、数字和连字符，目录不得为链接。未设置时保留旧工具默认路径。此变量不改变正式 EXE、冻结载荷与清单的交付位置。
+
 新安装器先用 `--candidate` 封包并保留已有 `current.json`。新交付须在当前进程设置唯一`TABLEMAX_DELIVERY_SESSION`；同会话预留同一第四位，修复及重试不再次递增，正式验收推广后确认，详见[版本规则与实现边界](../../docs/reference/release.md#三位公开版本与四位本地构建2026-10-12)。stdout 返回 `candidatePath`；该记录冻结候选交付和原 current 的原始 SHA，同目录 `full/installer-delivery.json` 供描述生成及实际安装验收。`--platform-from` 按原快照身份及游戏缓存逐成员 SHA 保留正式游戏，只刷新当前平台和组装器并生成新快照，本地修订按上述规则归属本次更新；可跨公开版本，但新快照必须记录目标版本与 `retainedGameVersion`，保留原游戏来源证明。`--snapshot` 则恢复原冻结快照，不分配新修订。
 
 平台变更而游戏未变时，使用下列占位参数保留原游戏单元；先核对实际冻结快照和内部游戏源，不能直接复制历史候选路径。完整冻结恢复使用 --snapshot，与生成新平台候选区分。

@@ -18,6 +18,7 @@ import { build } from 'esbuild';
 import { compileInstallationProgram } from '../../release/installation-package.mjs';
 import { assertWorkspaceRoot } from '../../shared/workspace-root.mjs';
 import { failureLimit } from '../runner/failure-policy.mjs';
+import { zipFiles } from '../../release/game-package-format.mjs';
 
 // Fixture-only: real helper, real readonly Node/SQLite analysis and handle
 // deletion; synthetic executable/module bytes never execute. The in-memory
@@ -29,6 +30,13 @@ const caseIds = [
   'cleanup-references',
   'cleanup-damaged',
   'cleanup-unknown-link',
+  'archive-references',
+  'archive-journal',
+  'archive-uncertain',
+  'archive-tamper',
+  'archive-conflict',
+  'archive-update',
+  'archive-update-shared',
 ];
 const productId = '{ABFDE9A8-48D2-48D5-BC51-2A2D03F0D4F5}';
 const sha = (value) => createHash('sha256').update(value).digest('hex');
@@ -49,6 +57,7 @@ const sourcePaths = [
   'tools/release/installation-toolchain.mjs',
   'tools/release/installation-toolchain.json',
   'tools/release/package-limits.mjs',
+  'tools/release/game-package-format.mjs',
   'tools/shared/application-version.mjs',
   'tools/shared/workspace-root.mjs',
   'tools/test/runner/failure-policy.mjs',
@@ -180,8 +189,12 @@ async function sourceRecords(extra = []) {
     [...new Set([...sourcePaths, ...extra])].map(record),
   );
 }
-await mkdir(join(workspace, 'tmp'), { recursive: true });
-const work = await mkdtemp(join(workspace, 'tmp', 'resource-cleanup-'));
+const taskRoot = process.env.TABLEMAX_PACKAGE_TASK_ROOT;
+assert(!taskRoot || /^tmp\/[a-z0-9][a-z0-9-]{0,95}$/.test(taskRoot));
+const temporaryRoot = resolve(workspace, taskRoot ?? 'tmp');
+await noLinks(temporaryRoot);
+await mkdir(temporaryRoot, { recursive: true });
+const work = await mkdtemp(join(temporaryRoot, 'resource-cleanup-'));
 const evidence = options.has('evidence')
   ? below(join(workspace, 'artifacts/maintenance'), options.get('evidence'))
   : join(work, 'evidence');
@@ -377,6 +390,12 @@ try {
   const { canonical, blobIdentity, releaseIdentity, validateCatalog } =
     await import(pathToFileURL(verificationPath).href);
   const makeBlob = (kind, files) => {
+    const archive = zipFiles(
+      Object.entries(files).map(([path, data]) => ({
+        path,
+        data: Buffer.from(data),
+      })),
+    );
     const value = {
       kind,
       files: Object.entries(files).map(([path, data]) => ({
@@ -384,8 +403,8 @@ try {
         size: Buffer.byteLength(data),
         sha256: sha(data),
       })),
-      archiveBytes: 1,
-      archiveSha256: sha('synthetic-not-a-zip'),
+      archiveBytes: archive.length,
+      archiveSha256: sha(archive),
       installedBytes: Object.values(files).reduce(
         (total, data) => total + Buffer.byteLength(data),
         0,
@@ -624,6 +643,7 @@ try {
   }
 
   async function cleanupCase(id, damagedKind = null) {
+    const archived = id.startsWith('archive-');
     const label = damagedKind ? id + '-' + damagedKind : id;
     const root = join(work, label, 'I'),
       box = join(root, 'data'),
@@ -636,15 +656,35 @@ try {
     await putJson(join(box, 'TableMax.config.json'), { dataDirectory: '.' });
     createDatabase(
       join(box, 'room.sqlite'),
-      id === 'cleanup-references' ? old.releaseId : null,
-      damagedKind === 'journal',
+      id === 'cleanup-references' || archived ? old.releaseId : null,
+      damagedKind === 'journal' || id === 'archive-uncertain',
     );
+    if (id === 'archive-journal') {
+      const database = new DatabaseSync(join(box, 'room.sqlite'));
+      try {
+        // Only the journal retains this old release and its checkpoint chain.
+        const saved = database.prepare('SELECT data FROM saves').get().data;
+        database.exec('DELETE FROM journal');
+        database.prepare('INSERT INTO journal VALUES(?)').run(saved);
+        database.prepare('UPDATE saves SET data=?').run(
+          JSON.stringify({
+            formatVersion: 1,
+            instanceId: 'current-save',
+            releaseRef: current.releaseId,
+            manifest: { id: 'resource-fixture' },
+            history: [],
+          }),
+        );
+      } finally {
+        database.close();
+      }
+    }
     await put(
       join(box, 'foundation.sqlite'),
       'synthetic original foundation; leased without interpreting',
     );
     await put(join(box, 'unknown-note.txt'), 'unknown user material');
-    const includeOld = id === 'cleanup-references';
+    const includeOld = id === 'cleanup-references' || archived;
     const installedBlobs = includeOld
       ? [currentBlob, oldBlob, sharedBlob]
       : [currentBlob, sharedBlob];
@@ -654,11 +694,18 @@ try {
       [sharedBlob.id, sharedFiles],
     ]);
     for (const blob of installedBlobs)
-      for (const [name, bytes] of Object.entries(content.get(blob.id)))
-        await put(
-          join(games, 'resource-fixture', 'blobs', blob.id, ...name.split('/')),
-          bytes,
-        );
+      if (!archived || blob.kind !== 'resources')
+        for (const [name, bytes] of Object.entries(content.get(blob.id)))
+          await put(
+            join(
+              games,
+              'resource-fixture',
+              'blobs',
+              blob.id,
+              ...name.split('/'),
+            ),
+            bytes,
+          );
     await putJson(join(games, 'index.json'), {
       schemaVersion: 1,
       releases: Object.fromEntries(
@@ -717,6 +764,31 @@ try {
             : signature,
       }),
     );
+    if (archived) {
+      await managed(
+        'data/app/preinstalled-games/blobs/' + sharedBlob.id + '.zip',
+        zipFiles(
+          Object.entries(sharedFiles).map(([path, data]) => ({
+            path,
+            data: Buffer.from(data),
+          })),
+        ),
+      );
+      if (id === 'archive-tamper')
+        await writeFile(
+          join(
+            root,
+            'data/app/preinstalled-games/blobs',
+            sharedBlob.id + '.zip',
+          ),
+          'changed archive',
+        );
+      if (id === 'archive-conflict')
+        await put(
+          join(games, '.resource-archives/blobs', sharedBlob.id + '.zip'),
+          'unknown destination',
+        );
+    }
     const installationId = randomUUID();
     const sidResult = await execute(
       join(
@@ -772,11 +844,199 @@ try {
     );
     const before = await inventory(games),
       outsideBefore = outside ? await inventory(outside) : null;
+    if (id === 'archive-update' || id === 'archive-update-shared') {
+      const candidate = join(work, label, 'successor');
+      const successorFiles = [];
+      const newResources = {
+        'images/fixture.txt': 'new release with different resource bytes',
+      };
+      const nextBlob = makeBlob('resources', newResources);
+      const nextReleaseValue = {
+        ...current,
+        resources: [nextBlob.id],
+        resourceMap: {
+          'images/fixture.txt': {
+            blobId: nextBlob.id,
+            path: 'images/fixture.txt',
+          },
+        },
+      };
+      delete nextReleaseValue.releaseId;
+      const nextRelease = {
+        releaseId: releaseIdentity(nextReleaseValue),
+        ...nextReleaseValue,
+      };
+      const nextCatalog =
+        id === 'archive-update-shared'
+          ? catalog
+          : {
+              schemaVersion: 1,
+              releases: [nextRelease],
+              blobs: [currentBlob, nextBlob],
+            };
+      const replacements = new Map([
+        [
+          'data/app/preinstalled-games/catalog.json',
+          Buffer.from(
+            JSON.stringify({
+              payload: nextCatalog,
+              signature: sign(
+                null,
+                Buffer.from(canonical(nextCatalog)),
+                privateKey,
+              ).toString('base64'),
+            }),
+          ),
+        ],
+        [
+          'data/app/preinstalled-games/bootstrap.json',
+          Buffer.from(
+            JSON.stringify({
+              schemaVersion: 1,
+              releaseIds: [
+                id === 'archive-update-shared'
+                  ? current.releaseId
+                  : nextRelease.releaseId,
+              ],
+            }),
+          ),
+        ],
+      ]);
+      if (id === 'archive-update')
+        replacements.set(
+          'data/app/preinstalled-games/blobs/' + nextBlob.id + '.zip',
+          zipFiles(
+            Object.entries(newResources).map(([path, data]) => ({
+              path,
+              data: Buffer.from(data),
+            })),
+          ),
+        );
+      for (const file of files) {
+        if (
+          id === 'archive-update' &&
+          file.path.endsWith(sharedBlob.id + '.zip')
+        )
+          continue;
+        const target = join(candidate, ...file.path.split('/'));
+        await put(
+          target,
+          replacements.get(file.path) ??
+            (await readFile(join(root, ...file.path.split('/')))),
+        );
+        replacements.delete(file.path);
+        const actual = await record(target);
+        successorFiles.push({
+          path: file.path,
+          bytes: actual.bytes,
+          sha256: actual.sha256,
+        });
+      }
+      for (const [path, data] of replacements) {
+        await put(join(candidate, ...path.split('/')), data);
+        successorFiles.push({ path, bytes: data.length, sha256: sha(data) });
+      }
+      const nextIdentity = Object.fromEntries(
+        Object.entries(identity).filter(
+          ([key]) =>
+            !['installationId', 'root', 'boxRoot', 'ownerSid'].includes(key),
+        ),
+      );
+      await putJson(join(candidate, 'installation-manifest.json'), {
+        ...nextIdentity,
+        buildVersion: '1.0.7.60001',
+        files: successorFiles,
+        currentMappingSha256: successorFiles.find(
+          (file) => file.path === 'data/app/preinstalled-games/bootstrap.json',
+        ).sha256,
+      });
+      const marker = JSON.parse(
+        await readFile(join(root, '.resource-cleanup-fixture.json'), 'utf8'),
+      );
+      const planPath = join(work, label, 'preserve-plan.json');
+      await putJson(planPath, {
+        schemaVersion: 1,
+        root,
+        nonce: marker.nonce,
+        installerSource: helper,
+        candidateRoot: candidate,
+      });
+      const run = await execute(migration, ['--plan=' + planPath], label);
+      assert.equal(run.code, 0, run.stderr);
+      assert.equal(
+        JSON.parse(run.stdout).result,
+        'migrated',
+        'Actual preservation helper refused',
+      );
+      for (const file of files)
+        assert.equal(
+          (await record(join(root, ...file.path.split('/')))).sha256,
+          file.sha256,
+          'Old app modified before switch',
+        );
+      for (const file of before.filter((row) => row.kind === 'file'))
+        assert.equal(
+          (await record(join(games, ...file.path.split('/')))).sha256,
+          file.sha256,
+          'Old G changed during preservation',
+        );
+      if (id === 'archive-update')
+        assert.equal(
+          (
+            await record(
+              join(games, '.resource-archives/blobs', sharedBlob.id + '.zip'),
+            )
+          ).sha256,
+          sharedBlob.archiveSha256,
+        );
+      else
+        assert(
+          !(await exists(join(games, '.resource-archives'))),
+          'Same-blob successor should not duplicate archives',
+        );
+      assert.deepEqual(
+        await Promise.all(
+          protectedPaths.map((path) => record(join(box, path))),
+        ),
+        protectedBefore,
+      );
+      return {
+        root,
+        candidate,
+        execution: label + '.json',
+        before,
+        after: await inventory(games),
+        method: 'actual-helper-before-switch-preservation',
+      };
+    }
     const execution = await execute(
       helper,
       ['--uninstall', '--root=' + root],
       label,
     );
+    if (id === 'archive-tamper' || id === 'archive-conflict') {
+      assert.notEqual(
+        execution.code,
+        0,
+        'Uninstall must refuse before deleting archive-backed resources',
+      );
+      assert(await exists(join(box, '.install.json')));
+      assert(await exists(join(root, 'data/app/server.cjs')));
+      assert.deepEqual(await inventory(games), before);
+      assert.deepEqual(
+        await Promise.all(
+          protectedPaths.map((path) => record(join(box, path))),
+        ),
+        protectedBefore,
+      );
+      return {
+        root,
+        execution: label + '.json',
+        result: 'refused-before-program-deletion',
+        before,
+        after: await inventory(games),
+      };
+    }
     assert.equal(execution.code, 0, execution.stderr);
     assert.equal(execution.signal, null);
     assert.equal(execution.error, null);
@@ -798,9 +1058,28 @@ try {
       for (const file of receipt[action]) {
         assert(!covered.has(file.path));
         covered.set(file.path, action);
-        const original = before.find(
+        let original = before.find(
           (row) => 'games/' + row.path === file.path && row.kind === 'file',
         );
+        if (!original && archived && action === 'retained') {
+          const catalog = files.find(
+            (file) => file.path === 'data/app/preinstalled-games/catalog.json',
+          );
+          const expected = [
+            {
+              path: 'games/.resource-archives/blobs/' + sharedBlob.id + '.zip',
+              bytes: sharedBlob.archiveBytes,
+              sha256: sharedBlob.archiveSha256,
+            },
+            {
+              path:
+                'games/.resource-archives/catalogs/' + catalog.sha256 + '.json',
+              bytes: catalog.bytes,
+              sha256: catalog.sha256,
+            },
+          ];
+          original = expected.find((expected) => expected.path === file.path);
+        }
         assert(original, 'Receipt authorized a non-original file');
         assert.equal(file.bytes, original.bytes);
         assert.equal(file.sha256, original.sha256);
@@ -851,6 +1130,38 @@ try {
             'retained',
           );
       assert.equal(receipt.deleted.length, currentBlob.files.length);
+    }
+    if (archived) {
+      const archive = await record(
+        join(games, '.resource-archives/blobs', sharedBlob.id + '.zip'),
+      );
+      assert.equal(archive.sha256, sharedBlob.archiveSha256);
+      assert.equal(archive.bytes, sharedBlob.archiveBytes);
+      const catalogFile = files.find(
+        (file) => file.path === 'data/app/preinstalled-games/catalog.json',
+      );
+      assert.equal(
+        (
+          await record(
+            join(
+              games,
+              '.resource-archives/catalogs',
+              catalogFile.sha256 + '.json',
+            ),
+          )
+        ).sha256,
+        catalogFile.sha256,
+      );
+      assert(
+        !(await exists(join(games, 'resource-fixture/blobs', sharedBlob.id))),
+        'No expanded resource copy',
+      );
+      if (id === 'archive-journal')
+        assert.deepEqual(
+          new Set(receipt.referencedReleaseIds),
+          new Set([current.releaseId, old.releaseId]),
+        );
+      if (id === 'archive-uncertain') assert.equal(receipt.result, 'retained');
     }
     if (id === 'cleanup-damaged') {
       assert.equal(receipt.result, 'retained');

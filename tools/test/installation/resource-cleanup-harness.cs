@@ -17,7 +17,9 @@ internal static class ResourceCleanupHarness
         {
             if (arguments.Length != 1 || !arguments[0].StartsWith("--plan=", StringComparison.Ordinal)) throw new IOException("Use the private component plan.");
             var input = InstallationCore.Object(StrictJson.Parse(System.IO.File.ReadAllText(arguments[0].Substring(7), InstallationCore.Utf8)));
-            InstallationCore.Keys(input, "schemaVersion", "root", "nonce", "installerSource");
+            var preserve = input.ContainsKey("candidateRoot");
+            if (preserve) InstallationCore.Keys(input, "schemaVersion", "root", "nonce", "installerSource", "candidateRoot");
+            else InstallationCore.Keys(input, "schemaVersion", "root", "nonce", "installerSource");
             if (InstallationCore.Number(input, "schemaVersion") != 1) throw new IOException("Invalid component plan.");
             var root = InstallationCore.Root(InstallationCore.Text(input, "root"));
             var marker = InstallationCore.Member(root, ".resource-cleanup-fixture.json");
@@ -28,7 +30,17 @@ internal static class ResourceCleanupHarness
             typeof(UpdateHelper).GetField("options", BindingFlags.Static | BindingFlags.NonPublic).SetValue(null, options);
             var leaseType = typeof(UpdateHelper).GetNestedType("MigrationLease", BindingFlags.NonPublic);
             var migrate = typeof(UpdateHelper).GetMethod("Migrate", BindingFlags.Static | BindingFlags.NonPublic);
-            using (var lease = (IDisposable)Activator.CreateInstance(leaseType, new object[] { root, root })) migrate.Invoke(null, new object[] { root, root, lease });
+            using (var lease = (IDisposable)Activator.CreateInstance(leaseType, new object[] { root, preserve ? null : root }))
+            {
+                if (preserve)
+                {
+                    var candidate = InstallationCore.Full(InstallationCore.Text(input, "candidateRoot"));
+                    var successor = InstallationManifest.Read(Path.Combine(candidate, "installation-manifest.json"), false);
+                    successor.Verify(candidate);
+                    typeof(UpdateHelper).GetMethod("CleanupResources", BindingFlags.Static | BindingFlags.NonPublic).Invoke(null, new object[] { InstallationManifest.Load(root), lease, successor, candidate, true });
+                }
+                else migrate.Invoke(null, new object[] { root, root, lease });
+            }
             Console.WriteLine(InstallationCore.Encode(new { schemaVersion = 1, result = "migrated", root, boxRoot = InstallationCore.Box(root), method = "actual-MigrationLease-and-Migrate-no-Commit-or-health" }));
             return 0;
         }

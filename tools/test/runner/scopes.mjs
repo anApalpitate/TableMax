@@ -196,6 +196,7 @@ const verificationScopes = {
   'tools/release/installation-promote.test.mjs': ['tooling'],
   'tools/release/installation-publication.test.mjs': ['tooling'],
   'tools/release/installation-verifier.test.mjs': ['tooling'],
+  'tools/release/installation-catalog-retention.test.mjs': ['tooling'],
   'tools/release/prepare-internal-games.test.mjs': ['tooling'],
   'tools/release/installation-verifier.mjs': ['box', 'shared', 'tooling'],
   'tools/test/installation/native-confirm-harness.cs': ['shared', 'tooling'],
@@ -379,6 +380,10 @@ const verificationScopes = {
     ...gameScopes,
   ],
   'tools/test/platform/verify-phone-orientation.mjs': ['box', 'shared'],
+  'tools/test/platform/verify-archive-resource-lifecycle.mjs': [
+    'shared',
+    'tooling',
+  ],
   'tools/test/platform/verify-uno-module-settings.mjs': [
     'box',
     'shared',
