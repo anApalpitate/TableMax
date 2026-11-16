@@ -98,7 +98,13 @@ export function BoardGrid({
             {content}
           </button>
         ) : (
-          <div key={slot.id} className={className} data-slot={slot.id}>
+          <div
+            key={slot.id}
+            className={className}
+            data-slot={slot.id}
+            role="group"
+            aria-label={slot.label}
+          >
             {content}
           </div>
         );

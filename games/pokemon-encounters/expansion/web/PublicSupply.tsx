@@ -74,33 +74,29 @@ export function PublicSupply({
         ) : (
           <TurnProgress game={game} />
         )}
+        {game.coin && (
+          <div className="ex-coin-result" role="status">
+            <span className="coin-face">
+              <img src={coinArt[game.coin]} alt="" />
+            </span>
+            <strong>{game.coin === 'meowth' ? '喵喵面' : '皮卡丘面'}</strong>
+          </div>
+        )}
       </section>
-      {game.coin && (
-        <div className="ex-coin-result" role="status">
-          <span className="coin-face">
-            <img src={coinArt[game.coin]} alt="" />
-          </span>
-          <strong>{game.coin === 'meowth' ? '喵喵面' : '皮卡丘面'}</strong>
-        </div>
-      )}
       <section
         className={`ex-public-held ${game.held ? 'has-held' : ''} ${moved && ['draw', 'draw-buffer'].includes(moved.verb) ? 'ex-saved' : ''}`}
         data-pile="held"
         aria-label="公开暂持区"
       >
         {game.held ? (
-          <>
-            <Card profile={game.rulesProfile} face={game.held} />
-          </>
+          <Card profile={game.rulesProfile} face={game.held} />
         ) : (
-          <>
-            <svg viewBox="0 0 48 56" aria-hidden="true">
-              <rect x="12" y="4" width="30" height="43" rx="5" />
-              <path d="M7 14H4v37h29" />
-              <circle cx="27" cy="25" r="8" />
-              <path d="M19 25h16" />
-            </svg>
-          </>
+          <svg viewBox="0 0 48 56" aria-hidden="true">
+            <rect x="12" y="4" width="30" height="43" rx="5" />
+            <path d="M7 14H4v37h29" />
+            <circle cx="27" cy="25" r="8" />
+            <path d="M19 25h16" />
+          </svg>
         )}
         <div>
           <span>暂持区</span>

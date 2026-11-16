@@ -26,7 +26,12 @@ main.expansion-screen[data-layout][data-below-minimum='true'] {
 }
 main.expansion-screen:not(.player)[data-below-minimum='true'] .ex-table-layout {
   flex: none;
-  height: 580px;
+  height: auto;
+  grid-template-rows: minmax(640px, auto);
+}
+main.expansion-screen:not(.player)[data-below-minimum='true']
+  :is(.ex-players, .ex-supply) {
+  height: auto;
 }
 .expansion-screen.player .ex-round-context {
   flex: none;

@@ -1506,16 +1506,20 @@
   margin-top: 8px;
 }
 .pokemon-screen:not(.player) .table-side > .decision-dashboard {
-  flex: 1;
-  grid-template-rows: auto auto minmax(0, 1fr);
+  flex: 0 0 auto;
+  grid-template-rows: auto auto auto;
   padding: 8px;
 }
 .pokemon-screen:not(.player) .decision-dashboard > .held-zone {
   grid-row: 2;
+  height: auto;
+  min-height: calc(var(--pile-height) + 18px);
+  padding: 8px;
+  align-content: center;
 }
 .pokemon-screen:not(.player) .decision-dashboard > .card-piles {
   grid-row: 3;
-  align-self: center;
+  align-self: start;
 }
 .pokemon-screen:not(.player) .decision-status {
   display: grid;
@@ -1614,8 +1618,9 @@
 }
 .pokemon-screen:not(.player) .held-copy {
   display: grid;
+  align-self: center;
   justify-items: start;
-  gap: 4px;
+  gap: 2px;
   text-align: start;
 }
 .pokemon-screen:not(.player) .held-tag {
@@ -1633,6 +1638,22 @@
   .pokemon-screen:not(.player) .table-side > .decision-dashboard {
     --pile-width: 96px;
     --pile-height: 134px;
+  }
+}
+
+@media (max-width: 1100px), (max-height: 800px) {
+  .pokemon-screen:not(.player)
+    :is(.game-table, .settlement-H)
+    .pokemon-board
+    .pokemon-card.face:has(> img)
+    > .card-name {
+    display: none;
+  }
+  .pokemon-screen:not(.player)
+    .game-table
+    .pokemon-board
+    .pokemon-card.face:has(> img) {
+    grid-template-rows: 24px minmax(0, 1fr);
   }
 }
 

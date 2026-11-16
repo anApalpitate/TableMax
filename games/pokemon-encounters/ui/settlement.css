@@ -536,3 +536,23 @@
   > img {
   height: calc(100% - 22px) !important;
 }
+@media (max-width: 1100px), (max-height: 800px) {
+  .pokemon-screen .settlement-H .settlement-card .pokemon-card.face:has(> img) {
+    display: grid !important;
+    grid-template-rows: 24px minmax(0, 1fr);
+  }
+  .pokemon-screen
+    .settlement-H
+    .settlement-card
+    .pokemon-card.face:has(> img)
+    > .card-heading {
+    position: relative;
+  }
+  .pokemon-screen
+    .settlement-H[data-count]
+    .settlement-card
+    .pokemon-card.face
+    > img {
+    height: 100% !important;
+  }
+}
