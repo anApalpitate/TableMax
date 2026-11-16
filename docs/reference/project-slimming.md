@@ -1,5 +1,11 @@
 # 项目瘦身与最近结果
 
+## artifacts 定向复审（2026-11-16）
+
+按完整口径复测，`artifacts` 从 **3,625,084,507 降至 3,199,879,313 字节**，项目从 **8,549,370,822 降至 8,126,046,964 字节**，净降 423,323,858 字节。工程空闲和预览通过后，一次 Apply 完成 619 项，共退役 432,491,118 字节。范围包括旧浏览器截图、过期转录工具、同字节签名暂存 ZIP、1.0.8.11 的压缩前重复暂存，以及无损归档的 27 项历史机器记录。原执行台账、可访问的审阅页面、源素材与直接引用均保留。[清单摘要](../../artifacts/maintenance/slim-artifacts-20261116/selection-final.json) · [执行记录](../../artifacts/maintenance/reviewed-retirements/slim-artifacts-20261116-once.json)
+
+1.0.8.11 的实际解包目录与标准账户验收运行时原位保留。压缩前暂存先与完整载荷清单及实际解包逐文件对比，只退役同字节副本。冻结输出审计直接引用的三个暂存文件原位保留并核验。四份完整历史载荷、40 个存档相关文件与 133 个重复件对应的原件均通过 SHA-256 复核。1,788 个链接的原始目标保持一致，扫描错误为零。距低于 8 GB 仍差约 126 MB。[容量与保留项复核](../../artifacts/maintenance/slim-artifacts-20261116/capacity-and-verify-after.json) · [历史机器记录 ZIP](../../artifacts/maintenance/slim-artifacts-20261116/historical-machine-reports.zip)
+
 ## 过期缓存与重复载荷复审（2026-11-16）
 
 按完整口径审查最大的三个目录。复测 `artifacts` 为 3.625 GB、`tmp` 为 2.702 GB、`.cache` 为 1.356 GB。确认旧构建锁的 PID 已被较新无关进程复用，原锁按 SHA 留存；缓存预览依现行快照、交付和每单元保留规则核准 335 个过期单元。闲置会话按一次性标记处理，仅清理 WebView2 派生缓存和有等字节原件的游戏资源，保留资料、会话数据库及持久身份。隔离回归覆盖已新增的标记和路径限制。[原锁审查](../../artifacts/maintenance/slim-under8-20261116-cache/stale-lock-review.json) · [容量及候选预算](../../artifacts/maintenance/slim-under8-20261116-cache/selection-final.json)
