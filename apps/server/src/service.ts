@@ -45,6 +45,7 @@ import { NetworkSettings, normalizeUrl } from './network-settings';
 import { InteractionDispatcher } from './interactions';
 import { RoomProjectionState } from './room-projections';
 import { SyncDiagnostics } from './sync-diagnostics';
+import { registerPackedWeb } from './packed-web';
 import { PackageStore } from './game-packages/store';
 import { PROJECT_GAME_PUBLIC_KEY } from './game-packages/project-public-key';
 import {
@@ -756,9 +757,11 @@ export async function createService(
   });
 
   try {
+    registerPackedWeb(app, config.webDir);
     await app.register(staticFiles, {
       root: config.webDir,
       index: ['index.html'],
+      allowedPath: (path) => !/\.(?:js|css)\.br$/i.test(path),
     });
     for (const route of [
       '/public',

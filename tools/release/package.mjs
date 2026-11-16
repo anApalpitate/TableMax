@@ -24,8 +24,10 @@ import {
   stat,
   writeFile,
   rename,
+  unlink,
 } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
+import { brotliCompressSync, brotliDecompressSync } from 'node:zlib';
 import {
   execute,
   nodeVersion,
@@ -410,7 +412,7 @@ await lock('package-win', async () => {
     }
     timings.materializationMs = performance.now() - materializationStarted;
     const stagedInventoryStarted = performance.now();
-    const records = await inventory(unpacked);
+    let records = await inventory(unpacked);
     timings.stagedInventoryMs = performance.now() - stagedInventoryStarted;
     const assembly = JSON.parse(
       await readFile(
@@ -431,6 +433,37 @@ await lock('package-win', async () => {
     expected.sort((a, b) => a.path.localeCompare(b.path));
     if (JSON.stringify(records) !== JSON.stringify(expected))
       throw new Error('Materialized package differs from frozen snapshot');
+    // Older frozen server units only serve ordinary static files.
+    if (
+      buildSnapshot.units
+        .find((unit) => unit.id === 'platform-server')
+        ?.inputs.files.some(
+          (file) => file.path === 'apps/server/src/packed-web.ts',
+        )
+    ) {
+      for (const file of records) {
+        if (
+          file.bytes < 1024 ||
+          file.bytes > 4 * 1024 * 1024 ||
+          !/^web\/(?:assets|runtime\/v1(?:\/assets)?)\/[\w-]+\.(?:js|css)$/.test(
+            file.path,
+          )
+        )
+          continue;
+        const path = join(unpacked, file.path);
+        const source = await readFile(path);
+        assert.equal(
+          createHash('sha256').update(source).digest('hex'),
+          file.sha256,
+        );
+        const packed = brotliCompressSync(source);
+        if (packed.length >= file.bytes) continue;
+        assert.ok(brotliDecompressSync(packed).equals(source));
+        await writeFile(path + '.br', packed, { flag: 'wx' });
+        await unlink(path);
+      }
+      records = await inventory(unpacked);
+    }
     const unpackedBytes = records.reduce(
       (total, file) => total + file.bytes,
       0,

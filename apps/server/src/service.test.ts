@@ -1,10 +1,47 @@
 import { it, expect } from 'vitest';
-import { mkdtempSync, writeFileSync, readFileSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, writeFileSync, readFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { createService } from './service';
 import { createConnection } from 'node:net';
+import { brotliCompressSync } from 'node:zlib';
 import { GameRegistry } from '@tablemax/platform-core';
+
+it('serves packed shared runtime at its original URL with an identity response', async () => {
+  const webDir = mkdtempSync(join(tmpdir(), 'tablemax-web-'));
+  const dataDir = mkdtempSync(join(tmpdir(), 'tablemax-service-'));
+  const packed = [
+    ['assets/index-A1.js', 'text/javascript', 'export const fixture = true;'],
+    ['runtime/v1/assets/main-B2.css', 'text/css', ':root { color: red; }'],
+  ] as const;
+  mkdirSync(join(webDir, 'assets'));
+  mkdirSync(join(webDir, 'runtime/v1/assets'), { recursive: true });
+  for (const [path, , body] of packed)
+    writeFileSync(join(webDir, path + '.br'), brotliCompressSync(body));
+  const service = await createService(
+    { host: '127.0.0.1', port: 0, webDir, dataDir },
+    new GameRegistry([]),
+  );
+  try {
+    for (const [path, contentType, body] of packed) {
+      const url = '/' + path;
+      const response = await service.app.inject({
+        url,
+        headers: { 'accept-encoding': 'identity' },
+      });
+      expect(response.statusCode).toBe(200);
+      expect(response.headers['content-type']).toContain(contentType);
+      expect(response.headers['content-encoding']).toBeUndefined();
+      expect(response.body).toBe(body);
+      const head = await service.app.inject({ method: 'HEAD', url });
+      expect(head.statusCode).toBe(200);
+      expect(head.body).toBe('');
+      expect((await service.app.inject(url + '.br')).statusCode).toBe(404);
+    }
+  } finally {
+    await service.close();
+  }
+});
 
 it('serves role routes, rejects unknown APIs, and keeps data paths private', async () => {
   const webDir = mkdtempSync(join(tmpdir(), 'tablemax-web-'));
