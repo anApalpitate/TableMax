@@ -279,7 +279,6 @@ await lock('package-win', async () => {
       'package.json',
     ];
     async function copyTree(from, to) {
-      await mkdir(to, { recursive: true });
       for (const item of await readdir(from, { withFileTypes: true })) {
         if (item.isSymbolicLink())
           throw new Error('Release cannot contain linked files: ' + item.name);
@@ -292,7 +291,12 @@ await lock('package-win', async () => {
         )
           continue;
         if (item.isDirectory()) await copyTree(input, target);
-        else if (item.isFile()) await copyFile(input, target);
+        else if (item.isFile()) {
+          // The payload manifest lists files only. Optional game metadata may
+          // leave an empty directory after signed game contents are excluded.
+          await mkdir(to, { recursive: true });
+          await copyFile(input, target);
+        }
       }
     }
     await lock('assemble-' + source, async () => {

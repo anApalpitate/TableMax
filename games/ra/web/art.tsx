@@ -1,7 +1,14 @@
-import { resourceUrl } from '@tablemax/web-host';
 import { tileNames, type Tile } from '../rules/data';
 
-const raArt = (file: string) => resourceUrl(`ra/${file}`, import.meta.url);
+const artwork = import.meta.glob<string>(
+  [
+    '../../../assets/games/ra/tiles/*.webp',
+    '../../../assets/games/ra/table/*.webp',
+    '../../../assets/games/ra/sun-*.svg',
+  ],
+  { eager: true, query: '?url', import: 'default' },
+);
+const raArt = (file: string) => artwork[`../../../assets/games/ra/${file}`];
 
 export function TileFace({
   tile,
