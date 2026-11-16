@@ -1,5 +1,13 @@
 # 项目瘦身与最近结果
 
+## 深度瘦身（2026-11-16）
+
+完整逻辑体积从 18,704,375,245 字节降至 14,719,671,074 字节，净减少 3,984,704,171 字节。两次采样均计入 Git 元数据、两个实际嵌套仓库及依赖，跳过 1,783 个链接和重解析点的目标。扫描错误为零，原链接及目标表示保持一致。[清理前容量](../../artifacts/maintenance/deep-slimming-20261116/initial-summary.json) · [清理后容量](../../artifacts/maintenance/deep-slimming-20261116/capacity-after.json)
+
+一次逐文件 Apply 退役了 3,219 个过时产物，共 4,022,323,683 字节。主要来源为旧版安装和解包副本、已结束的浏览器与原生夹具，以及已停止的固定画布迁移所生成的副本。历史验收报告保留了原结论，清单记录已退役的原路径和逐文件 SHA。[执行记录](../../artifacts/maintenance/reviewed-retirements/deep-slimming-20261116-once.json) · [退役清单](../../artifacts/maintenance/deep-slimming-20261116/reviewed-files.json)
+
+当前 1.0.8.11 EXE、载荷、冻结快照、验收证明及旧版保留载荷的 SHA 复核通过。原资料、正式存档、历史模块和依赖工具缓存均在保护范围内。编译缓存预览遇到未解除的构建锁，相关缓存保留。本轮未达低于 6 GB 的目标，已执行一次 Apply。[保留项复核](../../artifacts/maintenance/deep-slimming-20261116/post-verification.json)
+
 ## 历史占用深度复审（2026-10-24）
 
 本轮继续审查剩余占用，单次已审Apply删除32,449文件、5,552,287,407逻辑字节，另非递归解除3个旧源码副本的缓存借用junction。完整逻辑实测11,473,674,412→7,641,809,001字节，**仍未低于6GB目标**。计入Git、依赖与实际嵌套仓库，不跟随1,783个链接，扫描错误0项。 当前构建、正式数据、原素材及依赖工具缓存保留，详见[复审归档](../archive/history-deep-review-20261024.md)。
