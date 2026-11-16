@@ -1,6 +1,8 @@
 /* eslint-disable react-refresh/only-export-components -- Lazy adapter exports a GameClient. */
 import { useState } from 'react';
 import {
+  CountdownSettings,
+  OverlayPanel,
   RoomManagement,
   ScreenLink,
   SessionFeedback,
@@ -10,7 +12,7 @@ import {
 import type { Action, RaView } from '../rules';
 import { tileNames } from '../rules/data';
 import { SunDisk, TableArt, TileFace } from './art';
-import { PlayerBoard } from './player-board';
+import { PlayerBoard, PlayerSummary } from './player-board';
 import './ra.css';
 
 const causes = {
@@ -195,6 +197,7 @@ function Controls({ session, game }: { session: GameHost; game: RaView }) {
 }
 
 function RaScreen({ session }: { session: GameHost }) {
+  const [showRules, setShowRules] = useState(false);
   const game = session.view?.gameView as RaView | null;
   const name = (id: string) =>
     session.view?.seats.find((seat) => seat.id === id)?.name ?? id;
@@ -209,33 +212,82 @@ function RaScreen({ session }: { session: GameHost }) {
       data-players={game?.players.length}
     >
       <header className="ra-header">
-        <ScreenLink className="button secondary" href={`/${session.role}`}>
-          返回盒子
+        <ScreenLink
+          className="button secondary ra-home"
+          href={`/${session.role}`}
+          aria-label="返回盒子"
+          title="返回盒子"
+        >
+          <svg
+            aria-hidden="true"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <path d="M20 12H4m6 6-6-6 6-6" />
+          </svg>
+          <span>返回盒子</span>
         </ScreenLink>
-        <h1>
-          <SunDisk />
-          太阳神
-        </h1>
-        <details className="ra-help">
-          <summary>规则</summary>
-          <div>
-            <TableArt piece="rulebook-illustration" className="ra-rules-art" />
-            <p>
-              轮到你时，抽一枚板块、呼唤拉，或使用神明取走拍卖行的一枚非神明板块。
-            </p>
-            <p>
-              从呼唤者下一席顺时针依次出价。最高出价者赢整行，并用出价盘换中央盘。换回的盘本时代停用。
-            </p>
-            <p>
-              主动呼唤且拍卖行未满时，其他人都跳过则呼唤者必须出价。拉轨到终点或所有圆盘用尽即结算。
-            </p>
-            <p>
-              法老、尼罗河和纪念物跨时代保留。纪念物与圆盘只在第三时代结算。
-            </p>
-          </div>
-        </details>
+        <div className="ra-heading">
+          <h1>
+            <span className="ra-brand-mark" aria-hidden="true">
+              <SunDisk />
+            </span>
+            太阳神
+          </h1>
+          <SessionFeedback session={session} mode="saved" />
+        </div>
+        <div className="ra-toolbar-controls">
+          <button
+            type="button"
+            className="secondary ra-rule-control"
+            aria-label="规则"
+            aria-haspopup="dialog"
+            title="规则"
+            onClick={() => setShowRules(true)}
+          >
+            <svg
+              aria-hidden="true"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.8"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M12 6c-3-2-6-2-9-1v13c3-1 6-1 9 1 3-2 6-2 9-1V5c-3-1-6-1-9 1Zm0 0v13M6 8l3 .7M6 12l3 .7m6-4 3-.7m-3 4 3-.7" />
+            </svg>
+          </button>
+          {session.role !== 'public' && (
+            <CountdownSettings session={session}>
+              {session.canControl && <RoomManagement session={session} />}
+            </CountdownSettings>
+          )}
+        </div>
       </header>
-      <SessionFeedback session={session} />
+      {showRules && (
+        <OverlayPanel
+          title="太阳神规则"
+          className="ra-rules-panel"
+          close={() => setShowRules(false)}
+        >
+          <TableArt piece="rulebook-illustration" className="ra-rules-art" />
+          <p>
+            轮到你时，抽一枚板块、呼唤拉，或使用神明取走拍卖行的一枚非神明板块。
+          </p>
+          <p>
+            从呼唤者下一席顺时针依次出价。最高出价者赢整行，并用出价盘换中央盘。换回的盘本时代停用。
+          </p>
+          <p>
+            主动呼唤且拍卖行未满时，其他人都跳过则呼唤者必须出价。拉轨到终点或所有圆盘用尽即结算。
+          </p>
+          <p>法老、尼罗河和纪念物跨时代保留。纪念物与圆盘只在第三时代结算。</p>
+        </OverlayPanel>
+      )}
+      <SessionFeedback session={session} mode="messages" />
       {game && (
         <>
           <section className="ra-board" aria-label="公共牌桌">
@@ -340,70 +392,64 @@ function RaScreen({ session }: { session: GameHost }) {
             )
           )}
           {ownBoard ? (
-            <>
-              <PlayerBoard
-                player={ownBoard}
-                name={name(ownBoard.seat)}
-                active={ownBoard.seat === game.actor}
-                ended={game.phase === 'ended'}
-                primary
-              />
-              <details className="ra-opponents">
-                <summary>其他玩家板</summary>
-                <div className="ra-seats">
-                  {game.players
-                    .filter((player) => player.seat !== ownBoard.seat)
-                    .map((player) => (
-                      <PlayerBoard
-                        key={player.seat}
-                        player={player}
-                        name={name(player.seat)}
-                        active={player.seat === game.actor}
-                        ended={game.phase === 'ended'}
-                        compact
-                      />
-                    ))}
-                </div>
-              </details>
-            </>
+            <PlayerBoard
+              player={ownBoard}
+              name={name(ownBoard.seat)}
+              active={ownBoard.seat === game.actor}
+              ended={game.phase === 'ended'}
+              primary
+            />
           ) : (
-            <section className="ra-seats" aria-label="玩家板">
+            <section className="ra-seats" aria-label="玩家摘要">
               {game.players.map((player) => (
-                <PlayerBoard
+                <PlayerSummary
                   key={player.seat}
                   player={player}
                   name={name(player.seat)}
                   active={player.seat === game.actor}
-                  ended={game.phase === 'ended'}
-                  compact
                 />
               ))}
             </section>
           )}
-          {game.lastAuction && (
-            <details className="ra-record">
-              <summary>上一场拍卖</summary>
-              <p>
-                {game.lastAuction.winner
-                  ? `${name(game.lastAuction.winner)}赢标，换得圆盘 ${game.lastAuction.received}`
-                  : '无人赢标'}
-              </p>
-              <ul>
-                {game.lastAuction.bids.map((bid) => (
-                  <li key={bid.seat}>
-                    {name(bid.seat)} {bid.disk ?? '跳过'}
-                  </li>
-                ))}
-              </ul>
-            </details>
+          {(ownBoard || game.lastAuction) && (
+            <div className="ra-auxiliary">
+              {ownBoard && (
+                <details className="ra-opponents">
+                  <summary>其他玩家</summary>
+                  <div className="ra-seats">
+                    {game.players
+                      .filter((player) => player.seat !== ownBoard.seat)
+                      .map((player) => (
+                        <PlayerSummary
+                          key={player.seat}
+                          player={player}
+                          name={name(player.seat)}
+                          active={player.seat === game.actor}
+                        />
+                      ))}
+                  </div>
+                </details>
+              )}
+              {game.lastAuction && (
+                <details className="ra-record">
+                  <summary>上一场拍卖</summary>
+                  <p>
+                    {game.lastAuction.winner
+                      ? `${name(game.lastAuction.winner)}赢标，换得圆盘 ${game.lastAuction.received}`
+                      : '无人赢标'}
+                  </p>
+                  <ul>
+                    {game.lastAuction.bids.map((bid) => (
+                      <li key={bid.seat}>
+                        {name(bid.seat)} {bid.disk ?? '跳过'}
+                      </li>
+                    ))}
+                  </ul>
+                </details>
+              )}
+            </div>
           )}
         </>
-      )}
-      {session.canControl && (
-        <details className="ra-management">
-          <summary>桌面管理</summary>
-          <RoomManagement session={session} />
-        </details>
       )}
     </main>
   );

@@ -214,10 +214,12 @@ function Comparison({ motif }: { motif: 'pharaoh' | 'disks' }) {
   const penalty = motif === 'pharaoh' ? -2 : -5;
   return (
     <>
-      <span className="ra-rule-sigil" aria-hidden="true">
-        <PointChip value={5} />
-        <PointChip value={penalty} />
-      </span>
+      {motif === 'disks' && (
+        <span className="ra-rule-sigil" aria-hidden="true">
+          <PointChip value={5} />
+          <PointChip value={penalty} />
+        </span>
+      )}
       <div className="ra-inscription ra-comparison" aria-hidden="true">
         <RuleRow
           prefix={<BoardIcon name="group" />}
@@ -277,72 +279,55 @@ function RulesDiagram({ kind }: { kind: Resource }) {
   switch (kind) {
     case 'monument':
       return (
-        <>
-          <span className="ra-rule-sigil" aria-hidden="true">
-            <InscribedTile motif="monument" badge="=" />
-            <span className="ra-inscription-conjunction">&amp;</span>
-            <InscribedTile motif="monument" badge="≠" />
-          </span>
-          <div
-            className="ra-inscription ra-monument-inscription"
-            aria-hidden="true"
-          >
-            {[5, 10, 15].map((value, index) => (
-              <RuleRow
-                key={value}
-                prefix={index + 3}
-                motif="monument"
-                badge="="
-                value={value}
-              />
-            ))}
-            <span className="ra-inscription-conjunction">&amp;</span>
-            <RuleRow prefix="1–6" motif="monument" badge="≠" value={1} each />
-            <RuleRow prefix="7" motif="monument" badge="≠" value={10} />
-            <RuleRow prefix="8" motif="monument" badge="≠" value={15} />
-          </div>
-        </>
+        <div
+          className="ra-inscription ra-monument-inscription"
+          aria-hidden="true"
+        >
+          {[5, 10, 15].map((value, index) => (
+            <RuleRow
+              key={value}
+              prefix={index + 3}
+              motif="monument"
+              badge="="
+              value={value}
+            />
+          ))}
+          <span className="ra-inscription-conjunction">&amp;</span>
+          <RuleRow prefix="1–6" motif="monument" badge="≠" value={1} each />
+          <RuleRow prefix="7" motif="monument" badge="≠" value={10} />
+          <RuleRow prefix="8" motif="monument" badge="≠" value={15} />
+        </div>
       );
     case 'civilization':
       return (
-        <>
-          <span className="ra-rule-sigil" aria-hidden="true">
-            <InscribedTile motif="civilization" badge="≠" />
-          </span>
-          <div className="ra-inscription" aria-hidden="true">
-            <RuleRow prefix={0} motif="civilization" value={-5} />
-            {[5, 10, 15].map((value, index) => (
-              <RuleRow
-                key={value}
-                prefix={index + 3}
-                motif="civilization"
-                badge="≠"
-                value={value}
-              />
-            ))}
-          </div>
-        </>
+        <div className="ra-inscription" aria-hidden="true">
+          <RuleRow prefix={0} motif="civilization" value={-5} />
+          {[5, 10, 15].map((value, index) => (
+            <RuleRow
+              key={value}
+              prefix={index + 3}
+              motif="civilization"
+              badge="≠"
+              value={value}
+            />
+          ))}
+        </div>
       );
     case 'pharaoh':
       return <Comparison motif="pharaoh" />;
     case 'god':
       return (
-        <>
-          <span className="ra-rule-sigil" aria-hidden="true">
-            <PerTile motif="god" points={2} />
-          </span>
-          <div
-            className="ra-inscription ra-inscription-single"
-            aria-hidden="true"
-          >
-            <PerTile motif="god" points={2} />
-            <div className="ra-inscription-exchange">
-              <InscribedTile motif="god" badge="↓" />
-              <span>:</span>
-              <InscribedTile motif="wild" badge="↑" />
-            </div>
+        <div
+          className="ra-inscription ra-inscription-single"
+          aria-hidden="true"
+        >
+          <PerTile motif="god" points={2} />
+          <div className="ra-inscription-exchange">
+            <InscribedTile motif="god" badge="↓" />
+            <span>:</span>
+            <InscribedTile motif="wild" badge="↑" />
           </div>
-        </>
+        </div>
       );
     case 'gold':
       return (
@@ -493,6 +478,62 @@ function PlayerLegend() {
 }
 
 type Player = RaView['players'][number];
+type PublicPlayer = Pick<Player, 'disks' | 'spent' | 'held'>;
+
+function Disks({
+  available,
+  spent,
+}: {
+  available: Player['disks'];
+  spent: readonly (number | undefined)[];
+}) {
+  return (
+    <>
+      {available.map((disk) => (
+        <span key={disk}>
+          <SunDisk value={disk} />
+        </span>
+      ))}
+      {spent.map((disk, index) => (
+        <span
+          key={`spent-${index}`}
+          data-spent="true"
+          role="img"
+          aria-label={disk === undefined ? '已用太阳盘' : `已用太阳盘 ${disk}`}
+        >
+          {disk === undefined ? <SunDisk /> : <SunDisk value={disk} />}
+        </span>
+      ))}
+    </>
+  );
+}
+
+export function PlayerSummary({
+  player,
+  name,
+  active,
+}: {
+  player: PublicPlayer;
+  name: string;
+  active: boolean;
+}) {
+  return (
+    <article
+      aria-label={`${name}的公开摘要`}
+      className="ra-seat-summary"
+      data-active={active}
+    >
+      <h2 className="ra-seat-summary-heading">{name}</h2>
+      <div className="ra-seat-summary-disks" role="group" aria-label="太阳圆盘">
+        <Disks
+          available={player.disks}
+          spent={Array.from({ length: player.spent }, () => undefined)}
+        />
+      </div>
+      <Tokens tiles={player.held} />
+    </article>
+  );
+}
 
 function ScoreHistory({
   scores,
@@ -534,14 +575,12 @@ export function PlayerBoard({
   name,
   active,
   primary = false,
-  compact = false,
   ended = false,
 }: {
   player: Player;
   name: string;
   active: boolean;
   primary?: boolean;
-  compact?: boolean;
   ended?: boolean;
 }) {
   const flooded = player.held.some((tile) => tile.kind === 'flood');
@@ -555,7 +594,6 @@ export function PlayerBoard({
       className="ra-personal"
       data-active={active}
       data-primary={primary}
-      data-compact={compact}
     >
       <header className="ra-personal-heading">
         <h2>{name}</h2>
@@ -585,23 +623,7 @@ export function PlayerBoard({
           aria-label="太阳圆盘"
         >
           <div className="ra-personal-discs">
-            {player.disks.map((disk) => (
-              <span key={disk}>
-                <SunDisk value={disk} />
-              </span>
-            ))}
-            {spent.map((disk, index) => (
-              <span
-                key={`spent-${index}`}
-                data-spent="true"
-                role="img"
-                aria-label={
-                  disk === undefined ? '已用太阳盘' : `已用太阳盘 ${disk}`
-                }
-              >
-                {disk === undefined ? <SunDisk /> : <SunDisk value={disk} />}
-              </span>
-            ))}
+            <Disks available={player.disks} spent={spent} />
           </div>
           <Epochs onlyThird />
           <Comparison motif="disks" />
