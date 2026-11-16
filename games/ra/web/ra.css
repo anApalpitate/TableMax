@@ -1,0 +1,505 @@
+.ra-table {
+  --ra-edge: #9a7949;
+  --ra-light: #f7e8c3;
+  --ra-ink: #30271c;
+  --ra-brown: #523724;
+  --ra-paper:
+    repeating-linear-gradient(85deg, #694d1708 0 1px, transparent 1px 6px),
+    radial-gradient(ellipse at 12% 9%, #fff4d8, transparent 65%),
+    linear-gradient(121deg, #dfc494, #f3e4bd 53%, #e5ca98);
+  --ra-stone:
+    radial-gradient(ellipse at 20% 9%, #a681584e, transparent 54%),
+    radial-gradient(ellipse at 88% 95%, #2e444745, transparent 62%),
+    repeating-linear-gradient(163deg, #9882780a 0 1px, transparent 1px 15px),
+    linear-gradient(130deg, #34332c, #242928 54%, #1c282e);
+  --ra-frieze: repeating-linear-gradient(
+    90deg,
+    #406984 0 13px,
+    #c5a067 13px 15px,
+    #567c67 15px 28px,
+    #c5a067 28px 30px,
+    #974d3c 30px 43px,
+    #c5a067 43px 45px
+  );
+  display: grid;
+  align-content: start;
+  gap: 13px;
+  width: 100%;
+  min-height: 100%;
+  max-width: none;
+  margin: 0;
+  padding: clamp(12px, 2vw, 24px);
+  font-size: 16px;
+  line-height: 1.48;
+  color: var(--ra-light);
+  background:
+    radial-gradient(ellipse at 45% 6%, #816044 0, #493929 30%, transparent 66%),
+    #182124;
+}
+
+.ra-table[data-role='player'] {
+  color: var(--ra-ink);
+  background: var(--ra-paper);
+}
+
+.ra-header,
+.ra-status,
+.ra-track,
+.ra-result,
+.ra-disks,
+.ra-holdings,
+.ra-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px 14px;
+}
+.ra-table :is(h1, h2, h3, p, ul, ol) {
+  margin: 0;
+}
+.ra-table h2 {
+  font-size: 22px;
+}
+.ra-header {
+  position: relative;
+}
+.ra-header h1,
+.ra-board h2,
+.ra-final h2 {
+  font-family: 'Songti SC', STSong, SimSun, serif;
+  font-weight: 750;
+}
+.ra-header h1 {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 29px;
+  letter-spacing: 0.06em;
+}
+.ra-header h1 .ra-sun {
+  width: 30px;
+}
+.ra-header .button,
+.ra-help summary {
+  min-height: 44px;
+  align-content: center;
+  border: 1px solid var(--ra-edge);
+  border-radius: 5px;
+  padding: 6px 12px;
+  color: #fff0d2;
+  background: #233f49;
+  cursor: pointer;
+}
+.ra-header .ra-help {
+  margin-inline-start: auto;
+}
+.ra-help > div {
+  position: absolute;
+  z-index: 2;
+  right: 0;
+  width: min(100%, 480px);
+  border: 1px solid var(--ra-edge);
+  background: var(--ra-paper);
+  color: var(--ra-ink);
+  padding: 12px;
+  box-shadow: 0 6px 15px #130c0a7d;
+}
+.ra-help p + p {
+  margin-top: 6px;
+}
+.ra-table :focus-visible {
+  outline: 3px solid #dfac56;
+  outline-offset: 2px;
+}
+.ra-table[data-role='player'] :focus-visible {
+  outline-color: #2c6769;
+}
+
+.ra-board,
+.ra-seat,
+.ra-record,
+.ra-actions,
+.ra-epoch,
+.ra-final {
+  position: relative;
+  border: 1px solid var(--ra-edge);
+  border-radius: 5px;
+  padding: 12px 14px;
+  background: var(--ra-stone);
+  box-shadow:
+    inset 0 0 0 2px #bd925031,
+    0 4px 12px #130e0b54;
+}
+.ra-board {
+  isolation: isolate;
+  overflow: hidden;
+  padding: 15px 17px 15px;
+  color: #fff0cf;
+  box-shadow:
+    inset 0 0 0 4px #292627,
+    inset 0 0 0 5px #9c7549,
+    inset 0 11px 24px #110d0956,
+    0 6px 18px #130e0b91;
+}
+.ra-board::before {
+  content: '';
+  position: absolute;
+  inset: 5px 6px auto;
+  height: 4px;
+  background: var(--ra-frieze);
+}
+.ra-relief {
+  position: absolute;
+  z-index: -1;
+  inset: 6px auto auto 19%;
+  width: 56%;
+  height: 136px;
+  object-fit: cover;
+  object-position: center 56%;
+  mask-image: radial-gradient(ellipse at center, #000 11%, transparent 70%);
+  opacity: 0.47;
+  mix-blend-mode: soft-light;
+  pointer-events: none;
+}
+.ra-status {
+  justify-content: space-between;
+}
+.ra-status strong {
+  font-size: 19px;
+}
+.ra-status > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.ra-track {
+  margin-block: 8px 10px;
+}
+.ra-track-slots {
+  flex: 1;
+  display: flex;
+  gap: 4px;
+  min-width: 120px;
+}
+.ra-track-slots span {
+  flex: 1;
+  height: 16px;
+  border: 1px solid #87948c;
+  border-radius: 2px;
+  background: #17252d;
+  box-shadow: inset 0 2px 5px #050707;
+}
+.ra-track-slots span[data-filled='true'] {
+  background: linear-gradient(105deg, #be894d, #f4d089, #a9783b);
+  border-color: #efd192;
+  box-shadow: none;
+}
+.ra-track-slots span:last-child {
+  border-color: #e6ae69;
+}
+.ra-lot,
+.ra-seats {
+  display: grid;
+  gap: 8px;
+}
+.ra-lot {
+  grid-template-columns: repeat(8, minmax(0, 1fr));
+  padding: 0;
+  list-style: none;
+}
+.ra-lot li {
+  position: relative;
+  min-height: 94px;
+  display: grid;
+  place-items: center;
+  color: #f0dcb6;
+  border: 1px solid #9a8158;
+  border-radius: 4px;
+  background: linear-gradient(120deg, #182329, #28363a);
+  box-shadow: inset 0 3px 8px #0e191f;
+}
+.ra-lot li[data-occupied='true'] {
+  place-items: stretch;
+  color: #4e3924;
+}
+.ra-slot-number {
+  position: absolute;
+  top: 2px;
+  left: 5px;
+  font-family: Georgia, serif;
+  font-weight: 700;
+  z-index: 1;
+}
+.ra-result {
+  padding-top: 8px;
+}
+.ra-board > [role='status'] {
+  display: block;
+  padding-top: 7px;
+  color: #ffe1ab;
+}
+
+.ra-tile {
+  --ra-pigment: #e3c78e;
+  --ra-frame: #a18147;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  text-align: center;
+  gap: 3px;
+  padding: 6px 4px;
+  border-radius: 3px;
+  color: var(--ra-ink);
+  font-weight: 700;
+  line-height: 1.23;
+  background:
+    radial-gradient(ellipse at 42% 11%, #fff0ca, transparent 69%),
+    linear-gradient(145deg, #f1e0b4, var(--ra-pigment));
+  box-shadow:
+    inset 0 0 0 1px #f6e0ae,
+    inset 0 0 0 3px var(--ra-frame),
+    inset 0 -4px #80562340;
+}
+.ra-tile.ra-disaster {
+  --ra-pigment: #d6a18b;
+  --ra-frame: #a05848;
+}
+.ra-tile.ra-nile,
+.ra-tile.ra-flood {
+  --ra-pigment: #abc8b9;
+  --ra-frame: #537472;
+}
+.ra-tile.ra-civilization {
+  --ra-pigment: #c4c5dc;
+  --ra-frame: #73758d;
+}
+.ra-tile.ra-monument {
+  --ra-pigment: #cfba95;
+  --ra-frame: #8f7353;
+}
+.ra-pictogram {
+  display: block;
+  width: min(90%, 64px);
+  height: 48px;
+  object-fit: contain;
+  border-radius: 3px;
+  mix-blend-mode: multiply;
+}
+.ra-ink {
+  display: grid;
+  place-items: center;
+  color: #734735;
+  font-size: 30px;
+  font-family:
+    'Segoe UI Historic', 'Noto Sans Egyptian Hieroglyphs', 'Segoe UI Symbol',
+    serif;
+}
+.ra-tile-name {
+  overflow-wrap: anywhere;
+}
+.ra-sun {
+  display: inline-grid;
+  vertical-align: middle;
+  flex: 0 0 auto;
+  width: 34px;
+  aspect-ratio: 1;
+}
+.ra-sun img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+.ra-status .ra-sun {
+  width: 49px;
+}
+.ra-seats {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 222px), 1fr));
+}
+.ra-seat {
+  display: grid;
+  align-content: start;
+  gap: 8px;
+}
+.ra-seat[data-active='true'] {
+  border-color: #e2aa5c;
+  box-shadow: inset 0 0 0 2px #9c7442;
+}
+.ra-holdings > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+.ra-holdings .ra-tile {
+  min-width: 62px;
+}
+.ra-holdings .ra-pictogram {
+  height: 30px;
+  width: 38px;
+}
+.ra-holdings .ra-ink {
+  font-size: 23px;
+}
+.ra-table small {
+  font-size: 16px;
+  color: inherit;
+}
+.ra-seat summary,
+.ra-record summary {
+  min-height: 44px;
+  align-content: center;
+  cursor: pointer;
+}
+.ra-seat details section {
+  margin-block: 5px 10px;
+}
+.ra-seat details ul {
+  padding-inline-start: 21px;
+}
+.ra-seat details section ul {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  column-gap: 13px;
+}
+.ra-management {
+  padding-inline: 12px;
+  border: 1px solid var(--ra-edge);
+  border-radius: 5px;
+  background: var(--ra-paper);
+  color: var(--ra-ink);
+}
+.ra-management summary {
+  min-height: 44px;
+  align-content: center;
+  cursor: pointer;
+}
+.ra-final ol {
+  display: grid;
+  padding-inline-start: 35px;
+  gap: 4px 22px;
+}
+.ra-final li span {
+  margin-right: 15px;
+}
+.ra-epoch {
+  font-weight: 650;
+}
+
+.ra-actions button {
+  min-height: 44px;
+  padding: 6px 12px;
+  border-radius: 5px;
+  border: 1px solid var(--ra-edge);
+  background: var(--ra-paper);
+  color: var(--ra-ink);
+  font: inherit;
+  font-size: 18px;
+  cursor: pointer;
+}
+.ra-actions button:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+.ra-actions button[aria-pressed='true'],
+.ra-actions .ra-confirm {
+  background: #224b57;
+  color: #fff3d7;
+}
+.ra-actions .ra-bid {
+  padding: 0;
+  border: 0;
+  background: none;
+}
+.ra-bid .ra-sun {
+  width: 48px;
+}
+.ra-actions > strong {
+  flex-basis: 100%;
+  font-size: 18px;
+}
+.ra-actions fieldset {
+  min-width: 0;
+  width: 100%;
+  border: 1px solid var(--ra-edge);
+  border-radius: 4px;
+  padding: 6px 9px 9px;
+}
+.ra-actions fieldset > button {
+  margin: 5px 5px 0 0;
+}
+.ra-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-block: 6px;
+}
+.ra-actions .ra-choice {
+  width: min(100%, 108px);
+  padding: 2px;
+  background: transparent;
+}
+.ra-choice .ra-tile {
+  width: 100%;
+  min-height: 67px;
+}
+.ra-choice[aria-pressed='true'] {
+  outline: 2px solid #a46f3b;
+}
+
+.ra-table[data-role='player']
+  :is(.ra-seat, .ra-record, .ra-actions, .ra-final, .ra-epoch) {
+  background: var(--ra-paper);
+  color: var(--ra-ink);
+  box-shadow:
+    inset 0 0 0 2px #5b45251b,
+    0 3px 8px #51371832;
+}
+.ra-table[data-role='player'] .ra-board {
+  background: linear-gradient(148deg, #445a53, #283d45);
+}
+@media (max-width: 760px) {
+  .ra-table {
+    gap: 10px;
+    padding: 10px;
+  }
+  .ra-lot {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 5px;
+  }
+  .ra-board {
+    padding: 11px;
+  }
+  .ra-lot li {
+    min-height: 72px;
+  }
+  .ra-lot .ra-pictogram {
+    height: 31px;
+  }
+  .ra-lot .ra-ink {
+    font-size: 23px;
+  }
+  .ra-lot .ra-tile {
+    font-size: 16px;
+  }
+  .ra-status .ra-sun {
+    width: 40px;
+  }
+  .ra-status h2 {
+    font-size: 20px;
+  }
+  .ra-status strong {
+    font-size: 18px;
+  }
+  .ra-options {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .ra-actions .ra-choice {
+    width: 100%;
+  }
+  .ra-table[data-role='player'] .ra-actions {
+    /* Leave the default platform interaction orb outside decision hit targets. */
+    padding-inline-end: 58px;
+  }
+}

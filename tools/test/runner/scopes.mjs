@@ -15,6 +15,7 @@ export const gameIds = [
   'uno',
   'avalon',
   'manila',
+  'ra',
 ];
 const gameScopes = gameIds.map((id) => `game:${id}`);
 const validScopes = ['box', 'shared', 'tooling', ...gameScopes];
@@ -28,6 +29,7 @@ const unitScopes = {
   ],
   'apps/server/src/manila.test.ts': ['game:manila'],
   'apps/server/src/manila-worker.test.ts': ['game:manila'],
+  'apps/server/src/ra.test.ts': ['game:ra'],
   'apps/server/src/events-integration.test.ts': ['game:pokemon-encounters'],
   'apps/server/src/game-packages/catalog.test.ts': ['box', 'shared', 'tooling'],
   'apps/server/src/registry-versions.test.ts': ['shared', 'tooling'],

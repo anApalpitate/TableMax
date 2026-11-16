@@ -24,9 +24,13 @@ it('exposes independent production games and keeps the template internal', async
     'uno',
     'avalon',
     'manila',
+    'ra',
   ]);
   const internal = createGameRegistry(true);
-  expect(internal.catalog()).toHaveLength(8);
+  expect(internal.catalog()).toHaveLength(9);
+  expect((await internal.load('ra')).rules.manifest.rulesVersion).toBe(
+    '25cg-retail3-base-v1',
+  );
   await expect(internal.load('cockroach-poker')).rejects.toThrow(
     'unknown-game',
   );
