@@ -1,7 +1,6 @@
 import { expect, it } from 'vitest';
-import { mkdtempSync, writeFileSync } from 'node:fs';
-import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import { mkdirSync, mkdtempSync, writeFileSync } from 'node:fs';
+import { join, resolve } from 'node:path';
 import { io, type Socket } from 'socket.io-client';
 import {
   CommandReplySchema,
@@ -23,9 +22,17 @@ it('exposes independent production games and keeps the template internal', async
     'power-grid',
     'rummikub',
     'uno',
+    'avalon',
+    'manila',
   ]);
   const internal = createGameRegistry(true);
-  expect(internal.catalog()).toHaveLength(6);
+  expect(internal.catalog()).toHaveLength(8);
+  await expect(internal.load('cockroach-poker')).rejects.toThrow(
+    'unknown-game',
+  );
+  await expect(internal.load('cockroach-salad')).rejects.toThrow(
+    'unknown-game',
+  );
   expect((await internal.load('power-grid')).rules.manifest.id).toBe(
     'power-grid',
   );
@@ -37,8 +44,15 @@ it('exposes independent production games and keeps the template internal', async
 });
 
 it('persists lazy selection and accepts six real sockets submitting from the same snapshot', async () => {
-  const dataDir = mkdtempSync(join(tmpdir(), 'tablemax-selection-'));
-  const webDir = mkdtempSync(join(tmpdir(), 'tablemax-selection-web-'));
+  const taskRoot = resolve(
+    'tmp',
+    process.env.TABLEMAX_TASK_ID ?? 'game-registry',
+  );
+  mkdirSync(taskRoot, { recursive: true });
+  const root = mkdtempSync(join(taskRoot, 'service-'));
+  const dataDir = join(root, 'data');
+  const webDir = join(root, 'web');
+  mkdirSync(webDir);
   writeFileSync(join(webDir, 'index.html'), '<html>local</html>');
   const config = { dataDir, webDir, host: '127.0.0.1', port: 0 };
   let service = await createService(config);
@@ -81,17 +95,30 @@ it('persists lazy selection and accepts six real sockets submitting from the sam
         },
       );
     const host = await connect(service.hostToken);
-    const empty = RoomViewSchema.parse(service.room.view(service.hostToken));
-    expect(empty.game).toBeNull();
-    expect(empty.catalog).toHaveLength(4);
+    const hostView = () =>
+      RoomViewSchema.parse(service.room.view(service.hostToken));
+    const initial = hostView();
+    expect(initial.catalog.map(({ id }) => id)).toEqual(
+      createGameRegistry()
+        .catalog()
+        .map(({ id }) => id),
+    );
     expect(
-      (
-        await send(host, empty, {
-          type: 'select-game',
-          gameId: 'pokemon-encounters',
-        })
-      ).ok,
-    ).toBe(true);
+      await send(host, initial, {
+        type: 'select-game',
+        gameId: 'cockroach-poker',
+      }),
+    ).toEqual({ ok: false, reason: 'unknown-game' });
+    expect(hostView()).toMatchObject({
+      game: initial.game,
+      revision: initial.revision,
+    });
+    for (const gameId of ['uno', 'pokemon-encounters']) {
+      expect(
+        (await send(host, hostView(), { type: 'select-game', gameId })).ok,
+      ).toBe(true);
+      expect(hostView().game?.id).toBe(gameId);
+    }
     const tokens: string[] = [];
     for (let n = 0; n < 6; n++) {
       const admission = await service.app.inject({

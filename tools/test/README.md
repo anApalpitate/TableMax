@@ -12,25 +12,25 @@
 
 ### 当前源码界面与离线审阅
 
-同一入口支持 `--phase=layout-baseline`，直接绑定当前源码与合法投影，按九玩法的管理1280×720、玩家390×844及电脑玩家1280×720采集基础截图；不会将无水平溢出等基础断言等同完整视觉验收。`--risk-density`限定拉密60张桌面牌与电力公司30城的合法推进夹具，`--prepare-only`仅准备该密集夹具，不产生渲染通过项。仍可用`--only`定向选取真实case-id。该模式保留正式截图，各轮独立绑定输入，历史失败或无效夹具不覆盖。
+同一入口支持 `--phase=layout-baseline`，直接绑定当前源码与合法投影，按八玩法的管理1280×720、玩家390×844及电脑玩家1280×720采集基础截图；不会将无水平溢出等基础断言等同完整视觉验收。`--risk-density`限定拉密60张桌面牌与电力公司30城的合法推进夹具，`--prepare-only`仅准备该密集夹具，不产生渲染通过项。仍可用`--only`定向选取真实case-id。该模式保留正式截图，各轮独立绑定输入，历史失败或无效夹具不覆盖。
 
-同入口的`--player-frame-smoke`仅与普通`--phase=layout-baseline`组合，九玩法使用实际PlayerFrame和游戏iframe执行390×844→844×390→390×844门禁检查，绑定同iframe／document／根DOM、键盘不可绕过及无规则动作；原版宝可梦额外合法摸牌后选位，拉密额外建立私有草稿并核对保留。其余玩法草稿须各自专项证据，不能从该冒烟推定全覆盖。夹具独立存为`legal-frame-fixtures.json`。密集管理4K可显式选择`rummikub-dense-host-3840`，表示3840×2160 CSS、DPR 1浏览器模拟，不代表物理电视。
+同入口的`--player-frame-smoke`仅与普通`--phase=layout-baseline`组合，八玩法使用实际PlayerFrame和游戏iframe执行390×844→844×390→390×844门禁检查，绑定同iframe／document／根DOM、键盘不可绕过及无规则动作；原版宝可梦额外合法摸牌后选位，拉密额外建立私有草稿并核对保留。其余玩法草稿须各自专项证据，不能从该冒烟推定全覆盖。夹具独立存为`legal-frame-fixtures.json`。密集管理4K可显式选择`rummikub-dense-host-3840`，表示3840×2160 CSS、DPR 1浏览器模拟，不代表物理电视。
 
 共享净区专项使用 [verify-viewport-measurement.mjs](platform/verify-viewport-measurement.mjs) 的 `--task=tmp/<安全任务名> --evidence=<新轮名>`，按`shared,tooling`显式计划执行。它验证实际React公开导出、后挂载根、env／显式安全区、DPR 2、iframe本地尺寸及resize／卸载；不证明真机安全区。
 
 [verify-public-screen-retirement-ui.mjs](platform/verify-public-screen-retirement-ui.mjs)使用`--phase=before|after --task=tmp/<安全任务名> --evidence=<新轮名>`，after另给`--baseline-report=<通过的改前报告>`，`--only=<真实case-id逗号列表>`定向复验。改前源码须完整冻结于任务内`work/before`；[内部准备器](fixtures/prepare-public-screen-retirement.ts)通过真实RoomCoordinator入座／准备／开始，再以合法规则动作和bot推进并validate，固定同一授权投影用于前后对照，不拼接双拍、建设或终局状态。准备器不是独立CLI，也不证明真实传输、保存或自然整局。
 
-入口按version 1显式计划在`box,shared,game:pokemon-encounters,game:modern-art,game:power-grid,game:rummikub,game:uno,game:avalon,game:manila,game:cockroach-poker`范围执行。覆盖八游戏九玩法管理1280／1920、玩家390／844及阿瓦隆十人终局，核对主体DOM的文字、字体、布局轨道及几何；电力公司还须在地图标签、SVG视窗／变换与避让边界持续稳定后采样。另检查原型两角色／管理与声音控件、管理浮窗和未认证管理入口的320／390／1280字形与44px按钮。默认隐藏、静音、127.0.0.1，临时bundle、profile、全部审阅PNG归任务目录，维护目录仅留报告、逐项SHA及明确选择的关键截图。邀请图槽使用标注的本地UI夹具，不证明二维码或网络入座。
+入口按version 1显式计划在`box,shared,game:pokemon-encounters,game:modern-art,game:power-grid,game:rummikub,game:uno,game:avalon,game:manila`范围执行。覆盖七游戏八玩法管理1280／1920、玩家390／844及阿瓦隆十人终局，核对主体DOM的文字、字体、布局轨道及几何；电力公司还须在地图标签、SVG视窗／变换与避让边界持续稳定后采样。另检查原型两角色／管理与声音控件、管理浮窗和未认证管理入口的320／390／1280字形与44px按钮。默认隐藏、静音、127.0.0.1，临时bundle、profile、全部审阅PNG归任务目录，维护目录仅留报告、逐项SHA及明确选择的关键截图。邀请图槽使用标注的本地UI夹具，不证明二维码或网络入座。
 
 相同入口的`--review-only --task=tmp/<安全任务名> --evidence=<新轮名>`精确归`tooling`，读取任务`review/review-source.json`绑定HTML与相对图片SHA，再检查离线解码、筛选、原始像素和窄屏页面。一次性HTML生成脚本留任务`work`，不登记为永久工具入口；审阅QA不另增产品场景统计。服务路由／权限、原生桥接、配置、声音和安装器均须各自证据。
 
 ### 规则与菜单的隔离源码复核
 
-[verify-rule-menu-ui.mjs](platform/verify-rule-menu-ui.mjs) 接受 `--task=tmp/<安全任务名> --evidence=<新轮名> --phase=before|after`，通过 `box,shared` 与八游戏范围的 version 1 显式计划执行。输入为任务内冻结的 `work/before`／`work/after` 源码和资源，以及真实规则推进生成的 `legal-fixtures.json`；冻结清单应保留各文件 SHA、原工作区改动与对照来源。每个游戏使用新浏览器上下文，经真实开发模块 registry 加载，不引入原型页面或其他游戏主入口样式。夹具缺少宝可梦玩法 metadata 时按明确 case ID 选择 original／expansion；源码验证不使用发行 releaseRef，不证明生产模块服务或旧档恢复。
+[verify-rule-menu-ui.mjs](platform/verify-rule-menu-ui.mjs) 接受 `--task=tmp/<安全任务名> --evidence=<新轮名> --phase=before|after`，通过 `box,shared` 与七款游戏范围的 version 1 显式计划执行。输入为任务内冻结的 `work/before`／`work/after` 源码和资源，以及真实规则推进生成的 `legal-fixtures.json`；冻结清单应保留各文件 SHA、原工作区改动与对照来源。每个游戏使用新浏览器上下文，经真实开发模块 registry 加载，不引入原型页面或其他游戏主入口样式。夹具缺少宝可梦玩法 metadata 时按明确 case ID 选择 original／expansion；源码验证不使用发行 releaseRef，不证明生产模块服务或旧档恢复。
 
 入口复核章节／完整阅读切换、同局阅读记忆、设置嵌入、UNO 实际设置模块、关闭热区与零游戏命令，并按明确视口截图。`--panels=rules|menu`、`--roles=host|player`、`--widths=<逗号列表>`、`--games=<逗号列表>`用于定向复验；`--owner`／`--paused`是明确标注的权限与暂停 UI 契约夹具。`--navigation`仅运行[共享导航专项](platform/rule-menu-navigation.mjs)，覆盖设置返回／焦点、回退确认与盒子座位操作；合成 checkpoint 只证明界面交互，不证明真实回退保存。
 
-[verify-rule-menu-supplement.mjs](platform/verify-rule-menu-supplement.mjs)以相同范围及`--task`／`--evidence`读取任务内补例模板和清单，检查扩展规则 profile、UNO 配置、阿瓦隆公开规则投影及双人德国小强图示。输入配置校验与组件展示不等同旧存档恢复。普通截图及完整文本留任务临时目录，正式报告进入对应 maintenance 目录；[隔离加载助手](platform/rule-menu-fixture.mjs)仅供这些工具组合，不是独立产品服务。浏览器DPR／缩小CSS可用区均须标为模拟，不升级为Windows系统DPI或实体设备证明。
+[verify-rule-menu-supplement.mjs](platform/verify-rule-menu-supplement.mjs)以相同范围及`--task`／`--evidence`读取任务内补例模板和清单，检查扩展规则 profile、UNO 配置、阿瓦隆公开规则投影。输入配置校验与组件展示不等同旧存档恢复。普通截图及完整文本留任务临时目录，正式报告进入对应 maintenance 目录；[隔离加载助手](platform/rule-menu-fixture.mjs)仅供这些工具组合，不是独立产品服务。浏览器DPR／缩小CSS可用区均须标为模拟，不升级为Windows系统DPI或实体设备证明。
 
 `--states`运行[状态专项](platform/rule-menu-states.mjs)：暂停 UI 契约、合法终局公开投影，以及实际 HTTP 503 设置加载失败与重试。它不提交游戏命令，也不证明旧档恢复。
 
@@ -477,16 +477,15 @@ before或双阶段时另传`--before-bundle=tmp/<任务唯一ID>/fixture-<改前
 
 检查启动隐藏静音Edge与`127.0.0.1`夹具服务，写指定全新报告目录、截图索引及验证器源码副本；浏览器`TEMP`／`TMP`集中到任务下`server-browser-temp/`，额外合法场景的编译／数据放在`server-extra-fixtures/`，准备后的快照及证明另以`extra-snapshots.json`和`extra-preparation-proof.json`留在本轮报告目录并记录SHA，子检查关闭自动维护。它证明真实生产组件在合法RoomCoordinator投影、受控本地夹具和冻结时钟下的源码渲染；不证明真实网络、自然整局、物理设备／Windows DPI、声音试听或安装器。失败轮和未执行项原位保留，实质修复后仅定向复验；游戏当前结果与边界见[现代艺术验证](../../docs/games/modern-art/validation-scenarios.md)。
 
-## 德国小强验证
+<a id="德国小强验证"></a>
 
-以下脚本登记为`game:cockroach-poker`，放入version 1独立计划，经`node tools/test/runner/test-scoped.mjs --scope=game:cockroach-poker --plan=<计划.json>`运行；保留原失败账，实质修复后只复验受影响范围。
+德国小强专用验证入口已随游戏退役，历史证据见[退役记录](../../docs/reference/acceptance.md#当前源码移除德国小强2026-11-16)。
 
-- `games/cockroach/verify-cockroach-source.mjs --evidence=<唯一安全名称> [--density-only]`：实际生产客户端和规则派生内存夹具，覆盖管理横屏、玩家横竖／320px至4K／密度／减少动态及图文规则；2／6人合法推进到出牌、接牌、查看后转传、密集收牌和终局，核对27张起手、公开／本人牌面边界、44px热区、旋转草稿与短横屏确认可达，暂停／断线／未确认／锁定不派发动作。双人不生成非法查看状态，不再维护独立公共屏产品矩阵。源码及资源逐SHA绑定；待全部美术接入后仍须冻结最终输入复验。仅证明源码浏览器，不冒称Socket、SQLite、安装或实体设备通过。
-- `games/cockroach/verify-cockroach-installed.mjs --delivery=<installer-delivery.json> --proof=<正式完成的shipping proof或封存proof> --evidence=<全新artifacts/maintenance目录>`：先核原EXE、载荷、两个清单及已卸载／保留runtime证明，再从精确冻结成员建立隔离副本。现按旧主机／公共屏Native WebView2与隐藏静音Edge手机模拟矩阵，执行德国小强生产动作、全部声明资源SHA及图像／WAV解码、实际保存重启；矩阵待随工具迁移，原冻结包仍按原输入验证。结束复核所有输入和保留runtime未变。安装系统验收须独立完成，不以此脚本替代；不证明实体手机、真实网络、多物理DPI或真人试听。
+<a id="盒子大厅与德国小强简介源码验证"></a>
 
-### 盒子大厅与德国小强简介源码验证
+## 盒子大厅与游戏简介源码验证
 
-`node tools/test/box/verify-box-lobby.mjs --evidence=<唯一名称>`通过现有批次计划执行，范围为`box,game:cockroach-poker`。实际BoxScreen源码以合成session运行在隐藏静音Edge、127.0.0.1；覆盖六视口入座／本人名片、十／十二席长昵称、保存状态时序、失败及确认入口、游戏入口合并，以及德国小强旧三端简介真实图片加载与关闭；角色矩阵待迁移。报告、截图与源码SHA位于`artifacts/maintenance/box-lobby-20261023/<名称>`。不构建安装器，不证明真实服务保存、物理设备或Windows DPI；不使用旧安装包作本轮源码证明。
+`node tools/test/box/verify-box-lobby.mjs --evidence=<唯一名称>`通过现有批次计划执行，范围为`box,game:uno`。实际BoxScreen源码以合成session运行在隐藏静音Edge、127.0.0.1；覆盖六视口入座／本人名片、十／十二席长昵称、保存状态时序、失败及确认入口、游戏入口合并，以及UNO 玩法说明的实际图片加载与关闭；角色矩阵待迁移。报告、截图与源码SHA位于`artifacts/maintenance/box-lobby-20261023/<名称>`。不构建安装器，不证明真实服务保存、物理设备或Windows DPI；不使用旧安装包作本轮源码证明。
 
 [扩展座位网格入口](box/verify-box-expanded-seats.mjs)登记为`box`，通过version 1计划交给`node tools/test/runner/test-scoped.mjs --scope=box --plan=<计划.json>`执行。计划项使用`runtime: node`、`script: tools/test/box/verify-box-expanded-seats.mjs`，参数数组为：
 

@@ -53,7 +53,6 @@ const keys = [
   'uno',
   'avalon',
   'manila',
-  'cockroach-poker',
 ];
 try {
   for (const [role, w, h] of [

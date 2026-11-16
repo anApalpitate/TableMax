@@ -64,7 +64,7 @@ TypeScript、改动TSX／验证器ESLint、定向Prettier与`git diff --check`�
 
 ## 德国小强与蟑螂沙拉完整交付（2026-10-21）
 
-[1.0.8.8原交付清单](../../artifacts/releases/v1.0.8/1.0.8.8/TableMax-1.0.8.8-installer-win-x64-manifest.json)38,251,047字节，SHA256 `6f3bf19bfa4c83a2bd9a6ff499b97e1e75e3efd3bacbd003ff79cfb8c48cc67c`；内部ZIP46,501,132字节，SHA256 `22d88bf48d7ca877f985fd08e763c74e2299cad94a8e161712f62dc3995c9403`；实际提取99,456,031字节，均低于120,000,000。冻结快照 `ebb0ce7cc3410f0deb413e5a2d49f7cb26bd156312050ff82c7416a33540f5a5`。两款规则、数字改编、来源与三档人机分别见[德国小强](../games/cockroach-poker/README.md)和蟑螂沙拉（当前内容已于2026-10-24移除）。
+[1.0.8.8原交付清单](../../artifacts/releases/v1.0.8/1.0.8.8/TableMax-1.0.8.8-installer-win-x64-manifest.json)38,251,047字节，SHA256 `6f3bf19bfa4c83a2bd9a6ff499b97e1e75e3efd3bacbd003ff79cfb8c48cc67c`；内部ZIP46,501,132字节，SHA256 `22d88bf48d7ca877f985fd08e763c74e2299cad94a8e161712f62dc3995c9403`；实际提取99,456,031字节，均低于120,000,000。冻结快照 `ebb0ce7cc3410f0deb413e5a2d49f7cb26bd156312050ff82c7416a33540f5a5`。当时的规则采用见[定案归档](cockroach-games-development-2026-10-21.md)，移除日期见[退役记录](../reference/acceptance.md#当前源码移除德国小强2026-11-16)。
 
 [正式安装证明（原件已退役）](history-cleanup-20261024.md)通过：原路径标准账户Medium启动、中文向导、默认目录／长路径外置数据／旧框架失败恢复三条8步更新链，以及正式产品首装、复装、保存、默认卸载、同根重装读回和再次卸载12项检查。临时账户及profile删除、errors为空，见[隔离终态（原件已退役）](history-cleanup-20261024.md)。首次健康启动同次采样118,305,209字节，低于硬限、触发110,000,000工程预警；不称整个安装过程绝对峰值。
 

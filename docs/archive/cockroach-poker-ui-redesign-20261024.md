@@ -14,7 +14,7 @@
 
 ## 完成交付（2026-10-24）
 
-已完成采用计划的游戏UI、64张逐牌精修和统一牌背、三布局、弱文字动作与规则浮窗，并通过最终输入冻结检查。长期现状归[游戏主题](../games/cockroach-poker/README.md)及[素材来源](../games/cockroach-poker/sources.md#cp-a3-用户授权的ai精修衍生)；本页从任务归档，后文保留原采用设计及完成标准的历史依据，不再作为待实施清单。未重新导出installer、未发布。
+已完成采用计划的游戏UI、64张逐牌精修和统一牌背、三布局、弱文字动作与规则浮窗，并通过最终输入冻结检查。游戏退役状态归[当前源码与交付](../reference/acceptance.md#当前源码移除德国小强2026-11-16)；本页从任务归档，后文保留原采用设计及完成标准的历史依据，不再作为待实施清单。未重新导出installer、未发布。
 
 - [实际前后变化HTML](../../artifacts/maintenance/cockroach-ui-redesign-20261024/review/index.html)：三布局并排／切换、23张真实前后及完整状态截图，附来源报告和逐图SHA。旧第三图为原公开展示，新图为管理兼展示，两者均只投影公开游戏信息。
 - [最终源码48项](../../artifacts/maintenance/cockroach-source/ui-redesign-final-r8-20261024/report.json)、[UI静态6项](../../artifacts/maintenance/test-history/runs/0cbba61b-7d45-4a26-bc06-a77e91e3a803/results.json)、[最终真实服务保存与重连三项](../../artifacts/maintenance/test-history/runs/f2e4f103-d135-44db-a642-7bc0ab851b6f/results.json)。已覆盖2／6人合法推进、27张起手、密集收牌、转传、双人单赢家／多人共同赢家、旋转及状态阻止重复动作；规则、服务与存档格式未改。旧服务运行缺完整输入绑定，保留历史；最终重新运行三项并绑定源码／依赖／运行时／临时环境。测试夹具新增任务临时根参数，生产实现未改。
@@ -31,7 +31,7 @@
 
 ## 设计依据与当前问题
 
-规则与信息权限以[游戏主题](../games/cockroach-poker/README.md)为准，用户依据查[美术偏好](../reference/art-preferences.md)，布局底线查[通用视觉](../reference/visual-design.md)。最新要求覆盖本游戏旧的“实体图不重绘”加工限制，但不覆盖原件保留、64张独立映射、经典版身份与秘密权限。
+当时按经典基础版规则和角色投影维护信息权限，用户依据查[美术偏好](../reference/art-preferences.md)，布局底线查[通用视觉](../reference/visual-design.md)。最新要求覆盖本游戏旧的“实体图不重绘”加工限制，但不覆盖原件保留、64张独立映射、经典版身份与秘密权限。
 
 已查看当前390×844玩家截图、1280×720展示截图及450×720蟑螂原牌。手机先显示说明，再依次堆叠手牌、目标、声明、确认和六人资料；桌面使用小牌背、大说明区域与松散名片。当前问题是视觉对象小、控件像表单、常驻解释重复，既有浅黄／薄荷底加紫边框不能承担本轮重做目标。
 

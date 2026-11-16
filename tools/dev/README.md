@@ -31,18 +31,15 @@ node tools/dev/dev.mjs
 
 [开发环境](../../docs/reference/development.md)维护具体运行要求；[工具总索引](../README.md)用于按任务定位。下表覆盖本分类文件，内部辅助不作为独立业务命令。
 
-| 工具                                                   | 入口／用途                                                                                                                                     |
-| ------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------- |
-| [dev.mjs](dev.mjs)                                     | `pnpm dev`                                                                                                                                     |
-| [launch.mjs](launch.mjs)                               | `pnpm start`                                                                                                                                   |
-| [session.mjs](session.mjs)                             | 开发会话隔离与限于本次目录的清理                                                                                                               |
-| [session.test.mjs](session.test.mjs)                   | 隔离、旧数据保护与链接替换防护单测                                                                                                             |
-| [verify-session.mjs](verify-session.mjs)               | 使用相同会话提供器连续启动两次现有原生构建，隐藏静音、仅回环；验证首次数据库、实际WebView2目录及退出清理，不重建运行中的EXE                    |
-| [verify-game-resources.mjs](verify-game-resources.mjs) | 连接独立启动的开发会话：`--cdp-port=<本机测试CDP端口> --evidence=<新名称>`，核对两款实体牌游戏的实际发行资源字节、图像解码及主机／模拟手机渲染 |
+| 工具                                     | 入口／用途                                                                                                                  |
+| ---------------------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| [dev.mjs](dev.mjs)                       | `pnpm dev`                                                                                                                  |
+| [launch.mjs](launch.mjs)                 | `pnpm start`                                                                                                                |
+| [session.mjs](session.mjs)               | 开发会话隔离与限于本次目录的清理                                                                                            |
+| [session.test.mjs](session.test.mjs)     | 隔离、旧数据保护与链接替换防护单测                                                                                          |
+| [verify-session.mjs](verify-session.mjs) | 使用相同会话提供器连续启动两次现有原生构建，隐藏静音、仅回环；验证首次数据库、实际WebView2目录及退出清理，不重建运行中的EXE |
 
-两项会话检查归`tooling`范围，通过[范围检查入口](../test/README.md#计划预设与业务入口)的显式计划执行；单测使用version 2与`nodeArgs:["--test"]`，原生检查使用普通Node。后者不等同于完整开发命令的构建／启动验收，也不代表安装器或实体手机证明。
-
-实体牌资源检查归`tooling,game:cockroach-poker`。先独立启动实际`node tools/dev/dev.mjs --foundation-test`并为该进程设置隔离数据、`TABLEMAX_TEST_CDP_PORT`、静音及回环地址，待构建和隐藏原生窗口就绪后，再由范围计划运行上述连接检查；工程占用保护继续阻止同一构建树中的其他活动进程，不将等待构建的验收器冒充空闲协调器。验证器只断开自己的CDP连接，原开发进程由启动者正常退出。
+会话检查归`tooling`范围，通过[范围检查入口](../test/README.md#计划预设与业务入口)的显式计划执行；单测使用version 2与`nodeArgs:["--test"]`，原生检查使用普通Node。后者不等同于完整开发命令的构建／启动验收，也不代表安装器或实体手机证明。
 
 2026-10-21实体牌资源回归：[实际开发命令](../../artifacts/maintenance/cockroach-art-integration-20261021/direct-launch-final.json)构建、原生启动及正常退出通过；[资源证明（原件已退役）](../../docs/archive/history-deep-review-20261024.md)核对德国小强和蟑螂沙拉97个资源，并验证主机与模拟手机显示实体牌图。新增游戏资源自动发现及安全回归见[源码验收](../../docs/reference/acceptance.md#实体牌美术与开发资源加载2026-10-21)。不生成新安装器，不代表实体手机或真实LAN验收。
 

@@ -4,6 +4,10 @@
 
 本页只维护当前状态及进入原证明的索引，不维护验证政策或可复制操作命令。政策与复用条件见[验证范围与证据](validation.md)，安装必须证明什么见[安装验收要求](installation-validation.md)，具体CLI见[测试工具](../../tools/test/README.md)。历史原文、失败、候选与旧SHA见[整理前记录](../archive/acceptance-before-consolidation-2026-10-23.md)，24处历史地址的可用性见[逐项核查](../archive/historical-evidence-audit-2026-10-23.md)。
 
+## 当前源码移除《德国小强》（2026-11-16）
+
+当前源码新局目录为 7 款游戏、8 个玩法。《德国小强》的模块、运行及制作素材、规则文档和专用验证工具已移除，逐文件字节与 SHA 见[退役清单](../../assets/retired-cockroach-poker-20261116.json)。现有本地安装器 1.0.8.10 维持其冻结发行，旧局继续按原发行恢复。本次无新安装器导出。
+
 ## 当前安装交付（2026-10-31）
 
 本地 [current](../../artifacts/package-payloads/v1.0.8/current.json) 已推广为 **1.0.8.10**，预装 8 款游戏／9 个玩法，未发布。[完整安装器](../../artifacts/releases/v1.0.8/1.0.8.10/TableMax-1.0.8.10-installer-win-x64.exe)为 41,531,127 字节，SHA `09db4df6731e89f82f7e0ce449da8cda30a5f60aa9f9fe7f81485d67b3dbaa9c`；冻结快照 `dfb2cb9f23c8274f0bd7b2d620f41d96cff16af3a3a3cb31b3dc0f0df8946408`。内部 payload 为 49,786,309 字节，SHA `269527b10eec39dc74148774f6bf60fd1982613748f8107354426a2804bd9955`；安装清单 SHA `4fe0042945547021472a014fe107efc758191aad390bf56fe5a3788c93eaaaaf`。三位公开版本仍为 1.0.8。

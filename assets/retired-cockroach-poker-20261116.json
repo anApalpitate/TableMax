@@ -1,0 +1,906 @@
+{
+  "date": "2026-11-16",
+  "reason": "按用户要求移除德国小强的现行游戏内容。历史交付、旧局恢复模块、存档和外部原始资料按原记录保留。",
+  "files": [
+    {
+      "path": "apps/server/src/cockroach-games.test.ts",
+      "bytes": 8799,
+      "sha256": "77fac7039f4d0826726bf9bcce8c8a9ae011425073eb96e37c9a83be329368a5"
+    },
+    {
+      "path": "apps/server/src/cockroach-worker.test.ts",
+      "bytes": 4250,
+      "sha256": "2dd4124011b575856c3aa22f4f4196ad145272380ffdb7248f941e7358caa790"
+    },
+    {
+      "path": "assets/games/cockroach-poker/audio/end.wav",
+      "bytes": 28708,
+      "sha256": "11883280e832080ddfcb0ffa5478cd6947dc0c9dca75042fda963b88c211a513"
+    },
+    {
+      "path": "assets/games/cockroach-poker/audio/pass.wav",
+      "bytes": 7982,
+      "sha256": "ae7fd347a8ee4d97461ab7ec00dfd6a17091019368a3dc7b8da7dc588bcfe609"
+    },
+    {
+      "path": "assets/games/cockroach-poker/audio/reveal.wav",
+      "bytes": 15920,
+      "sha256": "86e83f2c4f75fa9883df791cad19048e752eea386297051dd94e090fdbdce1d0"
+    },
+    {
+      "path": "assets/games/cockroach-poker/back-photo.jpg",
+      "bytes": 429266,
+      "sha256": "de4c4503b9eeaae09048631f30dbd3c33d7fc0edc97b84aac40e7f1b9169140c"
+    },
+    {
+      "path": "assets/games/cockroach-poker/back.svg",
+      "bytes": 477,
+      "sha256": "de24209be70a588db0c2dfac38a4f1cc9a34438daadd66dfd3efcb61766a8040"
+    },
+    {
+      "path": "assets/games/cockroach-poker/bat.svg",
+      "bytes": 611,
+      "sha256": "acb3a49c81048d4e927d4ced60c4df7e940a65b5ff95aec00e1c8098e00b12f2"
+    },
+    {
+      "path": "assets/games/cockroach-poker/card-reference.svg",
+      "bytes": 59479,
+      "sha256": "ff3692591634dab796457ef62337ea99d3252eb95994aaea4431227426206fc0"
+    },
+    {
+      "path": "assets/games/cockroach-poker/cards/bat-1.jpg",
+      "bytes": 38240,
+      "sha256": "f209634f013fc7749d77f7d001d69369a87ca66e6ca5359975ab170209612101"
+    },
+    {
+      "path": "assets/games/cockroach-poker/cards/bat-2.jpg",
+      "bytes": 38921,
+      "sha256": "3d399963c5de4abd49283bada2258b2a54a724cbba19656ff7e75b13be5d8f91"
+    },
+    {
+      "path": "assets/games/cockroach-poker/cards/bat-3.jpg",
+      "bytes": 39659,
+      "sha256": "2174dc415bb7b9289e390883c22a0c5071420ab4448c959726ae89073d682509"
+    },
+    {
+      "path": "assets/games/cockroach-poker/cards/bat-4.jpg",
+      "bytes": 40268,
+      "sha256": "e850ccf10b2cb689dd2b7b6ca48685d3bbe785957a8bb74b562ca65443234673"
+    },
+    {
+      "path": "assets/games/cockroach-poker/cards/bat-5.jpg",
+      "bytes": 40405,
+      "sha256": "ba9a10d8f6b11cd2b1a135997a3a683d96d01ec1a2ef0311e7a0693bbd202ef1"
+    },
+    {
+      "path": "assets/games/cockroach-poker/cards/bat-6.jpg",
+      "bytes": 41715,
+      "sha256": "7d32442a7ce48828c894d6b4c040fab06f64f83213e5834932baca3dab22d753"
+    },
+    {
+      "path": "assets/games/cockroach-poker/cards/bat-7.jpg",
+      "bytes": 40143,
+      "sha256": "1b34c2c0b42b0899eb8c66511c55934a303dcb7924c5e67a7b9bb1c1907ead25"
+    },
+    {
+      "path": "assets/games/cockroach-poker/cards/bat-8.jpg",
+      "bytes": 42873,
+      "sha256": "3c5006276007e0dae7132d1916e75be4934a626a14871e2bd009da593ff473f4"
+    },
+    {
+      "path": "assets/games/cockroach-poker/cards/cockroach-1.jpg",
+      "bytes": 44470,
+      "sha256": "85761bd63e8a9c05bd0c7b28c76c9406a15dc9912b3ee51d6400072e205669b7"
+    },
+    {
+      "path": "assets/games/cockroach-poker/cards/cockroach-2.jpg",
+      "bytes": 40731,
+      "sha256": "0c03e91e049dde1410ef8e2e37ebe23ab18b103afc8a0601aca47b1d629e8ae7"
+    },
+    {
+      "path": "assets/games/cockroach-poker/cards/cockroach-3.jpg",
+      "bytes": 42183,
+      "sha256": "865323c539e8ab37b2db6f2d97f1bd6a4902f0a1e40442c415d739bac67ea6c6"
+    },
+    {
+      "path": "assets/games/cockroach-poker/cards/cockroach-4.jpg",
+      "bytes": 36108,
+      "sha256": "c26a7302c924fa37d0ef7e6843d022b49eddc4434079b3837c84af0c8ea0a387"
+    },
+    {
+      "path": "assets/games/cockroach-poker/cards/cockroach-5.jpg",
+      "bytes": 40489,
+      "sha256": "d672eeda10ed4957bd8e2835ed84134a2e79ce7d8b8e929083db93192798b65f"
+    },
+    {
+      "path": "assets/games/cockroach-poker/cards/cockroach-6.jpg",
+      "bytes": 42013,
+      "sha256": "cd3a2887b25b66bb5db2fb05bba4e61495427cd4187689452f01e7f5a4607177"
+    },
+    {
+      "path": "assets/games/cockroach-poker/cards/cockroach-7.jpg",
+      "bytes": 41317,
+      "sha256": "62f7139760ad252c9e8a19e31d2fa1f1e39c6a79659592ea9c6f1197a7a02a10"
+    },
+    {
+      "path": "assets/games/cockroach-poker/cards/cockroach-8.jpg",
+      "bytes": 43361,
+      "sha256": "038dd6c9eae791a7184acee51634e4431d30829d1adfa905d126cf9a8a15100b"
+    },
+    {
+      "path": "assets/games/cockroach-poker/cards/fly-1.jpg",
+      "bytes": 43521,
+      "sha256": "471534956de126c528210ff71a4dce86ac74fc1598029fea25003e6d1f8a0c2d"
+    },
+    {
+      "path": "assets/games/cockroach-poker/cards/fly-2.jpg",
+      "bytes": 43469,
+      "sha256": "18297b444ddb7f076fcf675bd1e3440a4c50c94146c05909cc9aaea60ecda73d"
+    },
+    {
+      "path": "assets/games/cockroach-poker/cards/fly-3.jpg",
+      "bytes": 54159,
+      "sha256": "6e3c303eae0da643d754fcae43120c21ffefd926d57ea19c62f5f78e9744f371"
+    },
+    {
+      "path": "assets/games/cockroach-poker/cards/fly-4.jpg",
+      "bytes": 52530,
+      "sha256": "22517675d7e7dff5daa0ef4d57c19457caf1a29b64b35443724b96f1622fb97f"
+    },
+    {
+      "path": "assets/games/cockroach-poker/cards/fly-5.jpg",
+      "bytes": 51324,
+      "sha256": "7e8489007d413cabd5de9a66fd41845ec5ad186637535dd363d41a45daa770ac"
+    },
+    {
+      "path": "assets/games/cockroach-poker/cards/fly-6.jpg",
+      "bytes": 51389,
+      "sha256": "ce5718a8294c7b146d2efb7e5861273cc1ee63b814d91e3c73fc91148f3f2fcd"
+    },
+    {
+      "path": "assets/games/cockroach-poker/cards/fly-7.jpg",
+      "bytes": 47946,
+      "sha256": "6b426efd1d36ab9074f9bfba9496dcba885ec01bbc3e99535dfe65fd007a8b67"
+    },
+    {
+      "path": "assets/games/cockroach-poker/cards/fly-8.jpg",
+      "bytes": 47160,
+      "sha256": "a9e1c4b43810068dc1e2ae31050f70ed3661599dc1f2b7710a2f0cb904211f5d"
+    },
+    {
+      "path": "assets/games/cockroach-poker/cards/rat-1.jpg",
+      "bytes": 47353,
+      "sha256": "d6f2e6bd8abc95d15acc2c070cbb56f4c3fda1c448f0b7a70544fef14ade77f9"
+    },
+    {
+      "path": "assets/games/cockroach-poker/cards/rat-2.jpg",
+      "bytes": 42845,
+      "sha256": "e27f69269abb0e75e06026c190333d988400c03f999637d0c94f108290e92fe6"
+    },
+    {
+      "path": "assets/games/cockroach-poker/cards/rat-3.jpg",
+      "bytes": 45528,
+      "sha256": "3f53c3978677db1919784df74f245f7fbbe4cf9e08689feeb3f780f2cea0b57c"
+    },
+    {
+      "path": "assets/games/cockroach-poker/cards/rat-4.jpg",
+      "bytes": 45406,
+      "sha256": "886be5c59f1c990a514cd56bb4e90eed8ad6bf7c562d6ba291ea3bf4d12e59e3"
+    },
+    {
+      "path": "assets/games/cockroach-poker/cards/rat-5.jpg",
+      "bytes": 44946,
+      "sha256": "8831d5663a1a747c81740d75ebaafafd54a9bc887d9a7e9b4eb30895c9a9faee"
+    },
+    {
+      "path": "assets/games/cockroach-poker/cards/rat-6.jpg",
+      "bytes": 45883,
+      "sha256": "0932d3452d4ce28ef339dfe659f51a48dbb2001e1c2781cd1d17bf1efa98f4fd"
+    },
+    {
+      "path": "assets/games/cockroach-poker/cards/rat-7.jpg",
+      "bytes": 39706,
+      "sha256": "38c048c11f7078b47e39ec74246a132ba50e530aecc2b42cf2d6bc4aa28feb17"
+    },
+    {
+      "path": "assets/games/cockroach-poker/cards/rat-8.jpg",
+      "bytes": 49595,
+      "sha256": "48237da4ba08e2cc2569daa525982e15fc33f79b393ef993981d5ff97c72db29"
+    },
+    {
+      "path": "assets/games/cockroach-poker/cards/scorpion-1.jpg",
+      "bytes": 50659,
+      "sha256": "bcbfff317f4852ac190ee636531c470f12d4da815862dada65c49a4947b1ba38"
+    },
+    {
+      "path": "assets/games/cockroach-poker/cards/scorpion-2.jpg",
+      "bytes": 46728,
+      "sha256": "19ad3cfea57acc1ed75a9a0c335b4870656055395f7e4b99e5e947382bc83d5e"
+    },
+    {
+      "path": "assets/games/cockroach-poker/cards/scorpion-3.jpg",
+      "bytes": 53636,
+      "sha256": "4b8eec6d8411099e2a07266e9f31b7caf4f818148ac9436927a043293b2468fa"
+    },
+    {
+      "path": "assets/games/cockroach-poker/cards/scorpion-4.jpg",
+      "bytes": 40835,
+      "sha256": "39d69939fd142af27af9b6e753001c3aa1d5d4f44977391cffefb4fca3c606c9"
+    },
+    {
+      "path": "assets/games/cockroach-poker/cards/scorpion-5.jpg",
+      "bytes": 53375,
+      "sha256": "0292612a13a1cf10b563fcc39342578c4d6cb21ad4244b78d25d8bc68fd41f12"
+    },
+    {
+      "path": "assets/games/cockroach-poker/cards/scorpion-6.jpg",
+      "bytes": 58498,
+      "sha256": "d025d5788a299a4f8a73506e95b027144c2eb193ab98426f5bdd01a26d87b1a2"
+    },
+    {
+      "path": "assets/games/cockroach-poker/cards/scorpion-7.jpg",
+      "bytes": 37567,
+      "sha256": "9700bcf78161beec12d4c7d3725626c885194fc714b57c6a88e8081f27dc900b"
+    },
+    {
+      "path": "assets/games/cockroach-poker/cards/scorpion-8.jpg",
+      "bytes": 51532,
+      "sha256": "ebdedbbe276ab739e6f20393a3174455f630fd617a7fdf13d4031ffd80cc5a06"
+    },
+    {
+      "path": "assets/games/cockroach-poker/cards/spider-1.jpg",
+      "bytes": 52924,
+      "sha256": "08da65fa2f53d1a2d6204325b5645fe77f70fb8b9e927fa01fdd76431cb55a9c"
+    },
+    {
+      "path": "assets/games/cockroach-poker/cards/spider-2.jpg",
+      "bytes": 50967,
+      "sha256": "4a7aafd2f8e634a083ccb6021e7e02ea942a765833da4bb0b4386cb28ecef6df"
+    },
+    {
+      "path": "assets/games/cockroach-poker/cards/spider-3.jpg",
+      "bytes": 44940,
+      "sha256": "c431973c73ac73064457c64be14b9539737447880f2877a102c56b77fde0e8ec"
+    },
+    {
+      "path": "assets/games/cockroach-poker/cards/spider-4.jpg",
+      "bytes": 41022,
+      "sha256": "9e67c2b9114c79ebd18e05b6bd5684f3fe30feb398f7f07dd47876df8261b2fa"
+    },
+    {
+      "path": "assets/games/cockroach-poker/cards/spider-5.jpg",
+      "bytes": 45755,
+      "sha256": "339243caab24d7da3ba65eb6c3873bbcbaaa6ee6db0ee4a5a19c1a9c9f9920c1"
+    },
+    {
+      "path": "assets/games/cockroach-poker/cards/spider-6.jpg",
+      "bytes": 46811,
+      "sha256": "c873ebd433ba519664a92f4bd38daff76a3ce6d73ac151c4079a4c2790585ea4"
+    },
+    {
+      "path": "assets/games/cockroach-poker/cards/spider-7.jpg",
+      "bytes": 52254,
+      "sha256": "189b161d640c202a2db409be8bc9b7a5d464e5089220eed13df7714c234d5bf8"
+    },
+    {
+      "path": "assets/games/cockroach-poker/cards/spider-8.jpg",
+      "bytes": 48209,
+      "sha256": "4c6c43a23ee77f42eb6844c60cad649c4d3717e6b884756056efcabb3e579b69"
+    },
+    {
+      "path": "assets/games/cockroach-poker/cards/stink-bug-1.jpg",
+      "bytes": 45331,
+      "sha256": "93d885e94c6296e86a702c466d409779ded3161f2c55de5157b9519ed09d9954"
+    },
+    {
+      "path": "assets/games/cockroach-poker/cards/stink-bug-2.jpg",
+      "bytes": 45510,
+      "sha256": "41cb5aa72a40a200bd95e02f81f77a650e3ff7106acdf8914ec205ea5d8efd7b"
+    },
+    {
+      "path": "assets/games/cockroach-poker/cards/stink-bug-3.jpg",
+      "bytes": 46010,
+      "sha256": "00b2208eeb2e48ac57a0d13b6160b5d83b651dd971ad6d0b9b88de357e83d925"
+    },
+    {
+      "path": "assets/games/cockroach-poker/cards/stink-bug-4.jpg",
+      "bytes": 43583,
+      "sha256": "74632708f7ce1d0e1d90221641d504dfb749a702ca81014909888658b019c2dd"
+    },
+    {
+      "path": "assets/games/cockroach-poker/cards/stink-bug-5.jpg",
+      "bytes": 46965,
+      "sha256": "ebda1854058d8a943c59f40505af7baf2e8dbdf4a98711193fc139515b95da59"
+    },
+    {
+      "path": "assets/games/cockroach-poker/cards/stink-bug-6.jpg",
+      "bytes": 45661,
+      "sha256": "6f4f06125574a647c9a3d2b40a59a6dc7c636226f5d3538c44f0b89765dc61b9"
+    },
+    {
+      "path": "assets/games/cockroach-poker/cards/stink-bug-7.jpg",
+      "bytes": 43482,
+      "sha256": "8684e127eba811de8825808274d2a63b401e0a0fcd7fe5e43747efa247786f6c"
+    },
+    {
+      "path": "assets/games/cockroach-poker/cards/stink-bug-8.jpg",
+      "bytes": 43057,
+      "sha256": "16158ac07ebb31ac977f26f17075d9803931d6312786bdbe0e9852a0bbd25855"
+    },
+    {
+      "path": "assets/games/cockroach-poker/cards/toad-1.jpg",
+      "bytes": 64013,
+      "sha256": "d6e621ac5083c84a655b705865e183295bf813828efe2f2d6144d094a27754d3"
+    },
+    {
+      "path": "assets/games/cockroach-poker/cards/toad-2.jpg",
+      "bytes": 62713,
+      "sha256": "a90f9d08e6e83ca4e5f996685f084724df450cffbb1e2676bcecbb4412764ca1"
+    },
+    {
+      "path": "assets/games/cockroach-poker/cards/toad-3.jpg",
+      "bytes": 62571,
+      "sha256": "c57da1da76934cdad1d62941ec9d5b5da93d349c50cee8507568370c96cbc2e8"
+    },
+    {
+      "path": "assets/games/cockroach-poker/cards/toad-4.jpg",
+      "bytes": 63195,
+      "sha256": "1f71792707720897ca8d82c9ebe97e34db191e008883309ee7d6d6b9bd21ab04"
+    },
+    {
+      "path": "assets/games/cockroach-poker/cards/toad-5.jpg",
+      "bytes": 63102,
+      "sha256": "dec285d9ef7f5d525487f38e7182a759b7047974833e08c040c6dcf2409b42b0"
+    },
+    {
+      "path": "assets/games/cockroach-poker/cards/toad-6.jpg",
+      "bytes": 61192,
+      "sha256": "06738428f1ddf6f19c7e8b6aee0573d04b52797ed31c34ea0b350e17f8dc9af4"
+    },
+    {
+      "path": "assets/games/cockroach-poker/cards/toad-7.jpg",
+      "bytes": 59665,
+      "sha256": "74b51e82b22e7e366f27e8e3fdcffbe93c4b2acc508ba1a65b322c8d504996fb"
+    },
+    {
+      "path": "assets/games/cockroach-poker/cards/toad-8.jpg",
+      "bytes": 57124,
+      "sha256": "860d740c7507e727398b719df6c89e09a23fa6845ff20f2cc5c73e617291d885"
+    },
+    {
+      "path": "assets/games/cockroach-poker/cockroach.svg",
+      "bytes": 669,
+      "sha256": "0d5fadfedf6e5920bcf9be47c9dcf96d83a673e0503ba0c75ad48477aca78806"
+    },
+    {
+      "path": "assets/games/cockroach-poker/cover.svg",
+      "bytes": 665134,
+      "sha256": "69e440ebdbfcdcd629c95fb14168e8260968ed6bd0c215fb75bbb0c6d49804c7"
+    },
+    {
+      "path": "assets/games/cockroach-poker/flow.svg",
+      "bytes": 617,
+      "sha256": "a516fa24b51dffdf953633696f75850d7a51096107ee3d2af66915a3598dd14f"
+    },
+    {
+      "path": "assets/games/cockroach-poker/fly.svg",
+      "bytes": 687,
+      "sha256": "4045dc018b9fcd62d30f588662e37a3a448d138cd030c3e200aca956adbfc284"
+    },
+    {
+      "path": "assets/games/cockroach-poker/introduction-1-v1.svg",
+      "bytes": 11792,
+      "sha256": "d2c14dace9ec6841c62a61b627d649b896c9d0127f7544044c5a3bca655cd22c"
+    },
+    {
+      "path": "assets/games/cockroach-poker/introduction-2-v1.svg",
+      "bytes": 8626,
+      "sha256": "451d4793a9c475d04ba8709eb87b9d0a1d9e7d714568f789bcf320dfbc724276"
+    },
+    {
+      "path": "assets/games/cockroach-poker/introduction-3-v1.svg",
+      "bytes": 16866,
+      "sha256": "772dcf336ce066ad2da96861713d8f7059a6ad02c2c4785fc91d21e7daf0a5fc"
+    },
+    {
+      "path": "assets/games/cockroach-poker/library-cover.png",
+      "bytes": 528219,
+      "sha256": "b56ac2e98bf207efa159d5275f67f37cabb69f26e7000d18f951fd5ef6ee29cc"
+    },
+    {
+      "path": "assets/games/cockroach-poker/manifest.json",
+      "bytes": 405573,
+      "sha256": "9ca4d539f97553bbc0be1257367c5196af28b9eacaebfc558248cdbedc200386"
+    },
+    {
+      "path": "assets/games/cockroach-poker/rat.svg",
+      "bytes": 664,
+      "sha256": "ec893ebe832dcbed1ac7b3006fb880bb3d67ce48cf759e9f8fdb4a62480fd682"
+    },
+    {
+      "path": "assets/games/cockroach-poker/runtime/back-polished.webp",
+      "bytes": 16702,
+      "sha256": "5130ec7355eabe5d855398eaf9f3e5046acfc22dcb229d1d9e1debc74780bc4b"
+    },
+    {
+      "path": "assets/games/cockroach-poker/runtime/cards/bat-1.webp",
+      "bytes": 15018,
+      "sha256": "7b71ea327c39c78b752f4b79c80431f461d42588d301a85dcc27c6b1b368c0c1"
+    },
+    {
+      "path": "assets/games/cockroach-poker/runtime/cards/bat-2.webp",
+      "bytes": 19154,
+      "sha256": "18c4269dfdeb2394e2d76cceb75a96bdc4c8fb9c42cff2815f1c4b9c4c8373f7"
+    },
+    {
+      "path": "assets/games/cockroach-poker/runtime/cards/bat-3.webp",
+      "bytes": 17540,
+      "sha256": "962c4823586b99a57ed1d2c77935dd713c5d6f32e049032167e3375ad1ba7a5d"
+    },
+    {
+      "path": "assets/games/cockroach-poker/runtime/cards/bat-4.webp",
+      "bytes": 19666,
+      "sha256": "de68a05c050cba4916dffc065c5675df515668a991c5ac9095303df2a6543589"
+    },
+    {
+      "path": "assets/games/cockroach-poker/runtime/cards/bat-5.webp",
+      "bytes": 18780,
+      "sha256": "3f8f2a4cdb8f29295e1a2f6103f05bfb320b102a187d49378bad7b9b70d9d193"
+    },
+    {
+      "path": "assets/games/cockroach-poker/runtime/cards/bat-6.webp",
+      "bytes": 14172,
+      "sha256": "2a6d3be8b1f89ec38f18ebce1310a9f5a35dce10170366dbde362a95a8f8e9b7"
+    },
+    {
+      "path": "assets/games/cockroach-poker/runtime/cards/bat-7.webp",
+      "bytes": 17448,
+      "sha256": "b4328ff12c5eb6a34eecd707f8478456a79020628b0a3a01e69e15d641f55f2d"
+    },
+    {
+      "path": "assets/games/cockroach-poker/runtime/cards/bat-8.webp",
+      "bytes": 19208,
+      "sha256": "a47d1326a87f077be6ae427da0eeaae99b880ce00b50df03b7b18414781b6be5"
+    },
+    {
+      "path": "assets/games/cockroach-poker/runtime/cards/cockroach-1.webp",
+      "bytes": 23344,
+      "sha256": "e6de7faf26fa8cd8fe5e7d56f977ab692e4e6132aff15314fce57605ddbca3e3"
+    },
+    {
+      "path": "assets/games/cockroach-poker/runtime/cards/cockroach-2.webp",
+      "bytes": 19512,
+      "sha256": "e9d891bc52c140db53af51e19b789b3ded5acc066d02f500ec00dddfbfff5775"
+    },
+    {
+      "path": "assets/games/cockroach-poker/runtime/cards/cockroach-3.webp",
+      "bytes": 22888,
+      "sha256": "6533f39f4b4166660ebc7d21572f4d9299a129e602f641ab00ccd6282f37cc7c"
+    },
+    {
+      "path": "assets/games/cockroach-poker/runtime/cards/cockroach-4.webp",
+      "bytes": 17060,
+      "sha256": "6cf03b8c2e4dd65c7e7ddb191633aa4bd80bc994625c901093b8620f164d9436"
+    },
+    {
+      "path": "assets/games/cockroach-poker/runtime/cards/cockroach-5.webp",
+      "bytes": 20462,
+      "sha256": "124f651133f6727f1473bdb19d7911d251e05d6691ebf6bdc3643e6b2a911e80"
+    },
+    {
+      "path": "assets/games/cockroach-poker/runtime/cards/cockroach-6.webp",
+      "bytes": 23648,
+      "sha256": "8f7fd02485b3d436035685ad6acdaadc48166795de2404574ae31754ab9a03b8"
+    },
+    {
+      "path": "assets/games/cockroach-poker/runtime/cards/cockroach-7.webp",
+      "bytes": 20700,
+      "sha256": "5a0abfb0f93bb5984759fda0a6dde0cf6318cece27d114e554622731181ea0b3"
+    },
+    {
+      "path": "assets/games/cockroach-poker/runtime/cards/cockroach-8.webp",
+      "bytes": 24264,
+      "sha256": "abb83fe7b176b174319d684c077262ae75ef5c0466a7ac21541610475b590879"
+    },
+    {
+      "path": "assets/games/cockroach-poker/runtime/cards/fly-1.webp",
+      "bytes": 14586,
+      "sha256": "690118f1aa2f2df71794a49e5317672387700ddad844463bf714221fceb2c4af"
+    },
+    {
+      "path": "assets/games/cockroach-poker/runtime/cards/fly-2.webp",
+      "bytes": 15042,
+      "sha256": "6a6e37374330c833cdf8db1873b7ae964f6c7b4a9ea321cc215f5ed0b5c5105a"
+    },
+    {
+      "path": "assets/games/cockroach-poker/runtime/cards/fly-3.webp",
+      "bytes": 18724,
+      "sha256": "fcc9d45486cf2dd663d900b36369fa9da59dc714ee0c7390a45e214c626f7370"
+    },
+    {
+      "path": "assets/games/cockroach-poker/runtime/cards/fly-4.webp",
+      "bytes": 26032,
+      "sha256": "6c20bd29676ec6b0b1220a031d1eb60ff3ad0e51864035e05ba0c18a38b7189b"
+    },
+    {
+      "path": "assets/games/cockroach-poker/runtime/cards/fly-5.webp",
+      "bytes": 21042,
+      "sha256": "6a91960723966af31dc375ced427a78958437423aa3d06d1f962096911c38d81"
+    },
+    {
+      "path": "assets/games/cockroach-poker/runtime/cards/fly-6.webp",
+      "bytes": 20916,
+      "sha256": "0d0acf3eb8e90600abe819f5e2f6fd4a664bf3b5c692107bc3a9ce32f4fae57b"
+    },
+    {
+      "path": "assets/games/cockroach-poker/runtime/cards/fly-7.webp",
+      "bytes": 17902,
+      "sha256": "aaae3243b0e49a96e3347cfde1b46b5180ec22e494fe091b693a5bbcacf7051a"
+    },
+    {
+      "path": "assets/games/cockroach-poker/runtime/cards/fly-8.webp",
+      "bytes": 13650,
+      "sha256": "d958973c19d125c93909f696b92d3925f3fbde25efb00a83ed17573cf8d9f02f"
+    },
+    {
+      "path": "assets/games/cockroach-poker/runtime/cards/rat-1.webp",
+      "bytes": 19556,
+      "sha256": "430f78a754e7f0b04c6d876ed8888a5ade0d1e4f5b570f4088e0dde459317712"
+    },
+    {
+      "path": "assets/games/cockroach-poker/runtime/cards/rat-2.webp",
+      "bytes": 16740,
+      "sha256": "47bef96e5e6f38d8c1f4714eda76e1e602fb583ca7c8a581153f1acbcd081ce6"
+    },
+    {
+      "path": "assets/games/cockroach-poker/runtime/cards/rat-3.webp",
+      "bytes": 22048,
+      "sha256": "4503100a50fda6e631bf87560ac9df6c84aca3487462a94c0a1c9debb840c736"
+    },
+    {
+      "path": "assets/games/cockroach-poker/runtime/cards/rat-4.webp",
+      "bytes": 20940,
+      "sha256": "e9732ecf4dd1310d4ee113ed72a3864d84da69b87d8d1fd27434899595170f04"
+    },
+    {
+      "path": "assets/games/cockroach-poker/runtime/cards/rat-5.webp",
+      "bytes": 19576,
+      "sha256": "0840d92852e878a5088f2455a34fda3c650ac77e265ff0706655aaf5594920c5"
+    },
+    {
+      "path": "assets/games/cockroach-poker/runtime/cards/rat-6.webp",
+      "bytes": 19760,
+      "sha256": "94867bd6f6f082ae38f2e064543a6e3adf8c5a6c5b5f9e770a59db260371f7ce"
+    },
+    {
+      "path": "assets/games/cockroach-poker/runtime/cards/rat-7.webp",
+      "bytes": 18804,
+      "sha256": "d863e94f550d5c81aa487636be1a2b96a65345d4f517205a53dfb761ad1d91cb"
+    },
+    {
+      "path": "assets/games/cockroach-poker/runtime/cards/rat-8.webp",
+      "bytes": 20044,
+      "sha256": "5219bda4620dd5782c145fd415468b186926dc7488bc8d925f6282fd82ddbc0d"
+    },
+    {
+      "path": "assets/games/cockroach-poker/runtime/cards/scorpion-1.webp",
+      "bytes": 27418,
+      "sha256": "e7aafd9b69f049f5c1c9721c7fd2d0d87aae141fce006136dff04c5fa88115d4"
+    },
+    {
+      "path": "assets/games/cockroach-poker/runtime/cards/scorpion-2.webp",
+      "bytes": 23974,
+      "sha256": "203278d02d8292d78d0e00fe0c7f87c5816985fa764329256758f164cfab4d1f"
+    },
+    {
+      "path": "assets/games/cockroach-poker/runtime/cards/scorpion-3.webp",
+      "bytes": 26734,
+      "sha256": "bbd0228f3bda05b216d81c86b4c9af1c16cdabac0ebe407053fa23f3e4f56b76"
+    },
+    {
+      "path": "assets/games/cockroach-poker/runtime/cards/scorpion-4.webp",
+      "bytes": 20940,
+      "sha256": "3f8bf25f74e529e3ae40d7bd2918382109e2ae774b534a270691142afe7b9946"
+    },
+    {
+      "path": "assets/games/cockroach-poker/runtime/cards/scorpion-5.webp",
+      "bytes": 27002,
+      "sha256": "bc792f665027e9de3b6b5c8ea0b1946ce3932f93c1c436ac413f62f3ef655a03"
+    },
+    {
+      "path": "assets/games/cockroach-poker/runtime/cards/scorpion-6.webp",
+      "bytes": 30452,
+      "sha256": "9dc3e266a4aab291ea7c29c29627d7eb7bfc20ff8797971bb91d3e981a8ecd4f"
+    },
+    {
+      "path": "assets/games/cockroach-poker/runtime/cards/scorpion-7.webp",
+      "bytes": 18022,
+      "sha256": "92f3a5def4a6cc054023b19f850fec59cfae8bd5570eb29495b078b553de08ff"
+    },
+    {
+      "path": "assets/games/cockroach-poker/runtime/cards/scorpion-8.webp",
+      "bytes": 26024,
+      "sha256": "1a3c7f0dea9b761ad00e64e65f68d5f2e1d3b0a61d9ff945392cad43bc44158c"
+    },
+    {
+      "path": "assets/games/cockroach-poker/runtime/cards/spider-1.webp",
+      "bytes": 28558,
+      "sha256": "0870688b595a01bb6a820f7766bcaf13600cddb73c565324b675a14545652fdf"
+    },
+    {
+      "path": "assets/games/cockroach-poker/runtime/cards/spider-2.webp",
+      "bytes": 28964,
+      "sha256": "e3610f3c098c2fe3aa6ef42fe050b72a84d8a99a46aae517861a5b21f98109e5"
+    },
+    {
+      "path": "assets/games/cockroach-poker/runtime/cards/spider-3.webp",
+      "bytes": 22520,
+      "sha256": "23cd28f6a37e14eace423d3dcda235371af5a09a531d92a5239b24ab959a577c"
+    },
+    {
+      "path": "assets/games/cockroach-poker/runtime/cards/spider-4.webp",
+      "bytes": 22254,
+      "sha256": "ab20dcf9e9c259b2f2450cb76554d9a22acd5f243024df9429b2d6ce18a95f4f"
+    },
+    {
+      "path": "assets/games/cockroach-poker/runtime/cards/spider-5.webp",
+      "bytes": 21898,
+      "sha256": "a5eb90c42418616b7396547d4a8430075e9752cafa13796c4fc83f939358bed2"
+    },
+    {
+      "path": "assets/games/cockroach-poker/runtime/cards/spider-6.webp",
+      "bytes": 22110,
+      "sha256": "4457124dc1d1ab6f96813f6423b41d71a36bc8547569df29ad8be93630661e16"
+    },
+    {
+      "path": "assets/games/cockroach-poker/runtime/cards/spider-7.webp",
+      "bytes": 25018,
+      "sha256": "945cdf9cea4744238e05099c71401ba712eeee2a6f895d5c0fb4b311e4532042"
+    },
+    {
+      "path": "assets/games/cockroach-poker/runtime/cards/spider-8.webp",
+      "bytes": 25422,
+      "sha256": "d69f7bd765aae573526559b96a1d158af3691895eecae113131a0c80bf0a18ef"
+    },
+    {
+      "path": "assets/games/cockroach-poker/runtime/cards/stink-bug-1.webp",
+      "bytes": 21536,
+      "sha256": "4743352b4ff63e295eae6e33acde78c6e8d289f2344a0a56b5b1e599803d2c1a"
+    },
+    {
+      "path": "assets/games/cockroach-poker/runtime/cards/stink-bug-2.webp",
+      "bytes": 22546,
+      "sha256": "39e0a134e4fb9e2055a7896c69477cf4b54c0d38d34d440ab39613c3f36820d7"
+    },
+    {
+      "path": "assets/games/cockroach-poker/runtime/cards/stink-bug-3.webp",
+      "bytes": 21504,
+      "sha256": "32edb4fc54c16c1bbccc03fe9c18bef25f1bbbadedb7b293e8688ef35cff7278"
+    },
+    {
+      "path": "assets/games/cockroach-poker/runtime/cards/stink-bug-4.webp",
+      "bytes": 20496,
+      "sha256": "d55c0c74041bca882b5b29a3f655f8b40c76e0c587e6bcbc8497504ea40bc2f9"
+    },
+    {
+      "path": "assets/games/cockroach-poker/runtime/cards/stink-bug-5.webp",
+      "bytes": 21164,
+      "sha256": "324bf1350f2d024627274a6ac08dd770a320aef97d75f1b519a7c2e51e173d1a"
+    },
+    {
+      "path": "assets/games/cockroach-poker/runtime/cards/stink-bug-6.webp",
+      "bytes": 21458,
+      "sha256": "ae785e69acc3ec96653e40ca2a323399507050759e5c91ce0d673f0dc91f82b2"
+    },
+    {
+      "path": "assets/games/cockroach-poker/runtime/cards/stink-bug-7.webp",
+      "bytes": 19734,
+      "sha256": "5caedff93419ffaf97652c1a29c3f08c06013656eb0d191735ec45b8d0c849cc"
+    },
+    {
+      "path": "assets/games/cockroach-poker/runtime/cards/stink-bug-8.webp",
+      "bytes": 20040,
+      "sha256": "7cb27cd864fd6d8aec5ffa8b8a1295d1b7b102785529cd501803093f6def6b76"
+    },
+    {
+      "path": "assets/games/cockroach-poker/runtime/cards/toad-1.webp",
+      "bytes": 26732,
+      "sha256": "38ab1d2e047d1afa3421dea3557c8ca2403bb30bddaae5e13318d12ce8d9e28e"
+    },
+    {
+      "path": "assets/games/cockroach-poker/runtime/cards/toad-2.webp",
+      "bytes": 24146,
+      "sha256": "0b24d428d4ebd75ea2c651d9cd6f28f67d51a5f09e74e76c20831bfe46842169"
+    },
+    {
+      "path": "assets/games/cockroach-poker/runtime/cards/toad-3.webp",
+      "bytes": 21038,
+      "sha256": "a1292a0cff20b214206d4a95f88a299c685f98c2b7b81532e3671a8c5d004deb"
+    },
+    {
+      "path": "assets/games/cockroach-poker/runtime/cards/toad-4.webp",
+      "bytes": 22750,
+      "sha256": "21f12742426a78a690a36ecc6237fb0aff753f6e62a847144144482493a691a1"
+    },
+    {
+      "path": "assets/games/cockroach-poker/runtime/cards/toad-5.webp",
+      "bytes": 22542,
+      "sha256": "73b8a93bb0c2615920eea919813d9b85fa973b939c79cc59201cdc6374825bb6"
+    },
+    {
+      "path": "assets/games/cockroach-poker/runtime/cards/toad-6.webp",
+      "bytes": 20870,
+      "sha256": "e2f24dc7c920a7c97f4a9678c7ac3e3c37d19ee4c717b182f764b714b121ea0a"
+    },
+    {
+      "path": "assets/games/cockroach-poker/runtime/cards/toad-7.webp",
+      "bytes": 24176,
+      "sha256": "d0a01613fc470caa3487f5f07500e7389274601449c3e9e526b538e1378ebdc8"
+    },
+    {
+      "path": "assets/games/cockroach-poker/runtime/cards/toad-8.webp",
+      "bytes": 19960,
+      "sha256": "112649cc145d24bcf8d345dc1e01ee958dac82eff90ffbdc0b7c7aa13a3e5225"
+    },
+    {
+      "path": "assets/games/cockroach-poker/runtime/cover-reference.webp",
+      "bytes": 6230,
+      "sha256": "2d0dd55874fe58cf2f53c3b1376ce1c3cdbb26fe1c0cb616879eaaf41ae76233"
+    },
+    {
+      "path": "assets/games/cockroach-poker/runtime/library-cover.webp",
+      "bytes": 9556,
+      "sha256": "f003b04bd9abf3410962965bc0200115d9a44450285023f75a081a4f0f969549"
+    },
+    {
+      "path": "assets/games/cockroach-poker/scorpion.svg",
+      "bytes": 687,
+      "sha256": "3d62ae9f95edec84017142ff24809dfcce44f101adf02a380b10fe2e4a7f9947"
+    },
+    {
+      "path": "assets/games/cockroach-poker/spider.svg",
+      "bytes": 706,
+      "sha256": "1e2e6f6544adc38e12c6285cf39e7e1873f9976f6eb16134529d5179161223f6"
+    },
+    {
+      "path": "assets/games/cockroach-poker/stinkbug.svg",
+      "bytes": 631,
+      "sha256": "e5755ee28ea1642e06a76a24dd92c1f88172da1ed330393c38c40d39891bcc53"
+    },
+    {
+      "path": "assets/games/cockroach-poker/toad.svg",
+      "bytes": 656,
+      "sha256": "fcdae46d1c1479f7eb9efe2f5642154c8eb1ace9573eef8ffef35bfb21376cb2"
+    },
+    {
+      "path": "docs/games/cockroach-poker/README.md",
+      "bytes": 14723,
+      "sha256": "67e24b457294151875edd059ee972825ddcb6b4fd6be4a4e48ccb0d792eb3b54"
+    },
+    {
+      "path": "docs/games/cockroach-poker/sources.md",
+      "bytes": 6401,
+      "sha256": "94f15b8b83342055dc7f24ffc04201a51cb59da8c07750633043895bb2949d1d"
+    },
+    {
+      "path": "games/cockroach-poker/bot/index.ts",
+      "bytes": 2350,
+      "sha256": "cf2ded61620f14fdb6937df8bb1f9680aa59dd84091e4751119cbb100a54c49e"
+    },
+    {
+      "path": "games/cockroach-poker/game-module.json",
+      "bytes": 3407,
+      "sha256": "64d0e0bcf568a5d1a4e840ec46c0806549877bf6a14cf173a6193e202095bcf6"
+    },
+    {
+      "path": "games/cockroach-poker/index.ts",
+      "bytes": 62,
+      "sha256": "8343c0c2828fa348a6a6e00e3d8cfc809bf243d81115e4c52429a0c351afd203"
+    },
+    {
+      "path": "games/cockroach-poker/package.json",
+      "bytes": 264,
+      "sha256": "957173a34f30c980c8220197e84920da05e3811c4f1cc71468fabd0401115f02"
+    },
+    {
+      "path": "games/cockroach-poker/rules/cards.ts",
+      "bytes": 460,
+      "sha256": "cd8cd2bf34b3b99e2b573cd125cff2d669014d88614603cdecc53ab1a4029085"
+    },
+    {
+      "path": "games/cockroach-poker/rules/index.ts",
+      "bytes": 6792,
+      "sha256": "9b968062889ab49079a8f3fd2ee85ff03f4c9fa43d0322d8928d17cb30d29590"
+    },
+    {
+      "path": "games/cockroach-poker/rules/project.ts",
+      "bytes": 1001,
+      "sha256": "140d80b7d586a800b0886798a9aabbf611d8dd0f013112efe7053381f81fb9fc"
+    },
+    {
+      "path": "games/cockroach-poker/rules/rules.test.ts",
+      "bytes": 11987,
+      "sha256": "3e5817c4144274890866282ea8d00a35738b5c8ca0cb2fa909a6975b3a03e27c"
+    },
+    {
+      "path": "games/cockroach-poker/rules/scoring.ts",
+      "bytes": 684,
+      "sha256": "f132beac73ad2842fd484412c543d91a00c787254739523f4d1ed9a97e6a4bbf"
+    },
+    {
+      "path": "games/cockroach-poker/rules/state.ts",
+      "bytes": 5681,
+      "sha256": "9866011ba2720196699828cbb67d620fb23ed4344d4ad235a0bc762473a5db3d"
+    },
+    {
+      "path": "games/cockroach-poker/ui/Effects.tsx",
+      "bytes": 4181,
+      "sha256": "513219da11e98bdaef7dcbf29db5e1074fef9d16e550b5f4b35c0ee978f91ddb"
+    },
+    {
+      "path": "games/cockroach-poker/ui/RulesGuide.tsx",
+      "bytes": 4236,
+      "sha256": "459e0d9d0218e62e6e5388ee4541ec22b7e5b0762ca6db64835fd2a086d54073"
+    },
+    {
+      "path": "games/cockroach-poker/ui/Theme.tsx",
+      "bytes": 1976,
+      "sha256": "b60b689bc7cea038e4b0db3c5fd2389455ddffda95a0ee1a49484971a30bbb06"
+    },
+    {
+      "path": "games/cockroach-poker/ui/layout.css",
+      "bytes": 2062,
+      "sha256": "05bb9b535ceb5464dfeb46df509d4b5c15d1695aa6cc40fc1b79314c054ee850"
+    },
+    {
+      "path": "games/cockroach-poker/ui/player/index.tsx",
+      "bytes": 6913,
+      "sha256": "56b42717d08df3aa4ef5f79265e2e0c8e4b6e92b51fb9af769146ad4a7ebb14f"
+    },
+    {
+      "path": "games/cockroach-poker/ui/public/index.tsx",
+      "bytes": 6370,
+      "sha256": "6ffa6d1c852117d6ec58807b9bded321f93c08dccffea22616fe22200e4d2bd3"
+    },
+    {
+      "path": "games/cockroach-poker/ui/style.css",
+      "bytes": 21191,
+      "sha256": "ba0d42849c88b62e63c9b36fc24d6d0915e0a9c148f53a1647304a921a46dadb"
+    },
+    {
+      "path": "games/cockroach-poker/ui/ui.test.ts",
+      "bytes": 8707,
+      "sha256": "ad4133a8d47cadefdd68b1190b1235ee252b980217205a8e0ce0150eb88a2ba7"
+    },
+    {
+      "path": "games/cockroach-poker/ui/view.ts",
+      "bytes": 641,
+      "sha256": "d0493b2578e5855df6bb83aac4406e2b53506166ba10ca40611029fc76a678d9"
+    },
+    {
+      "path": "games/cockroach-poker/web/details.json",
+      "bytes": 1662,
+      "sha256": "e735d8a2446f693aab6fcc0399948c0b57d641d49bfb72be185a9b40cc89db3e"
+    },
+    {
+      "path": "games/cockroach-poker/web/index.tsx",
+      "bytes": 4959,
+      "sha256": "c5cbfab1ebb151cc0a56387be4156ba6418ef9ac5fc06b8009dd4f8b27359dce"
+    },
+    {
+      "path": "tools/dev/verify-game-resources.mjs",
+      "bytes": 12810,
+      "sha256": "d28b4c75340efff6de510e01a64eb74b4c9353348757986453a37ce41008a0f9"
+    },
+    {
+      "path": "tools/test/games/cockroach/verify-cockroach-installed.mjs",
+      "bytes": 24485,
+      "sha256": "d605304a35c08e779a5c97dbf0b8cf852aee068fc6b1e6250def1510c97d04a0"
+    },
+    {
+      "path": "tools/test/games/cockroach/verify-cockroach-source.mjs",
+      "bytes": 30525,
+      "sha256": "f5857a207d1031fee6e225efc2129fb3e3413ba6a8be53834c24ad76ae3e7b58"
+    }
+  ]
+}

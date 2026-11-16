@@ -78,12 +78,6 @@ const variants = [
   ['uno', 'games/uno', 'rules/index.ts', 'bot/index.ts'],
   ['avalon', 'games/avalon', 'rules/index.ts', 'bot/index.ts'],
   ['manila', 'games/manila', 'rules/index.ts', 'bot/index.ts'],
-  [
-    'cockroach-poker',
-    'games/cockroach-poker',
-    'rules/index.ts',
-    'bot/index.ts',
-  ],
 ];
 const sourceInputs = new Map();
 async function bind(path) {
