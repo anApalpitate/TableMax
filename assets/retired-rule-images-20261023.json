@@ -1,0 +1,179 @@
+{
+  "date": "2026-10-23",
+  "authorization": "Explicit user request to remove the three games retired rule screenshots and Power Grid deprecated imagery.",
+  "status": "reviewed-for-removal",
+  "sourceCommit": "46aeac7800b1e34476472c8bb50f2ea0317616f9",
+  "recovery": "Original tracked bytes remain available from sourceCommit; historical payloads, provenance and evidence are unchanged. No backup copies created.",
+  "fileCount": 28,
+  "removedBytes": 3099510,
+  "files": [
+    {
+      "path": "assets/games/modern-art/rules/auction.png",
+      "bytes": 74916,
+      "sha256": "7b8e126fe63597ac20e4a3a4fb69083d34eaf01f5e3f21a274769948eeb0ea21",
+      "reason": "Retired rendered rule screenshot; current guide uses game-owned illustrations and code diagrams."
+    },
+    {
+      "path": "assets/games/modern-art/rules/auction.webp",
+      "bytes": 56478,
+      "sha256": "b3effe9bb13af2bd8f08e1a75e9d209a8a570ae8b001ce40bccb93215b6828fb",
+      "reason": "Retired rendered rule screenshot; current guide uses game-owned illustrations and code diagrams."
+    },
+    {
+      "path": "assets/games/modern-art/rules/collection.png",
+      "bytes": 82677,
+      "sha256": "70d09d8cb0ec19484b06f6ea3518ae9c6248d3d86d941d3f67408137c7f3dbfd",
+      "reason": "Retired rendered rule screenshot; current guide uses game-owned illustrations and code diagrams."
+    },
+    {
+      "path": "assets/games/modern-art/rules/collection.webp",
+      "bytes": 57108,
+      "sha256": "d59974eed6bad7322e807fbe57929512fcdc7ed5d896c6d44c3cafafeba897e0",
+      "reason": "Retired rendered rule screenshot; current guide uses game-owned illustrations and code diagrams."
+    },
+    {
+      "path": "assets/games/modern-art/rules/hand.png",
+      "bytes": 385217,
+      "sha256": "90d92e192e7ef59a0146dcbdaf07b2ec17cd22c6d99e1f1726dce37ed6ccb81f",
+      "reason": "Retired rendered rule screenshot; current guide uses game-owned illustrations and code diagrams."
+    },
+    {
+      "path": "assets/games/modern-art/rules/hand.webp",
+      "bytes": 268340,
+      "sha256": "ad4375ab07bc17f5c9f65daa8ae78259d77e650d915d5e8aa2e2d184bf3a2cec",
+      "reason": "Retired rendered rule screenshot; current guide uses game-owned illustrations and code diagrams."
+    },
+    {
+      "path": "assets/games/modern-art/rules/market.png",
+      "bytes": 81158,
+      "sha256": "806eed0a24cfafe626b0d53764b200969ca7099f4dd9305b22166915d153264f",
+      "reason": "Retired rendered rule screenshot; current guide uses game-owned illustrations and code diagrams."
+    },
+    {
+      "path": "assets/games/modern-art/rules/market.webp",
+      "bytes": 31900,
+      "sha256": "e25be644536f724264a75f6f03309ab3d9647d1d413f34468b549a81bdcc6f6a",
+      "reason": "Retired rendered rule screenshot; current guide uses game-owned illustrations and code diagrams."
+    },
+    {
+      "path": "assets/games/pokemon-encounters/rules/draw.png",
+      "bytes": 69735,
+      "sha256": "f97345ac39518ad809b30c8f743aa5a3c7d7d879b361fce4b57b66ee1e52b095",
+      "reason": "Retired rendered rule screenshot; current guide uses game-owned illustrations and code diagrams."
+    },
+    {
+      "path": "assets/games/pokemon-encounters/rules/draw.webp",
+      "bytes": 50130,
+      "sha256": "b1ce9465ac4cdd41e1770475443f52846fdf5098ee6879d3df9015841a6d026b",
+      "reason": "Retired rendered rule screenshot; current guide uses game-owned illustrations and code diagrams."
+    },
+    {
+      "path": "assets/games/pokemon-encounters/rules/scoring.png",
+      "bytes": 99460,
+      "sha256": "c28319c7416c62ea6a919e0cd0e8e389e1d19a7e6cc416db134636536b0d71ed",
+      "reason": "Retired rendered rule screenshot; current guide uses game-owned illustrations and code diagrams."
+    },
+    {
+      "path": "assets/games/pokemon-encounters/rules/scoring.webp",
+      "bytes": 75776,
+      "sha256": "52063a45f878ea5991440893af9ca225aa94c42fd80287d6e441f53754d8ab02",
+      "reason": "Retired rendered rule screenshot; current guide uses game-owned illustrations and code diagrams."
+    },
+    {
+      "path": "assets/games/pokemon-encounters/rules/table.png",
+      "bytes": 69528,
+      "sha256": "4b0649bef3cd071693f0d71534c3d2acccdc59a2bb6d698d9e5c82508d3bb752",
+      "reason": "Retired rendered rule screenshot; current guide uses game-owned illustrations and code diagrams."
+    },
+    {
+      "path": "assets/games/pokemon-encounters/rules/table.webp",
+      "bytes": 55502,
+      "sha256": "981f7f2963952540940bbfa6a9a160eb1c24d056abb5955d6be6fd93df53aad9",
+      "reason": "Retired rendered rule screenshot; current guide uses game-owned illustrations and code diagrams."
+    },
+    {
+      "path": "assets/games/power-grid/rules/companies-v1.png",
+      "bytes": 51450,
+      "sha256": "e7bb30b1981f57ac6e39772ed905a028d5bfaf2cee1b726bd67dd1f5d4c1ec51",
+      "reason": "Retired rendered rule screenshot; current guide uses game-owned illustrations and code diagrams."
+    },
+    {
+      "path": "assets/games/power-grid/rules/companies-v2.png",
+      "bytes": 53320,
+      "sha256": "78308200d82c04ea18f0e09d1ea13a3928a8badc1038f13ddcae2750e21c00ee",
+      "reason": "Retired rendered rule screenshot; current guide uses game-owned illustrations and code diagrams."
+    },
+    {
+      "path": "assets/games/power-grid/rules/company.webp",
+      "bytes": 50024,
+      "sha256": "dde8cdf88ae278c9f5c905e23476e4337bb78d3b2f7ca693763331b72ed9edd9",
+      "reason": "Retired rendered rule screenshot; current guide uses game-owned illustrations and code diagrams."
+    },
+    {
+      "path": "assets/games/power-grid/rules/market-v1.png",
+      "bytes": 213619,
+      "sha256": "8e9dabeef285a30aeb4b53eda0f1505aac1383abe5f80f249876bb4da444019c",
+      "reason": "Retired rendered rule screenshot; current guide uses game-owned illustrations and code diagrams."
+    },
+    {
+      "path": "assets/games/power-grid/rules/market-v2.png",
+      "bytes": 201412,
+      "sha256": "cf233a4f95aa1431b25d496b2614a13027ef03412cc4cb2f0bee0d9427da6546",
+      "reason": "Retired rendered rule screenshot; current guide uses game-owned illustrations and code diagrams."
+    },
+    {
+      "path": "assets/games/power-grid/rules/market.webp",
+      "bytes": 133996,
+      "sha256": "2b6be55d310e47aa3ed322897e09a86dee567bde3073c0ebd9ea680bf25d2704",
+      "reason": "Retired rendered rule screenshot; current guide uses game-owned illustrations and code diagrams."
+    },
+    {
+      "path": "assets/games/power-grid/rules/network-v1.png",
+      "bytes": 139637,
+      "sha256": "ba48f6ef997c5826cc2cdb08568aeb80e2c9b6573fef37cbde389c94402598c7",
+      "reason": "Retired rendered rule screenshot; current guide uses game-owned illustrations and code diagrams."
+    },
+    {
+      "path": "assets/games/power-grid/rules/network-v2.png",
+      "bytes": 251612,
+      "sha256": "75341a24973f34e784fd0ba1af8e66d9301b25e4d67bb540ae6c8a40a4cc610c",
+      "reason": "Retired rendered rule screenshot; current guide uses game-owned illustrations and code diagrams."
+    },
+    {
+      "path": "assets/games/power-grid/rules/network.webp",
+      "bytes": 200896,
+      "sha256": "dc4e16900356bcc2bdfd4873a78e1669cd42fd2a2b3becb07f65a12f489f6d30",
+      "reason": "Retired rendered rule screenshot; current guide uses game-owned illustrations and code diagrams."
+    },
+    {
+      "path": "assets/games/power-grid/rules/order.png",
+      "bytes": 41071,
+      "sha256": "ebec286ef3c61c0fb66b0a73bd244763cd7a6380cc1b4ee53d4d41b895e51da6",
+      "reason": "Retired rendered rule screenshot; current guide uses game-owned illustrations and code diagrams."
+    },
+    {
+      "path": "assets/games/power-grid/rules/order.webp",
+      "bytes": 19122,
+      "sha256": "414626dd5791af496d9534df461e5741bb1b20813435f2ecb6706ce990f45848",
+      "reason": "Retired rendered rule screenshot; current guide uses game-owned illustrations and code diagrams."
+    },
+    {
+      "path": "assets/games/power-grid/rules/resource-prices.png",
+      "bytes": 69192,
+      "sha256": "13917cd780dc484b13a7e1e686c22e35b9e1e98cada5bbd289289d3dbb26892c",
+      "reason": "Retired rendered rule screenshot; current guide uses game-owned illustrations and code diagrams."
+    },
+    {
+      "path": "assets/games/power-grid/rules/resource-prices.webp",
+      "bytes": 17212,
+      "sha256": "2af14b594690feebcbe96aaa2a00086e374310bef3b1fc2f88a9b4b3adf3d821",
+      "reason": "Retired rendered rule screenshot; current guide uses game-owned illustrations and code diagrams."
+    },
+    {
+      "path": "assets/games/power-grid/board-v1.webp",
+      "bytes": 199022,
+      "sha256": "12b6b14449ed18c741806d7d4e7b823dffef1063ca916cb6256df185b3b7b632",
+      "reason": "Superseded terrain v1; current map uses v2/v3."
+    }
+  ]
+}
