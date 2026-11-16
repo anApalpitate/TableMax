@@ -12,6 +12,10 @@
 | [阿瓦隆](avalon/README.md)                                 | `avalon`，采用 `classic-2012-configured-1`，2012 经典版、5–10 人；新局唯一 `configured` 配置、角色秘密与并发密投见[规格](avalon/spec.md)                                      |
 | [马尼拉](manila/README.md)                                 | `manila`，采用 `manila-classic-2005-v1`，经典2005版3–5人；出版与再版差异见[来源](manila/sources.md)，实体设备及正式推广边界见[验证](manila/validation-scenarios.md)。         |
 
+## 下一款制作
+
+用户已选定[《两河流域》](tigris-euphrates/README.md)。背景调查和来源搜集归游戏主题，接入与版本定案尚待完成。
+
 ## 模块交付与旧局恢复
 
 源码目录、本地完整安装器和公开发行分别核对：本地已验收current及待验收候选的构建、SHA和适用证明统一见[当前源码与本地交付](../reference/acceptance.md#当前源码与本地交付)；公开发行仍按原六款／七玩法的实际发布附件与记录判断，不能因源码已加入马尼拉或本地installer已预装而宣称公开发行已更新，见[Release流程与历史](../reference/release.md)。本页不另维护可漂移的应用版本或本地current编号。
