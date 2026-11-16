@@ -78,7 +78,8 @@ function RummikubScreen({ session }: { session: GameHost }) {
   const result = game?.results.at(-1);
   const saved = session.motion.length > 0 && view?.playMode !== 'test';
   const feedbackVisible = Boolean(
-    (session.message && session.message !== '已保存') ||
+    (session.message && session.messageKind !== 'saved') ||
+    !session.connected ||
     session.admissionPending ||
     session.awaitingConfirmation,
   );
@@ -168,8 +169,11 @@ function RummikubScreen({ session }: { session: GameHost }) {
             <MenuIcon />
           </button>
         </div>
+        <SessionFeedback session={session} mode="toolbar-save" />
       </header>
-      {!game && feedbackVisible && <SessionFeedback session={session} />}
+      {!game && feedbackVisible && (
+        <SessionFeedback session={session} mode="messages" />
+      )}
       {!game || !view ? (
         <div className="rk-unavailable">
           <h1>等待拉密开局</h1>
@@ -356,7 +360,7 @@ function RummikubScreen({ session }: { session: GameHost }) {
               data-empty={!game.latest && !feedbackVisible}
             >
               {feedbackVisible ? (
-                <SessionFeedback session={session} />
+                <SessionFeedback session={session} mode="messages" />
               ) : (
                 game.latest && (
                   <>
@@ -364,7 +368,6 @@ function RummikubScreen({ session }: { session: GameHost }) {
                       {game.latest.actor ? names[game.latest.actor] : '拉密'}
                     </strong>
                     <span>{game.latest.text}</span>
-                    <span className="rk-saved-label">已保存</span>
                   </>
                 )
               )}

@@ -570,16 +570,6 @@
   padding: 7px 10px;
   font-size: 16px;
 }
-.ma-screen .ma-latest > span {
-  position: absolute;
-  inset-block-start: -16px;
-  inset-inline-end: 12px;
-  padding: 0 3px;
-  line-height: 18px;
-  background: #fff7e2;
-  pointer-events: none;
-  color: #795b35;
-}
 .ma-screen .ma-latest__copy {
   min-width: 0;
   flex: 1;

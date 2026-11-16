@@ -523,7 +523,9 @@ try {
     'apps/web/src/screens/BoxScreen.tsx',
     'apps/web/src/screens/box-lobby.css',
     'apps/web/src/components/RoomTable.tsx',
-    'apps/web/src/components/BoxSaveStatus.tsx',
+    'apps/web/src/components/SaveStatus.tsx',
+    'apps/web/src/components/save-status.css',
+    'apps/web/src/components/useToolbarSavePosition.ts',
     'tools/test/box/verify-box-lobby.mjs',
     ...['uno'].flatMap((id) => [
       'games/' + id + '/game-module.json',

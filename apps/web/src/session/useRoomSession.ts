@@ -53,6 +53,7 @@ export function useRoomSession(role: ScreenRole) {
   const [busy, setBusy] = useState(false);
   const [awaitingConfirmation, setAwaitingConfirmation] = useState(false);
   const [message, setMessage] = useState('');
+  const [saveConfirmation, setSaveConfirmation] = useState(0);
   const [name, setName] = useState('');
   const [addresses, setAddresses] = useState<string[]>([]);
   const [adapters, setAdapters] = useState<
@@ -786,6 +787,7 @@ export function useRoomSession(role: ScreenRole) {
       setAwaitingConfirmation(false);
       const reply = parsed.data;
       if (reply.ok) {
+        setSaveConfirmation((previous) => previous + 1);
         setMessage(feedbackText('session.saved'));
       } else {
         setErrorId(envelope.actionId);
@@ -854,6 +856,7 @@ export function useRoomSession(role: ScreenRole) {
     awaitingConfirmation,
     message,
     messageKind: feedbackKind(message),
+    saveConfirmation,
     name,
     setName,
     addresses,

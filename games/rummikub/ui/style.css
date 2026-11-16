@@ -743,24 +743,12 @@
   max-height: 44px;
   overflow-y: auto;
 }
-.rk-latest > span:not(.rk-saved-label) {
+.rk-latest > span {
   flex: 1;
   overflow-wrap: anywhere;
   min-width: 0;
   max-height: 44px;
   overflow-y: auto;
-}
-.rk-saved-label {
-  position: absolute;
-  inset-block-start: -16px;
-  inset-inline-end: 12px;
-  color: #42664e;
-  font-size: 16px;
-  line-height: 18px;
-  background: #fffdf5;
-  padding: 0 3px;
-  white-space: nowrap;
-  pointer-events: none;
 }
 .rk-saved .rk-latest {
   animation: rk-save-flash 650ms ease-out;

@@ -1621,7 +1621,7 @@ try {
         const labels = await page.evaluate(() =>
           [
             ...document.querySelectorAll(
-              '.session-save-anchor,.uno-saved-label,.rk-saved-label,.av-saved-label,.ma-latest > span',
+              '.toolbar-save-feedback[data-positioned]',
             ),
           ]
             .filter((el) => getComputedStyle(el).display !== 'none')
@@ -1631,14 +1631,14 @@ try {
             })),
         );
         assert(
-          labels.every((label) => label.position === 'absolute'),
+          labels.every((label) => label.position === 'fixed'),
           JSON.stringify(labels),
         );
         const overlaps = await page.evaluate(() => {
           const result = [];
           const labels = [
             ...document.querySelectorAll(
-              '.session-save-overlay,.uno-saved-label,.rk-saved-label,.av-saved-label,.ma-latest > span,.box-save-status[data-visible="true"]',
+              '.toolbar-save-feedback[data-positioned]',
             ),
           ];
           for (const label of labels) {
@@ -1651,10 +1651,7 @@ try {
             const range = document.createRange();
             range.selectNodeContents(label);
             const box = range.getBoundingClientRect();
-            const container =
-              label.closest(
-                'header,.uno-latest,.rk-latest,.av-saved-action,.ma-latest',
-              ) ?? label.parentElement;
+            const container = label.closest('main') ?? label.parentElement;
             const walker = document.createTreeWalker(
               container,
               NodeFilter.SHOW_TEXT,

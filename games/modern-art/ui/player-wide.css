@@ -374,26 +374,6 @@
   display: none;
 }
 
-/* A saved result owns one in-flow place, away from toolbar hit targets. */
-.ma-screen > .ma-toolbar > .session-save-anchor {
-  position: static;
-  width: auto;
-  height: auto;
-}
-.ma-screen > .ma-toolbar .session-save-overlay {
-  position: static;
-}
-.ma-screen
-  > .ma-toolbar
-  > .session-save-anchor:has(.session-save-overlay:empty) {
-  display: none;
-}
-.ma-screen .ma-latest > span {
-  position: static;
-  flex: none;
-  padding: 0;
-  background: none;
-}
 .ma-screen.player[data-player-layout-contract='three-v1'] .ma-player-footer {
   order: 4;
   display: flex;

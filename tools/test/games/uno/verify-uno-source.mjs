@@ -603,9 +603,7 @@ async function measurements(page, { dialogs = false } = {}) {
       sort = screen.querySelector('.uno-hand-title button');
     const owner = screen.querySelector('.uno-hand-scroll');
     const receipts = [
-      ...screen.querySelectorAll(
-        '.uno-saved-label,.session-save-overlay,.box-save-status[data-visible="true"]',
-      ),
+      ...screen.querySelectorAll('.toolbar-save-feedback[data-positioned]'),
     ]
       .filter(
         (element) =>

@@ -255,7 +255,6 @@ function RaScreen({ session }: { session: GameHost }) {
             </span>
             太阳神
           </h1>
-          <SessionFeedback session={session} mode="saved" />
         </div>
         <div className="ra-toolbar-controls">
           <button
@@ -274,6 +273,7 @@ function RaScreen({ session }: { session: GameHost }) {
             </CountdownSettings>
           )}
         </div>
+        <SessionFeedback session={session} mode="toolbar-save" />
       </header>
       {showRules && (
         <OverlayPanel

@@ -232,6 +232,7 @@ function UnoScreen({ session }: { session: GameHost }) {
             <MenuIcon />
           </button>
         </div>
+        <SessionFeedback session={session} mode="toolbar-save" />
       </header>
       <SessionFeedback session={session} mode="messages" />
       {!game || !view ? (
@@ -521,7 +522,6 @@ function UnoScreen({ session }: { session: GameHost }) {
                       : '下一位',
                   )}
               </span>
-              <span className="uno-saved-label">已保存</span>
             </div>
           )}
           {authorizedEvidence &&

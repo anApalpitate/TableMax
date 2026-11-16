@@ -85,13 +85,6 @@ function ModernArtScreen({ session }: { session: RoomSession }) {
         : view?.botError
           ? '等待恢复游戏'
           : undefined;
-  const showSessionFeedback = !(
-    ended &&
-    connected &&
-    session.messageKind === 'saved' &&
-    !session.admissionPending &&
-    !session.awaitingConfirmation
-  );
   const emptyFinalMuseums =
     ended &&
     game.seatOrder.every((seat) => game.players[seat]?.collection.length === 0);
@@ -230,7 +223,6 @@ function ModernArtScreen({ session }: { session: RoomSession }) {
           <span>现代艺术</span>
         </div>
         <span className="ma-round">第 {game?.round ?? 1} / 4 轮</span>
-        {!game?.latest && <SessionFeedback session={session} mode="saved" />}
         <span
           className={`connection ${connected ? 'online' : ''}`}
           role="status"
@@ -289,10 +281,9 @@ function ModernArtScreen({ session }: { session: RoomSession }) {
             <MenuIcon />
           </button>
         </div>
+        <SessionFeedback session={session} mode="toolbar-save" />
       </header>
-      {showSessionFeedback && (
-        <SessionFeedback session={session} mode="messages" />
-      )}
+      <SessionFeedback session={session} mode="messages" />
       {!game || !view ? (
         <div className="ma-unavailable">
           <h1>等待拍卖开始</h1>

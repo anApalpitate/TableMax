@@ -298,9 +298,6 @@ function ManilaScreen({ session }: { session: GameHost }) {
                 )}
               </span>
             )}
-            <span className="mn-status-save">
-              <SessionFeedback session={session} mode="saved" />
-            </span>
           </div>
         </div>
         <DecisionCountdown
@@ -423,6 +420,7 @@ function ManilaScreen({ session }: { session: GameHost }) {
             <MenuIcon />
           </button>
         </div>
+        <SessionFeedback session={session} mode="toolbar-save" />
       </header>
       {role === 'player' && status}
       <div className="mn-screen-feedback">

@@ -931,7 +931,7 @@
   min-height: 42px;
   flex: 0 0 auto;
 }
-.uno-latest > span:not(.uno-saved-label) {
+.uno-latest > span {
   overflow-wrap: anywhere;
 }
 .uno-latest > strong {
@@ -941,19 +941,6 @@
   max-width: 25%;
   overflow: hidden;
   text-overflow: ellipsis;
-}
-.uno-saved-label {
-  position: absolute;
-  inset-block-start: -10px;
-  inset-inline-end: 12px;
-  margin: 0;
-  color: #607753;
-  background: #fffcef;
-  padding: 0 3px;
-  white-space: nowrap;
-  font-size: 16px;
-  line-height: 18px;
-  pointer-events: none;
 }
 .uno-unavailable {
   flex: 1;
@@ -1749,7 +1736,7 @@
   .uno-screen--player .uno-latest > strong {
     max-width: 50%;
   }
-  .uno-screen--player .uno-latest > span:not(.uno-saved-label) {
+  .uno-screen--player .uno-latest > span {
     order: 3;
     flex-basis: 100%;
   }
@@ -1998,7 +1985,7 @@
     margin-right: 8px;
     vertical-align: bottom;
   }
-  .uno-screen--player .uno-latest > span:not(.uno-saved-label) {
+  .uno-screen--player .uno-latest > span {
     display: inline;
   }
   .uno-screen--player .uno-hand-heading h2 {
@@ -2228,10 +2215,7 @@
     inset 0 1px #fff9,
     0 2px 6px #75653b0d;
 }
-.uno-screen--player
-  .uno-player-workspace
-  > .uno-latest
-  > span:not(.uno-saved-label) {
+.uno-screen--player .uno-player-workspace > .uno-latest > span {
   flex: 1 1 150px;
   width: auto;
   order: initial;

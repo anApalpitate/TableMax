@@ -1,5 +1,6 @@
 import type { RoomSession } from '../session/useRoomSession';
 import { feedbackText } from '../content/feedback';
+import { SaveStatus } from './SaveStatus';
 export function SessionFeedback({
   session,
   hideSaved = false,
@@ -7,9 +8,10 @@ export function SessionFeedback({
 }: {
   session: RoomSession;
   hideSaved?: boolean;
-  mode?: 'all' | 'saved' | 'messages';
+  mode?: 'all' | 'saved' | 'messages' | 'toolbar-save';
 }) {
   const saved = session.messageKind === 'saved';
+  if (mode === 'toolbar-save') return <SaveStatus {...session} toolbar />;
   if (mode === 'saved')
     return (
       <span className="session-save-anchor">

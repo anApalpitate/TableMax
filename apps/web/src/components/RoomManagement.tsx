@@ -14,10 +14,12 @@ export function RoomManagement({
   session,
   lifecycleLabel = '开始下一局',
   display = 'full',
+  hideSaved = false,
 }: {
   session: RoomSession;
   lifecycleLabel?: string;
   display?: 'full' | 'actions' | 'details';
+  hideSaved?: boolean;
 }) {
   const { view, locked, command, isHost, canControl } = session;
   const [confirmation, setConfirmation] = useState<'end' | 'clear' | null>(
@@ -31,7 +33,9 @@ export function RoomManagement({
       className={`management${display === 'actions' ? ' room-actions' : ' room-management-details'}`}
       aria-label={display === 'actions' ? '牌桌操作' : '牌桌管理'}
     >
-      {display === 'full' && <SessionFeedback session={session} />}
+      {display === 'full' && (
+        <SessionFeedback session={session} hideSaved={hideSaved} />
+      )}
       {showActions && view.status === 'playing' && (
         <>
           <button

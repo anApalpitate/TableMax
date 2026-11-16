@@ -514,9 +514,6 @@
   .av-seat-portrait {
   animation: av-local-seal 650ms ease-out;
 }
-.avalon-screen[data-av-saved='true'] .av-saved-seal {
-  animation: av-wax-stamp 550ms ease-out;
-}
 @keyframes av-local-seal {
   0% {
     box-shadow: 0 0 0 0 #f2dc9788;
@@ -529,19 +526,6 @@
   100% {
     box-shadow: 0 0 0 24px #bda25a00;
     transform: scale(1);
-  }
-}
-@keyframes av-wax-stamp {
-  from {
-    transform: rotate(-24deg) scale(1.5);
-    opacity: 0.2;
-  }
-  65% {
-    transform: rotate(5deg) scale(0.92);
-    opacity: 1;
-  }
-  to {
-    transform: rotate(0) scale(1);
   }
 }
 :where(.avalon-screen, .av-overlay) .av-player-controls {
@@ -638,17 +622,6 @@
   border-radius: 13px;
   background: #fffaedd6;
 }
-:where(.avalon-screen, .av-overlay) .av-saved-seal {
-  display: grid;
-  place-items: center;
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  border: 1px solid #82946d;
-  color: #45654a;
-  font-size: 18px;
-  flex-shrink: 0;
-}
 :where(.avalon-screen, .av-overlay) .av-saved-action > div {
   display: flex;
   min-width: 0;
@@ -669,18 +642,6 @@
 }
 :where(.avalon-screen, .av-overlay) .av-saved-action span {
   font-size: 16px;
-}
-:where(.avalon-screen, .av-overlay) .av-saved-label {
-  position: absolute;
-  z-index: 81;
-  inset-block-start: -10px;
-  inset-inline-end: 12px;
-  padding: 0 3px;
-  line-height: 18px;
-  background: #fffaed;
-  white-space: nowrap;
-  pointer-events: none;
-  color: #798164;
 }
 :where(.avalon-screen, .av-overlay) .av-public-footer {
   display: flex;
@@ -2200,8 +2161,7 @@
   .av-overlay * {
     transition: none !important;
   }
-  .avalon-screen[data-av-saved='true'] .av-seat .av-seat-portrait,
-  .avalon-screen[data-av-saved='true'] .av-saved-seal {
+  .avalon-screen[data-av-saved='true'] .av-seat .av-seat-portrait {
     animation: none;
   }
   :where(.avalon-screen, .av-overlay) .av-performance {
@@ -2554,7 +2514,7 @@
     flex-wrap: wrap;
     display: grid;
     position: relative;
-    grid-template-columns: 28px minmax(0, 1fr);
+    grid-template-columns: minmax(0, 1fr);
     gap: 4px 10px;
     line-height: 1.4;
   }

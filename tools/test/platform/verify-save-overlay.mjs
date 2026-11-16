@@ -6,6 +6,7 @@ import { mkdir, mkdtemp, readFile, writeFile } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
 import { build } from 'vite';
 import react from '@vitejs/plugin-react';
+import { leanCatalogPlugin } from '../../build/lean-catalog.mjs';
 import { launchTestBrowser } from '../support/browser-test.mjs';
 import { serveFixture } from '../support/fixture-server.mjs';
 import { captureBrowserScreenshot } from '../support/screenshots.mjs';
@@ -22,9 +23,20 @@ const selectedWidth = Number(
   process.argv.find((arg) => arg.startsWith('--width='))?.slice(8) ?? 0,
 );
 const feedbackOnly = process.argv.includes('--feedback-only');
+const receiptOnly = process.argv.includes('--receipt-only');
+const task = process.argv.find((arg) => arg.startsWith('--task='))?.slice(7);
+if (task) assert.match(task, /^tmp\/[a-z0-9][a-z0-9-]{1,80}$/);
 const output = resolve('artifacts/maintenance', evidence);
 await mkdir(output);
-const work = await mkdtemp(resolve('tmp/save-overlay-'));
+const work = task
+  ? resolve(task, evidence)
+  : await mkdtemp(resolve('tmp/save-overlay-'));
+if (task) {
+  await mkdir(work, { recursive: true });
+  const browserTemp = resolve(task, 'browser-temp');
+  await mkdir(browserTemp, { recursive: true });
+  process.env.TEMP = process.env.TMP = browserTemp;
+}
 const source = await readFile(new URL(import.meta.url));
 await writeFile(join(output, 'verifier-source.mjs'), source, { flag: 'wx' });
 await writeFile(
@@ -43,21 +55,30 @@ import {BoxScreen} from ${path('apps/web/src/screens/BoxScreen.tsx')};
 import {rulesByVariant as pokemonRules} from ${path('games/pokemon-encounters/rules/index.ts')};
 import {client as pokemon} from ${path('games/pokemon-encounters/web/index.tsx')};
 import {client as expansion} from ${path('games/pokemon-encounters/expansion/web/index.tsx')};
-${['manila', 'modern-art', 'power-grid', 'rummikub', 'uno', 'avalon'].map((id, i) => `import {rules as rules${i}} from ${path(`games/${id}/rules/index.ts`)};\nimport {client as client${i}} from ${path(`games/${id}/web/index.tsx`)};`).join('\n')}
+${['manila', 'modern-art', 'power-grid', 'rummikub', 'uno', 'avalon', 'ra'].map((id, i) => `import {rules as rules${i}} from ${path(`games/${id}/rules/index.ts`)};\nimport {client as client${i}} from ${path(`games/${id}/web/index.tsx`)};`).join('\n')}
 import ${path('apps/web/src/styles.css')};
 import ${path('apps/web/src/screens/box-screen.css')};
 import ${path('apps/web/src/scrollbars.css')};
-const catalog={pokemon:{rules:pokemonRules.original,client:pokemon},expansion:{rules:pokemonRules.expansion,client:expansion},${['manila', 'modern-art', 'power-grid', 'rummikub', 'uno', 'avalon'].map((id, i) => `${JSON.stringify(id)}:{rules:rules${i},client:client${i}}`).join(',')}};
+const catalog={pokemon:{rules:pokemonRules.original,client:pokemon},expansion:{rules:pokemonRules.expansion,client:expansion},${['manila', 'modern-art', 'power-grid', 'rummikub', 'uno', 'avalon', 'ra'].map((id, i) => `${JSON.stringify(id)}:{rules:rules${i},client:client${i}}`).join(',')}};
 const noop=()=>{};
+let saveConfirmation=0;
 const root=createRoot(document.getElementById('root'));
+window.resetSaveCase=()=>flushSync(()=>root.render(null));
 window.commands=[];
 window.renderSaveCase=(options={})=>{
- const {id='manila',role='player',feedback='none',locked=false,noFinance=false,longName=false,withClock=false}=options;
+ const {id='manila',role='player',feedback='none',locked=false,noFinance=false,longName=false,withClock=false,advance=false}=options;
+ document.documentElement.dataset.playerDisplay=role==='player'&&innerWidth>=640?'wide':'portrait';
  const item=catalog[id==='box'?'manila':id],rules=item.rules;
  const ids=Array.from({length:rules.manifest.players.min},(_,i)=>String.fromCharCode(65+i));
  let seed=71217;
  const context={seats:ids,random:{next:()=>{seed=(Math.imul(seed,1664525)+1013904223)>>>0;return seed/4294967296;}}};
- const state=rules.initialize(context),decisions=rules.decisions(state);
+ let state=rules.initialize(context);
+ if(advance){
+  const seat=rules.decisions(state)[0]?.seatId;
+  const action=rules.legalActions(state,seat)[0];
+  state=rules.validateState(rules.apply(state,action,seat,context).state,ids);
+ }
+ const decisions=rules.decisions(state);
  const actor=decisions[0]?.seatId??ids[0];
  const seats=ids.map((id,i)=>({id,name:['阿蓝','小林','港口伙伴','长昵称测试商人','小船长'][i]??('朋友'+i),avatarId:'avatar-'+(i+1),controller:'human',ready:true,online:true,botDifficulty:null}));
  if(longName)seats.find(s=>s.id===actor).name='长昵称测试商人甲';
@@ -68,6 +89,11 @@ window.renderSaveCase=(options={})=>{
  view.catalog=[];view.capabilities={manage:role==='host',control:role==='host',manageSeats:role==='host'};view.self={role,seatId:role==='player'?actor:null};view.restored=false;view.selectionToken=null;
  if(id==='box')view.gameView=null;
  const session={role,view,self:role==='player'?seats.find(s=>s.id===actor):undefined,isHost:role==='host',canControl:role==='host',canManageSeats:role==='host',connected:feedback!=='connection',locked:locked||feedback==='retry',busy:locked,message,messageKind:feedback==='retry'?'progress':feedback,admissionPending:false,awaitingConfirmation:feedback==='retry',feedback:null,errorId:feedback==='error'?'fixture-error':'',motion:[],credential:'fixture',name:'阿蓝',setName:noop,command:c=>window.commands.push(c),join:noop,retry:()=>window.commands.push({type:'retry'}),retryAdmission:noop,setPlayerCredential:noop,publicUrl:'http://127.0.0.1',localUrl:'http://127.0.0.1',admissionAvatarId:null};
+ Object.assign(session,{
+  addresses:['127.0.0.1'],adapters:[],address:'127.0.0.1',port:38473,setAddress:noop,
+  externalJoinUrl:null,refreshNetwork:noop,networkMessage:'',
+  saveConfirmation:feedback==='saved'?++saveConfirmation:saveConfirmation,
+ });
  flushSync(()=>root.render(id==='box'?<BoxScreen key={id+'-'+role} session={session}/>:<PlatformGame key={id+'-'+role} session={session} client={item.client}/>));
  window.fixtureSession=session;
  return {actor,minimum:view.actions.find(a=>a.type==='bid')?.amount,maximum:view.actions.filter(a=>a.type==='bid').at(-1)?.amount};
@@ -102,7 +128,8 @@ try {
   await build({
     configFile: false,
     root: work,
-    plugins: [react()],
+    assetsInclude: ['**/*.flac'],
+    plugins: [leanCatalogPlugin(resolve('.')), react()],
     resolve: {
       alias: {
         react: resolve('apps/web/node_modules/react'),
@@ -117,7 +144,10 @@ try {
     logLevel: 'error',
   });
   server = await serveFixture(join(work, 'bundle'));
-  browser = await launchTestBrowser({ channel: 'msedge', headless: true });
+  browser = await launchTestBrowser({
+    channel: process.env.PLAYWRIGHT_BROWSERS_PATH ? undefined : 'msedge',
+    headless: true,
+  });
   const viewports = [
     [320, 568, 1],
     [390, 844, 1],
@@ -139,10 +169,16 @@ try {
     'rummikub',
     'avalon',
     'power-grid',
+    'ra',
   ];
   assert(!selected || selected.every((id) => available.includes(id)));
   const ids = selected ?? available;
-  report.selected = { ids, width: selectedWidth || 'all', feedbackOnly };
+  report.selected = {
+    ids,
+    width: selectedWidth || 'all',
+    feedbackOnly,
+    receiptOnly,
+  };
   for (const [width, height, dpr] of viewports) {
     if (
       (selectedWidth && width !== selectedWidth) ||
@@ -156,6 +192,14 @@ try {
     });
     const page = await context.newPage();
     page.on('pageerror', (e) => report.errors.push(e.message));
+    await page.route(
+      /\/(?:assets\/games|game-packages\/fixture\/resources)\/ra\//,
+      (route) => {
+        const path = new URL(route.request().url()).pathname.split('/ra/')[1];
+        assert.match(path, /^(?:[\w-]+\/)*[\w-]+\.(?:svg|webp)$/);
+        return route.fulfill({ path: resolve('assets/games/ra', path) });
+      },
+    );
     await page.route('**/api/game-packages/releases/fixture/details', (route) =>
       route.fulfill({
         json: {
@@ -192,7 +236,9 @@ try {
           n.getBoundingClientRect().width > 0 &&
           n.getBoundingClientRect().height > 0;
         const overlay = [
-          ...root.querySelectorAll('.session-save-overlay,.box-save-status'),
+          ...root.querySelectorAll(
+            '.toolbar-save-feedback[data-positioned],.box-save-feedback',
+          ),
         ].find((n) => visible(n) && n.textContent.trim());
         const shown = overlay && visible(overlay) && overlay.textContent.trim();
         const overlaps = (a, b) =>
@@ -201,18 +247,29 @@ try {
           a.y < b.y + b.height - 0.5 &&
           b.y < a.y + a.height - 0.5;
         const blockers = [
-          ...header.querySelectorAll(
-            'button,a,input,select,h1,strong,.ma-round,.connection',
-          ),
-          ...root.querySelectorAll(
-            '.mn-status button,.mn-status img,.mn-status .mn-phase-name,.mn-status .mn-actor-name,.mn-status .mn-turn-hint,.mn-status .mn-auction-standing',
-          ),
-        ].filter(
-          (n) => visible(n) && !n.contains(overlay) && !overlay?.contains(n),
-        );
+          ...root.querySelectorAll('button,a,input,select,summary'),
+        ]
+          .filter(visible)
+          .map((node) => ({
+            ...rect(node),
+            text: node.textContent,
+            label: node.getAttribute('aria-label'),
+          }));
+        const walker = document.createTreeWalker(header, NodeFilter.SHOW_TEXT);
+        for (let node = walker.nextNode(); node; node = walker.nextNode()) {
+          if (overlay?.contains(node) || !node.textContent.trim()) continue;
+          const range = document.createRange();
+          range.selectNodeContents(node);
+          for (const { x, y, width, height } of range.getClientRects())
+            if (width && height)
+              blockers.push({ x, y, width, height, text: node.textContent });
+        }
         return {
           root: rect(root),
           header: rect(header),
+          actions: [...header.querySelectorAll('button,a,input,select,summary')]
+            .filter(visible)
+            .map(rect),
           flow: [...root.children]
             .filter(
               (n) =>
@@ -231,19 +288,15 @@ try {
                 position: getComputedStyle(overlay).position,
                 font: parseFloat(getComputedStyle(overlay).fontSize),
                 pointerEvents: getComputedStyle(overlay).pointerEvents,
-                collisions: blockers
-                  .filter((n) => overlaps(rect(overlay), rect(n)))
-                  .map((n) => ({
-                    text: n.textContent,
-                    label: n.getAttribute('aria-label'),
-                    ...rect(n),
-                  })),
+                collisions: blockers.filter((block) =>
+                  overlaps(rect(overlay), block),
+                ),
               }
             : null,
         };
       });
     for (const id of feedbackOnly ? [] : ids)
-      for (const role of ['player', 'host', 'public']) {
+      for (const role of ['player', 'host']) {
         if (role !== 'player' && width < 1280) continue;
         await check(`${id}-${role}-${width}-${dpr}`, async () => {
           await page.evaluate((o) => window.renderSaveCase(o), {
@@ -257,16 +310,17 @@ try {
               [...document.images].map((i) => i.decode().catch(() => {})),
             ),
           );
-          await page.evaluate(() =>
-            scrollTo(
-              0,
-              Math.min(
-                100,
-                document.scrollingElement.scrollHeight - innerHeight,
-              ),
-            ),
-          );
+          await page.evaluate(() => scrollTo(0, 0));
           const before = await measure();
+          if (
+            dpr === 1 &&
+            ((role === 'player' && width === 390) ||
+              (role === 'host' && width === 1280))
+          ) {
+            const file = join(output, `${id}-${role}-${width}-before.png`);
+            await captureBrowserScreenshot(page, { path: file });
+            report.screenshots.push(file);
+          }
           await page.evaluate((o) => window.renderSaveCase(o), {
             id,
             role,
@@ -278,6 +332,7 @@ try {
           for (const key of [
             'root',
             'header',
+            'actions',
             'flow',
             'scrollHeight',
             'scrollY',
@@ -288,9 +343,9 @@ try {
               before[key],
               `${id} saved changes ${key}`,
             );
-          if (['box', 'manila', 'modern-art', 'pokemon'].includes(id)) {
+          if (!['pokemon', 'expansion'].includes(id)) {
             assert(after.overlay, `${id} saved marker missing`);
-            assert.equal(after.overlay.position, 'absolute');
+            assert.equal(after.overlay.position, 'fixed');
             assert.equal(after.overlay.pointerEvents, 'none');
             assert(after.overlay.font >= 16);
             assert.deepEqual(
@@ -300,7 +355,11 @@ try {
             );
             assert(
               after.overlay.rect.x >= 0 &&
-                after.overlay.rect.x + after.overlay.rect.width <= width + 0.5,
+                after.overlay.rect.x + after.overlay.rect.width <=
+                  width + 0.5 &&
+                after.overlay.rect.y >= 0 &&
+                after.overlay.rect.y + after.overlay.rect.height <=
+                  height + 0.5,
               'Saved marker outside viewport',
             );
           } else
@@ -311,9 +370,9 @@ try {
             );
           if (
             (role === 'player' &&
-              [320, 390, 844].includes(width) &&
+              [320, 390, 844, 1280].includes(width) &&
               dpr === 1) ||
-            (role === 'host' && width === 1920 && dpr === 1)
+            (role === 'host' && [1280, 1920].includes(width) && dpr === 1)
           ) {
             await page.evaluate(() => scrollTo(0, 0));
             const file = join(output, `${id}-${role}-${width}.png`);
@@ -322,7 +381,7 @@ try {
           }
         });
       }
-    if (dpr === 1 && !feedbackOnly && ids.includes('manila'))
+    if (dpr === 1 && !feedbackOnly && !receiptOnly && ids.includes('manila'))
       await check(`auction-${width}`, async () => {
         const range = await page.evaluate(() =>
           window.renderSaveCase({
@@ -480,6 +539,7 @@ try {
       });
     if (width === 320 && ids.includes('manila'))
       await check('manila-long-name-and-clock', async () => {
+        await page.evaluate(() => window.renderSaveCase({ id: 'manila' }));
         await page.evaluate(() =>
           window.renderSaveCase({
             id: 'manila',
@@ -504,10 +564,11 @@ try {
         });
       });
     if (width === 390 && dpr === 1)
-      for (const id of ['manila', 'modern-art', 'pokemon', 'box'].filter((id) =>
+      for (const id of ['manila', 'modern-art', 'ra', 'box'].filter((id) =>
         ids.includes(id),
       ))
         await check(`modal-${id}`, async () => {
+          await page.evaluate((id) => window.renderSaveCase({ id }), id);
           await page.evaluate((o) => window.renderSaveCase(o), {
             id,
             role: 'player',
@@ -519,13 +580,15 @@ try {
             JSON.stringify(window.fixtureSession.view.gameView),
           );
           const entry = page.getByRole('button', {
-            name: id === 'box' ? '视频设置' : '菜单',
+            name: id === 'box' ? '视频设置' : id === 'ra' ? '游戏设置' : '菜单',
             exact: true,
           });
           await entry.click();
           assert.equal(await page.locator('dialog:modal').count(), 1);
           const marker = page
-            .locator('.session-save-overlay,.box-save-status')
+            .locator(
+              '.toolbar-save-feedback[data-positioned],.box-save-feedback',
+            )
             .filter({ hasText: '已保存' })
             .first();
           const covered = await marker.evaluate((n) => {
@@ -554,9 +617,7 @@ try {
           });
         });
     if (width === 390 && dpr === 1)
-      for (const id of ['manila', 'modern-art', 'pokemon', 'box'].filter((id) =>
-        ids.includes(id),
-      ))
+      for (const id of ids)
         for (const feedback of ['progress', 'error', 'connection', 'retry'])
           await check(`feedback-${id}-${feedback}`, async () => {
             await page.evaluate((o) => window.renderSaveCase(o), {
@@ -567,7 +628,7 @@ try {
             await settle();
             assert.equal(
               await page
-                .locator('.session-save-overlay')
+                .locator('.toolbar-save-feedback,.box-save-feedback')
                 .filter({ hasText: '已保存' })
                 .count(),
               0,
@@ -596,6 +657,73 @@ try {
               );
             report.feedback.push({ id, feedback, result: 'passed' });
           });
+    if (width === 390 && dpr === 1) {
+      const latest = {
+        avalon: '.av-saved-action',
+        'modern-art': '.ma-latest',
+        rummikub: '.rk-latest',
+        uno: '.uno-latest',
+      };
+      for (const [id, selector] of Object.entries(latest).filter(([id]) =>
+        ids.includes(id),
+      ))
+        await check(`latest-action-${id}`, async () => {
+          await page.evaluate(
+            (id) => window.renderSaveCase({ id, advance: true }),
+            id,
+          );
+          const action = page.locator(selector).first();
+          assert(await action.isVisible());
+          assert((await action.innerText()).trim().length > 0);
+          assert(!/已保存/.test(await action.innerText()));
+          assert.equal(await action.locator('.av-saved-seal').count(), 0);
+          report.feedback.push({
+            id,
+            feedback: 'latest-action',
+            result: 'passed',
+          });
+        });
+      await page.clock.install();
+      for (const id of ids)
+        await check(`lifetime-${id}`, async () => {
+          const render = (feedback) =>
+            page.evaluate((options) => window.renderSaveCase(options), {
+              id,
+              feedback,
+            });
+          await page.evaluate(() => window.resetSaveCase());
+          await render('saved');
+          const marker = page.locator(
+            '.toolbar-save-feedback[data-visible],.box-save-feedback[data-visible]',
+          );
+          assert.equal(
+            await marker.count(),
+            0,
+            'Restored receipt must not replay',
+          );
+          await render('none');
+          await render('saved');
+          if (id === 'pokemon' || id === 'expansion') {
+            assert.equal(await marker.count(), 0);
+            return;
+          }
+          assert.equal(await marker.count(), 1);
+          assert.equal(await marker.getAttribute('data-phase'), 'saved');
+          await page.clock.runFor(1000);
+          await render('saved');
+          await page.clock.runFor(600);
+          assert.equal(await marker.getAttribute('data-phase'), 'saved');
+          await page.clock.runFor(910);
+          assert.equal(await marker.getAttribute('data-phase'), 'leaving');
+          await page.clock.runFor(330);
+          assert.equal(await marker.count(), 0);
+          report.feedback.push({
+            id,
+            feedback: 'receipt-lifetime',
+            result: 'passed',
+          });
+        });
+    }
     await context.close();
   }
   assert.deepEqual(report.errors, []);

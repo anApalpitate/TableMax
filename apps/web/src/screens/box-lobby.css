@@ -302,23 +302,12 @@
   width: 100%;
   font-size: 18px;
 }
-.box-screen > header .box-save-feedback {
+.box-screen > header .box-save-feedback[data-phase='progress'] {
   position: absolute;
   top: 50%;
   left: 180px;
   transform: translateY(-50%);
   padding: 0 8px;
-  border-radius: 8px;
-  color: #315d49;
-  background: #f5f5ec;
-  font-size: 16px;
-  line-height: 22px;
-  pointer-events: none;
-  opacity: 1;
-  transition: opacity 320ms;
-}
-.box-screen > header .box-save-feedback[data-phase='leaving'] {
-  opacity: 0;
 }
 
 /* Use the available window as a tabletop, keeping the invite column reserved. */
@@ -486,7 +475,7 @@
   }
 }
 @media (prefers-reduced-motion: reduce) {
-  .box-screen > header .box-save-feedback {
+  .box-screen > header .box-save-feedback[data-phase='progress'] {
     transition: none;
   }
 }
@@ -501,7 +490,7 @@
     width: 24px;
     height: 24px;
   }
-  .box-screen > header .box-save-feedback {
+  .box-screen > header .box-save-feedback[data-phase='progress'] {
     top: 12px;
     left: 142px;
     transform: none;

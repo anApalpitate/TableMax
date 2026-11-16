@@ -78,35 +78,6 @@
     align-self: center;
   }
 }
-/* The acknowledgement belongs to the phase copy, never to the wordmark. */
-.mn-screen .mn-current-turn-copy {
-  position: relative;
-}
-.mn-screen .mn-status-save,
-.mn-screen .mn-status-save > .session-save-anchor {
-  position: absolute;
-  inset-inline-end: 0;
-  top: 0;
-  width: 0;
-  height: 0;
-  min-width: 0;
-  min-height: 0;
-  margin: 0;
-  padding: 0;
-  flex: none;
-  pointer-events: none;
-}
-.mn-screen .mn-status-save .session-save-overlay {
-  position: absolute;
-  inset-inline-start: auto;
-  inset-inline-end: 0;
-  top: 0;
-  bottom: auto;
-  transform: none;
-  white-space: nowrap;
-  font-size: 16px;
-  line-height: 24px;
-}
 :is(.mn-screen--host) .mn-toolbar > .mn-status {
   flex: 1 1 auto;
 }

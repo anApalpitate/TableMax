@@ -1,21 +1,27 @@
 import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import { feedbackText, type FeedbackKind } from '../content/feedback';
 import { NotificationCenter } from './notifications/notification-center';
+import { useToolbarSavePosition } from './useToolbarSavePosition';
+import './save-status.css';
 
-export function BoxSaveStatus({
+export function SaveStatus({
   messageKind,
-  compactProgress,
+  saveConfirmation,
+  compactProgress = false,
   connected,
   busy,
   admissionPending,
   awaitingConfirmation,
+  toolbar = false,
 }: {
   messageKind: FeedbackKind;
-  compactProgress: boolean;
+  saveConfirmation?: number;
+  compactProgress?: boolean;
   connected: boolean;
   busy: boolean;
   admissionPending: boolean;
   awaitingConfirmation: boolean;
+  toolbar?: boolean;
 }) {
   const [center] = useState(() => new NotificationCenter(1));
   const notices = useSyncExternalStore(
@@ -23,20 +29,27 @@ export function BoxSaveStatus({
     center.snapshot,
     center.snapshot,
   );
-  const previousKind = useRef(messageKind);
+  const previous = useRef({
+    kind: messageKind,
+    confirmation: saveConfirmation,
+  });
   const blocked = !connected || admissionPending || awaitingConfirmation;
 
   useEffect(() => {
-    const previous = previousKind.current;
-    previousKind.current = messageKind;
+    const last = previous.current;
+    previous.current = { kind: messageKind, confirmation: saveConfirmation };
     if (blocked || busy || messageKind !== 'saved') {
       center.clear();
       return;
     }
     // A restored acknowledgement is not a new confirmation on this screen.
-    if (previous !== 'saved')
+    if (
+      saveConfirmation === undefined
+        ? last.kind !== 'saved'
+        : last.confirmation !== saveConfirmation
+    )
       center.show(feedbackText('session.saved'), 'success');
-  }, [blocked, busy, center, messageKind]);
+  }, [blocked, busy, center, messageKind, saveConfirmation]);
 
   useEffect(() => {
     const updateVisibility = () => center.setHidden(document.hidden);
@@ -50,20 +63,30 @@ export function BoxSaveStatus({
 
   const progress = !blocked && compactProgress;
   const notice = !blocked && !busy && messageKind === 'saved' && notices[0];
-  if (!progress && !notice) return null;
+  const ref = useToolbarSavePosition(Boolean(notice) && !progress);
+  if (!toolbar && !progress && !notice) return null;
 
   return (
     <span
-      className="box-save-feedback"
+      ref={ref}
+      className={
+        toolbar
+          ? 'toolbar-save-feedback'
+          : notice
+            ? 'box-save-feedback toolbar-save-feedback'
+            : 'box-save-feedback'
+      }
       data-phase={
         progress ? 'progress' : notice && notice.leaving ? 'leaving' : 'saved'
       }
-      data-visible="true"
+      data-visible={progress || notice ? 'true' : undefined}
       role="status"
     >
       {progress
         ? feedbackText('session.submitting')
-        : `✓ ${feedbackText('session.saved')}`}
+        : notice
+          ? `✓ ${feedbackText('session.saved')}`
+          : null}
     </span>
   );
 }

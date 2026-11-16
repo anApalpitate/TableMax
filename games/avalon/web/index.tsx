@@ -56,9 +56,6 @@ function SavedAction({
       data-latest-saved-action
       aria-live="polite"
     >
-      <span className="av-saved-seal" aria-hidden="true">
-        ✓
-      </span>
       <div>
         {actor && <strong>{actor}</strong>}
         <span>
@@ -67,7 +64,6 @@ function SavedAction({
             : text}
         </span>
       </div>
-      <span className="av-saved-label">已保存</span>
     </div>
   );
 }
@@ -326,6 +322,7 @@ function AvalonScreen({ session }: { session: GameHost }) {
             <MenuIcon />
           </button>
         </div>
+        <SessionFeedback session={session} mode="toolbar-save" />
       </header>
       <SessionFeedback session={session} mode="messages" />
       {!game || !view ? (

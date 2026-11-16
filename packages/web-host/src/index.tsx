@@ -60,7 +60,7 @@ export function SessionFeedback({
   mode,
 }: {
   session?: GameHost;
-  mode?: 'all' | 'saved' | 'messages';
+  mode?: 'all' | 'saved' | 'messages' | 'toolbar-save';
 }) {
   return useSlots().feedback(mode ? { mode } : undefined);
 }

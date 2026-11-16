@@ -24,6 +24,8 @@
 
 相同入口的`--review-only --task=tmp/<安全任务名> --evidence=<新轮名>`精确归`tooling`，读取任务`review/review-source.json`绑定HTML与相对图片SHA，再检查离线解码、筛选、原始像素和窄屏页面。一次性HTML生成脚本留任务`work`，不登记为永久工具入口；审阅QA不另增产品场景统计。服务路由／权限、原生桥接、配置、声音和安装器均须各自证据。
 
+[保存回执源码验证](platform/verify-save-overlay.mjs)接受 `--task=tmp/<任务唯一ID> --evidence=<新轮名> --receipt-only`，按现有范围计划执行。检查回执前后布局、控件交叠、模态层、计时、宝可梦例外及错误／重试。可用 `--only` 和 `--width` 定向复验。`PLAYWRIGHT_BROWSERS_PATH` 指向已安装的 Playwright Chromium 时使用该浏览器，否则使用无头 Edge。
+
 ### 规则与菜单的隔离源码复核
 
 [verify-rule-menu-ui.mjs](platform/verify-rule-menu-ui.mjs) 接受 `--task=tmp/<安全任务名> --evidence=<新轮名> --phase=before|after`，通过 `box,shared` 与七款游戏范围的 version 1 显式计划执行。输入为任务内冻结的 `work/before`／`work/after` 源码和资源，以及真实规则推进生成的 `legal-fixtures.json`；冻结清单应保留各文件 SHA、原工作区改动与对照来源。每个游戏使用新浏览器上下文，经真实开发模块 registry 加载，不引入原型页面或其他游戏主入口样式。夹具缺少宝可梦玩法 metadata 时按明确 case ID 选择 original／expansion；源码验证不使用发行 releaseRef，不证明生产模块服务或旧档恢复。

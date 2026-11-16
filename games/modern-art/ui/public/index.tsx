@@ -37,7 +37,6 @@ export function SavedAction({
   const actorNumber = publicSeatNumber(view, entry.actor);
   return (
     <div className="ma-latest" aria-live="polite">
-      <span>已保存</span>
       <div className="ma-latest__copy">
         <p
           title={`${actorNumber === null ? '' : `${actorNumber} `}${entry.actor ? (names[entry.actor] ?? '玩家') : '拍卖行'} ${entry.text}`}

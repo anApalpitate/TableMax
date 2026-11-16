@@ -471,10 +471,9 @@ function PowerGridScreen({ session }: { session: RoomSession }) {
             <MenuIcon />
           </button>
         </div>
+        <SessionFeedback session={session} mode="toolbar-save" />
       </header>
-      {((session.message && session.message !== '已保存') ||
-        session.admissionPending ||
-        session.awaitingConfirmation) && <SessionFeedback session={session} />}
+      <SessionFeedback session={session} mode="messages" />
       {!game || !view ? (
         <div className="pg-unavailable">
           <h1>等待德国电网开局</h1>

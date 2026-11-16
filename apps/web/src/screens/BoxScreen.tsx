@@ -14,7 +14,7 @@ import { ScreenLink } from '../components/ScreenLink';
 import { RoomManagement } from '../components/RoomManagement';
 import { InviteFriends } from '../components/InviteFriends';
 import { BoxFeedback } from '../components/BoxFeedback';
-import { BoxSaveStatus } from '../components/BoxSaveStatus';
+import { SaveStatus } from '../components/SaveStatus';
 import { Notifications } from '../components/notifications/Notifications';
 import { RoomTable } from '../components/RoomTable';
 import {
@@ -165,8 +165,9 @@ function BoxScreenContent({ session }: { session: RoomSession }) {
             {connected ? '已连接' : '正在连接'}
           </span>
         </span>
-        <BoxSaveStatus
+        <SaveStatus
           messageKind={session.messageKind}
+          saveConfirmation={session.saveConfirmation}
           compactProgress={compactProgress}
           connected={connected}
           busy={busy}
