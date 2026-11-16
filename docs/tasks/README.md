@@ -53,11 +53,11 @@ UNO完成过程见[制作归档](../archive/uno-2026-10-10.md)，现行规则与
 
 ## 后续独立范围
 
-[全部游戏布局接续](all-games-layout-rollout.md)：8款游戏、9个玩法的源码调整与浏览器验证已完成，完整源码已编译组装；仅接续真机、真实DPI／电视、服务持久化、新安装器。长期组织见[界面复用](../reference/ui-composition.md)，实施前方案见[归档](../archive/all-games-layout-rollout-plan-2026-10-29.md)。
+[全部游戏布局接续](all-games-layout-rollout.md)：2026-10-29 源码布局与浏览器验证已收尾；接续真机、真实 DPI／电视与服务持久化。当前交付见[验收](../reference/acceptance.md#当前源码与本地交付)。长期组织见[界面复用](../reference/ui-composition.md)，实施前方案见[归档](../archive/all-games-layout-rollout-plan-2026-10-29.md)。
 
 人机算法、统一快速评估和捣蛋王从[人机崛起任务](bot-rise.md)接续：规划已建立，实施未开始；复用现有三档策略与Worker，先完成接口和评估基线，再逐游戏升级。
 
-[初始10款游戏与扩展包](base-games-and-expansion-packs.md)：未来初始包由现有6款补齐至10款，后续新增游戏支持扩展包单独下载；扩展包游戏开发前先完成可复用架构与明确接口的方案和验证。
+[初始10款游戏与扩展包](base-games-and-expansion-packs.md)：未来初始包计划含 10 款游戏，后续新增游戏支持扩展包单独下载；扩展包游戏开发前先完成可复用架构与明确接口的方案和验证。
 
 ### 宝可梦奇遇扩展版素材、玩法与真人验收（待接续）
 
