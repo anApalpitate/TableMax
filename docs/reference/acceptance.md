@@ -6,11 +6,19 @@
 
 ## 当前源码移除《德国小强》（2026-11-16）
 
-当前源码新局目录为 7 款游戏、8 个玩法。《德国小强》的模块、运行及制作素材、规则文档和专用验证工具已移除，逐文件字节与 SHA 见[退役清单](../../assets/retired-cockroach-poker-20261116.json)。现有本地安装器 1.0.8.10 维持其冻结发行，旧局继续按原发行恢复。本次无新安装器导出。
+当前源码新局目录为 7 款游戏、8 个玩法。《德国小强》的模块、运行及制作素材、规则文档和专用验证工具已移除，逐文件字节与 SHA 见[退役清单](../../assets/retired-cockroach-poker-20261116.json)。移除随 1.0.8.11 安装器交付，旧局继续按原发行恢复。
 
-## 当前安装交付（2026-10-31）
+## 当前安装交付（2026-11-16）
 
-本地 [current](../../artifacts/package-payloads/v1.0.8/current.json) 已推广为 **1.0.8.10**，预装 8 款游戏／9 个玩法，未发布。[完整安装器](../../artifacts/releases/v1.0.8/1.0.8.10/TableMax-1.0.8.10-installer-win-x64.exe)为 41,531,127 字节，SHA `09db4df6731e89f82f7e0ce449da8cda30a5f60aa9f9fe7f81485d67b3dbaa9c`；冻结快照 `dfb2cb9f23c8274f0bd7b2d620f41d96cff16af3a3a3cb31b3dc0f0df8946408`。内部 payload 为 49,786,309 字节，SHA `269527b10eec39dc74148774f6bf60fd1982613748f8107354426a2804bd9955`；安装清单 SHA `4fe0042945547021472a014fe107efc758191aad390bf56fe5a3788c93eaaaaf`。三位公开版本仍为 1.0.8。
+本地 [current](../../artifacts/package-payloads/v1.0.8/current.json) 已推广为 **1.0.8.11**，预装 7 款游戏、8 个玩法。盒子目录、签名目录和实际预装映射一致。三位公开版本为 1.0.8，本次仅本地交付。冻结快照 `bd9d6ba02a959e2fac5000bbcec6b749008cce19782b30b2eb8a92088870ff92` 源于当前工作区，包含当时一处未提交的宝可梦布局 CSS 调整。[完整安装器](../../artifacts/releases/v1.0.8/1.0.8.11/TableMax-1.0.8.11-installer-win-x64.exe) · [交付清单](../../artifacts/releases/v1.0.8/1.0.8.11/TableMax-1.0.8.11-installer-win-x64-manifest.json) · [冻结产物核对](../../artifacts/maintenance/installer-export-20261116/frozen-output-audit.json)
+
+实际 EXE 为 40,018,764 字节，内部 ZIP 为 48,261,209 字节，实际解包为 101,228,399 字节。干净标准账户通过原路径原件 Medium 启动、向导、首装、快捷方式、同包重装、默认卸载、同根重装读回存档及最后卸载；三条更新与失败恢复链均为 8/8，验收账户和 profile 已清理。首次健康启动为 109,324,763 字节，同包重装为 110,188,438 字节，卸载后重装为 109,489,086 字节。均低于 120,000,000 字节硬限，同包重装触发 110,000,000 字节预警。[正式封存证明](../../artifacts/maintenance/installer-export-20261116/system-r2/sealed-proof.json)
+
+<a id="当前安装交付2026-10-31"></a>
+
+## 前次安装交付 1.0.8.10（2026-10-31）
+
+此前 1.0.8.10 预装 8 款游戏、9 个玩法。原 EXE 为 41,531,127 字节，SHA `09db4df6731e89f82f7e0ce449da8cda30a5f60aa9f9fe7f81485d67b3dbaa9c`，已按本地保留规则退役。冻结快照 `dfb2cb9f23c8274f0bd7b2d620f41d96cff16af3a3a3cb31b3dc0f0df8946408`，内部 payload 为 49,786,309 字节，SHA `269527b10eec39dc74148774f6bf60fd1982613748f8107354426a2804bd9955`，安装清单 SHA `4fe0042945547021472a014fe107efc758191aad390bf56fe5a3788c93eaaaaf`。[原交付清单](../../artifacts/releases/v1.0.8/1.0.8.10/TableMax-1.0.8.10-installer-win-x64-manifest.json)
 
 [system-r3 封存证明](../../artifacts/maintenance/installer-export-20261031/system-r3/sealed-proof.json)绑定上述原件：原路径原 EXE 的标准 Medium 启动与向导通过，干净标准账户完成安装、健康启动、修复、默认卸载及重装；三条更新／恢复链各 8/8 通过。首次健康安装逻辑体积为 111,001,325 字节（程序 103,423,520、框架 5,299,681、身份 20,706、G 2,257,418），同包复装 111,865,000，卸载后重装 111,198,959，均低于 120,000,000 硬限并触发 110,000,000 预警。资源从已验签预装 ZIP 读取，避免再次实体化；旧局所需归档保全契约见[安装布局](build-and-run.md#windows-安装与整个程序更新)。验收账户 SID 末尾 1061 及 profile 已清理。
 
