@@ -1,0 +1,39 @@
+.win-track {
+  display: inline-flex;
+  align-items: center;
+  vertical-align: middle;
+  flex: none;
+  margin: 0;
+  padding: 0;
+  line-height: 1;
+}
+.win-pips {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  margin: 0;
+}
+.win-pips i {
+  display: grid;
+  place-items: center;
+  width: 17px;
+  height: 18px;
+  line-height: 1;
+}
+.win-pips svg {
+  display: block;
+  width: 17px;
+  height: 17px;
+  overflow: visible;
+}
+.seat-title {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 2px 6px;
+  min-width: 0;
+}
+.seat-title > :first-child {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}

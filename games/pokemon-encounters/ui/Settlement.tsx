@@ -77,9 +77,17 @@ export function Settlement(props: Props) {
       <header>
         <img src={s.portrait} alt="" />
         <div>
-          <h3>
-            {s.name}
-            {s.id === selfId ? ' · 你' : ''}
+          <h3 className="seat-title">
+            <span className="seat-name">
+              {s.name}
+              {s.id === selfId ? ' · 你' : ''}
+            </span>
+            <WinTrack
+              wins={game.winsBySeat[s.id] ?? 0}
+              winner={
+                s.matchWinner ? 'match' : s.roundWinner ? 'round' : undefined
+              }
+            />
           </h3>
           <span
             className="settlement-place"
@@ -90,10 +98,6 @@ export function Settlement(props: Props) {
             {s.matchWinner ? ' · 大局赢家' : s.roundWinner ? ' · 本局获胜' : ''}
           </span>
         </div>
-        <WinTrack
-          wins={game.winsBySeat[s.id] ?? 0}
-          winner={s.matchWinner ? 'match' : s.roundWinner ? 'round' : undefined}
-        />
       </header>
       <SeatResult view={game} seatId={s.id} />
     </article>

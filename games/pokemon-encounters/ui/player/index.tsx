@@ -4,7 +4,6 @@ import type { JsonValue } from '@tablemax/game-sdk';
 import type { Action } from '../../rules';
 import type { PokemonView } from '../../rules/project';
 import { Board, CardFace } from '../cards';
-import { WinTrack } from '../WinTrack';
 import { topology } from '../../shared/topology';
 import { original } from '../../variants/original';
 import { decisionGuidance } from '../decision-guidance';
@@ -183,7 +182,6 @@ export function PlayerControls({
   const Layout = landscape ? LandscapeDecisionLayout : PortraitDecisionLayout;
   return (
     <div className="pokemon-player" data-phase={view.phase}>
-      <WinTrack wins={view.winsBySeat[seatId]!} />
       <Layout
         context={
           <>

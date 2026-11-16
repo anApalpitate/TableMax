@@ -12,6 +12,7 @@ import { PlayerControls } from './player';
 import { SavedMotion, ActionTargets, EffectTargets } from './motion';
 import { SavedEffects, type TrailAnchors } from './effects';
 import { ActivityFeed } from './ActivityFeed';
+import { WinTrack } from './WinTrack';
 import type { RoomFeedback } from '@tablemax/web-host';
 import { actionEffects } from './presentation-state';
 
@@ -234,13 +235,23 @@ export function GameTable({
                     height={44}
                   />
                   <div>
-                    <h3>
+                    <h3 className="seat-title">
                       <span className="seat-name" title={seat.name}>
                         {seat.name}
                       </span>
                       {seat.id === selfId && (
                         <span className="self-tag">你</span>
                       )}
+                      <WinTrack
+                        wins={game.winsBySeat[seat.id] ?? 0}
+                        winner={
+                          game.matchWinners.includes(seat.id)
+                            ? 'match'
+                            : game.roundResult?.winners.includes(seat.id)
+                              ? 'round'
+                              : undefined
+                        }
+                      />
                     </h3>
                     <p>
                       <span className="seat-presence">

@@ -17,6 +17,7 @@ import type { JsonValue } from '@tablemax/game-sdk';
 import type { View } from '../project';
 import { task } from '../research';
 import { WinTrack } from '../../ui/WinTrack';
+import { RulebookIcon, SettingsIcon } from '../../ui/ToolbarIcons';
 import { usePokemonViewport } from '../../ui/usePokemonViewport';
 import { ResearchCard, ResearchPicture } from './ResearchCard';
 import { ResearchReward } from './ResearchReward';
@@ -87,6 +88,10 @@ export function ScreenBody({
         : game.actorSeat
           ? [game.actorSeat]
           : [];
+  const showSupply =
+    session.role !== 'player' &&
+    !game.roundResult &&
+    game.phase !== 'research-vote';
   const research =
     game.activeResearch.length > 0 ? (
       <aside className="ex-research-strip" aria-label="本局研究">
@@ -142,25 +147,27 @@ export function ScreenBody({
           className="ex-seat-number"
           value={game.seatOrder.indexOf(s.id) + 1}
         />
-        <h2 title={s.name}>{s.name}</h2>
-        <WinTrack
-          wins={presentedWins(game, s.id, resultReady)}
-          earnedNow={Boolean(
-            resultReady &&
-            game.roundResult?.winners.includes(s.id) &&
-            (game.roundResult.awardsBySeat?.[s.id] ?? 1) > 0 &&
-            motion.includes('@result'),
-          )}
-          winner={
-            !resultReady
-              ? undefined
-              : game.matchWinners.includes(s.id)
-                ? 'match'
-                : game.roundResult?.winners.includes(s.id)
-                  ? 'round'
-                  : undefined
-          }
-        />
+        <h2 className="seat-title" title={s.name}>
+          <span className="ex-seat-name">{s.name}</span>
+          <WinTrack
+            wins={presentedWins(game, s.id, resultReady)}
+            earnedNow={Boolean(
+              resultReady &&
+              game.roundResult?.winners.includes(s.id) &&
+              (game.roundResult.awardsBySeat?.[s.id] ?? 1) > 0 &&
+              motion.includes('@result'),
+            )}
+            winner={
+              !resultReady
+                ? undefined
+                : game.matchWinners.includes(s.id)
+                  ? 'match'
+                  : game.roundResult?.winners.includes(s.id)
+                    ? 'round'
+                    : undefined
+            }
+          />
+        </h2>
       </header>
       <Board game={game} seat={s.id} motion={motion} />
       {game.roundResult && (
@@ -261,82 +268,75 @@ export function ScreenBody({
               />
             </>
           )}
-          <button className="secondary" onClick={() => setPanel('rules')}>
-            规则
-          </button>
           {session.role === 'player' && (
             <button className="secondary" onClick={() => setPanel('friends')}>
               朋友
             </button>
           )}
           <button
-            className="secondary ex-menu-entry"
+            className="secondary ex-toolbar-icon"
+            aria-label="规则"
+            title="规则"
+            onClick={() => setPanel('rules')}
+          >
+            <RulebookIcon />
+          </button>
+          <button
+            className="secondary ex-menu-entry ex-toolbar-icon"
             aria-label="菜单"
             title="菜单"
             onClick={() => setPanel('menu')}
           >
-            <svg
-              width="24"
-              height="24"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.8"
-              strokeLinecap="round"
-              aria-hidden="true"
-            >
-              <path transform="translate(0.5 0)" d="M8 6h13M8 12h13M8 18h13" />
-              <path
-                d="M3 5a1 1 0 1 0 0 2 1 1 0 0 0 0-2Zm0 6a1 1 0 1 0 0 2 1 1 0 0 0 0-2Zm0 6a1 1 0 1 0 0 2 1 1 0 0 0 0-2Z"
-                transform="translate(0.5 0)"
-              />
-            </svg>
+            <SettingsIcon />
           </button>
         </header>
-        <div className="ex-round-banner">
-          <span>第 {game.roundNumber} 小局</span>
-          <strong>
-            {game.phase === 'mewtwo-target' && profile === 'events-research-v3'
-              ? '超梦：私看对手一张'
-              : phaseText[game.phase]}
-          </strong>
-          <span
-            className="ex-current-actor"
-            data-simultaneous={pendingSeats.length > 1}
-          >
-            {game.phase === 'research-vote' && (
-              <span className="ex-actor-progress">
-                投票 {game.votedSeats.length}/{game.seatOrder.length}
-              </span>
-            )}
-            {game.phase === 'initial-flip' && (
-              <span className="ex-actor-progress">
-                翻牌 {game.initialDone.length}/{game.seatOrder.length}
-              </span>
-            )}
-            {pendingSeats.length
-              ? pendingSeats.map((id) => {
-                  const seat = seats.find((entry) => entry.id === id);
-                  return (
-                    <span
-                      className="ex-actor-identity"
-                      title={names[id] ?? '玩家'}
-                      aria-label={names[id] ?? '玩家'}
-                      data-actor-seat={id}
-                      key={id}
-                    >
-                      <img
-                        src={avatarFor(seat?.avatarId ?? 'builtin-1')}
-                        alt=""
-                      />
-                      <span>{names[id] ?? '玩家'}</span>
-                    </span>
-                  );
-                })
-              : '三胜赛制'}
-          </span>
-          <TurnProgress game={game} />
-        </div>
+        {!showSupply && (
+          <div className="ex-round-banner">
+            <span>第 {game.roundNumber} 小局</span>
+            <strong>
+              {game.phase === 'mewtwo-target' &&
+              profile === 'events-research-v3'
+                ? '超梦：私看对手一张'
+                : phaseText[game.phase]}
+            </strong>
+            <span
+              className="ex-current-actor"
+              data-simultaneous={pendingSeats.length > 1}
+            >
+              {game.phase === 'research-vote' && (
+                <span className="ex-actor-progress">
+                  投票 {game.votedSeats.length}/{game.seatOrder.length}
+                </span>
+              )}
+              {game.phase === 'initial-flip' && (
+                <span className="ex-actor-progress">
+                  翻牌 {game.initialDone.length}/{game.seatOrder.length}
+                </span>
+              )}
+              {pendingSeats.length
+                ? pendingSeats.map((id) => {
+                    const seat = seats.find((entry) => entry.id === id);
+                    return (
+                      <span
+                        className="ex-actor-identity"
+                        title={names[id] ?? '玩家'}
+                        aria-label={names[id] ?? '玩家'}
+                        data-actor-seat={id}
+                        key={id}
+                      >
+                        <img
+                          src={avatarFor(seat?.avatarId ?? 'builtin-1')}
+                          alt=""
+                        />
+                        <span>{names[id] ?? '玩家'}</span>
+                      </span>
+                    );
+                  })
+                : '三胜赛制'}
+            </span>
+            <TurnProgress game={game} />
+          </div>
+        )}
       </div>
       {viewport.belowMinimum && (
         <div className="pokemon-layout-warning" role="status">
@@ -451,7 +451,9 @@ export function ScreenBody({
                 >
                   <img src={avatarFor(s.avatarId)} alt="" />
                   <strong>{s.name}</strong>
-                  <span>{game.votedSeats.includes(s.id) ? '✓' : '…'}</span>
+                  <span>
+                    {game.votedSeats.includes(s.id) ? '已投票' : '待投票'}
+                  </span>
                 </span>
               ))}
             </div>
@@ -471,8 +473,16 @@ export function ScreenBody({
               game={game}
               showResearch={showResearch}
             />
-          ) : !game.roundResult && session.role !== 'player' ? (
-            <PublicSupply game={game} names={names} research={roundContext} />
+          ) : showSupply ? (
+            <PublicSupply
+              game={game}
+              names={names}
+              portraits={Object.fromEntries(
+                seats.map((s) => [s.id, avatarFor(s.avatarId)]),
+              )}
+              research={roundContext}
+              showHistory={() => setPanel('history')}
+            />
           ) : null}
         </div>
       )}

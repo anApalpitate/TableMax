@@ -49,6 +49,19 @@ main.expansion-screen::before {
   min-height: 44px;
   padding: 6px 10px;
 }
+.expansion-screen .ex-toolbar .ex-toolbar-icon {
+  display: inline-grid;
+  place-items: center;
+  flex: 0 0 44px;
+  width: 44px;
+  min-width: 44px;
+  padding: 0;
+}
+.expansion-screen .ex-toolbar-icon svg {
+  display: block;
+  width: 24px;
+  height: 24px;
+}
 .expansion-screen .ex-round-banner {
   flex-shrink: 0;
   display: flex;
@@ -142,7 +155,7 @@ main.expansion-screen::before {
   display: grid;
   grid-column: auto;
   grid-template-columns: minmax(0, 1fr);
-  grid-template-rows: 32px minmax(0, 1fr);
+  grid-template-rows: auto minmax(0, 1fr);
   gap: 4px;
   min-width: 0;
   min-height: 0;
@@ -150,7 +163,7 @@ main.expansion-screen::before {
   margin: 0;
 }
 .expansion-screen .ex-player:has(.ex-score) {
-  grid-template-rows: 32px minmax(0, 1fr) 44px;
+  grid-template-rows: auto minmax(0, 1fr) 44px;
 }
 .expansion-screen .ex-player > header {
   display: flex;
@@ -158,11 +171,13 @@ main.expansion-screen::before {
   gap: 4px;
   min-width: 0;
   margin: 0;
-  height: 32px;
+  height: auto;
+  min-height: 32px;
 }
 .expansion-screen .ex-player > header img {
   width: 28px;
   height: 28px;
+  flex-shrink: 0;
 }
 .expansion-screen .ex-player > header h2 {
   font-size: 16px;
@@ -175,32 +190,11 @@ main.expansion-screen::before {
   text-overflow: clip;
   overflow-wrap: anywhere;
 }
-.expansion-screen .ex-player > header .win-track {
-  flex: none;
-  padding: 0;
-  width: 56px;
-  background: none;
-}
-.expansion-screen .ex-player > header .win-pips i {
-  width: 18px;
-  height: 22px;
-  font-size: 18px;
-  line-height: 22px;
-}
 .expansion-screen .ex-seat-number {
   width: 20px;
   height: 20px;
   font-size: 16px;
   flex-shrink: 0;
-}
-.expansion-screen .win-pips {
-  margin: 0;
-  gap: 1px;
-  flex-shrink: 0;
-}
-.expansion-screen .win-pips svg {
-  width: 18px;
-  height: 18px;
 }
 .expansion-screen .pokemon-board {
   display: grid;
@@ -370,18 +364,71 @@ main.expansion-screen::before {
   padding: 8px;
   overflow: visible;
 }
-.expansion-screen .ex-supply-heading {
+.expansion-screen .ex-side-status {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+}
+.expansion-screen .ex-side-meta {
   display: flex;
-  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 2px 8px;
+  font-size: 16px;
+  line-height: 20px;
+}
+.expansion-screen .ex-status-current {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+  padding: 6px 8px;
+  font-size: 18px;
+  line-height: 22px;
+  overflow-wrap: anywhere;
+}
+.expansion-screen .ex-status-actor {
+  display: flex;
   align-items: center;
   gap: 6px;
-}
-.expansion-screen .ex-supply-heading h2 {
+  min-width: 0;
   margin: 0;
   font-size: 20px;
+  line-height: 24px;
 }
-.expansion-screen .ex-supply-heading span {
+.expansion-screen .ex-status-actor img {
+  width: 24px;
+  height: 24px;
+  flex: none;
+}
+.expansion-screen .ex-status-actor > span {
+  min-width: 0;
+}
+.expansion-screen .ex-side-status :is(.ex-seat-progress, .ex-turn-progress) {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 4px;
+  height: auto;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.expansion-screen .ex-seat-progress:has(> li:nth-child(2):last-child) {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.expansion-screen .ex-side-status li {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  min-height: 29px;
+  min-width: 0;
+  white-space: nowrap;
   font-size: 16px;
+  line-height: 20px;
+}
+.expansion-screen .ex-side-status li :is(img, svg) {
+  width: 20px;
+  height: 20px;
+  flex: none;
 }
 .expansion-screen .ex-public-piles {
   display: grid;
@@ -400,10 +447,12 @@ main.expansion-screen::before {
 }
 .expansion-screen .ex-public-piles section > header {
   display: flex;
+  flex-direction: row;
   flex-wrap: wrap;
   justify-content: center;
+  align-items: baseline;
   gap: 3px;
-  height: 40px;
+  min-height: 22px;
   font-size: 16px;
   line-height: 20px;
 }
@@ -424,33 +473,63 @@ main.expansion-screen::before {
   margin: 0;
   padding: 6px;
 }
-.expansion-screen .ex-public-held .pokemon-card,
-.expansion-screen .ex-public-held > svg {
+.expansion-screen .ex-public-held > .pokemon-card {
   width: var(--pile-width);
   height: var(--pile-height);
   min-height: 0;
+}
+.expansion-screen .ex-public-held > svg {
+  width: 34px;
+  height: 40px;
+  justify-self: center;
+}
+.expansion-screen .ex-public-held > div {
+  display: grid;
+  justify-items: start;
+  gap: 4px;
+  min-width: 0;
+  text-align: start;
 }
 .expansion-screen .ex-public-held strong {
   display: block;
   font-size: 18px;
   white-space: normal;
 }
-.expansion-screen .ex-public-held p,
 .expansion-screen .ex-public-held span {
   font-size: 16px;
   line-height: 20px;
-  margin: 2px 0;
+  margin: 0;
 }
 .expansion-screen .ex-last-action {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+  align-items: center;
   margin: 0;
-  padding: 6px;
+  padding: 6px 8px;
   font-size: 16px;
   line-height: 20px;
-  min-height: 64px;
 }
-.expansion-screen .ex-last-action p {
-  margin: 0;
+.expansion-screen .ex-action-summary {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.expansion-screen .ex-action-summary strong {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 5px;
+  font-size: 18px;
+  line-height: 22px;
+}
+.expansion-screen .ex-action-summary strong > span {
+  min-width: 0;
+}
+.expansion-screen .ex-last-action > button {
+  min-height: 44px;
   font-size: 16px;
+  white-space: nowrap;
 }
 .expansion-screen:not(.player) .ex-supply > * {
   flex-shrink: 0;
@@ -646,9 +725,17 @@ main.expansion-screen::before {
   gap: 6px;
 }
 .expansion-screen .ex-voter-list > span {
-  padding: 4px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  align-items: center;
+  padding: 4px 8px;
   min-width: 0;
   font-size: 16px;
+  overflow-wrap: anywhere;
+}
+.expansion-screen .ex-voter-list > span > span {
+  white-space: nowrap;
 }
 .expansion-screen .ex-voter-list img {
   width: 24px;

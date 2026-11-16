@@ -109,13 +109,6 @@
 .settlement-card header span {
   font-size: 16px;
 }
-.settlement-card > header > .win-track {
-  margin-left: auto;
-  flex: none;
-}
-.pokemon-screen .settlement-card > .win-track {
-  display: none;
-}
 .pokemon-screen .settlement .settlement-card > .pokemon-board {
   grid-row: 2;
   grid-column: 1/-1;
@@ -256,9 +249,6 @@
 .pokemon-screen .settlement-P .settlement-roster button {
   flex: 0 0 154px;
   font-size: 16px;
-}
-.settlement-P .settlement-card > header > .win-track {
-  display: none;
 }
 .settlement-P .settlement-continuation {
   justify-content: center;
@@ -501,6 +491,7 @@
 .pokemon-screen .settlement-H[data-count='6'] .settlement-card > header > div {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 4px;
 }
 .pokemon-screen .settlement-H[data-count='6'] .settlement-card h3 {
@@ -517,13 +508,6 @@
 .pokemon-screen .settlement-H[data-count='6'] .settlement-place::after {
   content: '#' attr(data-rank);
   font-size: 16px;
-}
-.pokemon-screen
-  .settlement-H[data-count='6']
-  .settlement-card
-  > header
-  > .win-track {
-  padding: 0 4px;
 }
 .pokemon-screen .settlement-H[data-count='6'] .score-breakdown {
   padding: 4px 6px;

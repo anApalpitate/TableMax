@@ -58,47 +58,63 @@ export const pairTypes = [
 export const bufferedProfile = (profile: RulesProfile | undefined) =>
   profile === 'research-buffer-v2' || profile === 'events-research-v3';
 
+const verbs: Record<string, string> = {
+  draw: '取出',
+  replace: '换入',
+  peek: '查看本人暗牌',
+  'mew-target': '将梦幻换入',
+  'mewtwo-target': '发动精神侦察',
+  'mewtwo-exchange': '选择交换',
+  swap: '交换本人两格',
+  reposition: '调整本人两格',
+  'ninja-target': '用忍蛙处理两格',
+  'ninja-cover': '盖回两张牌',
+  'ninja-swap': '盖回并交换两张牌',
+  'row-target': '交换整行',
+  'pass-direction': '确定接力方向',
+  'activate-arceus': '发动返璞归真',
+  'extra-draw': '继续额外取牌',
+  'close-peek': '完成私看',
+  'decline-ability': '放弃可选能力',
+  'initial-flip': '翻开初始牌',
+  'discard-held': '弃掉暂持牌',
+  'store-buffer': '将暂持牌存入本人缓冲',
+  'draw-buffer': '从本人缓冲取出',
+  'vote-research': '投出研究票',
+};
+
+export function savedActionSummary(
+  event: View['events'][number],
+  names: Record<string, string>,
+) {
+  const action = event.action;
+  if (!action?.actor) return null;
+  const category =
+    categories.find((c) => c.categoryId === action.cardCategory) ??
+    categories.find((c) => c.ability !== null && c.ability === action.ability);
+  return {
+    actor: names[action.actor] ?? '玩家',
+    operation: verbs[action.verb] ?? '完成操作',
+    subject: category?.name,
+  };
+}
+
 export function eventText(
   event: View['events'][number],
   names: Record<string, string>,
 ) {
   const action = event.action;
-  if (!action || !action.actor) return event.text;
+  const summary = savedActionSummary(event, names);
+  if (!action || !summary) return event.text;
   if (action.verb === 'activate-arceus')
-    return `${names[action.actor] ?? '玩家'}发动阿尔宙斯：全桌盖回，每人随机翻明一格。`;
-  const verbs: Record<string, string> = {
-    draw: '取出',
-    replace: '换入',
-    peek: '查看本人暗牌',
-    'mew-target': '将梦幻换入',
-    'mewtwo-target': '发动精神侦察',
-    'mewtwo-exchange': '选择交换',
-    swap: '交换本人两格',
-    reposition: '调整本人两格',
-    'ninja-target': '用忍蛙处理两格',
-    'ninja-cover': '盖回两张牌',
-    'ninja-swap': '盖回并交换两张牌',
-    'row-target': '交换整行',
-    'pass-direction': '确定接力方向',
-    'activate-arceus': '发动返璞归真',
-    'extra-draw': '继续额外取牌',
-    'close-peek': '完成私看',
-    'decline-ability': '放弃可选能力',
-    'initial-flip': '翻开初始牌',
-    'discard-held': '弃掉暂持牌',
-    'store-buffer': '将暂持牌存入本人缓冲',
-    'draw-buffer': '从本人缓冲取出',
-  };
-  const category =
-    categories.find((c) => c.categoryId === action.cardCategory) ??
-    categories.find((c) => c.ability !== null && c.ability === action.ability);
+    return `${summary.actor}发动阿尔宙斯：全桌盖回，每人随机翻明一格。`;
   const targets = action.targets
     .map(
       (t) =>
         `${names[t.seat] ?? '玩家'}的${t.slots.map((i) => i + 1).join('、')}号位`,
     )
     .join('；');
-  return `${names[action.actor] ?? '玩家'}${verbs[action.verb] ?? '完成操作'}${category ? ` ${category.name}` : ''}${targets ? `，目标为${targets}` : ''}。`;
+  return `${summary.actor}${summary.operation}${summary.subject ? ` ${summary.subject}` : ''}${targets ? `，目标为${targets}` : ''}。`;
 }
 
 export function eventDescription(

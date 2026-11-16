@@ -100,6 +100,7 @@ main.expansion-screen .ex-toolbar h1 span {
   color: #162131;
 }
 main.expansion-screen .ex-toolbar {
+  --pokemon-rulebook-paper: #17364a;
   border-bottom: 1px solid #6291a84d;
 }
 main.expansion-screen :is(.ex-round-banner, .desktop-action-heading) {
@@ -135,6 +136,37 @@ main.expansion-screen .ex-player.active {
 }
 main.expansion-screen .ex-player header {
   color: #e8f4ff;
+}
+main.expansion-screen .win-pips i {
+  color: #88a2b6;
+}
+main.expansion-screen .win-pips .earned {
+  color: #ffe17d;
+}
+main.expansion-screen .ex-side-meta,
+main.expansion-screen .ex-action-summary > span {
+  color: #bcd7e7;
+}
+main.expansion-screen .ex-status-current {
+  color: #f1fbff;
+  background: #194257;
+  border-radius: 8px;
+}
+main.expansion-screen .ex-side-status li {
+  color: #c8e0ed;
+  background: #1d3447;
+  border-radius: 6px;
+  border-bottom: 2px solid #587488;
+}
+main.expansion-screen .ex-side-status li.complete {
+  color: #baf7e6;
+  background: #1d494c;
+  border-bottom-color: #68baab;
+}
+main.expansion-screen .ex-side-status li.current {
+  color: #fff0b8;
+  background: #424032;
+  border-bottom-color: #edc775;
 }
 main.expansion-screen
   :is(

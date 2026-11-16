@@ -7,7 +7,6 @@ import { useContext, useId, useRef } from 'react';
 import { SavedMotion } from '../motion';
 import type { JsonValue } from '@tablemax/game-sdk';
 import type { Action } from '../../rules';
-import { WinTrack } from '../WinTrack';
 import { presentAction } from '../action-presentation';
 import { decisionProgress } from '../presentation-state';
 export function SeatResult({
@@ -23,16 +22,6 @@ export function SeatResult({
   const score = view.roundResult?.scores[seatId];
   return (
     <>
-      <WinTrack
-        wins={view.winsBySeat[seatId]!}
-        winner={
-          view.matchWinners.includes(seatId)
-            ? 'match'
-            : view.roundResult?.winners.includes(seatId)
-              ? 'round'
-              : undefined
-        }
-      />
       <Board view={view} seatId={seatId} />
       {score && (
         <div className="score-detail">
@@ -253,6 +242,44 @@ export function TableStatus({
           </span>
         )}
       </div>
+      {showHeld && (
+        <section
+          className={`held-zone ${view.held ? 'has-held' : 'held-empty'}`}
+          aria-label="公开暂持区"
+        >
+          {!view.held && (
+            <span className="held-empty-art" aria-hidden="true">
+              <svg className="held-empty-symbol" viewBox="0 0 40 48">
+                <rect x="8" y="4" width="25" height="36" rx="4" />
+                <circle cx="20.5" cy="22" r="5.5" />
+                <path d="M5 11H3v34h25v-2M15 22h11" />
+              </svg>
+            </span>
+          )}
+          <div className="held-copy">
+            <span className="held-tag">
+              {player && view.held ? heldStatus : '暂持区'}
+            </span>
+            <strong>
+              {view.held
+                ? player
+                  ? view.held.name.replace('外观', '')
+                  : heldStatus
+                : view.phase === 'draw'
+                  ? '待取牌'
+                  : '暂未持牌'}
+            </strong>
+          </div>
+          {view.held && (
+            <div
+              className={`held-pile ${motion.includes('@held') ? 'saved-motion' : ''}`}
+              data-pile-anchor="held"
+            >
+              <CardFace card={view.held} />
+            </div>
+          )}
+        </section>
+      )}
       {showSources && (
         <div className="card-piles">
           <div className="pile-zone deck-pile">
@@ -294,44 +321,6 @@ export function TableStatus({
             )}
           </div>
         </div>
-      )}
-      {showHeld && (
-        <section
-          className={`held-zone ${view.held ? 'has-held' : 'held-empty'}`}
-          aria-label="公开暂持区"
-        >
-          {!view.held && (
-            <span className="held-empty-art" aria-hidden="true">
-              <svg className="held-empty-symbol" viewBox="0 0 40 48">
-                <rect x="8" y="4" width="25" height="36" rx="4" />
-                <circle cx="20.5" cy="22" r="5.5" />
-                <path d="M5 11H3v34h25v-2M15 22h11" />
-              </svg>
-            </span>
-          )}
-          <div className="held-copy">
-            <span className="held-tag">
-              {player && view.held ? heldStatus : '暂持区'}
-            </span>
-            <strong>
-              {view.held
-                ? player
-                  ? view.held.name.replace('外观', '')
-                  : heldStatus
-                : view.phase === 'draw'
-                  ? '待取牌'
-                  : '暂未持牌'}
-            </strong>
-          </div>
-          {view.held && (
-            <div
-              className={`held-pile ${motion.includes('@held') ? 'saved-motion' : ''}`}
-              data-pile-anchor="held"
-            >
-              <CardFace card={view.held} />
-            </div>
-          )}
-        </section>
       )}
     </div>
   );
