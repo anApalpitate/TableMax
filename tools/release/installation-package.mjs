@@ -41,6 +41,9 @@ const launcherSources = [
   coreSource,
   'apps/desktop/installation/InstalledLauncher.cs',
 ];
+const installerIcon = 'assets/platform/installer.ico';
+const updaterIcon = 'assets/platform/updater.ico';
+const uninstallerIcon = 'assets/platform/uninstaller.ico';
 const recipeSources = [
   ...new Set([
     ...helperSources,
@@ -49,6 +52,9 @@ const recipeSources = [
     'apps/desktop/native/ApplicationUpdateKeys.json',
     'apps/desktop/native/app.manifest',
     'assets/platform/app-icon.ico',
+    installerIcon,
+    updaterIcon,
+    uninstallerIcon,
     'global.json',
     'tools/release/installation-package.mjs',
     'tools/release/installation-toolchain.mjs',
@@ -122,6 +128,7 @@ export async function compileInstallationProgram({
   sources,
   main,
   buildVersion,
+  iconPath = 'assets/platform/app-icon.ico',
   fixture = false,
   handoffTest = false,
   resources = [],
@@ -177,7 +184,7 @@ export async function compileInstallationProgram({
       '/nostdlib+',
       '/out:' + resolve(outputPath),
       '/main:' + main,
-      '/win32icon:' + resolve('assets/platform/app-icon.ico'),
+      '/win32icon:' + resolve(iconPath),
       '/win32manifest:' + resolve('apps/desktop/native/app.manifest'),
       ...(fixture ? ['/define:TABLEMAX_INSTALLATION_TEST'] : []),
       ...(handoffTest ? ['/define:TABLEMAX_INSTALLATION_HANDOFF_TEST'] : []),
@@ -277,7 +284,8 @@ export async function compileInstallationScript({
     CandidateDirectory: resolve(candidateDirectory),
     OutputDirectory: resolve(dirname(outputPath)),
     OutputName: basename(outputPath, '.exe'),
-    IconPath: resolve('assets/platform/app-icon.ico'),
+    IconPath: resolve(installerIcon),
+    UninstallIconName: basename(uninstallerIcon),
     DesktopTaskFlags: 'checkedonce',
   };
   await writeFile(
@@ -425,6 +433,7 @@ export async function createInstallationExecutable({
     'Actual installer payload extraction differs',
   );
   await copyFile(manifestPath, join(app, '.tablemax-release.json'));
+  await copyFile(uninstallerIcon, join(app, basename(uninstallerIcon)));
   const launcher = await compileInstallationProgram({
     outputPath: join(candidate, 'TableMax.exe'),
     sources: launcherSources,
@@ -437,6 +446,7 @@ export async function createInstallationExecutable({
     sources: [...launcherSources, 'apps/desktop/installation/Updater.cs'],
     main: 'TableMax.Installation.Updater',
     buildVersion,
+    iconPath: updaterIcon,
     fixture,
   });
   const cleanupResource = await cleanupPlanResource();

@@ -1,4 +1,5 @@
 #include "build-config.iss"
+#define InstalledUninstallIcon "{app}\data\app\" + UninstallIconName
 
 [Setup]
 AppId={#InnoAppId}
@@ -18,7 +19,7 @@ PrivilegesRequiredOverridesAllowed=
 ArchitecturesAllowed=x64compatible
 ArchitecturesInstallIn64BitMode=x64compatible
 MinVersion=10.0.17763
-UninstallDisplayIcon={app}\TableMax.exe
+UninstallDisplayIcon={#InstalledUninstallIcon}
 UninstallDisplayName={#ProductName}
 OutputDir={#OutputDirectory}
 OutputBaseFilename={#OutputName}
@@ -79,7 +80,7 @@ Source: "{#CandidateDirectory}\installation-manifest.json"; DestDir: "{tmp}\cand
 
 [Icons]
 Name: "{code:ProgramShortcutRoot}\{#ProductName}"; Filename: "{app}\TableMax.exe"; WorkingDir: "{app}"; Check: InstallConfirmed
-Name: "{code:ProgramShortcutRoot}\卸载 {#ProductName}"; Filename: "{uninstallexe}"; WorkingDir: "{app}"; Check: InstallConfirmed
+Name: "{code:ProgramShortcutRoot}\卸载 {#ProductName}"; Filename: "{uninstallexe}"; WorkingDir: "{app}"; IconFilename: "{#InstalledUninstallIcon}"; Check: InstallConfirmed
 Name: "{code:DesktopShortcutRoot}\{#ProductName}"; Filename: "{app}\TableMax.exe"; WorkingDir: "{app}"; Tasks: desktopicon; Check: InstallConfirmed
 
 [Code]
@@ -412,6 +413,13 @@ begin
   end;
   if OutputIndex <> ExpectedBytes + 1 then
     RaiseException('卸载协调程序解码长度不符，已保留程序和数据。');
+end;
+
+procedure InitializeUninstallProgressForm;
+begin
+  if not InitializeBitmapImageFromIcon(UninstallProgressForm.WizardSmallBitmapImage,
+    ExpandConstant('{#InstalledUninstallIcon}'), clNone, [32, 48, 64, 128, 256]) then
+    Log('Could not load the TableMax uninstall icon.');
 end;
 
 procedure CurUninstallStepChanged(CurUninstallStep: TUninstallStep);

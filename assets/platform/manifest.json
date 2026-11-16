@@ -1054,6 +1054,118 @@
         "apps/web/src/screens/BoxScreen.tsx (brand)"
       ],
       "note": "Original platform tabletop/stacked-card emblem; independent of game artwork. Local assets, no online resource dependencies. Source generation and alpha/scale review are preserved separately from actual application/portable verification."
+    },
+    {
+      "id": "installer-icon",
+      "file": "installer.ico",
+      "version": 1,
+      "createdAt": "2026-11-17",
+      "source": "built-in imagegen",
+      "mode": "generate with style reference",
+      "prompt": "Generate one brand-new Windows application icon for the TableMax digital tabletop game platform. Reference 1 is the existing TableMax app icon and is VISUAL STYLE / MATERIAL / PALETTE REFERENCE ONLY. The new icon is part of a matched installer/updater/uninstaller family. Square raster, one icon composition isolated on genuine transparent RGBA, with an approximately 7% clear margin all around. Use a rounded square deep teal ceramic tile occupying ~86% of the canvas (approximately the same rich cyan-teal as reference 1), softly rounded bevel and restrained satin highlights. Inside, center a compact simplified warm-ivory tabletop game box with a narrow gold lid seam, slight overhead view, nearly head-on with no lateral rotation. Put the action symbol above the box in a clear teal field, centered overall and using a strong chunky silhouette. Make the icon look like refined physical board-game pieces: light rounded bevels, tightly controlled soft light, sparse composition with no micro-details, clean readable major masses at 16 and 32 pixels. No letters or lettering, no typography, numbers, logos, labels, interior borders, rings around the tile, effects outside the tile, extra objects, gradients outside the tile, fake checkerboard, or external drop shadow. No contact shadow outside the icon. Output just this one icon at largest available square size. Use a LARGE saturated mint-green downward arrow with a broad triangular head, thick stem and very high contrast against the teal. The arrow tip points INTO the visibly open ivory game box at the lower center, which reads as a sturdy rectangular recessed tray with a dark teal opening outlined in ivory. Give the arrow lots of room with around 45% of tile width; let the tip terminate just above or just inside the opening. This is the ONLY symbol. The downward movement must be obvious.",
+      "referenceImages": [
+        {
+          "file": "app-icon.png",
+          "role": "style, material and palette only",
+          "sha256": "7b154393329834b3c341a596d4b68f02c48d2bd461ba2fbfca9bda767e07956f"
+        }
+      ],
+      "original": "../TMP/TableMaxMaterial/originals/tablemax-installation-icons-20261117/installer.png",
+      "originalDimensions": [1254, 1254],
+      "originalSha256": "607adb08baa91abffb94b8d65b23d8c6cc3cbfcc2176e290325e3f0ba354fd33",
+      "transparent": true,
+      "dimensions": [256, 256],
+      "sizes": [
+        [16, 16],
+        [24, 24],
+        [32, 32],
+        [48, 48],
+        [64, 64],
+        [128, 128],
+        [256, 256]
+      ],
+      "alphaExtrema": [0, 255],
+      "bytes": 87676,
+      "sha256": "3f5fa09f1df05b49cbc9f23ddc0a4f37d5e620c09bd663b3ff586bbbe5bb6852",
+      "postprocessing": "Proportional Lanczos resampling and PNG frames in Windows ICO; alpha preserved",
+      "verification": "artifacts/maintenance/installation-icons-20261117/index.html",
+      "usage": ["Inno Setup installer EXE and Setup wizard"]
+    },
+    {
+      "id": "updater-icon",
+      "file": "updater.ico",
+      "version": 1,
+      "createdAt": "2026-11-17",
+      "source": "built-in imagegen",
+      "mode": "generate with style reference",
+      "prompt": "Generate one brand-new Windows application icon for the TableMax digital tabletop game platform. Reference 1 is the existing TableMax app icon and is VISUAL STYLE / MATERIAL / PALETTE REFERENCE ONLY. The new icon is part of a matched installer/updater/uninstaller family. Square raster, one icon composition isolated on genuine transparent RGBA, with an approximately 7% clear margin all around. Use a rounded square deep teal ceramic tile occupying ~86% of the canvas (approximately the same rich cyan-teal as reference 1), softly rounded bevel and restrained satin highlights. Inside, center a compact simplified warm-ivory tabletop game box with a narrow gold lid seam, slight overhead view, nearly head-on with no lateral rotation. Put the action symbol above the box in a clear teal field, centered overall and using a strong chunky silhouette. Make the icon look like refined physical board-game pieces: light rounded bevels, tightly controlled soft light, sparse composition with no micro-details, clean readable major masses at 16 and 32 pixels. No letters or lettering, no typography, numbers, logos, labels, interior borders, rings around the tile, effects outside the tile, extra objects, gradients outside the tile, fake checkerboard, or external drop shadow. No contact shadow outside the icon. Output just this one icon at largest available square size. Use a LARGE warm golden-yellow clockwise refresh icon made from TWO thick curved arrow segments with broadly triangular tips. Place the refresh above the slim CLOSED ivory board-game box, with an obvious clean gap above the lid seam. Both arrowheads readable, no secondary symbol. Let refresh fill around 50% of tile width. Refresh is the only action mark and should read immediately.",
+      "referenceImages": [
+        {
+          "file": "app-icon.png",
+          "role": "style, material and palette only",
+          "sha256": "7b154393329834b3c341a596d4b68f02c48d2bd461ba2fbfca9bda767e07956f"
+        }
+      ],
+      "original": "../TMP/TableMaxMaterial/originals/tablemax-installation-icons-20261117/updater.png",
+      "originalDimensions": [1254, 1254],
+      "originalSha256": "5b92ee5727f7e4ab0efe6a89b79c8ac6d5c9391818515ec3e1d7dc4b33d18c87",
+      "transparent": true,
+      "dimensions": [256, 256],
+      "sizes": [
+        [16, 16],
+        [24, 24],
+        [32, 32],
+        [48, 48],
+        [64, 64],
+        [128, 128],
+        [256, 256]
+      ],
+      "alphaExtrema": [0, 255],
+      "bytes": 96052,
+      "sha256": "f1c825da89344dc73f15b31d685a35b2eefcd4116dd0986280243cc1b81607a4",
+      "postprocessing": "Proportional Lanczos resampling and PNG frames in Windows ICO; alpha preserved",
+      "verification": "artifacts/maintenance/installation-icons-20261117/index.html",
+      "usage": ["Updater.exe embedded program icon"]
+    },
+    {
+      "id": "uninstaller-icon",
+      "file": "uninstaller.ico",
+      "version": 1,
+      "createdAt": "2026-11-17",
+      "source": "built-in imagegen",
+      "mode": "generate with style reference",
+      "prompt": "Generate one brand-new Windows application icon for the TableMax digital tabletop game platform. Reference 1 is the existing TableMax app icon and is VISUAL STYLE / MATERIAL / PALETTE REFERENCE ONLY. The new icon is part of a matched installer/updater/uninstaller family. Square raster, one icon composition isolated on genuine transparent RGBA, with an approximately 7% clear margin all around. Use a rounded square deep teal ceramic tile occupying ~86% of the canvas (approximately the same rich cyan-teal as reference 1), softly rounded bevel and restrained satin highlights. Inside, center a compact simplified warm-ivory tabletop game box with a narrow gold lid seam, slight overhead view, nearly head-on with no lateral rotation. Put the action symbol above the box in a clear teal field, centered overall and using a strong chunky silhouette. Make the icon look like refined physical board-game pieces: light rounded bevels, tightly controlled soft light, sparse composition with no micro-details, clean readable major masses at 16 and 32 pixels. No letters or lettering, no typography, numbers, logos, labels, interior borders, rings around the tile, effects outside the tile, extra objects, gradients outside the tile, fake checkerboard, or external drop shadow. No contact shadow outside the icon. Output just this one icon at largest available square size. Use a LARGE coral-red upward arrow with a broad triangular head, thick stem and very high contrast against the teal. It emerges OUT OF the visibly open ivory game box at the lower center, which reads as a sturdy rectangular recessed tray with a dark teal opening outlined in ivory. Give the arrow lots of room with around 45% of tile width. This is the ONLY symbol. The upward movement must be obvious.",
+      "referenceImages": [
+        {
+          "file": "app-icon.png",
+          "role": "style, material and palette only",
+          "sha256": "7b154393329834b3c341a596d4b68f02c48d2bd461ba2fbfca9bda767e07956f"
+        }
+      ],
+      "original": "../TMP/TableMaxMaterial/originals/tablemax-installation-icons-20261117/uninstaller.png",
+      "originalDimensions": [1254, 1254],
+      "originalSha256": "7809d147f9e21906033cc6ceba7669b3f89a8f2e6291d68fa9c30a89dfc78018",
+      "transparent": true,
+      "dimensions": [256, 256],
+      "sizes": [
+        [16, 16],
+        [24, 24],
+        [32, 32],
+        [48, 48],
+        [64, 64],
+        [128, 128],
+        [256, 256]
+      ],
+      "alphaExtrema": [0, 255],
+      "bytes": 91254,
+      "sha256": "0bf740d6fbe096a01c7cef2dd05eef08f53e845a4bcea448614a63b0d381de48",
+      "postprocessing": "Proportional Lanczos resampling and PNG frames in Windows ICO; alpha preserved",
+      "verification": "artifacts/maintenance/installation-icons-20261117/index.html",
+      "usage": [
+        "Windows installed-apps entry",
+        "Start menu uninstall shortcut",
+        "Inno Setup uninstall progress page"
+      ]
     }
   ],
   "formalUsage": {
