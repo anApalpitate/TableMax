@@ -96,10 +96,14 @@ export function TableStatus({
 }) {
   const motion = useContext(SavedMotion);
   const progress = decisionProgress(view);
-  const actingSeats =
-    view.phase === 'initial-flip'
-      ? view.seatOrder.filter((seat) => !view.initialDone.includes(seat))
-      : [view.actorSeat ?? view.turnSeat];
+  const initialFlip = view.phase === 'initial-flip';
+  const showActor = player || !initialFlip;
+  const actorName = initialFlip
+    ? '各位玩家'
+    : (names[view.actorSeat ?? view.turnSeat] ?? '当前玩家');
+  const actingSeats = initialFlip
+    ? view.seatOrder.filter((seat) => !view.initialDone.includes(seat))
+    : [view.actorSeat ?? view.turnSeat];
   const draws = (drawActions as readonly Action[]).filter(
     (action) => action.type === 'draw',
   );
@@ -170,33 +174,24 @@ export function TableStatus({
           <span className="match-format">三胜大局</span>
         </span>
         <div className="current-decision" role="status" aria-live="polite">
-          <h2
-            className="current-actor"
-            title={
-              view.phase === 'initial-flip'
-                ? '各位玩家'
-                : (names[view.actorSeat ?? view.turnSeat] ?? '当前玩家')
-            }
-          >
-            <span className="status-actors" aria-label="当前行动玩家">
-              {actingSeats.map((seat) =>
-                portraits[seat] ? (
-                  <img
-                    key={seat}
-                    src={portraits[seat]}
-                    data-actor-seat={seat}
-                    alt={view.phase === 'initial-flip' ? names[seat] : ''}
-                    title={names[seat]}
-                  />
-                ) : null,
-              )}
-            </span>
-            <span>
-              {view.phase === 'initial-flip'
-                ? '各位玩家'
-                : (names[view.actorSeat ?? view.turnSeat] ?? '当前玩家')}
-            </span>
-          </h2>
+          {showActor && (
+            <h2 className="current-actor" title={actorName}>
+              <span className="status-actors" aria-label="当前行动玩家">
+                {actingSeats.map((seat) =>
+                  portraits[seat] ? (
+                    <img
+                      key={seat}
+                      src={portraits[seat]}
+                      data-actor-seat={seat}
+                      alt={initialFlip ? names[seat] : ''}
+                      title={names[seat]}
+                    />
+                  ) : null,
+                )}
+              </span>
+              <span>{actorName}</span>
+            </h2>
+          )}
           <strong className="current-operation">
             {phaseLabels[view.phase]}
           </strong>
@@ -212,36 +207,37 @@ export function TableStatus({
           aria-valuetext={`${progress.label}：${progress.completed} / ${progress.total} 已完成`}
         >
           {progress.labels.map((label, index) => {
-            const done =
-              view.phase === 'initial-flip'
-                ? view.initialDone.includes(view.seatOrder[index]!)
-                : index < progress.completed;
+            const seat = initialFlip ? view.seatOrder[index] : undefined;
+            const portrait = seat && !player ? portraits[seat] : undefined;
+            const done = seat
+              ? view.initialDone.includes(seat)
+              : index < progress.completed;
             const current =
-              !done &&
-              (view.phase === 'initial-flip' || index === progress.completed);
+              !done && (initialFlip || index === progress.completed);
             return (
               <span
                 key={label}
                 className={`progress-segment ${done ? 'complete' : current ? 'current' : ''}`}
                 aria-current={current ? 'step' : undefined}
-                title={
-                  view.phase === 'initial-flip'
-                    ? names[view.seatOrder[index]!]
-                    : label
-                }
+                title={seat ? names[seat] : label}
               >
                 <span className="progress-track" aria-hidden="true" />
                 <span className="progress-label">
+                  {portrait && <img src={portrait} alt="" />}
+                  {initialFlip
+                    ? portrait
+                      ? index + 1
+                      : `座${index + 1}`
+                    : label}
                   <span className="progress-mark" aria-hidden="true">
                     {done ? '✓' : ''}
                   </span>
-                  {view.phase === 'initial-flip' ? `座${index + 1}` : label}
                 </span>
               </span>
             );
           })}
         </div>
-        {view.phase === 'initial-flip' && (
+        {initialFlip && (
           <p className="progress-caption">
             已翻牌 {progress.completed} / {progress.total}
           </p>
@@ -315,11 +311,13 @@ export function TableStatus({
           )}
           <div className="held-copy">
             <span className="held-tag">
-              {view.held ? heldStatus : '暂持区'}
+              {player && view.held ? heldStatus : '暂持区'}
             </span>
             <strong>
               {view.held
-                ? view.held.name.replace('外观', '')
+                ? player
+                  ? view.held.name.replace('外观', '')
+                  : heldStatus
                 : view.phase === 'draw'
                   ? '待取牌'
                   : '暂未持牌'}

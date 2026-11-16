@@ -32,13 +32,14 @@
   padding: 6px 10px;
   font-size: 18px;
 }
-.pokemon-screen .toolbar-menu {
+.pokemon-screen .game-toolbar .toolbar-icon-button {
   display: grid;
   place-items: center;
   width: 44px;
   min-width: 44px;
+  padding: 0;
 }
-.pokemon-menu-icon {
+.pokemon-screen .toolbar-icon-button svg {
   width: 24px;
   height: 24px;
   display: block;
@@ -344,26 +345,6 @@
   font-size: 16px;
   line-height: 18px;
 }
-.pokemon-screen:not(.player)
-  .decision-progress:is(
-    [data-step-count='4'],
-    [data-step-count='5'],
-    [data-step-count='6']
-  ) {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  row-gap: 6px;
-}
-.pokemon-screen:not(.player) .decision-progress[data-step-count='4'] {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-}
-.pokemon-screen:not(.player) .progress-segment {
-  line-height: 24px;
-  white-space: normal;
-  overflow: visible;
-  text-overflow: clip;
-  overflow-wrap: anywhere;
-}
 .pokemon-screen .progress-track {
   height: 8px;
 }
@@ -491,45 +472,42 @@
 .pokemon-screen .action-announcement {
   width: 100%;
   min-width: 0;
-  min-height: 72px;
-  padding: 8px;
+  min-height: 0;
+  padding: 8px 10px;
   margin: 0;
   display: grid;
-  grid-template-columns: 32px minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
-  gap: 6px;
-}
-.pokemon-screen .action-card-art,
-.pokemon-screen .action-symbol {
-  width: 32px;
-  height: 32px;
+  gap: 8px;
 }
 .pokemon-screen .action-copy {
-  display: block;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
   min-width: 0;
+  gap: 2px;
+  overflow-wrap: anywhere;
 }
-.pokemon-screen .action-kicker,
-.pokemon-screen .action-detail {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px;
+.pokemon-screen .action-actor {
   font-size: 16px;
   line-height: 20px;
+  color: #4a6256;
 }
 .pokemon-screen .action-title {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 5px;
   font-size: 18px;
   line-height: 22px;
-  display: block;
+  grid-row: auto;
   white-space: normal;
 }
-.pokemon-screen .action-targets-mobile {
-  display: none;
+.pokemon-screen .action-title > span {
+  min-width: 0;
 }
 .pokemon-screen .recent-actions {
-  grid-column: 1 / -1;
-  justify-self: end;
   min-height: 44px;
   font-size: 16px;
+  white-space: nowrap;
   padding: 4px 10px;
 }
 .pokemon-screen .round-banner {
@@ -1539,6 +1517,112 @@
   flex: 1;
   align-content: space-between;
   padding: 8px;
+}
+.pokemon-screen:not(.player) .decision-status {
+  display: grid;
+  gap: 6px;
+}
+.pokemon-screen:not(.player) .decision-status .eyebrow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 8px;
+}
+.pokemon-screen:not(.player) .current-decision {
+  display: grid;
+  gap: 4px;
+  padding: 6px 10px;
+  background: #e8f0e4;
+  border-radius: 10px;
+}
+.pokemon-screen:not(.player) h2.current-actor {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 6px;
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+.pokemon-screen:not(.player) .current-operation {
+  color: #38594b;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+}
+.pokemon-screen:not(.player) .decision-progress {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  padding: 0;
+  margin: 0;
+  max-width: none;
+  min-height: 0;
+}
+.pokemon-screen:not(.player)
+  :is(
+    .decision-progress[data-step-count='2'],
+    .game-table:not([data-phase='initial-flip'])
+      .decision-progress[data-step-count='4'],
+    .game-table:is([data-phase^='mew-'], [data-phase^='zapdos-'])
+      .decision-progress
+  ) {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.pokemon-screen:not(.player) .progress-segment {
+  display: grid;
+  gap: 0;
+  border: 0;
+  border-radius: 7px;
+  background: #f0eee3;
+  line-height: 20px;
+  white-space: normal;
+  overflow: visible;
+  text-overflow: clip;
+}
+.pokemon-screen:not(.player) .progress-segment.complete {
+  background: #e1eee2;
+}
+.pokemon-screen:not(.player) .progress-segment.current {
+  background: #fff0cc;
+}
+.pokemon-screen:not(.player) .progress-label {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  min-height: 27px;
+  padding: 2px 4px;
+  white-space: nowrap;
+}
+.pokemon-screen:not(.player) .progress-label img {
+  width: 22px;
+  height: 22px;
+}
+.pokemon-screen:not(.player) .progress-mark:empty {
+  display: none;
+}
+.pokemon-screen:not(.player) .progress-track {
+  grid-row: 2;
+  height: 3px;
+  margin: 0 4px;
+  border-radius: 2px;
+}
+.pokemon-screen:not(.player) .complete .progress-track {
+  background: #4d826d;
+}
+.pokemon-screen:not(.player) .current .progress-track {
+  background: repeating-linear-gradient(135deg, #ad6f18 0 5px, #e9c078 5px 9px);
+}
+.pokemon-screen:not(.player) .progress-caption {
+  margin: 0;
+}
+.pokemon-screen:not(.player) .held-copy {
+  display: grid;
+  justify-items: start;
+  gap: 4px;
+  text-align: start;
+}
+.pokemon-screen:not(.player) .held-tag {
+  padding: 0;
+  background: none;
+  color: #665639;
 }
 .pokemon-screen:not(.player) .table-side {
   gap: 6px;

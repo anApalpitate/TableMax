@@ -142,26 +142,15 @@ function PokemonScreen({ session }: { session: RoomSession }) {
               />
             )}
             <button
-              className="secondary game-rulebook-entry"
+              className="secondary game-rulebook-entry toolbar-icon-button"
+              aria-label="规则"
+              title="规则"
               onClick={() => {
                 setRuleChapter(null);
                 setPanel('rules');
               }}
             >
-              规则
-            </button>
-            <button
-              className="secondary toolbar-menu"
-              aria-label="菜单"
-              title="菜单"
-              data-tooltip="菜单"
-              onClick={() => setPanel('menu')}
-            >
-              <svg
-                className="pokemon-menu-icon"
-                viewBox="0 0 24 24"
-                aria-hidden="true"
-              >
+              <svg viewBox="0 0 24 24" aria-hidden="true">
                 <rect
                   x="3"
                   y="2"
@@ -179,6 +168,25 @@ function PokemonScreen({ session }: { session: RoomSession }) {
                   strokeWidth="2"
                   strokeLinecap="round"
                 />
+              </svg>
+            </button>
+            <button
+              className="secondary toolbar-menu toolbar-icon-button"
+              aria-label="菜单"
+              title="菜单"
+              data-tooltip="菜单"
+              onClick={() => setPanel('menu')}
+            >
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.7"
+                strokeLinejoin="round"
+                aria-hidden="true"
+              >
+                <path d="M9.7 3h4.6l.5 2.5 1.5.9 2.5-.8 2.3 4-1.9 1.7v1.4l1.9 1.7-2.3 4-2.5-.8-1.5.9-.5 2.5H9.7l-.5-2.5-1.5-.9-2.5.8-2.3-4 1.9-1.7v-1.4L2.9 9.6l2.3-4 2.5.8 1.5-.9z" />
+                <circle cx="12" cy="12" r="3" />
               </svg>
             </button>
           </header>
