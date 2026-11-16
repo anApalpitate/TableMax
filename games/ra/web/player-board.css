@@ -55,9 +55,6 @@
   --ra-board-rail: #8a5447;
   --ra-board-vermillion: #963529;
   --ra-board-teal: #075750;
-  --ra-personal-water: #234e5a;
-  --ra-personal-drought: #8e3937;
-  --ra-personal-token: 34px;
   --ra-personal-epoch-first: #aed0b7;
   --ra-personal-epoch-second: #e6bc80;
   --ra-personal-epoch-third: #e8a3a0;
@@ -94,75 +91,9 @@
   font-size: 20px;
 }
 
-.ra-personal-grid {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(41px, auto) minmax(0, 1fr);
-  grid-template-areas:
-    'keep discs discard'
-    'keep discs discard'
-    'keep discs discard'
-    'keep discs discard'
-    'keep discs discard'
-    'water water water';
-  border-block: 1px solid var(--ra-personal-rule);
-  isolation: isolate;
-}
-
-.ra-personal-side {
-  display: grid;
-  grid-template-rows: subgrid;
-  min-inline-size: 0;
-  color: var(--ra-board-ink);
-  background:
-    repeating-linear-gradient(0deg, #71582b06 0 1px, transparent 1px 4px),
-    var(--ra-board-stock);
-  --ra-personal-epoch-first: #236047;
-  --ra-personal-epoch-second: #995020;
-  --ra-personal-epoch-third: #a03433;
-}
-
-.ra-personal-keep {
-  grid-area: keep;
-}
-
-.ra-personal-discard {
-  grid-area: discard;
-}
-
-.ra-personal-life {
-  display: grid;
-  place-items: center;
-  min-block-size: 26px;
-  color: #f7e5c8;
-  background: linear-gradient(110deg, #644a4b, #543d3f);
-  border-block-end: 1px solid var(--ra-personal-rule);
-}
-
-.ra-personal-resource {
-  --ra-slot: var(--ra-board-stock);
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  align-content: start;
-  gap: 2px 6px;
-  padding: 3px 4px;
-  border-block-end: 1px solid #99784b55;
-}
-
-.ra-personal-resource[data-kind='nile'],
-.ra-personal-resource[data-kind='flood'] {
-  border-block-end: 0;
-}
-
-.ra-personal-resource[data-kind='monument'] {
-  grid-row: span 2;
-}
-
 .ra-personal-resource-head,
 .ra-personal-epochs,
-.ra-personal-tiles,
-.ra-personal-water-bridge > span,
-.ra-personal-pool li {
+.ra-personal-tiles {
   display: flex;
   justify-content: center;
   align-items: center;
@@ -216,18 +147,12 @@
   color: var(--ra-personal-epoch-third);
 }
 
-.ra-personal-water,
 .ra-inscription,
-.ra-rule-sigil,
 .ra-per-tile {
   font-size: 16px;
   line-height: 1.2;
   font-variant-numeric: tabular-nums;
   text-align: center;
-}
-
-.ra-rule-sigil {
-  display: none;
 }
 
 .ra-inscription {
@@ -497,30 +422,7 @@
 }
 
 .ra-personal-disc-row {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  align-self: stretch;
-  justify-content: center;
-  grid-area: discs;
-  gap: 4px;
-  min-inline-size: 0;
-  max-inline-size: 108px;
-  padding: 4px;
-  border-inline: 1px solid var(--ra-personal-rule);
-  background: linear-gradient(90deg, #294144, #314749 52%, #284044);
-}
-
-.ra-personal-disc-row > .ra-inscription,
-.ra-legend-disks > .ra-inscription {
-  padding: 5px 3px;
-  border-radius: 5px;
-  background: var(--ra-board-stock-shade);
-}
-
-.ra-personal-disc-row > .ra-inscription .ra-inscription-row,
-.ra-legend-disks > .ra-inscription .ra-inscription-row {
-  grid-template-columns: 23px 29px 6px 31px;
+  padding: 3px 9px 6px;
 }
 
 .ra-personal-discs {
@@ -550,118 +452,276 @@
   opacity: 0.65;
 }
 
-.ra-personal-water {
+.ra-forecast {
   display: grid;
-  grid-area: water;
-  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  gap: 5px;
+  padding: 7px 9px 9px;
+  min-inline-size: 0;
+  color: var(--ra-board-ink);
+  background: var(--ra-board-stock);
+  border-block: 1px solid #99784b60;
+}
+
+.ra-forecast-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 4px 8px;
+  font-weight: 720;
+  line-height: 1.28;
+}
+
+.ra-forecast-label {
+  display: flex;
   align-items: center;
-  min-block-size: 29px;
-  padding: 3px 4px;
-  color: var(--ra-personal-water);
-  border-block-start: 1px solid var(--ra-personal-rule);
-  background: var(--ra-board-stock-shade);
+  margin-inline-start: auto;
+  gap: 7px;
 }
 
-.ra-personal-water-bridge {
-  position: relative;
+.ra-forecast-total,
+.ra-holding-gain {
+  min-inline-size: 33px;
+  text-align: center;
+  font-size: 18px;
+}
+
+.ra-forecast-total .ra-point-chip {
+  min-inline-size: 24px;
+  min-block-size: 24px;
+}
+
+.ra-forecast-hint {
+  color: #524938;
+}
+
+.ra-holding-rows {
   display: grid;
-  gap: 1px;
-  justify-items: center;
-  padding-inline: 3px;
-  white-space: nowrap;
+  min-inline-size: 0;
 }
 
-.ra-personal-water-bridge i {
+.ra-holding-rows:empty {
+  display: none;
+}
+
+.ra-holding-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 45px;
+  align-items: center;
+  min-inline-size: 0;
+  padding-block: 3px;
+}
+
+.ra-forecast[data-state='ended'] .ra-holding-row {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.ra-holding-row + .ra-holding-row {
+  border-block-start: 1px solid #9b845d54;
+}
+
+.ra-holding-shelf {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 3px;
+  min-inline-size: 0;
+}
+
+.ra-holding-gain {
+  border-inline-start: 1px solid #9b845d54;
+  line-height: 1.75;
+}
+
+.ra-holding-tile,
+.ra-forecast-disk-rule,
+.ra-holding-dialog button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-inline-size: 44px;
+  min-block-size: 44px;
+  border: 1px solid transparent;
+  border-radius: 5px;
+  color: inherit;
+  background: transparent;
+  font: inherit;
+  cursor: pointer;
+}
+
+.ra-holding-tile {
   position: relative;
-  width: 100%;
-  border-block-start: 2px solid currentColor;
+  touch-action: pan-y;
+  -webkit-touch-callout: none;
+  user-select: none;
+  padding: 2px;
 }
 
-.ra-personal-water-bridge i::before {
+.ra-holding-tile .ra-tile {
+  display: block;
+  width: 44px;
+  height: 49px;
+  object-fit: contain;
+}
+
+.ra-holding-tile b {
   position: absolute;
-  inset: -5px auto auto 0;
-  width: 6px;
-  height: 6px;
-  border: solid currentColor;
-  border-width: 0 0 2px 2px;
-  content: '';
-  transform: rotate(45deg);
+  inset: auto 1px 1px auto;
+  padding-inline: 3px;
+  border-radius: 4px;
+  color: #fff5df;
+  background: #3c352a;
+  font-size: 16px;
+  line-height: 1.2;
 }
 
-.ra-personal-water[data-flooded='false'] .ra-personal-water-bridge i {
-  border-block-start-style: dashed;
+.ra-holding-tile:active {
+  background: #7a61362a;
+}
+
+.ra-holding-tile:focus-visible,
+.ra-forecast-disk-rule:focus-visible,
+.ra-holding-dialog button:focus-visible {
+  outline: 2px solid #24595c;
+  outline-offset: 1px;
+}
+
+.ra-forecast-disk-rule {
+  justify-self: end;
+  gap: 5px;
+  padding: 3px 8px;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.ra-forecast-disk-rule .ra-sun {
+  width: 22px;
+}
+
+.ra-holding-dialog {
+  --ra-personal-epoch-first: #236047;
+  --ra-personal-epoch-second: #995020;
+  --ra-personal-epoch-third: #a03433;
+  width: min(calc(100% - 26px), 396px);
+  max-height: calc(100dvh - 32px);
+  padding: 12px;
+  overflow: auto;
+  overscroll-behavior: contain;
+  border: 1px solid #887863;
+  border-radius: 9px;
+  color: var(--ra-board-ink);
+  background: #f4e8ce;
+  box-shadow: 0 13px 37px #170d07aa;
+}
+
+.ra-holding-dialog::backdrop {
+  background: #1816139e;
+}
+
+.ra-holding-dialog header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 7px;
+  margin-block-end: 8px;
+}
+
+.ra-holding-dialog h3 {
+  font-size: 20px;
+}
+
+.ra-holding-dialog button {
+  padding-inline: 9px;
+  border-color: #988064;
+}
+
+.ra-holding-dialog p {
+  margin-block-start: 8px;
+}
+
+.ra-rule-artwork {
+  --ra-slot: var(--ra-board-stock);
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+  min-inline-size: 0;
+  padding: 6px 3px 9px;
+  border-radius: 6px;
+  background:
+    repeating-linear-gradient(0deg, #71582b06 0 1px, transparent 1px 4px),
+    var(--ra-board-stock);
+}
+
+.ra-rule-artwork .ra-personal-resource-head > .ra-personal-icon {
+  width: 34px;
+  height: 28px;
+}
+
+.ra-rule-artwork .ra-personal-epochs svg {
+  width: 15px;
+  height: 19px;
+}
+
+.ra-rule-artwork .ra-inscription,
+.ra-rule-artwork .ra-per-tile {
+  font-size: 20px;
+}
+
+.ra-rule-artwork .ra-inscription-row {
+  grid-template-columns: 33px 40px 9px 39px;
+  min-block-size: 29px;
+}
+
+.ra-rule-artwork .ra-monument-inscription {
+  padding-inline-end: 39px;
+}
+
+.ra-rule-artwork .ra-inscribed-tile {
+  inline-size: 31px;
+  block-size: 29px;
+}
+
+.ra-rule-artwork .ra-inscribed-badge {
+  inline-size: 20px;
+  block-size: 20px;
+  font-size: 18px;
+}
+
+.ra-rule-artwork .ra-inscribed-tile .ra-personal-icon {
+  inline-size: 24px;
+  block-size: 24px;
+}
+
+.ra-rule-artwork .ra-point-chip {
+  min-inline-size: 25px;
+  min-block-size: 27px;
+}
+
+.ra-river-inscription {
+  display: grid;
+  justify-items: center;
+  gap: 4px;
 }
 
 .ra-personal-drought {
   display: flex;
-  grid-column: 1 / -1;
   align-items: center;
-  justify-content: center;
-  gap: 3px;
-  color: var(--ra-personal-drought);
+  gap: 4px;
+  color: #8e3937;
 }
 
-.ra-personal-drought .ra-personal-icon {
-  inline-size: 16px;
-  block-size: 16px;
-}
-
-.ra-personal-legend,
 .ra-personal-score {
   min-inline-size: 0;
   padding: 4px 9px;
 }
 
-.ra-personal :is(summary, dt) {
-  font-weight: 650;
-}
-
-.ra-personal summary {
+.ra-personal-score summary {
   display: list-item;
-  width: fit-content;
   padding: 4px 3px;
+  font-weight: 650;
   cursor: pointer;
 }
 
-.ra-personal-legend > dl {
-  margin: 4px 0 8px;
-}
-
-.ra-expanded-inscriptions {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 134px), 1fr));
-  gap: 5px;
-  margin-block-end: 7px;
-}
-
-.ra-legend-resource,
-.ra-legend-disks {
-  display: grid;
-  justify-items: center;
-  align-content: start;
-  gap: 4px;
-  padding: 6px 3px;
-  border-radius: 5px;
-  color: var(--ra-board-ink);
-  background: var(--ra-board-stock);
-  --ra-slot: var(--ra-board-stock);
-  --ra-personal-epoch-first: #236047;
-  --ra-personal-epoch-second: #995020;
-  --ra-personal-epoch-third: #a03433;
-}
-
-.ra-personal-legend dt {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  margin-block-start: 7px;
-}
-
-.ra-personal-legend dd {
-  margin-inline-start: 0;
-}
-
-.ra-personal-legend > .ra-personal-pool,
 .ra-personal-score ul {
   display: flex;
   flex-wrap: wrap;
@@ -674,127 +734,9 @@
   margin-block-start: 7px;
 }
 
-.ra-personal[data-primary='true'] {
-  --ra-personal-token: 43px;
-}
-
-@container (max-width: 320px) {
-  .ra-personal-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    grid-template-areas:
-      'discs discs'
-      'keep discard'
-      'keep discard'
-      'keep discard'
-      'keep discard'
-      'keep discard'
-      'water water';
-  }
-
-  .ra-personal-disc-row {
-    flex-flow: row wrap;
-    max-inline-size: none;
-    border-inline: 0;
-  }
-
-  .ra-personal-disc-row > .ra-inscription {
-    display: none;
-  }
-
-  .ra-personal-disc-row > .ra-rule-sigil {
-    display: inline-flex;
-    gap: 3px;
-    padding-inline: 4px;
-    border-radius: 6px;
-    background: var(--ra-board-stock-shade);
-  }
-}
-
 @media (max-width: 760px) {
-  .ra-table[data-role='player'] .ra-personal {
-    --ra-personal-water: #234e5a;
-    --ra-personal-drought: #8e3937;
-    --ra-personal-epoch-first: #28614a;
-    --ra-personal-epoch-second: #865019;
-    --ra-personal-epoch-third: #8e3937;
-  }
-
-  .ra-table[data-role='player'] .ra-personal-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    grid-template-areas:
-      'discs discs'
-      'keep discard'
-      'water water';
-  }
-
-  .ra-table[data-role='player'] .ra-personal[data-primary='true'] {
-    --ra-personal-token: clamp(27px, 8.4cqi, 39px);
-  }
-
-  .ra-table[data-role='player'] .ra-personal-keep {
-    grid-template-rows: auto auto auto 1fr;
-  }
-
-  .ra-table[data-role='player'] .ra-personal-discard {
-    grid-template-rows: auto auto auto auto 1fr;
-  }
-
-  .ra-table[data-role='player'] .ra-personal-resource {
-    grid-row: auto;
-    gap: 1px 4px;
-    padding-block: 2px;
-  }
-
-  .ra-table[data-role='player'] .ra-personal-resource[data-kind='nile'],
-  .ra-table[data-role='player'] .ra-personal-resource[data-kind='flood'] {
-    align-content: end;
-  }
-
-  .ra-table[data-role='player'] .ra-personal-resource-head > .ra-personal-icon {
-    block-size: 20px;
-  }
-
-  .ra-table[data-role='player'] .ra-personal-resource .ra-inscription {
-    gap: 1px;
-    padding-block: 2px;
-  }
-
-  .ra-table[data-role='player'] .ra-personal-resource .ra-inscription-row {
-    min-block-size: 21px;
-  }
-
-  .ra-table[data-role='player']
-    .ra-personal-resource
-    .ra-personal-tiles:not(:empty) {
-    gap: 2px;
-    padding: 2px;
-    border-radius: 5px;
-    background: #71582b10;
-    box-shadow: inset 0 1px 2px #73553928;
-  }
-
-  .ra-table[data-role='player'] .ra-personal-legend,
-  .ra-table[data-role='player'] .ra-personal-score {
-    padding-block: 3px;
-  }
-
-  .ra-table[data-role='player'] .ra-personal-disc-row {
-    flex-flow: row wrap;
-    max-inline-size: none;
-    border-inline: 0;
-    background: linear-gradient(90deg, #d3c9ad, #d5d1b8 52%, #d3c9ad);
-  }
-
-  .ra-table[data-role='player'] .ra-personal-disc-row > .ra-epochs {
-    --ra-personal-epoch-third: #8e3937;
-  }
-
-  .ra-table[data-role='player'] .ra-personal-disc-row > .ra-inscription {
-    display: none;
-  }
-
-  .ra-table[data-role='player'] .ra-personal-disc-row > .ra-rule-sigil {
-    display: inline-flex;
-    gap: 3px;
+  .ra-holding-tile .ra-tile {
+    width: 40px;
+    height: 44px;
   }
 }

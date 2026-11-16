@@ -1,6 +1,7 @@
-import type { ReactNode } from 'react';
+import { useEffect, useId, useRef, useState, type ReactNode } from 'react';
 import type { RaView } from '../rules';
-import { tile, tileIds, type Tile } from '../rules/data';
+import { tile, tileIds, tileNames, type Tile } from '../rules/data';
+import type { Breakdown } from '../rules/state';
 import { SunDisk, TileFace } from './art';
 import './player-board.css';
 
@@ -16,12 +17,33 @@ const names = {
   river: '河流',
 };
 type Resource = Exclude<keyof typeof names, 'disks' | 'river'>;
-type Icon = Resource | 'keep' | 'discard' | 'link' | 'group';
+type Icon = Resource | 'link' | 'group';
 type Motif = Resource | 'disks' | 'wild';
 type Badge = '=' | '≠' | '↑' | '↓';
 
-const left = ['monument', 'pharaoh', 'nile'] as const;
-const right = ['god', 'gold', 'civilization', 'flood'] as const;
+const categories = [
+  'pharaoh',
+  'god',
+  'gold',
+  'river',
+  'civilization',
+  'monument',
+] as const;
+type Rule = Resource | 'disks';
+type Projection = { parts: Omit<Breakdown, 'disks'>; delta: number };
+const ruleText: Record<Rule, string> = {
+  pharaoh: '数量最多者各 +5，最少者各 −2。全桌相同时为 0。',
+  god: '未花费的神明每枚 +2。花费一枚可从拍卖行取走一枚非神明板块。',
+  gold: '黄金每枚 +3。',
+  civilization:
+    '不同种类数为 0／1／2／3／4／5 时，得分是 −5／0／0／5／10／15。',
+  monument:
+    '第三时代将两项相加。每组 3／4／5 枚同类分别 +5／+10／+15。有 1–6 种时每种 +1，有 7／8 种时分别 +10／+15。',
+  nile: '有洪水时尼罗河每枚 +1，否则为 0。洪水自身每枚 +1。',
+  flood: '洪水每枚 +1，有至少一枚还能让每枚尼罗河 +1。旱灾先弃洪水再弃尼罗河。',
+  disks:
+    '第三时代比较各席正反面圆盘的合计。最高各 +5，最低各 −5，全桌相同为 0。中央盘不计。',
+};
 const pool = new Map<string, number>();
 for (const id of tileIds) {
   const kind = tile(id).face;
@@ -67,23 +89,6 @@ const diagrams: Record<Icon, ReactNode> = {
   ),
   flood: (
     <path d="m2 4 4 4 4-3 4 4 4-3 4 4M2 9l4 4 4-3 4 4 4-3 4 4M2 14l4 4 4-3 4 4 4-3 4 4" />
-  ),
-  keep: (
-    <path d="M12 12c-3-4-5-5-7-4-4 2-3 8 1 8 2 0 4-2 6-4 3-4 5-5 7-4 4 2 3 8-1 8-2 0-4-2-6-4Z" />
-  ),
-  discard: (
-    <>
-      <path
-        d="M3 18V8a5 5 0 0 1 5-5h4a5 5 0 0 1 5 5v7l-3 3Z"
-        fill="#a89071"
-        stroke="none"
-      />
-      <path
-        d="M9 11q8-1 11 7m-5-1 5 2 1-5"
-        stroke="#ed8c76"
-        strokeWidth="2.5"
-      />
-    </>
   ),
   link: (
     <path d="m10 8 2-2a4 4 0 1 1 6 6l-2 2m-2 2-2 2a4 4 0 1 1-6-6l2-2m1 5 6-6" />
@@ -213,34 +218,26 @@ function RuleRow({
 function Comparison({ motif }: { motif: 'pharaoh' | 'disks' }) {
   const penalty = motif === 'pharaoh' ? -2 : -5;
   return (
-    <>
-      {motif === 'disks' && (
-        <span className="ra-rule-sigil" aria-hidden="true">
-          <PointChip value={5} />
-          <PointChip value={penalty} />
-        </span>
-      )}
-      <div className="ra-inscription ra-comparison" aria-hidden="true">
-        <RuleRow
-          prefix={<BoardIcon name="group" />}
-          motif={motif}
-          badge="↑"
-          value={5}
-        />
-        <RuleRow
-          prefix={<BoardIcon name="group" />}
-          motif={motif}
-          badge="↓"
-          value={penalty}
-        />
-        <RuleRow
-          prefix={<BoardIcon name="group" />}
-          motif={motif}
-          badge="="
-          value={0}
-        />
-      </div>
-    </>
+    <div className="ra-inscription ra-comparison" aria-hidden="true">
+      <RuleRow
+        prefix={<BoardIcon name="group" />}
+        motif={motif}
+        badge="↑"
+        value={5}
+      />
+      <RuleRow
+        prefix={<BoardIcon name="group" />}
+        motif={motif}
+        badge="↓"
+        value={penalty}
+      />
+      <RuleRow
+        prefix={<BoardIcon name="group" />}
+        motif={motif}
+        badge="="
+        value={0}
+      />
+    </div>
   );
 }
 
@@ -252,16 +249,20 @@ function PerTile({ motif, points }: { motif: Motif; points: number }) {
   );
 }
 
-function Tokens({ tiles }: { tiles: Tile[] }) {
+function groupTiles(tiles: Tile[]) {
   const groups = new Map<string, { tile: Tile; count: number }>();
   for (const tile of tiles) {
     const group = groups.get(tile.face);
     if (group) group.count++;
     else groups.set(tile.face, { tile, count: 1 });
   }
+  return [...groups.values()];
+}
+
+function Tokens({ tiles }: { tiles: Tile[] }) {
   return (
     <div className="ra-personal-tiles">
-      {[...groups.values()].map(({ tile, count }) => (
+      {groupTiles(tiles).map(({ tile, count }) => (
         <span
           key={tile.face}
           className="ra-personal-stack"
@@ -342,139 +343,6 @@ function RulesDiagram({ kind }: { kind: Resource }) {
     case 'flood':
       return null;
   }
-}
-
-function ResourcePanel({
-  kind,
-  held,
-  flooded,
-}: {
-  kind: Resource;
-  held: Tile[];
-  flooded: boolean;
-}) {
-  return (
-    <div
-      className="ra-personal-resource"
-      data-kind={kind}
-      aria-label={names[kind]}
-      role="group"
-    >
-      <div className="ra-personal-resource-head">
-        <BoardIcon name={kind} />
-        <Epochs onlyThird={kind === 'monument'} />
-      </div>
-      <RulesDiagram kind={kind} />
-      {kind === 'nile' && (
-        <div className="ra-inscription ra-nile-inscription" aria-hidden="true">
-          <div data-current={flooded}>
-            <span>1+</span> <InscribedTile motif="flood" /> <span>:</span>{' '}
-            <PerTile motif="nile" points={1} />
-          </div>
-          <div data-current={!flooded}>
-            <span>0</span> <InscribedTile motif="flood" /> <span>:</span>{' '}
-            <PerTile motif="nile" points={0} />
-          </div>
-        </div>
-      )}
-      {kind === 'flood' && (
-        <div
-          className="ra-inscription-single ra-flood-inscription"
-          aria-hidden="true"
-        >
-          <PerTile motif="flood" points={1} />
-        </div>
-      )}
-      <Tokens tiles={held.filter((tile) => tile.kind === kind)} />
-    </div>
-  );
-}
-
-function PlayerLegend() {
-  return (
-    <details className="ra-personal-legend">
-      <summary>图例</summary>
-      <div className="ra-expanded-inscriptions">
-        {(['monument', 'pharaoh', 'god', 'gold', 'civilization'] as const).map(
-          (kind) => (
-            <section
-              key={kind}
-              aria-label={names[kind]}
-              className="ra-legend-resource"
-            >
-              <div className="ra-personal-resource-head">
-                <BoardIcon name={kind} />
-                <Epochs onlyThird={kind === 'monument'} />
-              </div>
-              <RulesDiagram kind={kind} />
-            </section>
-          ),
-        )}
-        <section aria-label="太阳圆盘" className="ra-legend-disks">
-          <Epochs onlyThird />
-          <Comparison motif="disks" />
-        </section>
-      </div>
-      <dl>
-        <dt>
-          <BoardIcon name="keep" /> 保留
-        </dt>
-        <dd>左侧跨时代保留，仍可被相应灾难弃置。</dd>
-        <dt>
-          <BoardIcon name="discard" /> 弃置
-        </dt>
-        <dd>右侧在时代计分后弃置。</dd>
-        <dt>
-          <Epochs /> 每时代计分
-        </dt>
-        <dd>
-          法老最多 +5、最少 −2；全桌相同则为 0。神明剩余每枚 +2，黄金每枚
-          +3。文明按不同种类数计分，0／1／2／3／4／5 类对应 −5／0／0／5／10／15
-          分。
-        </dd>
-        <dt>
-          <Epochs onlyThird /> 仅第三时代
-        </dt>
-        <dd>
-          纪念物相同的每组 3／4／5 枚得 5／10／15 分，再以不同种类数加分，1–6
-          种每种 1 分，7／8 种得 10／15 分。圆盘两面合计，最高 +5、最低
-          −5、全桌相同为 0，中央盘不算。
-        </dd>
-        <dt>
-          <BoardIcon name="flood" /> 河流
-        </dt>
-        <dd>
-          洪水本身每枚 +1；有洪水时尼罗河每枚 +1，无洪水时尼罗河 0
-          分。旱灾先弃洪水再弃尼罗河。
-        </dd>
-      </dl>
-      <p>开局供给／相关灾难总数</p>
-      <ul className="ra-personal-pool">
-        <li>
-          <BoardIcon name="monument" /> 8×{pool.get('pyramid')} /{' '}
-          {pool.get('earthquake')}
-        </li>
-        <li>
-          <BoardIcon name="pharaoh" /> {pool.get('pharaoh')} /{' '}
-          {pool.get('funeral')}
-        </li>
-        <li>
-          <BoardIcon name="god" /> {pool.get('god')} / 0
-        </li>
-        <li>
-          <BoardIcon name="gold" /> {pool.get('gold')} / 0
-        </li>
-        <li>
-          <BoardIcon name="civilization" /> 5×{pool.get('art')} /{' '}
-          {pool.get('war')}
-        </li>
-        <li>
-          <BoardIcon name="nile" /> {pool.get('nile')} <BoardIcon name="link" />{' '}
-          <BoardIcon name="flood" /> {pool.get('flood')} / {pool.get('drought')}
-        </li>
-      </ul>
-    </details>
-  );
 }
 
 type Player = RaView['players'][number];
@@ -570,20 +438,291 @@ function ScoreHistory({
   );
 }
 
+function RuleButton({
+  label,
+  className,
+  face,
+  dialog,
+  onOpen,
+  children,
+}: {
+  label: string;
+  className: string;
+  face?: string;
+  dialog: string;
+  onOpen: () => void;
+  children: ReactNode;
+}) {
+  const press = useRef<{
+    id: number;
+    x: number;
+    y: number;
+    timer: ReturnType<typeof setTimeout>;
+  } | null>(null);
+  const moved = useRef(false);
+  const cancel = () => {
+    if (press.current) clearTimeout(press.current.timer);
+    press.current = null;
+  };
+  useEffect(
+    () => () => {
+      if (press.current) clearTimeout(press.current.timer);
+    },
+    [],
+  );
+
+  return (
+    <button
+      type="button"
+      aria-label={label}
+      aria-haspopup="dialog"
+      aria-controls={dialog}
+      className={className}
+      data-face={face}
+      onPointerDown={(event) => {
+        if (event.button !== 0 || !event.isPrimary) return;
+        cancel();
+        moved.current = false;
+        press.current = {
+          id: event.pointerId,
+          x: event.clientX,
+          y: event.clientY,
+          timer: setTimeout(onOpen, 480),
+        };
+      }}
+      onPointerMove={(event) => {
+        const start = press.current;
+        if (
+          start?.id === event.pointerId &&
+          Math.hypot(event.clientX - start.x, event.clientY - start.y) > 10
+        ) {
+          moved.current = true;
+          cancel();
+        }
+      }}
+      onPointerLeave={cancel}
+      onPointerUp={cancel}
+      onPointerCancel={cancel}
+      onContextMenu={(event) => event.preventDefault()}
+      onClick={(event) => {
+        if (event.detail === 0 || !moved.current) onOpen();
+      }}
+    >
+      {children}
+    </button>
+  );
+}
+
+function RiverDiagram({ flooded }: { flooded: boolean }) {
+  return (
+    <div
+      className="ra-river-inscription"
+      data-flooded={flooded}
+      aria-hidden="true"
+    >
+      <div className="ra-inscription ra-nile-inscription">
+        <div data-current={flooded}>
+          <span>1+</span> <InscribedTile motif="flood" /> <span>:</span>{' '}
+          <PerTile motif="nile" points={1} />
+        </div>
+        <div data-current={!flooded}>
+          <span>0</span> <InscribedTile motif="flood" /> <span>:</span>{' '}
+          <PerTile motif="nile" points={0} />
+        </div>
+      </div>
+      <PerTile motif="flood" points={1} />
+      <span className="ra-personal-drought">
+        <BoardIcon name="nile" />
+        <span>←</span>
+        <BoardIcon name="link" />
+        <b>×{pool.get('drought')}</b>
+        <BoardIcon name="flood" />
+      </span>
+    </div>
+  );
+}
+
+function RuleArtwork({ rule, flooded }: { rule: Rule; flooded: boolean }) {
+  return (
+    <div className="ra-rule-artwork">
+      <div className="ra-personal-resource-head">
+        {rule !== 'disks' && <BoardIcon name={rule} />}
+        <Epochs onlyThird={rule === 'disks' || rule === 'monument'} />
+      </div>
+      {rule === 'disks' ? (
+        <Comparison motif="disks" />
+      ) : rule === 'flood' || rule === 'nile' ? (
+        <RiverDiagram flooded={flooded} />
+      ) : (
+        <RulesDiagram kind={rule} />
+      )}
+    </div>
+  );
+}
+
+function HoldingShelf({
+  held,
+  projection,
+  epoch,
+  ended,
+}: {
+  held: Tile[];
+  projection: Projection | null;
+  epoch: number;
+  ended: boolean;
+}) {
+  const [rule, setRule] = useState<Rule>();
+  const dialog = useRef<HTMLDialogElement>(null);
+  const dialogId = useId();
+  const titleId = useId();
+  const groups = groupTiles(held);
+  const flooded = held.some((tile) => tile.kind === 'flood');
+  useEffect(() => {
+    const panel = dialog.current;
+    if (rule && panel && !panel.open) panel.showModal();
+  }, [rule]);
+
+  return (
+    <>
+      <section
+        className="ra-forecast"
+        aria-label="石板和预期收益"
+        data-state={ended ? 'ended' : projection ? 'ready' : 'pending'}
+      >
+        <header className="ra-forecast-heading">
+          <span>已有石板</span>
+          {!ended && (
+            <div className="ra-forecast-label">
+              本时代预期收益
+              <strong
+                className="ra-forecast-total"
+                data-points={projection?.delta}
+              >
+                {projection ? <PointChip value={projection.delta} /> : '—'}
+              </strong>
+            </div>
+          )}
+        </header>
+        {!ended && !projection && (
+          <p className="ra-forecast-hint">灾难处理后更新</p>
+        )}
+        {epoch === 3 && !ended && (
+          <RuleButton
+            className="ra-forecast-disk-rule"
+            label="圆盘另计，查看规则"
+            dialog={dialogId}
+            onOpen={() => setRule('disks')}
+          >
+            <SunDisk /> 圆盘另计
+          </RuleButton>
+        )}
+        {held.length === 0 && <p className="ra-forecast-hint">尚无石板</p>}
+        <div className="ra-holding-rows">
+          {categories.map((category) => {
+            const entries = groups.filter(({ tile }) =>
+              category === 'river'
+                ? tile.kind === 'nile' || tile.kind === 'flood'
+                : tile.kind === category,
+            );
+            const points = projection?.parts[category];
+            if (entries.length === 0 && !points) return null;
+            return (
+              <div
+                className="ra-holding-row"
+                data-category={category}
+                role="group"
+                aria-label={names[category]}
+                key={category}
+              >
+                <div className="ra-holding-shelf">
+                  {entries.length ? (
+                    entries.map(({ tile, count }) => (
+                      <RuleButton
+                        key={tile.face}
+                        className="ra-holding-tile"
+                        label={`${tileNames[tile.face]} ×${count}，查看计分规则`}
+                        face={tile.face}
+                        dialog={dialogId}
+                        onOpen={() => setRule(tile.kind as Resource)}
+                      >
+                        <TileFace tile={tile} decorative />
+                        {count > 1 && <b aria-hidden="true">×{count}</b>}
+                      </RuleButton>
+                    ))
+                  ) : (
+                    <RuleButton
+                      className="ra-holding-tile"
+                      label={`查看${names[category]}计分规则`}
+                      dialog={dialogId}
+                      onOpen={() =>
+                        setRule(category === 'river' ? 'nile' : category)
+                      }
+                    >
+                      <BoardIcon
+                        name={category === 'river' ? 'nile' : category}
+                      />
+                    </RuleButton>
+                  )}
+                </div>
+                {!ended && (
+                  <div
+                    className="ra-holding-gain"
+                    data-points={points}
+                    aria-label={
+                      points === undefined ? '待处理' : `预期收益 ${points} 分`
+                    }
+                  >
+                    {points === undefined ? '—' : <PointChip value={points} />}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+        {held.length > 0 && <p className="ra-forecast-hint">按住石板看计分</p>}
+      </section>
+      <dialog
+        ref={dialog}
+        id={dialogId}
+        className="ra-holding-dialog"
+        data-rule={rule}
+        aria-labelledby={titleId}
+        onClose={() => setRule(undefined)}
+      >
+        {rule && (
+          <>
+            <header>
+              <h3 id={titleId}>{names[rule]}计分</h3>
+              <button type="button" onClick={() => dialog.current?.close()}>
+                关闭
+              </button>
+            </header>
+            <RuleArtwork rule={rule} flooded={flooded} />
+            <p>{ruleText[rule]}</p>
+          </>
+        )}
+      </dialog>
+    </>
+  );
+}
+
 export function PlayerBoard({
   player,
   name,
   active,
   primary = false,
   ended = false,
+  projection,
+  epoch,
 }: {
   player: Player;
   name: string;
   active: boolean;
   primary?: boolean;
   ended?: boolean;
+  projection: Projection | null;
+  epoch: number;
 }) {
-  const flooded = player.held.some((tile) => tile.kind === 'flood');
   const spent =
     player.private?.spentDisks ??
     Array.from({ length: player.spent }, () => undefined);
@@ -599,80 +738,17 @@ export function PlayerBoard({
         <h2>{name}</h2>
         {player.private && <strong>{player.private.score} 分</strong>}
       </header>
-      <div className="ra-personal-grid">
-        <div
-          className="ra-personal-side ra-personal-keep"
-          role="group"
-          aria-label="跨时代保留"
-        >
-          <span className="ra-personal-life" aria-hidden="true">
-            <BoardIcon name="keep" />
-          </span>
-          {left.map((kind) => (
-            <ResourcePanel
-              key={kind}
-              kind={kind}
-              held={player.held}
-              flooded={flooded}
-            />
-          ))}
-        </div>
-        <div
-          className="ra-personal-disc-row"
-          role="group"
-          aria-label="太阳圆盘"
-        >
-          <div className="ra-personal-discs">
-            <Disks available={player.disks} spent={spent} />
-          </div>
-          <Epochs onlyThird />
-          <Comparison motif="disks" />
-        </div>
-        <div
-          className="ra-personal-side ra-personal-discard"
-          role="group"
-          aria-label="时代结算后弃置"
-        >
-          <span className="ra-personal-life" aria-hidden="true">
-            <BoardIcon name="discard" />
-          </span>
-          {right.map((kind) => (
-            <ResourcePanel
-              key={kind}
-              kind={kind}
-              held={player.held}
-              flooded={flooded}
-            />
-          ))}
-        </div>
-        <div
-          className="ra-personal-water"
-          data-flooded={flooded}
-          role="img"
-          aria-label={
-            flooded
-              ? '洪水已激活尼罗河，每枚洪水与尼罗河各一分。开局两枚旱灾，先弃洪水，再弃尼罗河。'
-              : '至少一枚洪水才能激活尼罗河计分，当前未激活。开局两枚旱灾，先弃洪水，再弃尼罗河。'
-          }
-        >
-          <PerTile motif="nile" points={flooded ? 1 : 0} />
-          <span className="ra-personal-water-bridge">
-            <i aria-hidden="true" />
-            <span>
-              ≥1 <InscribedTile motif="flood" />
-            </span>
-          </span>
-          <PerTile motif="flood" points={1} />
-          <span className="ra-personal-drought" aria-hidden="true">
-            <BoardIcon name="nile" />
-            <span>←</span>
-            <BoardIcon name="link" />
-            <b>×{pool.get('drought')}</b>
-            <BoardIcon name="flood" />
-          </span>
+      <div className="ra-personal-disc-row" role="group" aria-label="太阳圆盘">
+        <div className="ra-personal-discs">
+          <Disks available={player.disks} spent={spent} />
         </div>
       </div>
-      <PlayerLegend />
+      <HoldingShelf
+        held={player.held}
+        projection={projection}
+        epoch={epoch}
+        ended={ended}
+      />
       {player.private && player.private.scores.length > 0 && (
         <ScoreHistory scores={player.private.scores} ended={ended} />
       )}

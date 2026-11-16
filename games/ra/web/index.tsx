@@ -12,6 +12,7 @@ import {
 } from '@tablemax/web-host';
 import type { Action, RaView } from '../rules';
 import { tileNames } from '../rules/data';
+import { holdingsBreakdown, scoreDelta } from '../rules/scoring';
 import { SunDisk, TableArt, TileFace } from './art';
 import { PlayerBoard, PlayerSummary } from './player-board';
 import './ra.css';
@@ -206,6 +207,21 @@ function RaScreen({ session }: { session: GameHost }) {
     session.role === 'player'
       ? game?.players.find((player) => player.seat === session.self?.id)
       : undefined;
+  const projectedParts =
+    ownBoard?.private && game && !game.pending && game.phase !== 'ended'
+      ? holdingsBreakdown(
+          ownBoard.held.map((tile) => tile.id),
+          game.players.map((player) => player.held.map((tile) => tile.id)),
+          game.epoch,
+        )
+      : null;
+  const projection =
+    projectedParts && ownBoard?.private
+      ? {
+          parts: projectedParts,
+          delta: scoreDelta(ownBoard.private.score, projectedParts),
+        }
+      : null;
   return (
     <main
       className="ra-table shell"
@@ -299,32 +315,12 @@ function RaScreen({ session }: { session: GameHost }) {
                     ? `${name(game.actor)}行动`
                     : '对局结束'}
               </strong>
-              <span>
+              <span className="ra-central-disk">
                 <span className="ra-center-label">中央盘</span>{' '}
                 <SunDisk value={game.center} />
               </span>
             </div>
-            <div className="ra-track">
-              <span>
-                拉轨 {game.raDrawn}／{game.limit}
-              </span>
-              <div
-                className="ra-track-slots"
-                role="progressbar"
-                aria-label="拉轨"
-                aria-valuenow={game.raDrawn}
-                aria-valuemin={0}
-                aria-valuemax={game.limit}
-              >
-                {Array.from({ length: game.limit }, (_, index) => (
-                  <span key={index} data-filled={index < game.raDrawn}>
-                    {index + 1 === game.raDrawn && (
-                      <TableArt piece="sun-boat" className="ra-track-boat" />
-                    )}
-                  </span>
-                ))}
-              </div>
-            </div>
+            <RaTrack key={game.epoch} drawn={game.raDrawn} limit={game.limit} />
             <ol className="ra-lot" aria-label="拍卖行">
               {game.lot.map((tile, index) => (
                 <li
@@ -388,6 +384,8 @@ function RaScreen({ session }: { session: GameHost }) {
               name={name(ownBoard.seat)}
               active={ownBoard.seat === game.actor}
               ended={game.phase === 'ended'}
+              epoch={game.epoch}
+              projection={projection}
               primary
             />
           ) : (
@@ -443,6 +441,52 @@ function RaScreen({ session }: { session: GameHost }) {
         </>
       )}
     </main>
+  );
+}
+
+function RaTrack({ drawn, limit }: { drawn: number; limit: number }) {
+  const position = drawn ? ((drawn - 0.5) / limit) * 100 : 0;
+  return (
+    <div className="ra-track">
+      <span>
+        拉轨{' '}
+        <b>
+          {drawn}／{limit}
+        </b>
+      </span>
+      <div
+        className="ra-track-slots"
+        role="progressbar"
+        aria-label="拉轨"
+        aria-valuenow={drawn}
+        aria-valuemin={0}
+        aria-valuemax={limit}
+      >
+        {Array.from({ length: limit }, (_, index) => (
+          <span
+            key={index}
+            className="ra-track-step"
+            data-filled={index < drawn}
+            data-current={index + 1 === drawn}
+            data-terminal={index + 1 === limit}
+            aria-hidden="true"
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <circle cx="12" cy="12" r="4" />
+              <path d="M12 2v3m0 14v3M2 12h3m14 0h3M5 5l2 2m10 10 2 2M5 19l2-2M17 7l2-2" />
+            </svg>
+          </span>
+        ))}
+        <span
+          className="ra-track-token"
+          data-active={drawn > 0}
+          style={{ left: `${position}%` }}
+          aria-hidden="true"
+        >
+          <TableArt piece="sun-boat" className="ra-track-boat" />
+        </span>
+      </div>
+    </div>
   );
 }
 
