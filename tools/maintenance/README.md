@@ -24,6 +24,8 @@
 
 保全前核对成员的额外数据流及原路径安全验收关系；本格式只保存普通数据流，不替代ACL、ADS或安装器原路径证明。当前验收、原安装器及其身份敏感状态仍须原位保留。历史查证或隔离任务接续前，按映射精确恢复所需成员到原路径，禁止覆盖现存文件，核对原字节与SHA后再使用；不能将归档状态算作验收通过。容量净收益必须扣除归档及清单的实际逻辑字节。
 
+已结束的开发会话使用精确根 `.cache/development/sessions/session-<六位字母数字>` 和 `retired-cache`。清单须在 `references` 绑定有效的 `.tablemax-dev-session.json`，并列出允许保留外部原件的 `developmentDuplicate` 游戏归档副本或已知 WebView2 派生缓存。游戏归档和已解包的游戏资源按完整字节 SHA 校验。清单用 `developmentDuplicate` 绑定会话目录之外的原件。解包资源只接受同游戏、同资源相对路径的正式资源或开发数据副本。正式开发数据、会话数据库和浏览器的持久身份数据保留。
+
 内部实现 [reviewed-files.ps1](reviewed-files.ps1)，隔离回归 [reviewed-files.test.ps1](reviewed-files.test.ps1)与[归档解析回归](verify-preserved-tar.test.mjs)。使用当前可执行项目脚本的PowerShell运行`tools/maintenance/reviewed-files.test.ps1`；不要修改系统执行策略绕过签名限制。范围和本次容量目标见[开发环境](../../docs/reference/development.md#跨目录精确文件退役2026-10-12)。
 
 2026-10-11验收去重：version 2统一计划关闭子检查自动维护，结束后只尝试一次父轮收尾；多阶段同任务使用`TABLEMAX_AUTO_MAINTENANCE=0`并最后统一维护。当前完整EXE的证明直接定位到指针snapshot下的shipping报告，读取历史双格式时仍逐项匹配，缺失或哈希不符即拒绝，不回退历史全树查找。缓存预览`--plan=<精确JSON>`生成SHA绑定候选，Apply必须提供同一路径和`--plan-sha256=<预览SHA>`；保留引用变化即停止，删除前仍复核进程、锁、路径、链接、近期修改和成员哈希。旧无plan命令保留兼容行为。计时分开记录交付证明、缓存库存、成员校验、进程查询和容量／退役；没有旧分类数据时不拆算旧总耗时。

@@ -33,10 +33,13 @@ namespace TableMax {
 '@
 }
 
+$reviewedDevelopmentRootPattern = '^\.cache/development/sessions/session-[A-Za-z0-9]{6}'
+
 function Resolve-ReviewedPath([string]$Relative, [switch]$AnyRoot, [switch]$SyntaxOnly) {
   if ([string]::IsNullOrWhiteSpace($Relative) -or $Relative -match '[\\:*?]' -or
       @($Relative.Split('/') | Where-Object { $_ -in @('', '.', '..', '.git') }).Count -or
-      (-not $AnyRoot -and $Relative -notmatch '^(tmp/|artifacts/|\.cache/build-modules/v1/|build/(?:desktop|native|native-obj|snapshots)(?:/|$))')) { throw ('Invalid reviewed path: ' + $Relative) }
+      (-not $AnyRoot -and $Relative -notmatch '^(tmp/|artifacts/|\.cache/build-modules/v1/|build/(?:desktop|native|native-obj|snapshots)(?:/|$))' -and
+       $Relative -cnotmatch ($reviewedDevelopmentRootPattern + '(?:/|$)'))) { throw ('Invalid reviewed path: ' + $Relative) }
   # The per-file compiled guard below checks every existing ancestor. Avoid
   # repeating PowerShell Get-Item calls for the same ancestors on large lists.
   if ($SyntaxOnly) {
@@ -173,11 +176,53 @@ function Test-ReviewedFrozenProgram($File, $Entry) {
   return $false
 }
 
+function Assert-ReviewedDevelopmentSession($Entry) {
+  if ($Entry.origin -ne 'retired-cache' -or $Entry.path -cnotmatch ($reviewedDevelopmentRootPattern + '$')) {
+    throw 'Development cache retirement needs the exact disposable session root.'
+  }
+  $marker = $Entry.path + '/.tablemax-dev-session.json'
+  $references = @($reviewedPlan.references | Where-Object { $_.path -ceq $marker })
+  if ($references.Count -ne 1) { throw 'Development cache retirement requires a frozen disposable session marker.' }
+  $identity = Get-Content -LiteralPath (Resolve-ReviewedPath $marker) -Raw -Encoding utf8 | ConvertFrom-Json
+  $id = [Guid]::Empty
+  if ($identity.kind -cne 'disposable-development-session' -or -not [Guid]::TryParseExact([string]$identity.id, 'D', [ref]$id) -or $id -eq [Guid]::Empty) {
+    throw 'Development cache retirement requires a valid disposable session identity.'
+  }
+}
+
+function Assert-ReviewedDevelopmentFile($File, $Entry) {
+  $member = $File.path.Substring($Entry.path.Length + 1)
+  if ($member -cmatch '^desktop/webview2/EBWebView/(?:(?:component_crx_cache|WidevineCdm|Subresource Filter|Speech Recognition|hyphen-data|GrShaderCache|ShaderCache)/|(?:Default|WV2Profile_desktop)/(?:Cache/Cache_Data|GPUCache|Code Cache|DawnGraphiteCache|DawnWebGPUCache)/)') {
+    return
+  }
+  if ($member -cmatch '^games/[a-z0-9-]+/blobs/([a-f0-9]{64})\.zip$' -and $Matches[1] -ceq $File.sha256) {
+    $retained = [string]$File.developmentDuplicate
+    $archiveName = '(?:TableMax-resources-)?' + $File.sha256 + '\.zip$'
+    if ($retained -cmatch '^(?:artifacts/(?:game-packages|package-payloads)/|\.cache/development/games/)' -and
+        $retained -cmatch ('/' + $archiveName) -and (Test-ReviewedReference $retained $File.sha256 -ExactPath)) { return }
+  }
+  if ($member -cmatch '^games/([a-z0-9-]+)/blobs/[a-f0-9]{64}/(web/resources/\1/(.+))$') {
+    $game = $Matches[1]
+    $resource = $Matches[2]
+    $asset = 'assets/games/' + $game + '/' + $Matches[3]
+    $retained = [string]$File.developmentDuplicate
+    $retainedGameCopies = '^\.cache/development/games/' + $game + '/blobs/[a-f0-9]{64}/' + [regex]::Escape($resource) + '$'
+    if (($retained -ceq $asset -or $retained -cmatch $retainedGameCopies) -and
+        (Test-ReviewedReference $retained $File.sha256 -ExactPath)) { return }
+  }
+  throw ('Development session member is not a reviewed browser cache or a bound archive duplicate: ' + $File.path)
+}
+
 function Assert-ReviewedAllowed($File, $Entry) {
   $absolute = Resolve-ReviewedPath $File.path -SyntaxOnly
   # A root may itself be one exact ordinary file. The compiled guard still
   # rejects directories, links, changed metadata and changed content.
   if (-not (Test-ReviewedPrefix $File.path $Entry.path)) { throw 'Reviewed file escapes its exact generated root.' }
+  if ($Entry.path -cmatch $reviewedDevelopmentRootPattern) {
+    Assert-ReviewedDevelopmentFile $File $Entry
+  } elseif ($File.PSObject.Properties['developmentDuplicate']) {
+    throw 'Development archive duplicates are only supported inside disposable sessions.'
+  }
   if ($File.path.StartsWith('build/snapshots/', [StringComparison]::OrdinalIgnoreCase)) {
     if ($File.path -notmatch '^build/snapshots/[a-f0-9]{64}(?:-assembly)?\.json$' -or -not $File.preservedArchive) { throw 'Frozen snapshots require full lossless preservation; pointers and unknown names stay protected.' }
   }
@@ -322,6 +367,7 @@ function Invoke-ReviewedFilesRetirement {
   foreach ($entry in $reviewedPlan.entries) {
     if ([string]::IsNullOrWhiteSpace($entry.reason) -or $entry.origin -notin @('generated-copy','isolated-test','retired-cache') -or -not $entry.files.Count) { throw 'Every reviewed root needs generated origin, reason and exact files.' }
     Resolve-ReviewedPath $entry.path | Out-Null
+    if ($entry.path -cmatch $reviewedDevelopmentRootPattern) { Assert-ReviewedDevelopmentSession $entry }
     foreach ($root in $roots) { if ((Test-ReviewedPrefix $root $entry.path) -or (Test-ReviewedPrefix $entry.path $root)) { throw 'Reviewed roots overlap.' } }
     $roots.Add($entry.path)
     if ($entry.path.StartsWith('.cache/build-modules/', [StringComparison]::OrdinalIgnoreCase) -and ($entry.origin -ne 'retired-cache' -or -not $reviewedPlan.references.Count)) { throw 'Retired module cache requires frozen retention references.' }

@@ -1,5 +1,11 @@
 # 项目瘦身与最近结果
 
+## 过期缓存与重复载荷复审（2026-11-16）
+
+按完整口径审查最大的三个目录。复测 `artifacts` 为 3.625 GB、`tmp` 为 2.702 GB、`.cache` 为 1.356 GB。确认旧构建锁的 PID 已被较新无关进程复用，原锁按 SHA 留存；缓存预览依现行快照、交付和每单元保留规则核准 335 个过期单元。闲置会话按一次性标记处理，仅清理 WebView2 派生缓存和有等字节原件的游戏资源，保留资料、会话数据库及持久身份。隔离回归覆盖已新增的标记和路径限制。[原锁审查](../../artifacts/maintenance/slim-under8-20261116-cache/stale-lock-review.json) · [容量及候选预算](../../artifacts/maintenance/slim-under8-20261116-cache/selection-final.json)
+
+一次 Apply 清理 **9,197 个文件、2,296,424,751 字节**，含上述构建缓存、旧测试渲染、同字节资源和安装夹具运行时副本。一个仍有入链的 83 MB 测试运行时保留；原 Git 测试源码 TAR 的再生成 SHA 有差异，保留原件。完整逻辑体积 **10,851,593,529 → 8,567,941,480 字节**，净降 2,283,652,049 字节，距低于 8 GB 仍差约 0.568 GB。最新 1.0.8.11、四份内容各异的完整载荷、40 个存档相关文件和 291 个重复件对应的保留原件均通过复核；现存 1,783 个链接的原始目标保持一致。[执行记录](../../artifacts/maintenance/reviewed-retirements/slim-under8-20261116-cache-once.json) · [容量与保留项复核](../../artifacts/maintenance/slim-under8-20261116-cache/capacity-and-verify-after.json)
+
 ## 低于 8 GB 目标续清（2026-11-16）
 
 新一轮空闲检查和预览通过。上一轮剩余 19,248 项全部复核通过，另增加 2,736 项较早的隔离副本和已替代证据，包含经 SHA 核对的固定画布夹具 NuGet 副本及旧安装测试静态运行文件。唯一 Apply 先删除三份旧安装器副本（117,813,859 字节），随后完成整份清单，共退役 **21,984 个文件、3,720,104,549 字节**，候选余量为零。[预览清单摘要](../../artifacts/maintenance/slim-under8-20261116-resume/selection-final.json) · [执行记录](../../artifacts/maintenance/reviewed-retirements/slim-under8-20261116-resume-once.json)

@@ -435,6 +435,47 @@ try {
     [IO.File]::WriteAllText((Join-Path $workspace $reference.path),'new retention')
     Refused { Invoke-ReviewedFilesRetirement } 'changed cache retention binding rejected'
   }
+  Scenario 'disposable-development-cache' {
+    $session='.cache/development/sessions/session-Ab1234'
+    $marker=File ($session+'/.tablemax-dev-session.json') '{"kind":"disposable-development-session","id":"78625f50-9052-4a5f-93fb-0ca8b259527e"}'
+    $browser=File ($session+'/desktop/webview2/EBWebView/WV2Profile_desktop/Cache/Cache_Data/test')
+    $formal=File '.cache/development/room.sqlite'
+    $sessionSave=File ($session+'/room.sqlite')
+    $profile=File ($session+'/desktop/webview2/EBWebView/WV2Profile_desktop/Login Data')
+    $canonicalHash=(File 'artifacts/maintenance/cache-fixture-source.bin').sha256
+    $retained=File ('artifacts/game-packages/v1.0.6/TableMax-resources-'+$canonicalHash+'.zip')
+    $duplicate=File ($session+'/games/uno/blobs/'+$canonicalHash+'.zip')
+    $duplicate | Add-Member -NotePropertyName developmentDuplicate -NotePropertyValue $retained.path
+    $asset=File 'assets/games/uno/cover.webp'
+    $resource=File ($session+'/games/uno/blobs/'+$canonicalHash+'/web/resources/uno/cover.webp')
+    $resource | Add-Member -NotePropertyName developmentDuplicate -NotePropertyValue $asset.path
+    Plan 'disposable-dev-cache' $session @($browser,$duplicate) 'retired-cache'
+    Refused { Invoke-ReviewedFilesRetirement } 'disposable session needs a bound marker'
+    $plan.references=@($marker);Save-Plan
+    Refused { Invoke-ReviewedFilesRetirement } 'archive needs a bound original outside development sessions'
+    $plan.references+=@($retained)
+    foreach ($privateFile in @($sessionSave,$profile)) {
+      $plan.entries[0].files=@($privateFile);Save-Plan
+      Refused { Invoke-ReviewedFilesRetirement } 'saved games and browser profile data are outside the cache scope'
+    }
+    $plan.references+=@($asset)
+    $resource.developmentDuplicate=$retained.path
+    $plan.entries[0].files=@($resource);Save-Plan
+    Refused { Invoke-ReviewedFilesRetirement } 'a retained file with the same bytes must still match the game resource path'
+    $resource.developmentDuplicate=$asset.path
+    $plan.entries[0].files=@($browser,$duplicate,$resource);$plan.entries[0].origin='isolated-test';Save-Plan
+    Refused { Invoke-ReviewedFilesRetirement } 'requires explicit retired-cache origin'
+    $plan.entries[0].origin='retired-cache';Save-Plan
+    Invoke-ReviewedFilesRetirement
+    $script:Apply=$true
+    Invoke-ReviewedFilesRetirement
+    foreach($file in @($formal,$sessionSave,$profile,$retained,$asset,$marker)){
+      Check (Test-Path -LiteralPath (Join-Path $workspace $file.path)) 'preserves formal and disposable session data and the original archive'
+    }
+    foreach($file in @($browser,$duplicate,$resource)){
+      Check (-not (Test-Path -LiteralPath (Join-Path $workspace $file.path))) 'removes only the reviewed development cache member'
+    }
+  }
   Scenario 'busy-before-consumption' {
     $file=File 'tmp/busy/file.txt'
     Plan 'busy-before-consumption' 'tmp/busy' @($file)
