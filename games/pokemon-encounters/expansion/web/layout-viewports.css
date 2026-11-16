@@ -1,43 +1,14 @@
 /* Three bounded layouts use the same mounted decision tree. */
 @media (max-width: 480px), (max-height: 800px) {
-  .expansion-screen.player[data-layout]
-    .pokemon-board
-    .pokemon-card.face:has(> :is(img, .card-portrait)) {
-    grid-template-rows: auto minmax(0, 1fr) auto;
-  }
-  .expansion-screen.player[data-layout]
-    .pokemon-board
-    .pokemon-card.face
-    > .card-heading {
-    position: static;
-    grid-area: 1 / 1;
-    height: auto;
-    min-height: 22px;
-    justify-content: space-between;
-    align-items: start;
-  }
-  .expansion-screen.player[data-layout]
-    .pokemon-board
-    .pokemon-card.face
-    > .card-heading
-    > .card-value {
-    position: static;
-    font-size: 18px;
-    line-height: 22px;
-    margin: 0;
+  .expansion-screen.player[data-layout] .pokemon-board {
+    --ex-card-score-size: 18px;
+    --ex-card-score-line: 22px;
   }
   .expansion-screen.player[data-layout]
     .pokemon-board
     .pokemon-card.face
     > :is(img, .card-portrait) {
-    grid-row: 2;
     padding: 0 2px;
-  }
-  .expansion-screen.player[data-layout]
-    .pokemon-board
-    .pokemon-card.face
-    > .card-name {
-    grid-row: 3;
   }
   .expansion-screen.player[data-layout]
     .pokemon-board
