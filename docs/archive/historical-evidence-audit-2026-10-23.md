@@ -144,7 +144,7 @@
 - 原地址：`../../artifacts/releases/v1.0.8/1.0.8.6/TableMax-1.0.8.6-installer-win-x64.exe`，解析为`artifacts/releases/v1.0.8/1.0.8.6/TableMax-1.0.8.6-installer-win-x64.exe`。
 - 状态：**原路径缺失，既有同字节备份**。原路径缺失；既有发行附件备份与原文EXE的SHA一致。只恢复字节身份的可追溯入口，不证明原路径启动或补回缺失的正式报告。
 - 原EXE身份SHA：`a520c73f0f94291c18960e0b4de19716aa994531670fe5eac8a4dd505e806fc2`。
-- 现存材料：[TableMax-1.0.8-installer-win-x64.exe](../../artifacts/maintenance/v1.0.8/replacement-20261021/original-release/TableMax-1.0.8-installer-win-x64.exe)，38116181字节，SHA `a520c73f0f94291c18960e0b4de19716aa994531670fe5eac8a4dd505e806fc2`。仅按其原版本／方法／范围阅读。
+- 当时保留的本地安装器备份为 38,116,181 字节，SHA-256 为 `a520c73f0f94291c18960e0b4de19716aa994531670fe5eac8a4dd505e806fc2`。该备份于 2026-11-17 按用户授权退役，原路径和哈希可在[逐文件清单](../../artifacts/maintenance/workspace-slim-20261117/reviewed-files.json)及[执行记录](../../artifacts/maintenance/reviewed-retirements/workspace-slim-20261117-once.json)追溯。
 - 现存材料：[backup-verification.json](../../artifacts/maintenance/v1.0.8/replacement-20261021/original-release/backup-verification.json)，472字节，SHA `18d1c08df7a3634a434afcf2a830f0b7b865897f0d42c0d6cf8c0c55494c87be`。仅按其原版本／方法／范围阅读。
 
 ## H16：report.json
