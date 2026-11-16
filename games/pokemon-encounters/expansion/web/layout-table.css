@@ -675,6 +675,8 @@ main.expansion-screen::before {
     grid-area: 1 / 2;
     padding: 0;
   }
+}
+@media (width > 1100px) and (max-height: 800px) {
   .expansion-screen:not(.player)
     .ex-players
     .ex-player:has(.ex-score)
@@ -695,10 +697,34 @@ main.expansion-screen::before {
   }
   .expansion-screen:not(.player)
     .ex-players
-    .pokemon-card.face
+    .pokemon-card.face:has(> :is(img, .card-portrait))
     > .card-heading {
-    flex-direction: row-reverse;
-    justify-content: space-between;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+  .expansion-screen:not(.player) .ex-players .card-heading > .card-value {
+    justify-self: start;
+  }
+  .expansion-screen:not(.player) .ex-players .card-heading > .ability-mark {
+    grid-area: 1 / 2;
+  }
+  .expansion-screen:not(.player)
+    .ex-players
+    .card-heading
+    :is(.card-value:has(.ex-score-source), .ex-value-stack) {
+    display: contents;
+  }
+  .expansion-screen:not(.player) .ex-players .ex-value-stack {
+    background-color: inherit;
+  }
+  .expansion-screen:not(.player) .ex-players .ex-value-stack > span {
+    justify-self: start;
+    padding-inline: 3px;
+    border-radius: 4px;
+    background-color: inherit;
+  }
+  .expansion-screen:not(.player) .ex-players .ex-score-source {
+    grid-area: 2 / 1 / auto / -1;
   }
   .expansion-screen:not(.player)
     .ex-players
