@@ -8,7 +8,7 @@ import {
   verifyApplicationUpdate,
 } from '../shared/application-update.mjs';
 import { INSTALLATION_PRODUCT_ID } from './installation-package.mjs';
-import { MAXIMUM_PACKAGE_BYTES } from './package-limits.mjs';
+import { assertInstallerSize } from './package-limits.mjs';
 import { windowsExecutableName } from './windows-executable-name.mjs';
 import { verifyRestoredGameInventory } from './installation-evidence.mjs';
 
@@ -20,10 +20,7 @@ export function installationUpdateDescription(delivery, releaseVersion) {
     INSTALLATION_PRODUCT_ID,
   );
   assert.equal(delivery.executable.installation.installProtocol, 1);
-  assert.ok(
-    delivery.executable.bytes > 0 &&
-      delivery.executable.bytes < MAXIMUM_PACKAGE_BYTES,
-  );
+  assertInstallerSize(delivery.executable.bytes);
   const installation = delivery.executable.installation;
   assert.equal(installation.productId, INSTALLATION_PRODUCT_ID);
   const assetName = windowsExecutableName(releaseVersion, 'full');
@@ -261,7 +258,7 @@ export function verifyLifecycleAndCapacity(proof, installationManifest) {
       restored.footprint.identityBytes +
       restored.footprint.currentGamesBytes,
   );
-  assert.ok(restored.footprint.total < MAXIMUM_PACKAGE_BYTES);
+  assert.ok(Number.isSafeInteger(restored.footprint.total));
   const accounting = proof.capacityAccounting;
   assert.equal(accounting.schemaVersion, 1);
   assert.equal(
@@ -414,13 +411,10 @@ export function verifyInstallationAcceptance({
     INSTALLATION_PRODUCT_ID,
   );
   assert.equal(delivery.executable.installation.installProtocol, 1);
+  assertInstallerSize(delivery.executable.bytes);
   assert.ok(
-    delivery.executable.bytes > 0 &&
-      delivery.executable.bytes < MAXIMUM_PACKAGE_BYTES,
-  );
-  assert.ok(
-    payloadManifest.archive.bytes > 0 &&
-      payloadManifest.archive.bytes < MAXIMUM_PACKAGE_BYTES,
+    Number.isSafeInteger(payloadManifest.archive.bytes) &&
+      payloadManifest.archive.bytes > 0,
   );
   assert.equal(proof.result, 'passed');
   assert.equal(proof.deliveryType, 'installer');
@@ -469,8 +463,8 @@ export function verifyInstallationAcceptance({
   assert.equal(proof.buildVersion, buildVersion);
   assert.equal(proof.version, releaseVersion);
   assert.ok(
-    proof.firstStartupBytes > 0 &&
-      proof.firstStartupBytes < MAXIMUM_PACKAGE_BYTES,
+    Number.isSafeInteger(proof.firstStartupBytes) &&
+      proof.firstStartupBytes > 0,
   );
   assert.equal(proof.footprint.total, proof.firstStartupBytes);
   assert.equal(

@@ -369,7 +369,7 @@ node tools/test/desktop/verify-shutdown.mjs --native=<已编译原生目录> --s
 
 ## 完整安装与程序更新验证
 
-[verify-archive-resource-lifecycle.mjs](platform/verify-archive-resource-lifecycle.mjs)通过`shared,tooling`显式计划运行，参数为`--task=tmp/<任务名> --evidence=<新轮名> --source=<真实签名preinstalled-games目录>`。它绑定当前store／service源码和签名包SHA，验证资源不重复物化、实际回环HTTP字节及Range、重启、篡改／缺失拒绝、保全archive读取、旧实体G兼容和重装回收；未知文件保留。历史archive输入模拟“安装器已经完成保全”，不能替代更新前save／checkpoint引用闭包、实际安装／卸载及120MB首次物化验收。旧失败保留，输入变化必须新轮。
+[verify-archive-resource-lifecycle.mjs](platform/verify-archive-resource-lifecycle.mjs)通过`shared,tooling`显式计划运行，参数为`--task=tmp/<任务名> --evidence=<新轮名> --source=<真实签名preinstalled-games目录>`。它绑定当前store／service源码和签名包SHA，验证资源不重复物化、实际回环HTTP字节及Range、重启、篡改／缺失拒绝、保全archive读取、旧实体G兼容和重装回收；未知文件保留。历史archive输入模拟“安装器已经完成保全”，不能替代更新前save／checkpoint引用闭包、实际安装／卸载及首次物化核验。旧失败保留，输入变化必须新轮。
 
 正式账户驱动可显式传`-IncludeWizardAcceptance`，先在同一干净标准profile中核验实际中文向导与取消保全，再执行既有完整更新／恢复／正式安装链；该选项仅适用于`-UseProfileAcceptance`完整生产链，不接受fixture-only或便携迁移模式。默认关闭，不能因当前用户已有产品登记而删除登记或跳过门禁。父驱动核对向导通过及同一installer SHA，方法指纹包含向导来源；临时账户与profile操作随安装验收任务执行，无需另行请求授权。
 

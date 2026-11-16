@@ -5,6 +5,7 @@ import {
   assertDeliveryPath,
   assertNoDeliveryLinks,
 } from '../release/delivery-paths.mjs';
+import { assertInstallerSize } from '../release/package-limits.mjs';
 
 const hash = (path) =>
   createHash('sha256').update(readFileSync(path)).digest('hex');
@@ -71,6 +72,7 @@ export function currentDeliveries(root, version) {
       delivery.deliveryType === 'installer' ||
       delivery.executable.type === 'installer'
     ) {
+      assertInstallerSize(delivery.executable.bytes);
       const installation = delivery.executable.installation;
       if (
         delivery.edition !== 'full' ||

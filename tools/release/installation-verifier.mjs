@@ -37,6 +37,7 @@ import {
   installationInventory,
 } from './installation-package.mjs';
 import { hash } from './installation-toolchain.mjs';
+import { assertInstallerSize } from './package-limits.mjs';
 
 import {
   assertWorkspaceRoot,
@@ -493,10 +494,10 @@ export async function verifyInstallationDelivery({
     null,
     'Existing product registration must be preserved',
   );
-  assert.equal(
-    hash(await readFile(delivery.executable.path)),
-    delivery.executable.sha256,
-  );
+  const executable = await readFile(delivery.executable.path);
+  assertInstallerSize(executable.length);
+  assert.equal(executable.length, delivery.executable.bytes);
+  assert.equal(hash(executable), delivery.executable.sha256);
   assert.equal(
     hash(await readFile(installation.manifestPath)),
     installation.manifestSha256,

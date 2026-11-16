@@ -57,7 +57,7 @@ SDK 正文见 [源码](../../packages/game-sdk/src/index.ts)。`decisions(state)
 
 盒子的名称、玩法摘要、分类与小封面维护在每款游戏的 `game-module.json`，不能提前加载完整介绍、游戏主界面或规则。多玩法通过 `variants`及 `defaultVariantId`声明，平台统一 `GameplaySelector`展示摘要与玩法选择；不展示下载进度或安装状态，不新增按游戏命名的版本控件。设计前必须查询[用户美术偏好](art-preferences.md)。头像通过平台席位的稳定 `avatarId`传入游戏展示，规则和计分不依赖头像。在游戏内维护逐选择覆盖测试、固定随机输入、权限与规则不变量。修改源码后按[开发环境](development.md)检查和重建；独立Worker及游戏资源通过对应发行包本地提供。
 
-桌面外壳由C# WinForms／.NET Framework 4.8与共享WebView2承载，服务和策略使用包内Node22.14.0；游戏规则、策略和UI不直接依赖原生壳或桥接。全部正式模块随完整EXE交付，新局以本程序已验证预装映射初始化；旧局按原不可变发行加载规则、策略、网页、样式和资源。完整EXE、内部payload及实际提取各严格小于120,000,000字节，工程预警110,000,000字节；内部模块预算和签名闭包继续核验。旧下载／离线导入体系已退役，实际交付边界见[验收](acceptance.md#106唯一完整-exe2026-10-12)。
+桌面外壳由C# WinForms／.NET Framework 4.8与共享WebView2承载，服务和策略使用包内Node22.14.0；游戏规则、策略和UI不直接依赖原生壳或桥接。全部正式模块随完整EXE交付，新局以本程序已验证预装映射初始化；旧局按原不可变发行加载规则、策略、网页、样式和资源。最终 installer EXE 按[交付容量门禁](release.md#本地交付)验收，内部模块预算和签名闭包继续核验。旧下载／离线导入体系已退役，实际交付边界见[验收](acceptance.md#106唯一完整-exe2026-10-12)。
 
 `BotStrategy` 声明 `id,version,gameId,rulesVersion`，`validateMemory` 校验普通数据；模板和首版默认策略无记忆，使用 `null`。有记忆的策略需定义可恢复版本及初始 `null` 的转换。`decide` 只接收该座位的投影、合法动作、决策、本人记忆、策略随机源、取消信号及 `difficulty`，返回 `{action,memory}`。`difficulties` 可声明实际支持的 `default/doubao/juewu`；未声明时仅支持默认，旧输入／存档缺省等级也为默认。平台将座位等级复制到 bot 快照并传到隔离 Worker，各等级的行为及记忆兼容需有测试，不允许用不支持等级默默降级。不能读取牌库或别人秘密，不能提交管理动作。选择器输出必须经过平台再次校验；调试权限不扩大策略输入。
 

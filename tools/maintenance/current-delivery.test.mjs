@@ -237,7 +237,7 @@ test('dual delivery protects hash-bound payloads and refuses missing actual EXE 
           productId: installed.executable.installation.productId,
           installationManifestSha256:
             installed.executable.installation.manifestSha256,
-          firstStartupBytes: 119999999,
+          firstStartupBytes: 120_000_001,
         };
         const installerProofPath = join(
           root,
@@ -250,7 +250,7 @@ test('dual delivery protects hash-bound payloads and refuses missing actual EXE 
         for (const changed of [
           { fixture: true },
           { isolatedWindows: false },
-          { firstStartupBytes: 120000000 },
+          { firstStartupBytes: 0 },
         ]) {
           json(installerProofPath, { ...installerProof, ...changed });
           assert.throws(() =>

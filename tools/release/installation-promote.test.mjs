@@ -176,7 +176,7 @@ test('tampered candidate bytes, proof identity and stale current cannot promote'
 test('capacity, fixture identity, diagnostics and incomplete isolation reject promotion', () => {
   for (const mutate of [
     (input) => {
-      input.acceptance.proof.firstStartupBytes = 120000000;
+      input.acceptance.proof.firstStartupBytes++;
     },
     (input) => {
       input.acceptance.proof.fixture = true;

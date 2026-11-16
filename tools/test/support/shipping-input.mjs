@@ -14,6 +14,10 @@ import { createRequire } from 'node:module';
 import { build } from 'esbuild';
 import { digest, localFile } from '../runner/evidence.mjs';
 import { assertDeliveryPath } from '../../release/delivery-paths.mjs';
+import {
+  assertInstallerSize,
+  MAXIMUM_PACKAGE_BYTES,
+} from '../../release/package-limits.mjs';
 
 /** Bind every portable verifier to the currently frozen full EXE and payload. */
 export async function extractCurrentDelivery({
@@ -32,6 +36,9 @@ export async function extractCurrentDelivery({
   const index = JSON.parse(pointerBytes);
   const delivery = index.deliveries.find((item) => item.edition === 'full');
   assert.ok(delivery, 'Current verified full EXE is required');
+  const installer =
+    delivery.deliveryType === 'installer' ||
+    delivery.executable.type === 'installer';
   const executable = localFile(root, delivery.executable.path);
   assertDeliveryPath({
     root,
@@ -67,9 +74,12 @@ export async function extractCurrentDelivery({
   assert.equal(digest(payloadBytes), delivery.executable.payloadSha256);
   assert.equal(manifest.archive.sha256, digest(payloadBytes));
   assert.equal(manifest.edition, 'full');
-  assert.ok(
-    executableBytes.length < 120000000 && payloadBytes.length < 120000000,
-  );
+  if (installer) assertInstallerSize(executableBytes.length);
+  else
+    assert.ok(
+      executableBytes.length < MAXIMUM_PACKAGE_BYTES &&
+        payloadBytes.length < MAXIMUM_PACKAGE_BYTES,
+    );
   // Let the launcher create a fresh direct temporary directory atomically.
   const proofPath = localFile(
     root,
@@ -88,10 +98,7 @@ export async function extractCurrentDelivery({
     assert.equal(proof.snapshot, index.snapshot);
     assert.equal(proof.executableSha256, exeSha);
     let verifiedPath = proof.extracted;
-    if (
-      delivery.deliveryType === 'installer' ||
-      delivery.executable.type === 'installer'
-    ) {
+    if (installer) {
       assert.equal(
         proof.deliveryType,
         'installer',
@@ -157,8 +164,7 @@ export async function extractCurrentDelivery({
     }
   } else {
     assert.ok(
-      delivery.deliveryType !== 'installer' &&
-        delivery.executable.type !== 'installer',
+      !installer,
       'Run the actual installer verifier first; an installer cannot use portable extraction',
     );
     extracted = work + '-portable';
@@ -182,7 +188,7 @@ export async function extractCurrentDelivery({
   }
   await inventory(extracted);
   assert.equal(count, manifest.files.length + 1);
-  assert.ok(bytes < 120000000);
+  if (!installer) assert.ok(bytes < MAXIMUM_PACKAGE_BYTES);
   for (const file of manifest.files) {
     const path = localFile(extracted, file.path),
       data = await readFile(path);

@@ -5,6 +5,7 @@ import {
 if (isDirectExecution(import.meta.url)) assertWorkspaceRoot();
 
 import {
+  MAXIMUM_INSTALLER_BYTES,
   MAXIMUM_PACKAGE_BYTES,
   PACKAGE_BUDGET_BYTES,
 } from '../release/package-limits.mjs';
@@ -90,10 +91,15 @@ for (const file of documents) {
   }
 }
 const deliveries = currentDeliveries('.', project.version);
+const isInstaller = (delivery) =>
+  delivery.deliveryType === 'installer' ||
+  delivery.executable.type === 'installer';
 for (const delivery of deliveries) {
-  assert.ok(delivery.executable.bytes < MAXIMUM_PACKAGE_BYTES);
-  assert.ok(delivery.manifest.archive.bytes < MAXIMUM_PACKAGE_BYTES);
-  assert.ok(delivery.manifest.extractedBytes < MAXIMUM_PACKAGE_BYTES);
+  if (!isInstaller(delivery)) {
+    assert.ok(delivery.executable.bytes < MAXIMUM_PACKAGE_BYTES);
+    assert.ok(delivery.manifest.archive.bytes < MAXIMUM_PACKAGE_BYTES);
+    assert.ok(delivery.manifest.extractedBytes < MAXIMUM_PACKAGE_BYTES);
+  }
   assert.equal(delivery.manifest.fileCount, delivery.manifest.files.length);
   assert.equal(
     delivery.manifest.extractedBytes,
@@ -116,10 +122,11 @@ assert.equal(statSync(archivePath).size, manifest.archive.bytes);
 const hash = (file) =>
   createHash('sha256').update(readFileSync(file)).digest('hex');
 assert.equal(manifest.archive.sha256, hash(archivePath));
-assert.ok(
-  manifest.archive.bytes < MAXIMUM_PACKAGE_BYTES &&
-    manifest.extractedBytes < MAXIMUM_PACKAGE_BYTES,
-);
+if (!deliveries.length)
+  assert.ok(
+    manifest.archive.bytes < MAXIMUM_PACKAGE_BYTES &&
+      manifest.extractedBytes < MAXIMUM_PACKAGE_BYTES,
+  );
 assert.equal(manifest.fileCount, manifest.files.length);
 assert.equal(
   manifest.extractedBytes,
@@ -157,8 +164,16 @@ const report = {
   archiveBytes: manifest.archive.bytes,
   extractedBytes: manifest.extractedBytes,
   packageFiles: manifest.fileCount,
-  engineeringBudgetRemainingBytes:
-    PACKAGE_BUDGET_BYTES - manifest.extractedBytes,
+  ...(deliveries[0] && isInstaller(deliveries[0])
+    ? {
+        installerBytes: deliveries[0].executable.bytes,
+        installerLimitRemainingBytes:
+          MAXIMUM_INSTALLER_BYTES - deliveries[0].executable.bytes,
+      }
+    : {
+        engineeringBudgetRemainingBytes:
+          PACKAGE_BUDGET_BYTES - manifest.extractedBytes,
+      }),
   scope:
     'All tracked and new Markdown local files/headings; final ZIP hash, manifest totals, essential modules and exclusion gates. Runtime and permission checks are recorded separately.',
 };

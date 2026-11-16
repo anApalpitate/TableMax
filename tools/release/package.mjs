@@ -4,10 +4,7 @@ import {
 } from '../shared/workspace-root.mjs';
 if (isDirectExecution(import.meta.url)) assertWorkspaceRoot();
 
-import {
-  MAXIMUM_PACKAGE_BYTES,
-  PACKAGE_BUDGET_BYTES,
-} from './package-limits.mjs';
+import { MAXIMUM_INSTALLER_BYTES } from './package-limits.mjs';
 import { buildProject } from '../build/build.mjs';
 import { deliveryPaths } from './delivery-paths.mjs';
 import {
@@ -214,8 +211,6 @@ await lock('package-win', async () => {
       )
     )
       throw new Error('Initialize game budgets before packaging: ' + game.id);
-  const maximumBytes = MAXIMUM_PACKAGE_BYTES;
-  const budgetBytes = PACKAGE_BUDGET_BYTES;
   const project = JSON.parse(await readFile('package.json', 'utf8'));
   const releases = deliveryPaths({
     version: project.version,
@@ -440,10 +435,6 @@ await lock('package-win', async () => {
       (total, file) => total + file.bytes,
       0,
     );
-    if (unpackedBytes >= maximumBytes)
-      throw new Error(
-        'Unpacked release must be below 120,000,000 bytes: ' + unpackedBytes,
-      );
     const name = 'payload.zip';
     const archive = join(output, name);
     const compressionStarted = performance.now();
@@ -464,10 +455,6 @@ await lock('package-win', async () => {
     );
     timings.compressionMs = performance.now() - compressionStarted;
     const archiveBytes = (await stat(archive)).size;
-    if (archiveBytes >= maximumBytes)
-      throw new Error(
-        'Release ZIP must be below 120,000,000 bytes: ' + archiveBytes,
-      );
     // Inspect actual extraction, rather than relying only on the pre-compression staging folder.
     const extracted = join(output, 'size-verification');
     const extractionStarted = performance.now();
@@ -534,8 +521,7 @@ await lock('package-win', async () => {
         webview2Sdk: '1.0.4258.31',
         dotnetSdk: '9.0.102',
       },
-      sizeLimitBytes: maximumBytes,
-      engineeringBudgetBytes: budgetBytes,
+      installerSizeLimitBytes: MAXIMUM_INSTALLER_BYTES,
       archive: {
         name,
         bytes: archiveBytes,
@@ -593,20 +579,9 @@ await lock('package-win', async () => {
       durationMs: Math.round(timings.totalMs),
       timings: { ...timings },
     });
-    if (unpackedBytes >= budgetBytes)
-      console.warn(
-        'Engineering budget exceeded: ' +
-          unpackedBytes +
-          ' bytes (hard 120 MB gate passed).',
-      );
     console.log('Windows EXE: ' + outputPath);
     console.log(
-      'ZIP ' +
-        archiveBytes +
-        ' bytes; actual unpacked files ' +
-        unpackedBytes +
-        ' bytes; both strictly below ' +
-        maximumBytes,
+      `Installer ${executable.bytes} / ${MAXIMUM_INSTALLER_BYTES} bytes, internal ZIP ${archiveBytes} bytes, actual unpacked files ${manifest.extractedBytes} bytes.`,
     );
   }
   const pointer = join(payloadRoot, 'current.json');

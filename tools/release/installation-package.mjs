@@ -19,7 +19,10 @@ import {
 } from '../shared/workspace-root.mjs';
 import { versionIdentity } from '../shared/application-version.mjs';
 import { readWindowsExecutableSecurity } from '../shared/windows-executable-security.mjs';
-import { MAXIMUM_PACKAGE_BYTES } from './package-limits.mjs';
+import {
+  assertInstallerSize,
+  MAXIMUM_PACKAGE_BYTES,
+} from './package-limits.mjs';
 import { build as bundle } from 'esbuild';
 import {
   hash,
@@ -316,10 +319,7 @@ export async function compileInstallationScript({
     throw new Error('Inno compiler failed; see ' + log, { cause: error });
   }
   const bytes = (await stat(outputPath)).size;
-  assert.ok(
-    bytes < MAXIMUM_PACKAGE_BYTES,
-    'Complete installer must be strictly below 120,000,000 bytes',
-  );
+  assertInstallerSize(bytes);
   assert.equal(
     hash(await readFile(join(candidateDirectory, 'UpdateHelper.exe'))),
     embedded.record.sha256,
@@ -386,7 +386,6 @@ export async function createInstallationExecutable({
     payload.archive.sha256,
     'Payload changed after freezing',
   );
-  assert.ok(archive.length < MAXIMUM_PACKAGE_BYTES);
   const recipeOptions = { applicationTrustRootsPath };
   const inputs = await installationRecipeInputs(recipeOptions);
   if (frozenInstallation)
@@ -498,10 +497,6 @@ export async function createInstallationExecutable({
     JSON.stringify(candidateManifest, null, 2) + '\n',
   );
   const stagedProgramBytes = records.reduce((sum, file) => sum + file.bytes, 0);
-  assert.ok(
-    stagedProgramBytes < MAXIMUM_PACKAGE_BYTES,
-    'Complete staged program exceeds limit',
-  );
   const sealed = join(work, 'sealed', basename(outputPath));
   const inno = await compileInstallationScript({
     candidateDirectory: candidate,

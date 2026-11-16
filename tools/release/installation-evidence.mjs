@@ -11,10 +11,6 @@ import {
 import { dirname, join, resolve, sep } from 'node:path';
 import { installationInventory } from './installation-package.mjs';
 import { hash } from './installation-toolchain.mjs';
-import {
-  MAXIMUM_PACKAGE_BYTES,
-  PACKAGE_BUDGET_BYTES,
-} from './package-limits.mjs';
 
 export function verifyRestoredGameInventory({
   before,
@@ -240,18 +236,6 @@ export async function installedProgramFootprint(root, manifest) {
     currentGamesBytes = games.reduce((sum, file) => sum + file.bytes, 0);
   const total =
     programBytes + frameworkBytes + identityBytes + currentGamesBytes;
-  assert.ok(
-    total < MAXIMUM_PACKAGE_BYTES,
-    'First startup complete program must be strictly below 120,000,000 bytes: ' +
-      JSON.stringify({
-        programBytes,
-        frameworkBytes,
-        identityBytes,
-        currentGamesBytes,
-        total,
-        maximumBytes: MAXIMUM_PACKAGE_BYTES,
-      }),
-  );
   return {
     programBytes,
     frameworkBytes,
@@ -259,8 +243,6 @@ export async function installedProgramFootprint(root, manifest) {
     metadata,
     currentGamesBytes,
     total,
-    engineeringBudgetBytes: PACKAGE_BUDGET_BYTES,
-    engineeringWarning: total >= PACKAGE_BUDGET_BYTES,
     framework,
     games,
     measurement:

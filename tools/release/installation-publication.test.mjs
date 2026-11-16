@@ -18,7 +18,14 @@ const { privateKey, publicKey } = generateKeyPairSync('rsa', {
   modulusLength: 3072,
 });
 const verification = { trustedKeys: { 'fixture-publication': publicKey } };
-function fixture(newLayout = false) {
+function fixture(
+  newLayout = false,
+  {
+    installerBytes = 44_000_000,
+    archiveBytes = 44_000_000,
+    firstStartupBytes = 108_000_000,
+  } = {},
+) {
   const installation = {
     productId: INSTALLATION_PRODUCT_ID,
     installProtocol: 1,
@@ -31,7 +38,7 @@ function fixture(newLayout = false) {
     buildVersion: '1.0.6.11',
     executable: {
       type: 'installer',
-      bytes: 44000000,
+      bytes: installerBytes,
       sha256: 'a'.repeat(64),
       installation,
     },
@@ -58,13 +65,13 @@ function fixture(newLayout = false) {
     payloadSha256: 'e'.repeat(64),
     buildVersion: delivery.buildVersion,
     version: '1.0.6',
-    firstStartupBytes: 108000000,
+    firstStartupBytes,
     footprint: {
       programBytes: 1,
       frameworkBytes: 100,
       identityBytes: 10,
-      currentGamesBytes: 107999889,
-      total: 108000000,
+      currentGamesBytes: firstStartupBytes - 111,
+      total: firstStartupBytes,
     },
     installRoot: 'I',
     boxRoot: 'I/TableMax',
@@ -152,7 +159,7 @@ function fixture(newLayout = false) {
     delivery,
     proof,
     payloadManifest: {
-      archive: { bytes: 44000000, sha256: proof.payloadSha256 },
+      archive: { bytes: archiveBytes, sha256: proof.payloadSha256 },
       files: payloadFiles,
     },
     payloadManifestSha256: installation.payloadManifestSha256,
@@ -241,7 +248,7 @@ test('test identity, changed final bytes and changed frozen mapping cannot autho
       );
     },
     (input) => {
-      input.proof.firstStartupBytes = 120000000;
+      input.proof.firstStartupBytes++;
     },
     (input) => {
       input.proof.uninstalled = false;
@@ -260,6 +267,27 @@ test('test identity, changed final bytes and changed frozen mapping cannot autho
     mutate(input);
     assert.throws(() => verifyInstallationPublication(input));
   }
+});
+test('the 50 MB cap applies only to the final installer', () => {
+  const input = fixture(false, {
+    installerBytes: 50_000_000,
+    archiveBytes: 120_000_001,
+    firstStartupBytes: 120_000_001,
+  });
+  assert.equal(
+    verifyInstallationPublication(input).description.bytes,
+    50_000_000,
+  );
+
+  input.delivery.executable.bytes++;
+  assert.throws(
+    () => installationUpdateDescription(input.delivery, '1.0.6'),
+    /at most 50,000,000 bytes/,
+  );
+  assert.throws(
+    () => verifyInstallationPublication(input),
+    /at most 50,000,000 bytes/,
+  );
 });
 test('production preflight never trusts a test RSA key by default', () => {
   const input = fixture();

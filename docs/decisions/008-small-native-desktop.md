@@ -34,8 +34,8 @@
 
 ## v1.0.6 独立包与两种EXE（2026-10-11）
 
-日常交付改为 full／box 两种 Windows EXE，内部载荷 ZIP 与逐文件清单保留在 `artifacts/package-payloads/`，完整玩法离线 ZIP 继续用于导入。两种 EXE 及各自实际提取内容严格小于120,000,000字节，基础工程预警改为110,000,000字节；单玩法完整依赖的下载量与安装量各严格小于64,000,000字节。现行门禁由[打包限制](../../tools/release/package-limits.mjs)统一提供，不将早期95MB／114MB预算用于当前操作；实际包与验收范围见[验收记录](../reference/acceptance.md)。
+日常交付改为 full／box 两种 Windows EXE，内部载荷 ZIP 与逐文件清单保留在 `artifacts/package-payloads/`，完整玩法离线 ZIP 继续用于导入。两种 EXE 及各自实际提取内容严格小于120,000,000字节，基础工程预警改为110,000,000字节；单玩法完整依赖的下载量与安装量各严格小于64,000,000字节。当时的实际包与验收范围见[验收记录](../reference/acceptance.md)。
 
 ## 唯一完整 EXE 容量边界（2026-10-12）
 
-现行Windows交付仅一个预装全部正式游戏及玩法的完整EXE，不导出box、用户运行ZIP或独立游戏包。完整EXE、内部payload ZIP和实际提取交付文件均须严格小于120,000,000字节，工程预警110,000,000字节；系统共享运行时、用户存档及缓存不计入交付文件。内部ZIP、冻结快照及逐文件manifest继续用于组装、实际EXE验收和历史保全；10月11日双EXE与单玩法下载／安装门槛仅保留当时范围。现行门禁仍由[打包限制](../../tools/release/package-limits.mjs)统一提供，实际数值、哈希和提取结论见[当前验收](../reference/acceptance.md#当前源码与本地交付)。
+现行Windows交付仅一个预装全部正式游戏及玩法的完整EXE，不导出box、用户运行ZIP或独立游戏包。最终 installer EXE 按[交付容量门禁](../reference/release.md#本地交付)执行 50 MB 上限，内部载荷和实际安装占用继续测量。系统共享运行时、用户存档及缓存不计入交付文件。内部ZIP、冻结快照及逐文件manifest继续用于组装、实际EXE验收和历史保全；10月11日双EXE与单玩法下载／安装门槛仅保留当时范围。现行门禁仍由[打包限制](../../tools/release/package-limits.mjs)统一提供，实际数值、哈希和提取结论见[当前验收](../reference/acceptance.md#当前源码与本地交付)。
