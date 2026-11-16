@@ -151,6 +151,58 @@ main.expansion-screen::before {
 .expansion-screen[data-players='4'] .ex-players {
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
+/* Each seat row shares its heading track, so wrapped names cannot resize the cards. */
+@supports (grid-template-rows: subgrid) {
+  .expansion-screen:not(.player):is(
+      [data-players='4'],
+      [data-players='5'],
+      [data-players='6']
+    )
+    > .ex-table-layout
+    > .ex-players {
+    --board-row-min: 0px;
+    grid-template-rows: repeat(2, auto minmax(var(--board-row-min), 1fr));
+    align-content: stretch;
+    align-items: stretch;
+  }
+  .expansion-screen:not(.player)[data-below-minimum='true']
+    > .ex-table-layout
+    > .ex-players {
+    --board-row-min: 210px;
+  }
+  .expansion-screen:not(.player):is(
+      [data-players='4'],
+      [data-players='5'],
+      [data-players='6']
+    )
+    > .ex-table-layout
+    > .ex-players:has(> .ex-player > .ex-score) {
+    grid-template-rows: repeat(2, auto minmax(var(--board-row-min), 1fr) 44px);
+  }
+  .expansion-screen:not(.player):is(
+      [data-players='4'],
+      [data-players='5'],
+      [data-players='6']
+    )
+    > .ex-table-layout
+    > .ex-players
+    > .ex-player {
+    grid-row: span 2;
+    grid-template-rows: subgrid;
+    align-self: stretch;
+    height: auto;
+  }
+  .expansion-screen:not(.player):is(
+      [data-players='4'],
+      [data-players='5'],
+      [data-players='6']
+    )
+    > .ex-table-layout
+    > .ex-players
+    > .ex-player:has(> .ex-score) {
+    grid-row: span 3;
+  }
+}
 .expansion-screen .ex-player {
   display: grid;
   grid-column: auto;
@@ -236,15 +288,15 @@ main.expansion-screen::before {
 }
 .expansion-screen:not(.player):is([data-players='2'], [data-players='3'])
   .pokemon-board {
-  /* Three rows of 5:7 cards, plus numbering; reserve result/header space. */
-  max-width: min(340px, calc((100cqh - 155px) / 1.4 + 8px));
+  /* Three rows of 5:7 cards; reserve result and heading space. */
+  max-width: min(340px, calc((100cqh - 107px) / 1.4 + 8px));
   height: auto;
   grid-template-rows: repeat(3, auto);
 }
 .expansion-screen:not(.player):is([data-players='2'], [data-players='3'])
   .card-slot {
   height: auto;
-  grid-template-rows: auto 16px;
+  grid-template-rows: auto;
 }
 .expansion-screen:not(.player):is([data-players='2'], [data-players='3'])
   .card-slot
@@ -254,7 +306,7 @@ main.expansion-screen::before {
 }
 .expansion-screen .card-slot {
   display: grid;
-  grid-template-rows: minmax(0, 1fr) 16px;
+  grid-template-rows: minmax(0, 1fr);
   min-height: 0;
   min-width: 0;
   padding: 0;
@@ -262,21 +314,7 @@ main.expansion-screen::before {
   height: 100%;
   background: none;
   border: 0;
-  gap: 1px;
-}
-.expansion-screen .slot-index {
-  position: static;
-  height: 16px;
-  min-height: 0;
-  width: auto;
-  justify-self: center;
-  font-size: 16px;
-  line-height: 16px;
-}
-.expansion-screen .slot-index .ex-circular-badge {
-  width: 16px;
-  height: 16px;
-  font-size: 16px;
+  gap: 0;
 }
 .expansion-screen .pokemon-card {
   display: grid;

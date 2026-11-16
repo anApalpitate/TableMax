@@ -2049,3 +2049,51 @@
   .pokemon-board {
   margin-inline: auto;
 }
+
+@media (max-width: 480px), (max-height: 800px) {
+  .pokemon-screen.player[data-layout='P']
+    .game-table:is([data-phase='draw'], [data-phase='place'])
+    .pokemon-board {
+    height: clamp(280px, calc(var(--pokemon-net-height, 844px) - 420px), 370px);
+  }
+  .pokemon-screen.player[data-layout='L']
+    .game-table:is([data-phase='draw'], [data-phase='place'])
+    .player-field
+    .pokemon-board {
+    height: min(536px, calc(var(--pokemon-net-height, 720px) - 134px));
+  }
+  .pokemon-screen.player[data-layout]
+    .game-table
+    .pokemon-board
+    .pokemon-card.face:has(> img) {
+    grid-template-rows: 24px minmax(0, 1fr) auto;
+  }
+  .pokemon-screen.player[data-layout] .game-table .pokemon-board .card-heading {
+    position: relative;
+    inset: auto;
+  }
+  .pokemon-screen.player[data-layout]
+    .game-table
+    .pokemon-board
+    .pokemon-card.face
+    > img {
+    grid-row: 2;
+  }
+  .pokemon-screen.player[data-layout]
+    .game-table
+    .pokemon-board
+    .pokemon-card.face
+    .card-name {
+    grid-row: 3;
+    height: auto;
+    min-height: 20px;
+  }
+  .pokemon-screen.player[data-layout]
+    .game-table
+    .pokemon-board
+    .card-slot:not(.selected, :focus-visible)
+    .pokemon-card.face:has(> img)
+    > .card-name {
+    display: none;
+  }
+}

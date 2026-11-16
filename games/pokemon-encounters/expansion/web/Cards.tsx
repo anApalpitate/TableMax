@@ -157,7 +157,7 @@ export function Board({
       selectable={selectable}
       locked={locked}
       select={select}
-      renderIndex={(index) => <CircularBadge value={index + 1} />}
+      showIndex={false}
       slots={board.map((slot, i) => ({
         id: slot.slotId,
         label: `位置${i + 1}：${slot.card ? `${slot.card.name}，${slot.card.effectiveValue ?? slot.card.value ?? '复制'}${faceEffectText(slot.card) ? `，${faceEffectText(slot.card)}` : ''}` : '暗牌'}`,

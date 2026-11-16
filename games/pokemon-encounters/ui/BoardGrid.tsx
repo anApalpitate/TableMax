@@ -23,7 +23,7 @@ export function BoardGrid({
   locked = false,
   select,
   markers = [],
-  renderIndex,
+  showIndex = true,
 }: {
   layout: BoardLayout;
   slots: readonly GridSlot[];
@@ -32,7 +32,7 @@ export function BoardGrid({
   locked?: boolean;
   select?: ((slot: number) => void) | undefined;
   markers?: readonly GridMarker[];
-  renderIndex?: ((index: number) => ReactNode) | undefined;
+  showIndex?: boolean;
 }) {
   const grid = topology(layout);
   if (slots.length !== grid.count) throw new Error('Invalid rendered board');
@@ -50,21 +50,24 @@ export function BoardGrid({
         const content = (
           <>
             {slot.content}
-            <span className="slot-index">
-              {renderIndex ? renderIndex(index) : index + 1}
-              {marked
-                .filter((marker) => marker.slots[0] === index)
-                .map((marker) => (
-                  <span
-                    key={marker.accessibleLabel}
-                    className="zero-column-badge"
-                    aria-label={marker.accessibleLabel}
-                    title={marker.accessibleLabel}
-                  >
-                    {marker.label}
-                  </span>
-                ))}
-            </span>
+            {(showIndex ||
+              marked.some((marker) => marker.slots[0] === index)) && (
+              <span className="slot-index">
+                {showIndex && index + 1}
+                {marked
+                  .filter((marker) => marker.slots[0] === index)
+                  .map((marker) => (
+                    <span
+                      key={marker.accessibleLabel}
+                      className="zero-column-badge"
+                      aria-label={marker.accessibleLabel}
+                      title={marker.accessibleLabel}
+                    >
+                      {marker.label}
+                    </span>
+                  ))}
+              </span>
+            )}
           </>
         );
         return select ? (
