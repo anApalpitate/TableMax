@@ -8,23 +8,15 @@ import {
   type GameHost,
 } from '@tablemax/web-host';
 import type { Action, RaView } from '../rules';
-import { tileNames, type Tile } from '../rules/data';
+import { tileNames } from '../rules/data';
 import { SunDisk, TableArt, TileFace } from './art';
+import { PlayerBoard } from './player-board';
 import './ra.css';
 
 const causes = {
   drawRa: '抽到拉',
   invokeFull: '满行呼唤拉',
   invokeOpen: '呼唤拉',
-};
-const parts = {
-  pharaoh: '法老',
-  god: '神明',
-  gold: '黄金',
-  river: '河流',
-  civilization: '文明',
-  monument: '纪念物',
-  disks: '圆盘',
 };
 const simple = {
   draw: '抽板块',
@@ -33,16 +25,6 @@ const simple = {
   finishGod: '结束神明行动',
 };
 const actionArt = { draw: 'tile-bag', invokeRa: 'ra-statue' } as const;
-
-function tileGroups(held: Tile[]) {
-  const groups = new Map<string, { tile: Tile; count: number }>();
-  for (const tile of held) {
-    const group = groups.get(tile.face);
-    if (group) group.count++;
-    else groups.set(tile.face, { tile, count: 1 });
-  }
-  return [...groups.values()];
-}
 
 function Controls({ session, game }: { session: GameHost; game: RaView }) {
   const [pending, setPending] = useState<Action>();
@@ -216,8 +198,16 @@ function RaScreen({ session }: { session: GameHost }) {
   const game = session.view?.gameView as RaView | null;
   const name = (id: string) =>
     session.view?.seats.find((seat) => seat.id === id)?.name ?? id;
+  const ownBoard =
+    session.role === 'player'
+      ? game?.players.find((player) => player.seat === session.self?.id)
+      : undefined;
   return (
-    <main className="ra-table shell" data-role={session.role}>
+    <main
+      className="ra-table shell"
+      data-role={session.role}
+      data-players={game?.players.length}
+    >
       <header className="ra-header">
         <ScreenLink className="button secondary" href={`/${session.role}`}>
           返回盒子
@@ -349,73 +339,47 @@ function RaScreen({ session }: { session: GameHost }) {
               </p>
             )
           )}
-          <section className="ra-seats" aria-label="玩家所持板块">
-            {game.players.map((player) => (
-              <article
-                key={player.seat}
-                className="ra-seat"
-                data-active={player.seat === game.actor}
-              >
-                <TableArt piece="player-board" className="ra-player-ornament" />
-                <h2>
-                  {name(player.seat)}{' '}
-                  {player.private && <small>{player.private.score} 分</small>}
-                </h2>
-                <div className="ra-disks" aria-label="太阳圆盘">
-                  {player.disks.map((disk) => (
-                    <SunDisk value={disk} key={disk} />
-                  ))}
-                  {player.spent > 0 && (
-                    <span>
-                      已用{' '}
-                      {player.private
-                        ? player.private.spentDisks.join('、')
-                        : `${player.spent} 枚`}
-                    </span>
-                  )}
-                </div>
-                <div className="ra-holdings">
-                  {tileGroups(player.held).map(({ tile, count }) => (
-                    <span key={tile.face}>
-                      <TileFace tile={tile} />
-                      {count > 1 && <b>×{count}</b>}
-                    </span>
-                  ))}
-                  {player.held.length === 0 && <span>暂无板块</span>}
-                </div>
-                {player.private && player.private.scores.length > 0 && (
-                  <details>
-                    <summary>
-                      {game.phase === 'ended' ? '时代计分' : '我的时代计分'}
-                    </summary>
-                    {player.private.scores.map((score) => (
-                      <section key={score.epoch}>
-                        <strong>
-                          第 {score.epoch} 时代 · 累计 {score.total} 分
-                        </strong>
-                        <p>
-                          本次变动 {score.delta > 0 ? '+' : ''}
-                          {score.delta} 分
-                        </p>
-                        {score.total === 0 &&
-                          Object.values(score.parts).reduce(
-                            (sum, value) => sum + value,
-                            0,
-                          ) < score.delta && <p>累计分按 0 分下限记录。</p>}
-                        <ul>
-                          {Object.entries(score.parts).map(([part, value]) => (
-                            <li key={part}>
-                              {parts[part as keyof typeof parts]} {value}
-                            </li>
-                          ))}
-                        </ul>
-                      </section>
+          {ownBoard ? (
+            <>
+              <PlayerBoard
+                player={ownBoard}
+                name={name(ownBoard.seat)}
+                active={ownBoard.seat === game.actor}
+                ended={game.phase === 'ended'}
+                primary
+              />
+              <details className="ra-opponents">
+                <summary>其他玩家板</summary>
+                <div className="ra-seats">
+                  {game.players
+                    .filter((player) => player.seat !== ownBoard.seat)
+                    .map((player) => (
+                      <PlayerBoard
+                        key={player.seat}
+                        player={player}
+                        name={name(player.seat)}
+                        active={player.seat === game.actor}
+                        ended={game.phase === 'ended'}
+                        compact
+                      />
                     ))}
-                  </details>
-                )}
-              </article>
-            ))}
-          </section>
+                </div>
+              </details>
+            </>
+          ) : (
+            <section className="ra-seats" aria-label="玩家板">
+              {game.players.map((player) => (
+                <PlayerBoard
+                  key={player.seat}
+                  player={player}
+                  name={name(player.seat)}
+                  active={player.seat === game.actor}
+                  ended={game.phase === 'ended'}
+                  compact
+                />
+              ))}
+            </section>
+          )}
           {game.lastAuction && (
             <details className="ra-record">
               <summary>上一场拍卖</summary>

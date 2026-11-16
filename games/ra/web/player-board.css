@@ -1,0 +1,818 @@
+.ra-personal {
+  --ra-personal-rule: color-mix(in srgb, var(--ra-text) 19%, transparent);
+  --ra-board-stock: #ead9af;
+  --ra-board-stock-shade: #d7c398;
+  --ra-board-wash: #767a6338;
+  --ra-board-ink: #202622;
+  --ra-board-rail: #8a5447;
+  --ra-board-vermillion: #963529;
+  --ra-board-teal: #075750;
+  --ra-personal-water: #234e5a;
+  --ra-personal-drought: #8e3937;
+  --ra-personal-token: 34px;
+  --ra-personal-epoch-first: #aed0b7;
+  --ra-personal-epoch-second: #e6bc80;
+  --ra-personal-epoch-third: #e8a3a0;
+  display: grid;
+  align-content: start;
+  gap: 0;
+  min-inline-size: 0;
+  border: 1px solid var(--ra-edge);
+  border-radius: 8px;
+  background: var(--ra-surface);
+  box-shadow: 0 2px 6px var(--ra-shadow);
+  container-type: inline-size;
+}
+
+.ra-personal[data-active='true'] {
+  border-color: var(--ra-accent);
+  box-shadow: inset 0 0 0 1px var(--ra-accent);
+}
+
+.ra-personal-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 6px 10px;
+  padding: 6px 10px;
+  overflow-wrap: anywhere;
+}
+
+.ra-personal-heading strong {
+  white-space: nowrap;
+}
+
+.ra-personal .ra-personal-heading h2 {
+  font-size: 20px;
+}
+
+.ra-personal-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(41px, auto) minmax(0, 1fr);
+  grid-template-areas:
+    'keep discs discard'
+    'keep discs discard'
+    'keep discs discard'
+    'keep discs discard'
+    'keep discs discard'
+    'water water water';
+  border-block: 1px solid var(--ra-personal-rule);
+  isolation: isolate;
+}
+
+.ra-personal-side {
+  display: grid;
+  grid-template-rows: subgrid;
+  min-inline-size: 0;
+  color: var(--ra-board-ink);
+  background:
+    repeating-linear-gradient(0deg, #71582b06 0 1px, transparent 1px 4px),
+    var(--ra-board-stock);
+  --ra-personal-epoch-first: #236047;
+  --ra-personal-epoch-second: #995020;
+  --ra-personal-epoch-third: #a03433;
+}
+
+.ra-personal-keep {
+  grid-area: keep;
+}
+
+.ra-personal-discard {
+  grid-area: discard;
+}
+
+.ra-personal-life {
+  display: grid;
+  place-items: center;
+  min-block-size: 26px;
+  color: #f7e5c8;
+  background: linear-gradient(110deg, #644a4b, #543d3f);
+  border-block-end: 1px solid var(--ra-personal-rule);
+}
+
+.ra-personal-resource {
+  --ra-slot: var(--ra-board-stock);
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-content: start;
+  gap: 2px 6px;
+  padding: 3px 4px;
+  border-block-end: 1px solid #99784b55;
+}
+
+.ra-personal-resource[data-kind='nile'],
+.ra-personal-resource[data-kind='flood'] {
+  border-block-end: 0;
+}
+
+.ra-personal-resource[data-kind='monument'] {
+  grid-row: span 2;
+}
+
+.ra-personal-resource-head,
+.ra-personal-epochs,
+.ra-personal-tiles,
+.ra-personal-water-bridge > span,
+.ra-personal-pool li {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 3px;
+}
+
+.ra-personal-icon {
+  display: inline-block;
+  flex: 0 0 auto;
+  inline-size: 20px;
+  block-size: 20px;
+}
+
+.ra-personal-resource-head {
+  display: grid;
+  flex-basis: 100%;
+  justify-items: center;
+  gap: 1px;
+  min-block-size: 22px;
+  inline-size: 100%;
+}
+
+.ra-personal-resource-head > .ra-personal-icon {
+  inline-size: 25px;
+  block-size: 22px;
+}
+
+.ra-personal-resource-head .ra-personal-epochs::before,
+.ra-personal-resource-head .ra-personal-epochs::after {
+  content: '';
+  width: clamp(8px, 5cqi, 21px);
+  border-top: 1px solid var(--ra-board-rail);
+  opacity: 0.7;
+}
+
+.ra-personal-epochs svg {
+  display: block;
+  inline-size: 11px;
+  block-size: 14px;
+}
+
+.ra-personal-epochs svg[data-epoch='1'] {
+  color: var(--ra-personal-epoch-first);
+}
+
+.ra-personal-epochs svg[data-epoch='2'] {
+  color: var(--ra-personal-epoch-second);
+}
+
+.ra-personal-epochs svg[data-epoch='3'] {
+  color: var(--ra-personal-epoch-third);
+}
+
+.ra-personal-water,
+.ra-inscription,
+.ra-rule-sigil,
+.ra-per-tile {
+  font-size: 16px;
+  line-height: 1.2;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+}
+
+.ra-rule-sigil {
+  display: none;
+}
+
+.ra-inscription {
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  justify-items: center;
+  gap: 3px;
+  padding-block: 3px;
+  color: var(--ra-board-ink);
+}
+
+.ra-monument-inscription::before {
+  position: absolute;
+  z-index: -1;
+  inset: 0 54% 0 -4px;
+  border-radius: 5px 12px 16px 6px;
+  background: var(--ra-board-wash);
+  content: '';
+}
+
+.ra-inscription-row {
+  display: grid;
+  grid-template-columns: 27px 30px 7px 31px;
+  align-items: center;
+  justify-items: center;
+  position: relative;
+  min-block-size: 22px;
+}
+
+.ra-inscription-input {
+  justify-self: end;
+  margin-inline-end: 2px;
+  font-weight: 720;
+  white-space: nowrap;
+}
+
+.ra-inscription-input .ra-personal-icon {
+  display: block;
+  inline-size: 21px;
+}
+
+.ra-inscription-each {
+  position: absolute;
+  inset-inline-start: 100%;
+  display: flex;
+  align-items: center;
+  gap: 1px;
+}
+
+.ra-monument-inscription {
+  padding-inline-end: 26px;
+}
+
+.ra-inscribed-tile {
+  --ra-glyph-face: #8c7b64;
+  --ra-glyph-ink: #201b18;
+  --ra-slot: var(--ra-glyph-face);
+  position: relative;
+  display: inline-grid;
+  flex: none;
+  place-items: center;
+  inline-size: 22px;
+  block-size: 21px;
+  border-radius: 8px 8px 2px 2px;
+  color: var(--ra-glyph-ink);
+  background: var(--ra-glyph-face);
+  box-shadow: inset 0 -2px 0 #130a1030;
+  font-weight: 750;
+}
+
+.ra-inscribed-tile .ra-personal-icon {
+  inline-size: 17px;
+  block-size: 17px;
+}
+
+.ra-inscribed-tile[data-motif='monument'] {
+  --ra-glyph-face: #9f74aa;
+  --ra-glyph-ink: #27152f;
+}
+
+.ra-inscribed-tile[data-motif='civilization'] {
+  --ra-glyph-face: #a2a9b0;
+  --ra-glyph-ink: #21333b;
+}
+
+.ra-inscribed-tile[data-motif='pharaoh'] {
+  --ra-glyph-face: #90ad91;
+  --ra-glyph-ink: #204936;
+  box-shadow:
+    -2px 2px #d5d8af,
+    -3px 3px #567861;
+}
+
+.ra-inscribed-tile[data-motif='god'] {
+  --ra-glyph-face: #d6886b;
+  --ra-glyph-ink: #462523;
+}
+
+.ra-inscribed-tile[data-motif='gold'],
+.ra-inscribed-tile[data-motif='disks'] {
+  --ra-glyph-face: #d9a053;
+  --ra-glyph-ink: #4e2e20;
+}
+
+.ra-inscribed-tile[data-motif='disks'] {
+  border-radius: 50%;
+}
+
+.ra-inscribed-tile[data-motif='nile'],
+.ra-inscribed-tile[data-motif='flood'] {
+  --ra-glyph-face: #306a87;
+  --ra-glyph-ink: #f4f1d8;
+}
+
+.ra-inscribed-badge {
+  position: absolute;
+  inset: auto -4px -1px auto;
+  display: grid;
+  place-items: center;
+  inline-size: 15px;
+  block-size: 15px;
+  border-radius: 50%;
+  color: #fff9e8;
+  background: #79533e;
+  line-height: 1;
+  font-size: 16px;
+}
+
+.ra-inscribed-badge:is([data-badge='≠'], [data-badge='↓']) {
+  background: var(--ra-board-vermillion);
+}
+
+.ra-inscribed-badge[data-badge='↑'] {
+  background: var(--ra-board-teal);
+}
+
+.ra-point-mark {
+  display: inline-flex;
+  flex: none;
+  justify-content: center;
+  align-items: center;
+  color: var(--ra-board-teal);
+  font-weight: 750;
+}
+
+.ra-point-mark[data-polarity='-1'] {
+  color: var(--ra-board-vermillion);
+}
+
+.ra-point-mark[data-polarity='0'] {
+  color: #444c4d;
+}
+
+.ra-point-sign {
+  margin-inline-end: 1px;
+}
+
+.ra-point-sign:empty {
+  display: none;
+}
+
+.ra-point-chip {
+  position: relative;
+  display: grid;
+  place-items: center;
+  min-inline-size: 19px;
+  min-block-size: 20px;
+  border-radius: 10px 10px 5px 5px;
+  color: #fff5df;
+  background: var(--ra-board-teal);
+  line-height: 1;
+}
+
+[data-polarity='-1'] > .ra-point-chip {
+  background: var(--ra-board-vermillion);
+}
+
+[data-polarity='0'] > .ra-point-chip {
+  background: #444c4d;
+}
+
+.ra-point-chip::after {
+  position: absolute;
+  inset: auto 0 -1px;
+  border: 1px solid #fff5df66;
+  border-width: 1px 0 0;
+  border-radius: 1px;
+  background: inherit;
+  block-size: 3px;
+  content: '';
+}
+
+.ra-inscription-conjunction {
+  display: grid;
+  place-items: center;
+  inline-size: 19px;
+  block-size: 19px;
+  margin-inline-start: 16px;
+  border: 1px solid #786f58;
+  border-radius: 50%;
+  font:
+    16px/1 Georgia,
+    serif;
+}
+
+.ra-per-tile {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+}
+
+.ra-inscription-exchange {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-block-start: 3px;
+  padding: 3px 8px;
+  border: 1px solid #a46c51;
+  border-radius: 15px;
+}
+
+.ra-nile-inscription > div {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 2px;
+  border: 1px solid transparent;
+  border-radius: 5px;
+  font-weight: 650;
+}
+
+.ra-nile-inscription > [data-current='true'] {
+  border-color: #477a7c;
+  background: #f7edcc;
+}
+
+.ra-personal-tiles {
+  flex-basis: 100%;
+  flex-wrap: wrap;
+  row-gap: 3px;
+}
+
+.ra-personal-tiles:empty {
+  display: none;
+}
+
+.ra-personal-tiles .ra-tile {
+  inline-size: var(--ra-personal-token);
+  block-size: calc(var(--ra-personal-token) * 1.13);
+  max-inline-size: 100%;
+  object-fit: contain;
+}
+
+.ra-personal-stack {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+}
+
+.ra-personal-stack b {
+  font-size: 16px;
+  line-height: 1;
+}
+
+.ra-personal-disc-row {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  align-self: stretch;
+  justify-content: center;
+  grid-area: discs;
+  gap: 4px;
+  min-inline-size: 0;
+  max-inline-size: 108px;
+  padding: 4px;
+  border-inline: 1px solid var(--ra-personal-rule);
+  background: linear-gradient(90deg, #294144, #314749 52%, #284044);
+}
+
+.ra-personal-disc-row > .ra-inscription,
+.ra-legend-disks > .ra-inscription {
+  padding: 5px 3px;
+  border-radius: 5px;
+  background: var(--ra-board-stock-shade);
+}
+
+.ra-personal-disc-row > .ra-inscription .ra-inscription-row,
+.ra-legend-disks > .ra-inscription .ra-inscription-row {
+  grid-template-columns: 23px 29px 6px 31px;
+}
+
+.ra-personal-discs {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 3px;
+}
+
+.ra-personal-discs > span,
+.ra-personal-discs .ra-sun {
+  display: block;
+  inline-size: 30px;
+  block-size: 30px;
+}
+
+.ra-personal-discs > span {
+  border-radius: 50%;
+  box-shadow: 0 0 0 1px #d8bc8568;
+  background: #63848545;
+}
+
+.ra-personal-discs [data-spent] {
+  border-radius: 50%;
+  box-shadow: 0 0 0 1px var(--ra-personal-rule);
+  opacity: 0.65;
+}
+
+.ra-personal-water {
+  display: grid;
+  grid-area: water;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+  min-block-size: 29px;
+  padding: 3px 4px;
+  color: var(--ra-personal-water);
+  border-block-start: 1px solid var(--ra-personal-rule);
+  background: var(--ra-board-stock-shade);
+}
+
+.ra-personal-water-bridge {
+  position: relative;
+  display: grid;
+  gap: 1px;
+  justify-items: center;
+  padding-inline: 3px;
+  white-space: nowrap;
+}
+
+.ra-personal-water-bridge i {
+  position: relative;
+  width: 100%;
+  border-block-start: 2px solid currentColor;
+}
+
+.ra-personal-water-bridge i::before {
+  position: absolute;
+  inset: -5px auto auto 0;
+  width: 6px;
+  height: 6px;
+  border: solid currentColor;
+  border-width: 0 0 2px 2px;
+  content: '';
+  transform: rotate(45deg);
+}
+
+.ra-personal-water[data-flooded='false'] .ra-personal-water-bridge i {
+  border-block-start-style: dashed;
+}
+
+.ra-personal-drought {
+  display: flex;
+  grid-column: 1 / -1;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  color: var(--ra-personal-drought);
+}
+
+.ra-personal-drought .ra-personal-icon {
+  inline-size: 16px;
+  block-size: 16px;
+}
+
+.ra-personal-legend,
+.ra-personal-score {
+  min-inline-size: 0;
+  padding: 4px 9px;
+}
+
+.ra-personal :is(summary, dt) {
+  font-weight: 650;
+}
+
+.ra-personal summary {
+  display: list-item;
+  width: fit-content;
+  padding: 4px 3px;
+  cursor: pointer;
+}
+
+.ra-personal-legend > dl {
+  margin: 4px 0 8px;
+}
+
+.ra-expanded-inscriptions {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 134px), 1fr));
+  gap: 5px;
+  margin-block-end: 7px;
+}
+
+.ra-legend-resource,
+.ra-legend-disks {
+  display: grid;
+  justify-items: center;
+  align-content: start;
+  gap: 4px;
+  padding: 6px 3px;
+  border-radius: 5px;
+  color: var(--ra-board-ink);
+  background: var(--ra-board-stock);
+  --ra-slot: var(--ra-board-stock);
+  --ra-personal-epoch-first: #236047;
+  --ra-personal-epoch-second: #995020;
+  --ra-personal-epoch-third: #a03433;
+}
+
+.ra-personal-legend dt {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-block-start: 7px;
+}
+
+.ra-personal-legend dd {
+  margin-inline-start: 0;
+}
+
+.ra-personal-legend > .ra-personal-pool,
+.ra-personal-score ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px 10px;
+  padding: 0;
+  list-style: none;
+}
+
+.ra-personal-score section + section {
+  margin-block-start: 7px;
+}
+
+.ra-personal[data-primary='true'] {
+  --ra-personal-token: 43px;
+}
+
+@container (max-width: 320px) {
+  .ra-personal-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-areas:
+      'discs discs'
+      'keep discard'
+      'keep discard'
+      'keep discard'
+      'keep discard'
+      'keep discard'
+      'water water';
+  }
+
+  .ra-personal-disc-row {
+    flex-flow: row wrap;
+    max-inline-size: none;
+    border-inline: 0;
+  }
+
+  .ra-personal-disc-row > .ra-inscription {
+    display: none;
+  }
+
+  .ra-personal-disc-row > .ra-rule-sigil {
+    display: inline-flex;
+    gap: 3px;
+    padding-inline: 4px;
+    border-radius: 6px;
+    background: var(--ra-board-stock-shade);
+  }
+}
+
+.ra-table[data-role='host'] .ra-personal[data-compact='true'] {
+  --ra-personal-token: 30px;
+}
+
+@container (max-width: 285px) {
+  .ra-table[data-role='host']
+    .ra-personal[data-compact='true']
+    .ra-personal-grid {
+    --ra-personal-token: 24px;
+    grid-template-areas:
+      'discs discs'
+      'keep discard'
+      'water water';
+  }
+
+  .ra-table[data-role='host'] .ra-personal-grid .ra-personal-side {
+    grid-template-rows: auto;
+  }
+
+  .ra-table[data-role='host']
+    .ra-personal-grid
+    .ra-personal-resource[data-kind='monument'] {
+    grid-row: auto;
+  }
+
+  .ra-table[data-role='host']
+    .ra-personal[data-compact='true']
+    .ra-personal-grid
+    .ra-inscription,
+  .ra-table[data-role='host']
+    .ra-personal[data-compact='true']
+    .ra-personal-grid
+    .ra-flood-inscription {
+    display: none;
+  }
+
+  .ra-table[data-role='host'] .ra-personal-grid .ra-rule-sigil {
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    gap: 3px;
+  }
+
+  .ra-table[data-role='host']
+    .ra-personal-grid
+    .ra-rule-sigil
+    .ra-inscribed-tile {
+    inline-size: 17px;
+    block-size: 17px;
+  }
+
+  .ra-table[data-role='host']
+    .ra-personal-grid
+    .ra-rule-sigil
+    .ra-personal-icon {
+    inline-size: 15px;
+    block-size: 15px;
+  }
+
+  .ra-table[data-role='host'] .ra-personal-grid .ra-inscription-conjunction {
+    inline-size: 16px;
+    block-size: 16px;
+    margin-inline: 3px 0;
+  }
+
+  .ra-table[data-role='host']
+    .ra-personal[data-compact='true']
+    .ra-personal-resource-head {
+    display: flex;
+    flex-basis: auto;
+    inline-size: auto;
+  }
+
+  .ra-table[data-role='host'] .ra-personal-grid .ra-personal-epochs::before,
+  .ra-table[data-role='host'] .ra-personal-grid .ra-personal-epochs::after {
+    display: none;
+  }
+
+  .ra-table[data-role='host']
+    .ra-personal[data-compact='true']
+    .ra-personal-resource-head {
+    min-block-size: 20px;
+  }
+
+  .ra-table[data-role='host']
+    .ra-personal[data-compact='true']
+    .ra-personal-heading {
+    padding-block: 4px;
+    line-height: 1.25;
+  }
+
+  .ra-table[data-role='host']
+    .ra-personal[data-compact='true']
+    .ra-personal-life {
+    min-block-size: 22px;
+  }
+
+  .ra-table[data-role='host']
+    .ra-personal[data-compact='true']
+    .ra-personal-resource {
+    padding-block: 1px;
+  }
+
+  .ra-table[data-role='host']
+    .ra-personal[data-compact='true']
+    .ra-personal-disc-row,
+  .ra-table[data-role='host']
+    .ra-personal[data-compact='true']
+    .ra-personal-legend {
+    padding-block: 2px;
+  }
+}
+
+@media (max-width: 760px) {
+  .ra-table[data-role='player'] .ra-personal {
+    --ra-personal-water: #234e5a;
+    --ra-personal-drought: #8e3937;
+    --ra-personal-epoch-first: #28614a;
+    --ra-personal-epoch-second: #865019;
+    --ra-personal-epoch-third: #8e3937;
+  }
+
+  .ra-table[data-role='player'] .ra-personal-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-areas:
+      'discs discs'
+      'keep discard'
+      'keep discard'
+      'keep discard'
+      'keep discard'
+      'keep discard'
+      'water water';
+  }
+
+  .ra-table[data-role='player'] .ra-personal-disc-row {
+    flex-flow: row wrap;
+    max-inline-size: none;
+    border-inline: 0;
+    background: linear-gradient(90deg, #d3c9ad, #d5d1b8 52%, #d3c9ad);
+  }
+
+  .ra-table[data-role='player'] .ra-personal-disc-row > .ra-epochs {
+    --ra-personal-epoch-third: #8e3937;
+  }
+
+  .ra-table[data-role='player'] .ra-personal-disc-row > .ra-inscription {
+    display: none;
+  }
+
+  .ra-table[data-role='player'] .ra-personal-disc-row > .ra-rule-sigil {
+    display: inline-flex;
+    gap: 3px;
+  }
+}

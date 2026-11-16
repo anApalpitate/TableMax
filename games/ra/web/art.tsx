@@ -22,7 +22,6 @@ export function TileFace({
 
 type TablePiece =
   | 'auction-board'
-  | 'player-board'
   | 'sun-boat'
   | 'ra-statue'
   | 'epoch-first'
