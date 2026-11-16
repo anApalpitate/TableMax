@@ -43,6 +43,7 @@ const launcherSources = [
 ];
 const installerIcon = 'assets/platform/installer.ico';
 const updaterIcon = 'assets/platform/updater.ico';
+const updateHelperIcon = 'assets/platform/update-helper.ico';
 const uninstallerIcon = 'assets/platform/uninstaller.ico';
 const recipeSources = [
   ...new Set([
@@ -54,6 +55,7 @@ const recipeSources = [
     'assets/platform/app-icon.ico',
     installerIcon,
     updaterIcon,
+    updateHelperIcon,
     uninstallerIcon,
     'global.json',
     'tools/release/installation-package.mjs',
@@ -457,6 +459,7 @@ export async function createInstallationExecutable({
     sources: helperSources,
     main: 'TableMax.Installation.UpdateHelper',
     buildVersion,
+    iconPath: updateHelperIcon,
     fixture,
     handoffTest,
     resources: [

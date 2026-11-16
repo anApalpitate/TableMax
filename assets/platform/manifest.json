@@ -1128,6 +1128,42 @@
       "usage": ["Updater.exe embedded program icon"]
     },
     {
+      "id": "update-helper-icon",
+      "file": "update-helper.ico",
+      "version": 1,
+      "createdAt": "2026-11-17",
+      "source": "built-in imagegen",
+      "mode": "generate with style reference",
+      "prompt": "Generate one brand-new square Windows executable icon for the TableMax UpdateHelper background utility, part of the TableMax installer / updater / uninstaller icon family. Reference 1 is the existing TableMax updater icon and is a VISUAL STYLE, TILE PROPORTIONS, MATERIAL AND PALETTE REFERENCE. Output one finished raster icon. Recreate the same orthogonal rounded-square deep cyan-teal satin ceramic tile, optical centering, gentle upper-left studio highlight, and the same proportions: tile occupies about 84% of the square with clear outside safety margins, front-on and no lateral tilt. Keep the same recognizable wide low warm-ivory tabletop game box near the bottom center, from a slight overhead view with a closed rounded lid and a narrow restrained warm-gold seam. Use the upper center clear teal field for the helper's distinct mark: ONE large, pale sky-blue sculpted ceramic gear, front-on, with six or eight broad chunky square teeth, a thick ring, and one bold central circular cutout exposing the teal tile. Make the gear high-contrast, around 44% of the tile width, with strongly simplified teeth and no fine details. Optically center the gear and keep a clear teal gap from the box. The only action mark is the gear. Match the reference's softly beveled material, depth, footprint and clear silhouette at 16/32 pixels. The outside of the teal tile MUST be genuinely transparent alpha, including corners and margins, with no background matte, faux checkerboard, external cast shadow or external glow. No arrows, text, letters, digits, labels, border, logos, watermarks, additional gear, badges, tiny screws, secondary symbols or extra objects. Export one square icon.",
+      "referenceImages": [
+        {
+          "file": "../TMP/TableMaxMaterial/originals/tablemax-installation-icons-20261117/updater.png",
+          "role": "visual style, tile proportions, material and palette",
+          "sha256": "5b92ee5727f7e4ab0efe6a89b79c8ac6d5c9391818515ec3e1d7dc4b33d18c87"
+        }
+      ],
+      "original": "../TMP/TableMaxMaterial/originals/tablemax-update-helper-icon-20261117/update-helper.png",
+      "originalDimensions": [1254, 1254],
+      "originalSha256": "e7dbcc6a881936a6c65f274b4f476ace0b769ba86bb2ec2aa7c1f84748aee2bd",
+      "transparent": true,
+      "dimensions": [256, 256],
+      "sizes": [
+        [16, 16],
+        [24, 24],
+        [32, 32],
+        [48, 48],
+        [64, 64],
+        [128, 128],
+        [256, 256]
+      ],
+      "alphaExtrema": [0, 255],
+      "bytes": 92072,
+      "sha256": "dc147344c45cf5e86f8f0baf752b6769c01de8ad29bcdc59ac87d2d1a7be98d2",
+      "postprocessing": "Proportional Lanczos resampling and PNG frames in Windows ICO; alpha preserved",
+      "verification": "artifacts/maintenance/update-helper-icon-20261117/index.html",
+      "usage": ["UpdateHelper.exe embedded program icon"]
+    },
+    {
       "id": "uninstaller-icon",
       "file": "uninstaller.ico",
       "version": 1,
