@@ -1,8 +1,10 @@
 import { useEffect, useId, useRef, useState, type ReactNode } from 'react';
+import { createPortal } from 'react-dom';
+import { OverlayPanel } from '@tablemax/web-host';
 import type { RaView } from '../rules';
 import { tile, tileIds, tileNames, type Tile } from '../rules/data';
 import type { Breakdown } from '../rules/state';
-import { SunDisk, TileFace } from './art';
+import { SunDisk, TableArt, TileFace } from './art';
 import './player-board.css';
 
 const names = {
@@ -259,18 +261,73 @@ function groupTiles(tiles: Tile[]) {
   return [...groups.values()];
 }
 
-function Tokens({ tiles }: { tiles: Tile[] }) {
+function PreviewTile({ tile, count }: { tile: Tile; count: number }) {
+  const [preview, setPreview] = useState<{ left: number; top: number }>();
+  const show = (target: HTMLButtonElement) => {
+    const rect = target.getBoundingClientRect();
+    const width = Math.min(174, window.innerWidth - 16);
+    const height = 205;
+    setPreview({
+      left: Math.min(
+        window.innerWidth - width - 8,
+        Math.max(8, rect.left + (rect.width - width) / 2),
+      ),
+      top:
+        rect.top >= height + 14
+          ? rect.top - height - 6
+          : Math.max(
+              8,
+              Math.min(rect.bottom + 6, window.innerHeight - height - 8),
+            ),
+    });
+  };
+  return (
+    <>
+      <button
+        type="button"
+        className="ra-personal-stack ra-preview-tile"
+        aria-label={`${tileNames[tile.face]}${count > 1 ? `，${count} 枚` : ''}，查看石板`}
+        aria-expanded={Boolean(preview)}
+        onPointerEnter={(event) => {
+          if (event.pointerType === 'mouse') show(event.currentTarget);
+        }}
+        onPointerLeave={() => setPreview(undefined)}
+        onFocus={(event) => {
+          if (event.currentTarget.matches(':focus-visible'))
+            show(event.currentTarget);
+        }}
+        onBlur={() => setPreview(undefined)}
+        onClick={(event) => {
+          if (preview) setPreview(undefined);
+          else show(event.currentTarget);
+        }}
+        onKeyDown={(event) => {
+          if (event.key === 'Escape' && preview) {
+            event.stopPropagation();
+            setPreview(undefined);
+          }
+        }}
+      >
+        <TileFace tile={tile} decorative />
+        {count > 1 && <b aria-hidden="true">×{count}</b>}
+      </button>
+      {preview &&
+        createPortal(
+          <div className="ra-tile-popover" style={preview} aria-hidden="true">
+            <TileFace tile={tile} decorative />
+          </div>,
+          document.body,
+        )}
+    </>
+  );
+}
+
+function Tokens({ tiles, limit }: { tiles: Tile[]; limit?: number }) {
+  const groups = groupTiles(tiles);
   return (
     <div className="ra-personal-tiles">
-      {groupTiles(tiles).map(({ tile, count }) => (
-        <span
-          key={tile.face}
-          className="ra-personal-stack"
-          data-stacked={count > 1}
-        >
-          <TileFace tile={tile} />
-          {count > 1 && <b>×{count}</b>}
-        </span>
+      {groups.slice(0, limit ?? groups.length).map(({ tile, count }) => (
+        <PreviewTile key={tile.face} tile={tile} count={count} />
       ))}
     </div>
   );
@@ -346,7 +403,7 @@ function RulesDiagram({ kind }: { kind: Resource }) {
 }
 
 type Player = RaView['players'][number];
-type PublicPlayer = Pick<Player, 'disks' | 'spent' | 'held'>;
+type PublicPlayer = Pick<Player, 'seat' | 'disks' | 'spent' | 'held'>;
 
 function Disks({
   available,
@@ -376,29 +433,138 @@ function Disks({
   );
 }
 
+type AuctionStatus = {
+  caller?: string | undefined;
+  bid?: number | null | undefined;
+  highest: boolean;
+};
+
+export function AuctionBadge({
+  status,
+}: {
+  status?: AuctionStatus | undefined;
+}) {
+  return (
+    <div className="ra-seat-badges">
+      {status?.caller && (
+        <span
+          className="ra-caller-badge"
+          role="img"
+          aria-label={status.caller}
+          title={status.caller}
+        >
+          <TableArt piece="ra-statue" className="ra-auction-statue" />
+        </span>
+      )}
+      {status?.bid === null && (
+        <span
+          role="img"
+          className="ra-pass-badge"
+          aria-label="已跳过"
+          title="已跳过"
+        >
+          <svg
+            viewBox="0 0 24 24"
+            aria-hidden="true"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+          >
+            <circle cx="12" cy="12" r="8" />
+            <path d="m6.5 17.5 11-11" />
+          </svg>
+        </span>
+      )}
+      {typeof status?.bid === 'number' && (
+        <span
+          className="ra-bid-badge"
+          role="img"
+          data-highest={status.highest}
+          aria-label={`${status.highest ? '最高出价' : '出价'} ${status.bid}`}
+          title={`${status.highest ? '最高出价' : '出价'} ${status.bid}`}
+        >
+          <SunDisk value={status.bid} />
+        </span>
+      )}
+    </div>
+  );
+}
+
 export function PlayerSummary({
   player,
   name,
   active,
+  auction,
+  result,
+  showScores,
 }: {
   player: PublicPlayer;
   name: string;
   active: boolean;
+  auction?: AuctionStatus | undefined;
+  result?:
+    { rank: number; total: number; tied: boolean; highest: number } | undefined;
+  showScores?: () => void;
 }) {
+  const [expanded, setExpanded] = useState(false);
+  const limit = 8;
+  const overflow = groupTiles(player.held)
+    .slice(limit)
+    .reduce((count, item) => count + item.count, 0);
   return (
     <article
       aria-label={`${name}的公开摘要`}
       className="ra-seat-summary"
+      data-ra-seat={player.seat}
       data-active={active}
+      data-rank={result?.rank}
     >
-      <h2 className="ra-seat-summary-heading">{name}</h2>
+      <header className="ra-seat-head">
+        <h2 className="ra-seat-summary-heading" title={name}>
+          {name}
+        </h2>
+        {result ? (
+          <button
+            type="button"
+            className="ra-rank"
+            onClick={showScores}
+            aria-haspopup="dialog"
+            aria-label={`第 ${result.rank} 名，${result.total} 分，查看时代计分`}
+          >
+            <span aria-hidden="true">{result.rank}</span>
+            <strong>{result.total} 分</strong>
+          </button>
+        ) : (
+          <AuctionBadge status={auction} />
+        )}
+      </header>
       <div className="ra-seat-summary-disks" role="group" aria-label="太阳圆盘">
         <Disks
           available={player.disks}
           spent={Array.from({ length: player.spent }, () => undefined)}
         />
+        {result?.tied && (
+          <span className="ra-tiebreak" title="同分，比较最高太阳圆盘">
+            决胜盘 {result.highest}
+          </span>
+        )}
       </div>
-      <Tokens tiles={player.held} />
+      <Tokens tiles={player.held} limit={limit} />
+      {overflow > 0 && (
+        <button
+          type="button"
+          className="ra-more-tiles"
+          aria-haspopup="dialog"
+          onClick={() => setExpanded(true)}
+        >
+          另有 {overflow} 枚
+        </button>
+      )}
+      {expanded && (
+        <OverlayPanel title={`${name}的石板`} close={() => setExpanded(false)}>
+          <Tokens tiles={player.held} />
+        </OverlayPanel>
+      )}
     </article>
   );
 }

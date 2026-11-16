@@ -740,3 +740,29 @@
     height: 44px;
   }
 }
+.ra-seat-summary {
+  --ra-personal-token: 34px;
+}
+.ra-preview-tile {
+  background: transparent;
+  border: 0;
+  color: inherit;
+  cursor: zoom-in;
+  padding: 0;
+}
+.ra-tile-popover {
+  position: fixed;
+  z-index: 1500;
+  pointer-events: none;
+  width: min(174px, calc(100vw - 16px));
+  height: 205px;
+  padding: 7px;
+  background: #403b30;
+  border: 1px solid #c7b38a;
+  border-radius: 8px;
+  box-shadow: 0 7px 23px #17150fb3;
+}
+.ra-tile-popover .ra-tile {
+  width: 100%;
+  height: 100%;
+}

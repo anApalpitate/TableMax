@@ -14,7 +14,18 @@ export const following = (s: State, seat: string) =>
 const seatName = (s: State, seat: string) =>
   `${s.seats.indexOf(seat) + 1} 号席`;
 const name = (id: string) => tileNames[tile(id).face]!;
-type Tell = (text: string) => void;
+type Cue =
+  | 'draw'
+  | 'open'
+  | 'bid'
+  | 'won'
+  | 'clear'
+  | 'hold'
+  | 'god'
+  | 'disaster'
+  | 'epoch'
+  | 'final';
+type Tell = (text: string, cue?: Cue) => void;
 
 function bidOptions(s: State, seat: string) {
   const auction = s.auction!;
@@ -101,7 +112,7 @@ export function legal(s: State, seat: string): Action[] {
 }
 
 function scoreEpoch(s: State, tell: Tell) {
-  tell(`第 ${s.epoch} 时代结算`);
+  tell(`第 ${s.epoch} 时代结算`, s.epoch === 3 ? 'final' : 'epoch');
   settle(s);
 }
 
@@ -130,6 +141,7 @@ function discard(s: State, ids: string[], tell: Tell) {
   s.removed.push(disasterId, ...ids);
   tell(
     `${seatName(s, pending.owner)}处理${name(disasterId)}：${ids.length ? ids.map(name).join('、') : '无板块可弃'}`,
+    'disaster',
   );
 }
 
@@ -171,7 +183,10 @@ function advanceAuction(s: State, tell: Tell) {
     if (pass ? disks.length > 0 : disks.length !== 1) return;
     const disk = pass ? null : disks[0]!;
     auction.bids.push({ seat, disk });
-    tell(`${seatName(s, seat)}${disk === null ? '跳过' : `出价 ${disk}`}`);
+    tell(
+      `${seatName(s, seat)}${disk === null ? '跳过' : `出价 ${disk}`}`,
+      disk === null ? undefined : 'bid',
+    );
     s.actor = following(s, seat);
   }
   const bid = auction.bids.filter((entry) => entry.disk !== null).at(-1);
@@ -190,6 +205,7 @@ function advanceAuction(s: State, tell: Tell) {
     player.down.push(s.center);
     tell(
       `${seatName(s, bid.seat)}赢得 ${lot.length} 枚板块，以 ${bid.disk} 换取中央盘 ${s.center}`,
+      'won',
     );
     s.center = bid.disk;
     acquire(s, bid.seat, lot, resume, false, tell);
@@ -202,6 +218,7 @@ function advanceAuction(s: State, tell: Tell) {
       auction.cause === 'invokeFull'
         ? '无人出价，拍卖行清空'
         : '无人出价，拍卖行保留',
+      auction.cause === 'invokeFull' ? 'clear' : 'hold',
     );
     nextTurn(s, resume, tell);
   }
@@ -216,15 +233,18 @@ function openAuction(s: State, caller: string, cause: Cause, tell: Tell) {
 
 export function play(s: State, action: Action, seat: string): PublicEvent[] {
   const events: PublicEvent[] = [];
-  const tell: Tell = (text) => {
-    events.push({ kind: 'ra-turn', text });
+  const tell: Tell = (text, cue) => {
+    events.push({ kind: cue ? `ra-${cue}` : 'ra-turn', text });
   };
   const next = following(s, seat);
   switch (action.type) {
     case 'draw': {
       const id = s.bag.pop();
       if (!id) throw new Error('板块袋异常耗尽');
-      tell(`${seatName(s, seat)}抽出${name(id)}`);
+      tell(
+        `${seatName(s, seat)}抽出${name(id)}`,
+        tile(id).kind === 'ra' ? 'open' : 'draw',
+      );
       if (tile(id).kind !== 'ra') {
         s.lot[s.lot.indexOf(null)] = id;
         nextTurn(s, next, tell);
@@ -238,7 +258,7 @@ export function play(s: State, action: Action, seat: string): PublicEvent[] {
       break;
     }
     case 'invokeRa':
-      tell(`${seatName(s, seat)}呼唤拉`);
+      tell(`${seatName(s, seat)}呼唤拉`, 'open');
       openAuction(
         s,
         seat,
@@ -254,6 +274,7 @@ export function play(s: State, action: Action, seat: string): PublicEvent[] {
       });
       tell(
         `${seatName(s, seat)}${action.type === 'bid' ? `出价 ${action.disk}` : '跳过'}`,
+        action.type === 'bid' ? 'bid' : undefined,
       );
       s.actor = next;
       advanceAuction(s, tell);
@@ -264,7 +285,7 @@ export function play(s: State, action: Action, seat: string): PublicEvent[] {
       );
       s.removed.push(action.godId);
       s.lot[action.slot] = null;
-      tell(`${seatName(s, seat)}使用神明取走${name(action.tileId)}`);
+      tell(`${seatName(s, seat)}使用神明取走${name(action.tileId)}`, 'god');
       acquire(s, seat, [action.tileId], next, true, tell);
       break;
     case 'finishGod':
@@ -276,5 +297,7 @@ export function play(s: State, action: Action, seat: string): PublicEvent[] {
       break;
   }
   s.serial++;
-  return events;
+  // Keep feedback within the room protocol's eight-event limit. The newest
+  // entries carry the outcome when a single move also resolves forced steps.
+  return events.slice(-8);
 }

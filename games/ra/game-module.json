@@ -22,7 +22,7 @@
     "bot": "games/ra/bot/index.ts",
     "web": "games/ra/web/index.tsx"
   },
-  "cover": null,
+  "cover": "assets/games/ra/cover-v1.webp",
   "budgets": {
     "payloadBytes": 1048576,
     "serviceHeapBytes": 67108864,
