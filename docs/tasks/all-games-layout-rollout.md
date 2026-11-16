@@ -1,6 +1,6 @@
 # 全部游戏布局接续
 
-2026-10-29已按用户授权完成8款游戏、9个玩法的源码布局调整和逐游戏浏览器验证，实施前方案归[计划快照](../archive/all-games-layout-rollout-plan-2026-10-29.md)。共享净区、手机门禁、控件去重的长期设计见[界面复用](../reference/ui-composition.md)和[架构](../reference/architecture.md)，各游戏布局参数归自身主题。本页只保留证明边界和后续事项，不再作为待实施清单。
+2026-10-29 的源码布局调整及逐游戏浏览器验证已收尾。原覆盖游戏及玩法、编译证据见[完成归档](../archive/all-games-layout-rollout-completed-20261029.md)，实施前方案见[计划快照](../archive/all-games-layout-rollout-plan-2026-10-29.md)。当前源码和安装器见[验收](../reference/acceptance.md#当前源码与本地交付)；共享布局组织见[界面复用](../reference/ui-composition.md)。
 
 已完成的编译快照、失败原因、逐游戏证据及原字节保护归[完成记录](../archive/all-games-layout-rollout-completed-20261029.md)。本页不重复历史统计。
 

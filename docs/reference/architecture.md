@@ -36,11 +36,11 @@ flowchart TB
 
 ## 房间状态与提交
 
-[RoomCoordinator](../../packages/platform-core/src/room.ts)仍拥有唯一Save及commit／execute路径，动作进入串行队列后重新核验当前身份、决策及发行；提交成功才广播和演出。保存失败不得发布未保存结果；checkpoint、换机授权与恢复分支不是同一概念。随机源、规则和人机意图继续走既有契约。
+[RoomCoordinator](../../packages/platform-core/src/room.ts)仍拥有唯一Save及commit／execute路径，动作进入串行队列后重新核验当前身份、决策及发行；提交成功才广播和演出。保存失败不得发布未保存结果。随机源、规则和人机意图继续走既有契约。
 
 内部职责拆分为[RoomOperations](../../packages/platform-core/src/room-operations.ts)（串行、关闭屏障和保存失败标记）、[room-projection](../../packages/platform-core/src/room-projection.ts)（无状态授权视图组合）及[save-draft](../../packages/platform-core/src/save-draft.ts)（原有草稿复制）。前两者分别只接收操作回调或投影上下文，没有第二个仓储／commit入口。管理员只获公开游戏投影，玩家只获本人授权投影；投影调用保留克隆边界。
 
-存档仍为普通JSON数据，不保存函数、定时器、连接或Promise。SQLite去重、迁移和持久事务由仓储维护，准确权限与恢复语义统一见[平台规格](phase-02-platform-spec.md)；策略、取消和Worker隔离归[人机规格](bot-players.md)。
+存档仍为普通JSON数据，不保存函数、定时器、连接或Promise。SQLite去重、迁移和持久事务由仓储维护，平台规格维护[换机身份与授权](phase-02-platform-spec.md#浏览器入座换机与外部连接2026-10-07)、[提交、回退与恢复语义](phase-02-platform-spec.md#提交回退与恢复语义)和[旧绑定字段兼容](phase-02-platform-spec.md#160游戏选择手机房主与独立提交)。发行匹配与兼容失败见[旧局恢复](../games/README.md#模块交付与旧局恢复)。策略、取消和Worker隔离归[人机规格](bot-players.md)。
 
 ## 游戏呈现的当前分层
 

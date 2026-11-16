@@ -1,5 +1,7 @@
 # 归档索引
 
+[2026-10-23 至 11-16 交付与验收](acceptance-2026-10-23-to-11-16.md)：保留本地 1.0.8.9／1.0.8.10、公共屏退役、游戏移除和宝可梦源码专项的原证明。现行状态见[验收](../reference/acceptance.md#当前源码与本地交付)。
+
 [架构优化实施记录（2026-10-30）](architecture-optimization-20261030.md)：备份、源码拆分、边界约束、验证及失败纠正。现行职责见[架构](../reference/architecture.md)，余项见[实施状态](../reference/architecture-improvements.md)。
 
 [架构整理前原文](architecture-before-optimization-20261030.md)与[实施前建议](architecture-improvements-plan-20261030.md)：保留原判断、参数与历史证明边界；不作为第二份当前架构。

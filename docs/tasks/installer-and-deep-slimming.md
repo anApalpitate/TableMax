@@ -1,6 +1,6 @@
 # 深度瘦身剩余工作
 
-本地当前交付已为1.0.8.8；current22恢复及34免本轮验收属于[历史记录](../archive/current-pointer-repair-2026-10-18.md)，不再作为当前清理绑定。
+2026-10-21 清理时保护的本地交付为 1.0.8.8，见[该轮归档与 SHA](../archive/deep-slimming-2026-10-21.md)。现行交付以[验收](../reference/acceptance.md#当前源码与本地交付)为准。current22 恢复及 34 免该轮验收按[原记录](../archive/current-pointer-repair-2026-10-18.md)追溯。
 
 ## 剩余目标
 

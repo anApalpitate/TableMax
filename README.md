@@ -18,14 +18,12 @@ Windows仅交付 **预装全部游戏的完整EXE**，不加类型后缀；更�
 
 ### 下载并打开
 
-1. 点击 **[下载 Windows 版 v1.0.8](https://github.com/anApalpitate/TableMax/releases/download/v1.0.8/TableMax-1.0.8-installer-win-x64.exe)**，下载完整安装包。
+1. 从[当前验收的公开发行条目](docs/reference/acceptance.md#当前源码与本地交付)打开下载页，在 **Assets（资源／附件）** 中选择 `-installer-win-x64.exe`。
 2. 下载完成后，在浏览器的“下载”列表中找到它，点击“在文件夹中显示”；也可以打开电脑的“下载”文件夹。
 3. 双击安装包，选择安装位置和快捷方式。默认安装在安装包旁的 `TableMax` 文件夹；安装时会显示中文步骤和进度。已有便携版数据时，可勾选“是否进行版本迁移”，选择原数据目录。
 4. 安装完成后打开 TableMax。如果提示缺少运行组件，按提示准备后再打开程序，就可以按下方的“快速开始”和朋友入座。
 
-**想查看其他版本？** 打开 [官方下载页](https://github.com/anApalpitate/TableMax/releases/latest)，找到 **Assets（资源／附件）**，选择 Windows EXE。后续只提供完整 Windows EXE；`-source.zip` 和 **Source code** 是供开发者使用的源代码。
-
-**版本说明：** 历史版本及其原附件继续保留；当前交付与验证范围见[验收](docs/reference/acceptance.md#当前源码与本地交付)。
+历史版本见[公开发行归档](https://github.com/anApalpitate/TableMax/releases)。`-source.zip` 和 **Source code** 是源码附件。
 
 ### 开始前准备什么
 
@@ -56,7 +54,7 @@ Windows仅交付 **预装全部游戏的完整EXE**，不加类型后缀；更�
 
 游戏库为每款游戏标注分类，支持名称／玩法搜索、分类与人数筛选。切换游戏时保留兼容的玩家身份和座位，进行中的对局需要确认结束。
 
-v1.0.8正式加入经典《马尼拉》（3–5人），支持三档本地人机、横竖屏调位、图文规则和保存后声画。每航次结算展示收入、支出及现金净变化，抵押借款与赎回单独列出。旧对局继续使用原发行；具体交付和验证范围见[验收记录](docs/reference/acceptance.md#当前源码与本地交付)。
+《马尼拉》的航次结算分列收入、支出、现金净变化、抵押借款和赎回。规则、人机、交互与验收见[马尼拉规格](docs/games/manila/README.md)。
 
 <a id="开始对局"></a>
 
@@ -77,7 +75,7 @@ v1.0.8正式加入经典《马尼拉》（3–5人），支持三档本地人机
 
 **下载后找不到程序？**
 
-打开浏览器的“下载”列表，找到下载的 `TableMax-1.0.8-installer-win-x64.exe`，选择“在文件夹中显示”，然后双击安装。如果下载的是 `-source.zip` 或 Source code，请回到下载章选择 Windows EXE 安装包。
+打开浏览器的“下载”列表，找到文件名以 `-installer-win-x64.exe` 结尾的安装包，选择“在文件夹中显示”，然后双击安装。如果下载的是 `-source.zip` 或 Source code，请回到下载章选择 Windows EXE 安装包。
 
 **手机连接不上？**
 
@@ -111,7 +109,7 @@ v1.0.8正式加入经典《马尼拉》（3–5人），支持三档本地人机
 欢迎通过 [GitHub Issues](https://github.com/anApalpitate/TableMax/issues) 提交问题和建议，请附上程序版本、游戏名称、发生问题前的操作及截图。
 
 - [游戏与项目文档](docs/README.md)：玩法、规则来源及项目说明
-- [当前交付与验收](docs/reference/acceptance.md)：本地版本、实际文件及验证范围
+- [当前交付与验收](docs/reference/acceptance.md#当前源码与本地交付)：本地版本、实际文件及验证范围
 - [资源说明](assets/README.md)：美术、声音与规则资料的来源
 
 TableMax 为个人与朋友的聚会使用而开发。游戏内容的来源、采用版本和数字适配范围见对应游戏文档；宝可梦六人玩法属于项目扩展，电力公司采用经典德国版。

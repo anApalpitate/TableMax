@@ -290,7 +290,7 @@ node tools/test/runner/test-scoped.mjs --scope=game:modern-art games/modern-art/
 
 ```powershell
 
-# 可选：本轮只容许1项失败；不设置时为5，合法范围1–1000
+# 可选：本轮只容许1项失败；不设置时为10，合法范围1–1000
 $env:TABLEMAX_TEST_MAX_FAILURES = '1'
 node tools/test/runner/test-scoped.mjs --scope=shared apps/server/src/countdown.test.ts
 Remove-Item Env:TABLEMAX_TEST_MAX_FAILURES

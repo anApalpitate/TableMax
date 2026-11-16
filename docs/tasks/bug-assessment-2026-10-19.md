@@ -24,7 +24,7 @@
 ## 设置入口：盒子音频与游戏视频
 
 - **盒子音频入口缺失，源码确认。** [BoxScreen](../../apps/web/src/screens/BoxScreen.tsx)提供倒计时、视频和管理等入口，没有音频调节控件。游戏中的独立声音控件不能替代盒子入口。用户本次明确要求音频调节放在游戏设置里，记为待实现要求，本轮不修改界面。
-- **“游戏中均无视频设置”与当前源码不符，实际版本及入口可发现性待核对。** 当前七款游戏／八个玩法均接入 `DisplaySettings`，位于游戏菜单的设置区，例如[宝可梦原版](../../games/pokemon-encounters/web/index.tsx)、[扩展版](../../games/pokemon-encounters/expansion/web/index.tsx)及[马尼拉](../../games/manila/web/index.tsx)。马尼拉明确仅向非玩家端显示该入口；[共享视频面板](../../apps/web/src/components/DisplaySettings.tsx)标题为“视频设置”，原生分辨率等功能还依赖显示桥接。入口存在不等于所有设备拥有相同选项，也不证明用户 EXE 包含该实现。
+- **“游戏中均无视频设置”与当前源码不符，实际版本及入口可发现性待核对。** 2026-10-19 核对的七款游戏／八个玩法均接入 `DisplaySettings`，位于游戏菜单的设置区，例如[宝可梦原版](../../games/pokemon-encounters/web/index.tsx)、[扩展版](../../games/pokemon-encounters/expansion/web/index.tsx)及[马尼拉](../../games/manila/web/index.tsx)。马尼拉明确仅向非玩家端显示该入口；[共享视频面板](../../apps/web/src/components/DisplaySettings.tsx)标题为“视频设置”，原生分辨率等功能还依赖显示桥接。入口存在不等于所有设备拥有相同选项，也不证明用户 EXE 包含该实现。
 
 接续：核对用户具体游戏、主机／公共屏／玩家端及 EXE 版本，确认菜单入口是否可见、可找到、能打开；依据[通用显示边界](../reference/visual-design.md)区分电脑显示与手机设置。本次反馈保留为可发现性／端口覆盖待核对，不直接新增重复视频面板。
 
