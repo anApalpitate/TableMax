@@ -30,7 +30,7 @@ export interface GameHostSlots {
   management(props: { lifecycleLabel?: string }): ReactNode;
   feedback(props?: { mode?: 'all' | 'saved' | 'messages' }): ReactNode;
   playMode(): ReactNode;
-  countdown(props: { children?: ReactNode }): ReactNode;
+  countdown(props: { children?: ReactNode; iconOnly?: boolean }): ReactNode;
 }
 /** Presentation capabilities only; installed by the private platform adapter. */
 export interface HostPresentationServices {

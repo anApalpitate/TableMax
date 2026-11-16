@@ -1,3 +1,4 @@
+import { SoundIcon } from '@tablemax/web-host';
 import {
   claimAudioEvent,
   subscribeSoundPreference,
@@ -293,31 +294,7 @@ export function ModernArtSoundControl({
         setEnabled(next);
       }}
     >
-      <svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true">
-        <path
-          d="M4 9h4l5-4v14l-5-4H4z"
-          fill="currentColor"
-          stroke="currentColor"
-          strokeLinejoin="round"
-        />
-        {enabled && !disabled ? (
-          <path
-            d="M16 8c2 2 2 6 0 8m3-11c4 4 4 10 0 14"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.8"
-            strokeLinecap="round"
-          />
-        ) : (
-          <path
-            d="m17 9 5 6m0-6-5 6"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.8"
-            strokeLinecap="round"
-          />
-        )}
-      </svg>
+      <SoundIcon enabled={enabled && !disabled} />
     </button>
   );
 }

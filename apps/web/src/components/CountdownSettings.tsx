@@ -5,16 +5,20 @@ import { BoxOverlayPanel } from './BoxOverlayPanel';
 import { feedbackText } from '../content/feedback';
 import { SoundSetting } from './SoundSetting';
 import { GameSetupSettings } from './GameSetupSettings';
-import { SettingHelp } from '@tablemax/web-host';
+import { MenuIcon, SettingHelp } from '@tablemax/web-host';
 import './countdown.css';
 import './settings-panel.css';
 
 export function CountdownSettings({
   session,
   children,
+  iconOnly = false,
+  inGame = false,
 }: {
   session: RoomSession;
   children?: ReactNode;
+  iconOnly?: boolean;
+  inGame?: boolean;
 }) {
   const [open, setOpen] = useState(false);
   const [step, setStep] = useState<number>(
@@ -44,23 +48,27 @@ export function CountdownSettings({
           setOpen(true);
         }}
       >
-        <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true">
-          <path
-            d="M4 6h16M4 12h16M4 18h16"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.8"
-            strokeLinecap="round"
-          />
-          <path
-            d="M8 3v6M16 9v6M10 15v6"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="3.5"
-            strokeLinecap="round"
-          />
-        </svg>
-        <span>游戏设置</span>
+        {inGame || iconOnly ? (
+          <MenuIcon />
+        ) : (
+          <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true">
+            <path
+              d="M4 6h16M4 12h16M4 18h16"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.8"
+              strokeLinecap="round"
+            />
+            <path
+              d="M8 3v6M16 9v6M10 15v6"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="3.5"
+              strokeLinecap="round"
+            />
+          </svg>
+        )}
+        {!iconOnly && <span>游戏设置</span>}
       </button>
       {open && (
         <BoxOverlayPanel
@@ -68,7 +76,7 @@ export function CountdownSettings({
           className="settings-panel settings-panel--preferences"
           close={() => setOpen(false)}
         >
-          <SoundSetting />
+          <SoundSetting showSpeaker={inGame} />
           <GameSetupSettings session={session} />
           {children}
           {canSetTimer && (

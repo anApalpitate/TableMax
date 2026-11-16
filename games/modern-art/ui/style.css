@@ -22,7 +22,7 @@
     linear-gradient(100deg, #c69b6e, #ead0ac 45%, #d1a67d);
 }
 
-.ma-screen .ma-toolbar .ma-menu-entry {
+.ma-screen .ma-toolbar .ma-toolbar-icon {
   display: inline-grid;
   place-items: center;
   width: 44px;
@@ -30,7 +30,7 @@
   min-width: 44px;
   padding: 0;
 }
-.ma-screen .ma-menu-entry svg {
+.ma-screen .ma-toolbar-icon svg {
   display: block;
   width: 24px;
   height: 24px;

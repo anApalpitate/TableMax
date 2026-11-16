@@ -35,7 +35,7 @@
   height: 26px;
   display: block;
 }
-.pg-screen .pg-toolbar .pg-menu-entry {
+.pg-screen .pg-toolbar .pg-toolbar-icon {
   display: grid;
   place-items: center;
   flex: none;

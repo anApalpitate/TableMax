@@ -7,6 +7,7 @@ import {
   type CSSProperties,
 } from 'react';
 import type { JsonValue } from '@tablemax/game-sdk';
+import { MenuIcon, RulebookIcon } from '@tablemax/web-host';
 import {
   CountdownSettings,
   DecisionCountdown,
@@ -403,7 +404,7 @@ function ManilaScreen({ session }: { session: GameHost }) {
             title="规则"
             onClick={() => setPanel('rules')}
           >
-            <CopperMark kind="rules" />
+            <RulebookIcon />
           </button>
           <button
             className="mn-copper-button mn-toolbar-icon"
@@ -419,7 +420,7 @@ function ManilaScreen({ session }: { session: GameHost }) {
             title="菜单"
             onClick={() => setPanel('menu')}
           >
-            <CopperMark kind="menu" />
+            <MenuIcon />
           </button>
         </div>
       </header>

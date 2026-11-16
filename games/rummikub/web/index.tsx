@@ -1,6 +1,7 @@
 /* eslint-disable react-refresh/only-export-components -- Lazy adapters expose one platform client object. */
 import { useState, type CSSProperties } from 'react';
 import type { JsonValue } from '@tablemax/game-sdk';
+import { MenuIcon, RulebookIcon } from '@tablemax/web-host';
 import {
   avatarFor,
   CountdownSettings,
@@ -155,19 +156,7 @@ function RummikubScreen({ session }: { session: GameHost }) {
             title="规则"
             onClick={() => setPanel('rules')}
           >
-            <svg
-              width="24"
-              height="24"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.8"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              aria-hidden="true"
-            >
-              <path d="M12 5v15M12 5C9 3 6 3 3 4v15c3-1 6-1 9 1 3-2 6-2 9-1V4c-3-1-6-1-9 1Z" />
-            </svg>
+            <RulebookIcon />
           </button>
           <button
             type="button"
@@ -176,18 +165,7 @@ function RummikubScreen({ session }: { session: GameHost }) {
             title="菜单"
             onClick={() => setPanel('menu')}
           >
-            <svg
-              width="24"
-              height="24"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.8"
-              strokeLinecap="round"
-              aria-hidden="true"
-            >
-              <path d="M4 6h16M4 12h16M4 18h16" />
-            </svg>
+            <MenuIcon />
           </button>
         </div>
       </header>

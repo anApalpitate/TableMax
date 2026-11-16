@@ -1,3 +1,4 @@
+import { SoundIcon } from '@tablemax/web-host';
 import {
   claimAudioEvent,
   subscribeSoundPreference,
@@ -14,7 +15,6 @@ import plant from '../../../assets/games/power-grid/audio/plant-v2.flac';
 import run from '../../../assets/games/power-grid/audio/run-v2.flac';
 import end from '../../../assets/games/power-grid/audio/end-v2.flac';
 import './audio-effects.css';
-import { BoardIcon } from './BoardIcon';
 import {
   classifySaved,
   soundAllowed,
@@ -230,7 +230,7 @@ export function PowerGridSoundControl({
         setEnabled(!enabled);
       }}
     >
-      <BoardIcon name={enabled && !disabled && !blocked ? 'sound' : 'muted'} />
+      <SoundIcon enabled={enabled && !disabled && !blocked} />
     </button>
   );
 }

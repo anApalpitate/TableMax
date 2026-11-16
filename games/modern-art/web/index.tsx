@@ -16,6 +16,7 @@ import '../ui/style.css';
 import '../ui/public/avatars.css';
 import '../ui/player-wide.css';
 import '../ui/viewport.css';
+import { MenuIcon, RulebookIcon } from '@tablemax/web-host';
 import type { GameClient, GameHost as RoomSession } from '@tablemax/web-host';
 import { ScreenLink } from '@tablemax/web-host';
 import { SessionFeedback } from '@tablemax/web-host';
@@ -272,29 +273,20 @@ function ModernArtScreen({ session }: { session: RoomSession }) {
             }
           />
           <button
-            className="secondary game-rulebook-entry"
+            className="secondary game-rulebook-entry ma-toolbar-icon"
+            aria-label="规则"
+            title="规则"
             onClick={() => setPanel('rules')}
           >
-            规则
+            <RulebookIcon />
           </button>
           <button
-            className="secondary ma-menu-entry"
+            className="secondary ma-menu-entry ma-toolbar-icon"
             aria-label="菜单"
             title="菜单"
             onClick={() => setPanel('menu')}
           >
-            <svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true">
-              <g
-                transform="translate(1.5 0)"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1.8"
-                strokeLinecap="round"
-              >
-                <path d="M8 6h12M8 12h12M8 18h12" />
-                <path d="m3 4 2 2-2 2-2-2Zm0 6 2 2-2 2-2-2Zm0 6 2 2-2 2-2-2Z" />
-              </g>
-            </svg>
+            <MenuIcon />
           </button>
         </div>
       </header>

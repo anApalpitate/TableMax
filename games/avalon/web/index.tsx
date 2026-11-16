@@ -2,6 +2,7 @@ import { BotDifficultyHelp } from '../ui/BotDifficultyHelp';
 /* eslint-disable react-refresh/only-export-components -- Lazy game-client exports. */
 import { useEffect, useId, useState, type CSSProperties } from 'react';
 import type { JsonValue } from '@tablemax/game-sdk';
+import { MenuIcon, RulebookIcon } from '@tablemax/web-host';
 import {
   CountdownSettings,
   DecisionCountdown,
@@ -313,19 +314,7 @@ function AvalonScreen({ session }: { session: GameHost }) {
             title="规则"
             onClick={() => setPanel('rules')}
           >
-            <svg
-              width="24"
-              height="24"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.8"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              aria-hidden="true"
-            >
-              <path d="m12 5-3-2H3v16h6l3 2 3-2h6V3h-6Zm0 0v16M6 8h3M6 12h3m6-4h3m-3 4h3" />
-            </svg>
+            <RulebookIcon />
           </button>
           <button
             type="button"
@@ -334,22 +323,7 @@ function AvalonScreen({ session }: { session: GameHost }) {
             title="菜单"
             onClick={() => setPanel('menu')}
           >
-            <svg
-              width="24"
-              height="24"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.8"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              aria-hidden="true"
-            >
-              <path
-                transform="translate(0.5 0)"
-                d="M8 6h13M8 12h13M8 18h13M3 5l1 1-1 1-1-1Zm0 6 1 1-1 1-1-1Zm0 6 1 1-1 1-1-1Z"
-              />
-            </svg>
+            <MenuIcon />
           </button>
         </div>
       </header>

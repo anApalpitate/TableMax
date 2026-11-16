@@ -1,5 +1,6 @@
 /* eslint-disable react-refresh/only-export-components -- Independent expansion client adapter. */
 import { useState } from 'react';
+import { MenuIcon, RulebookIcon } from '@tablemax/web-host';
 import type { GameHost } from '@tablemax/web-host';
 import {
   avatarFor,
@@ -17,7 +18,6 @@ import type { JsonValue } from '@tablemax/game-sdk';
 import type { View } from '../project';
 import { task } from '../research';
 import { WinTrack } from '../../ui/WinTrack';
-import { RulebookIcon, SettingsIcon } from '../../ui/ToolbarIcons';
 import { usePokemonViewport } from '../../ui/usePokemonViewport';
 import { ResearchCard, ResearchPicture } from './ResearchCard';
 import { ResearchReward } from './ResearchReward';
@@ -287,7 +287,7 @@ export function ScreenBody({
             title="菜单"
             onClick={() => setPanel('menu')}
           >
-            <SettingsIcon />
+            <MenuIcon />
           </button>
         </header>
         {!showSupply && (

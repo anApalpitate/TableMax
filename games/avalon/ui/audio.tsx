@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { SoundIcon } from '@tablemax/web-host';
 import {
   claimAudioEvent,
   subscribeSoundPreference,
@@ -197,32 +198,7 @@ export function AvalonSoundControl({
         setEnabled(next);
       }}
     >
-      <svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true">
-        <path
-          d="M4 9v6h4l5 4V5L8 9Z"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="1.8"
-          strokeLinejoin="round"
-        />
-        {audible ? (
-          <path
-            d="M16 8q4 4 0 8m3-11q7 7 0 14"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.8"
-            strokeLinecap="round"
-          />
-        ) : (
-          <path
-            d="m17 9 5 6m0-6-5 6"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.8"
-            strokeLinecap="round"
-          />
-        )}
-      </svg>
+      <SoundIcon enabled={audible} />
     </button>
   );
 }

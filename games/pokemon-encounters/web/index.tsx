@@ -1,4 +1,3 @@
-import { RulebookIcon, SettingsIcon } from '../ui/ToolbarIcons';
 import { WinTrack } from '../ui/WinTrack';
 /* eslint-disable react-refresh/only-export-components -- Lazy adapters expose one platform client object. */
 import { useState } from 'react';
@@ -10,6 +9,7 @@ import { GameTable } from '../ui/table';
 import { Settlement } from '../ui/Settlement';
 import { SoundControl } from '../ui/audio';
 import { SavedMotion, savedChanges, savedMotionDuration } from '../ui/motion';
+import { MenuIcon, RulebookIcon } from '@tablemax/web-host';
 import type { GameClient, GameHost as RoomSession } from '@tablemax/web-host';
 import { useAudioOutput } from '@tablemax/web-host';
 import '../ui/legacy.css';
@@ -161,7 +161,7 @@ function PokemonScreen({ session }: { session: RoomSession }) {
               data-tooltip="菜单"
               onClick={() => setPanel('menu')}
             >
-              <SettingsIcon />
+              <MenuIcon />
             </button>
           </header>
           <SessionFeedback session={session} mode="messages" />

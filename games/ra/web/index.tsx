@@ -1,5 +1,6 @@
 /* eslint-disable react-refresh/only-export-components -- Lazy adapter exports a GameClient. */
 import { useState } from 'react';
+import { RulebookIcon } from '@tablemax/web-host';
 import {
   CountdownSettings,
   OverlayPanel,
@@ -249,20 +250,10 @@ function RaScreen({ session }: { session: GameHost }) {
             title="规则"
             onClick={() => setShowRules(true)}
           >
-            <svg
-              aria-hidden="true"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.8"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <path d="M12 6c-3-2-6-2-9-1v13c3-1 6-1 9 1 3-2 6-2 9-1V5c-3-1-6-1-9 1Zm0 0v13M6 8l3 .7M6 12l3 .7m6-4 3-.7m-3 4 3-.7" />
-            </svg>
+            <RulebookIcon />
           </button>
           {session.role !== 'public' && (
-            <CountdownSettings session={session}>
+            <CountdownSettings session={session} iconOnly>
               {session.canControl && <RoomManagement session={session} />}
             </CountdownSettings>
           )}

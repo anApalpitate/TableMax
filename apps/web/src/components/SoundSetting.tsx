@@ -1,8 +1,12 @@
 import { useId } from 'react';
-import { SettingHelp, useSoundPreference } from '@tablemax/web-host';
+import { SettingHelp, SoundIcon, useSoundPreference } from '@tablemax/web-host';
 import './display-settings.css';
 
-export function SoundSetting() {
+export function SoundSetting({
+  showSpeaker = false,
+}: {
+  showSpeaker?: boolean;
+}) {
   const [enabled, setEnabled] = useSoundPreference();
   const labelId = useId();
   return (
@@ -20,10 +24,14 @@ export function SoundSetting() {
         aria-labelledby={labelId}
         onClick={() => setEnabled(!enabled)}
       >
-        <span
-          className={`settings-switch${enabled ? ' settings-switch--on' : ''}`}
-          aria-hidden="true"
-        />
+        {showSpeaker ? (
+          <SoundIcon enabled={enabled} />
+        ) : (
+          <span
+            className={`settings-switch${enabled ? ' settings-switch--on' : ''}`}
+            aria-hidden="true"
+          />
+        )}
         {enabled ? '已开启' : '已关闭'}
       </button>
     </div>

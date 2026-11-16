@@ -99,21 +99,10 @@
   width: 44px;
   padding: 0;
 }
-.ra-header :is(.ra-home, .ra-rule-control) svg {
+.ra-header :is(.ra-home, .ra-rule-control, .countdown-settings-control) svg {
   flex: none;
   width: 22px;
   height: 22px;
-}
-.ra-header .countdown-settings-control > :is(span, svg) {
-  display: none;
-}
-.ra-header .countdown-settings-control::before {
-  content: '';
-  width: 22px;
-  height: 22px;
-  background: currentColor;
-  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.65' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M10 3h4l.6 2.5 1.6.9 2.5-.7 2 3.5-1.9 1.8v2l1.9 1.8-2 3.5-2.5-.7-1.6.9L14 21h-4l-.6-2.5-1.6-.9-2.5.7-2-3.5L5.2 13v-2L3.3 9.2l2-3.5 2.5.7 1.6-.9L10 3Z'/%3E%3Ccircle cx='12' cy='12' r='3'/%3E%3C/svg%3E")
-    center / contain no-repeat;
 }
 .ra-heading .session-save-anchor,
 .ra-heading .session-save-overlay {

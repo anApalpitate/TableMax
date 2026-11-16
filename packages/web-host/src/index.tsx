@@ -24,6 +24,7 @@ export { OverlayPanel } from './components/OverlayPanel';
 export { PlayModeBadge } from './components/PlayModeBadge';
 export { DecisionCountdown } from './components/DecisionCountdown';
 export { RulesGuide } from './components/RulesGuide';
+export { MenuIcon, RulebookIcon, SoundIcon } from './components/ToolbarIcons';
 export { useDecisionClock } from './components/useDecisionClock';
 export { useViewportSnapshot } from './viewport/useViewportSnapshot';
 export type {
@@ -69,11 +70,16 @@ export function PlayModeControl(_props: { session?: GameHost }) {
 }
 export function CountdownSettings({
   children,
+  iconOnly,
 }: {
   session?: GameHost;
   children?: ReactNode;
+  iconOnly?: boolean;
 }) {
-  return useSlots().countdown(children === undefined ? {} : { children });
+  return useSlots().countdown({
+    ...(children === undefined ? {} : { children }),
+    ...(iconOnly ? { iconOnly } : {}),
+  });
 }
 export function ScreenLink(
   props: AnchorHTMLAttributes<HTMLAnchorElement> & { href: string },

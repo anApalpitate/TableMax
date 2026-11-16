@@ -48,7 +48,7 @@ export function PlatformGame({
         feedback: (props) => <SessionFeedback session={session} {...props} />,
         playMode: () => <PlayModeControl session={session} />,
         countdown: (props) => (
-          <CountdownSettings session={session} {...props} />
+          <CountdownSettings session={session} inGame {...props} />
         ),
       }}
     />

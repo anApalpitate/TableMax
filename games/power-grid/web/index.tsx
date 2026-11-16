@@ -33,6 +33,7 @@ import {
   plantImage,
 } from '../../../assets/games/power-grid/catalog';
 import { getPlant } from '../data/catalog';
+import { MenuIcon, RulebookIcon } from '@tablemax/web-host';
 import type { GameClient, GameHost as RoomSession } from '@tablemax/web-host';
 import { ScreenLink } from '@tablemax/web-host';
 import { SessionFeedback } from '@tablemax/web-host';
@@ -453,19 +454,21 @@ function PowerGridScreen({ session }: { session: RoomSession }) {
             </button>
           )}
           <button
-            className="game-rulebook-entry"
+            className="game-rulebook-entry pg-toolbar-icon"
+            aria-label="规则"
+            title="规则"
             onClick={() => setPanel('rules')}
           >
-            规则
+            <RulebookIcon />
           </button>
           <button
-            className="pg-menu-entry"
+            className="pg-menu-entry pg-toolbar-icon"
             aria-label="菜单"
             title="菜单"
             data-tooltip="菜单"
             onClick={() => setPanel('menu')}
           >
-            <BoardIcon name="menu" />
+            <MenuIcon />
           </button>
         </div>
       </header>

@@ -1,3 +1,4 @@
+import { SoundIcon } from '@tablemax/web-host';
 import {
   claimAudioEvent,
   subscribeSoundPreference,
@@ -273,36 +274,7 @@ export function SoundControl({
       }}
     >
       {iconOnly ? (
-        <svg
-          viewBox="0 0 24 24"
-          width="24"
-          height="24"
-          style={{ display: 'block' }}
-          aria-hidden="true"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="1.8"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        >
-          <path d="M3 9h4l5-4v14l-5-4H3z" />
-          {enabled && !disabled ? (
-            <>
-              <path d="M16 8a6 6 0 0 1 0 8M19 5a10 10 0 0 1 0 14" />
-              {blocked && canPlay && (
-                <circle
-                  cx="20"
-                  cy="3"
-                  r="1.5"
-                  fill="currentColor"
-                  stroke="none"
-                />
-              )}
-            </>
-          ) : (
-            <path d="m16 9 5 6m0-6-5 6" />
-          )}
-        </svg>
+        <SoundIcon enabled={enabled && !disabled} />
       ) : disabled ? (
         '声音：关'
       ) : blocked && enabled && canPlay ? (
