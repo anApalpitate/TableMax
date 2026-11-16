@@ -9,7 +9,7 @@ import {
 } from '@tablemax/web-host';
 import type { Action, RaView } from '../rules';
 import { tileNames, type Tile } from '../rules/data';
-import { StoneRelief, SunDisk, TileFace } from './art';
+import { SunDisk, TableArt, TileFace } from './art';
 import './ra.css';
 
 const causes = {
@@ -32,6 +32,7 @@ const simple = {
   pass: '跳过',
   finishGod: '结束神明行动',
 };
+const actionArt = { draw: 'tile-bag', invokeRa: 'ra-statue' } as const;
 
 function tileGroups(held: Tile[]) {
   const groups = new Map<string, { tile: Tile; count: number }>();
@@ -68,7 +69,7 @@ function Controls({ session, game }: { session: GameHost; game: RaView }) {
   return (
     <section aria-label="本席操作" className="ra-actions">
       {game.phase === 'auction' && !actions.some((a) => a.type === 'pass') && (
-        <strong>须选择一枚太阳圆盘出价</strong>
+        <strong>必须出价</strong>
       )}
       {actions.map((action) => {
         if (action.type === 'discard' || action.type === 'spendGod')
@@ -78,7 +79,13 @@ function Controls({ session, game }: { session: GameHost; game: RaView }) {
             type="button"
             key={JSON.stringify(action)}
             disabled={session.locked}
-            className={action.type === 'bid' ? 'ra-bid' : undefined}
+            className={
+              action.type === 'bid'
+                ? 'ra-bid'
+                : action.type === 'draw' || action.type === 'invokeRa'
+                  ? 'ra-component-action'
+                  : undefined
+            }
             aria-label={
               action.type === 'bid' ? `出价 ${action.disk}` : undefined
             }
@@ -87,39 +94,51 @@ function Controls({ session, game }: { session: GameHost; game: RaView }) {
             {action.type === 'bid' ? (
               <SunDisk value={action.disk} />
             ) : (
-              simple[action.type]
+              <>
+                {(action.type === 'draw' || action.type === 'invokeRa') && (
+                  <TableArt
+                    piece={actionArt[action.type]}
+                    className="ra-action-art"
+                  />
+                )}
+                {simple[action.type]}
+              </>
             )}
           </button>
         );
       })}
       {slotActions.length > 0 && (
         <fieldset>
-          <legend>用一枚神明换拍品</legend>
-          {slotActions
-            .filter(
-              (action, index) =>
-                slotActions.findIndex((other) => other.slot === action.slot) ===
-                index,
-            )
-            .map((action) => (
-              <button
-                type="button"
-                key={action.slot}
-                aria-pressed={
-                  pending?.type === 'spendGod' && pending.slot === action.slot
-                }
-                disabled={session.locked}
-                onClick={() => setPending(action)}
-              >
-                第 {action.slot + 1} 格 {tileNames[game.lot[action.slot]!.face]}
-              </button>
-            ))}
+          <legend>神明换取</legend>
+          <div className="ra-options">
+            {slotActions
+              .filter(
+                (action, index) =>
+                  slotActions.findIndex(
+                    (other) => other.slot === action.slot,
+                  ) === index,
+              )
+              .map((action) => (
+                <button
+                  type="button"
+                  key={action.slot}
+                  className="ra-choice"
+                  aria-label={`换取第 ${action.slot + 1} 格 ${tileNames[game.lot[action.slot]!.face]}`}
+                  aria-pressed={
+                    pending?.type === 'spendGod' && pending.slot === action.slot
+                  }
+                  disabled={session.locked}
+                  onClick={() => setPending(action)}
+                >
+                  <TileFace tile={game.lot[action.slot]!} decorative />
+                </button>
+              ))}
+          </div>
         </fieldset>
       )}
       {discards.length > 0 && (
         <fieldset>
-          <legend>选择要弃置的两枚板块</legend>
-          <p>已选 {selection.length}／2</p>
+          <legend>弃置 {selection.length}／2</legend>
           <div className="ra-options">
             {held
               .filter((tile) =>
@@ -150,7 +169,7 @@ function Controls({ session, game }: { session: GameHost; game: RaView }) {
                       )
                     }
                   >
-                    <TileFace tile={tile} />
+                    <TileFace tile={tile} decorative />
                   </button>
                 );
               })}
@@ -170,15 +189,22 @@ function Controls({ session, game }: { session: GameHost; game: RaView }) {
         <button
           type="button"
           className="ra-confirm"
+          aria-label={
+            selected.type === 'spendGod'
+              ? `确认换取第 ${selected.slot + 1} 格 ${tileNames[game.lot[selected.slot]!.face]}`
+              : selected.type === 'discard'
+                ? `确认弃置${selected.tileIds.map(label).join('、')}`
+                : '确认'
+          }
           disabled={session.locked}
           onClick={() => {
             send(selected);
           }}
         >
           {selected.type === 'spendGod'
-            ? `确认换取第 ${selected.slot + 1} 格 ${tileNames[game.lot[selected.slot]!.face]}`
+            ? '确认换取'
             : selected.type === 'discard'
-              ? `确认弃置${selected.tileIds.map(label).join('、')}`
+              ? '确认弃置'
               : '确认'}
         </button>
       )}
@@ -203,6 +229,7 @@ function RaScreen({ session }: { session: GameHost }) {
         <details className="ra-help">
           <summary>规则</summary>
           <div>
+            <TableArt piece="rulebook-illustration" className="ra-rules-art" />
             <p>
               轮到你时，抽一枚板块、呼唤拉，或使用神明取走拍卖行的一枚非神明板块。
             </p>
@@ -222,9 +249,16 @@ function RaScreen({ session }: { session: GameHost }) {
       {game && (
         <>
           <section className="ra-board" aria-label="公共牌桌">
-            {session.role === 'host' && <StoneRelief />}
             <div className="ra-status">
-              <h2>第 {game.epoch} 时代</h2>
+              <h2>
+                {game.epoch < 3 && (
+                  <TableArt
+                    piece={game.epoch === 1 ? 'epoch-first' : 'epoch-second'}
+                    className="ra-epoch-art"
+                  />
+                )}
+                第 {game.epoch} 时代
+              </h2>
               <strong>
                 {game.winner
                   ? `${name(game.winner)}获胜`
@@ -233,7 +267,8 @@ function RaScreen({ session }: { session: GameHost }) {
                     : '对局结束'}
               </strong>
               <span>
-                中央太阳盘 <SunDisk value={game.center} />
+                <span className="ra-center-label">中央盘</span>{' '}
+                <SunDisk value={game.center} />
               </span>
             </div>
             <div className="ra-track">
@@ -249,7 +284,11 @@ function RaScreen({ session }: { session: GameHost }) {
                 aria-valuemax={game.limit}
               >
                 {Array.from({ length: game.limit }, (_, index) => (
-                  <span key={index} data-filled={index < game.raDrawn} />
+                  <span key={index} data-filled={index < game.raDrawn}>
+                    {index + 1 === game.raDrawn && (
+                      <TableArt piece="sun-boat" className="ra-track-boat" />
+                    )}
+                  </span>
                 ))}
               </div>
             </div>
@@ -258,16 +297,17 @@ function RaScreen({ session }: { session: GameHost }) {
                 <li
                   key={index}
                   data-occupied={tile !== null}
-                  aria-label={`第 ${index + 1} 格`}
+                  aria-label={`第 ${index + 1} 格 ${tile ? tileNames[tile.face] : '空'}`}
                 >
-                  <span className="ra-slot-number">{index + 1}</span>
-                  {tile ? <TileFace tile={tile} /> : <span>空</span>}
+                  {tile && <TileFace tile={tile} decorative />}
                 </li>
               ))}
             </ol>
+            <TableArt piece="auction-board" className="ra-board-ornament" />
             {game.auction && (
               <div className="ra-result">
                 <strong>
+                  <TableArt piece="ra-statue" className="ra-auction-statue" />
                   {name(game.auction.caller)} · {causes[game.auction.cause]}
                 </strong>
                 <span>
@@ -283,9 +323,9 @@ function RaScreen({ session }: { session: GameHost }) {
               </div>
             )}
             {game.pending && (
-              <strong role="status">
-                {name(game.pending.owner)}处理
-                {tileNames[game.pending.tile.face]}
+              <strong className="ra-pending" role="status">
+                <TileFace tile={game.pending.tile} />
+                {name(game.pending.owner)}处理灾难
               </strong>
             )}
             {game.phase === 'ended' && game.lot.some(Boolean) && (
@@ -316,6 +356,7 @@ function RaScreen({ session }: { session: GameHost }) {
                 className="ra-seat"
                 data-active={player.seat === game.actor}
               >
+                <TableArt piece="player-board" className="ra-player-ornament" />
                 <h2>
                   {name(player.seat)}{' '}
                   {player.private && <small>{player.private.score} 分</small>}

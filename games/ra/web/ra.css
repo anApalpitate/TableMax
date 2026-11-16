@@ -148,21 +148,54 @@
   height: 4px;
   background: var(--ra-frieze);
 }
-.ra-relief {
-  position: absolute;
-  z-index: -1;
-  inset: 6px auto auto 19%;
-  width: 56%;
-  height: 136px;
-  object-fit: cover;
-  object-position: center 56%;
-  mask-image: radial-gradient(ellipse at center, #000 11%, transparent 70%);
-  opacity: 0.47;
-  mix-blend-mode: soft-light;
-  pointer-events: none;
-}
 .ra-status {
   justify-content: space-between;
+}
+.ra-status h2,
+.ra-result strong,
+.ra-pending,
+.ra-actions .ra-component-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+.ra-epoch-art {
+  width: 32px;
+  height: 36px;
+  object-fit: contain;
+}
+.ra-auction-statue,
+.ra-action-art {
+  width: 28px;
+  height: 31px;
+  object-fit: contain;
+}
+.ra-rules-art {
+  width: 100%;
+  max-height: 100px;
+  object-fit: contain;
+  margin-bottom: 8px;
+}
+.ra-board-ornament {
+  display: block;
+  width: min(85%, 820px);
+  height: clamp(32px, 5vw, 59px);
+  object-fit: contain;
+  margin: 6px auto 0;
+  pointer-events: none;
+}
+.ra-player-ornament {
+  position: absolute;
+  right: 11px;
+  top: 7px;
+  width: 63px;
+  height: 49px;
+  object-fit: contain;
+  opacity: 0.55;
+  pointer-events: none;
+}
+.ra-seat h2 {
+  padding-inline-end: 59px;
 }
 .ra-status strong {
   font-size: 19px;
@@ -182,12 +215,22 @@
   min-width: 120px;
 }
 .ra-track-slots span {
+  position: relative;
   flex: 1;
   height: 16px;
   border: 1px solid #87948c;
   border-radius: 2px;
   background: #17252d;
   box-shadow: inset 0 2px 5px #050707;
+}
+.ra-track-boat {
+  position: absolute;
+  inset: 50% auto auto 50%;
+  transform: translate(-50%, -50%);
+  width: min(56px, 108%);
+  height: 27px;
+  object-fit: contain;
+  filter: drop-shadow(0 1px 1px #18120b);
 }
 .ra-track-slots span[data-filled='true'] {
   background: linear-gradient(105deg, #be894d, #f4d089, #a9783b);
@@ -203,13 +246,14 @@
   gap: 8px;
 }
 .ra-lot {
-  grid-template-columns: repeat(8, minmax(0, 1fr));
+  grid-template-columns: repeat(8, minmax(0, 110px));
+  justify-content: center;
   padding: 0;
   list-style: none;
 }
 .ra-lot li {
   position: relative;
-  min-height: 94px;
+  aspect-ratio: 0.87;
   display: grid;
   place-items: center;
   color: #f0dcb6;
@@ -219,85 +263,36 @@
   box-shadow: inset 0 3px 8px #0e191f;
 }
 .ra-lot li[data-occupied='true'] {
-  place-items: stretch;
-  color: #4e3924;
-}
-.ra-slot-number {
-  position: absolute;
-  top: 2px;
-  left: 5px;
-  font-family: Georgia, serif;
-  font-weight: 700;
-  z-index: 1;
+  background: linear-gradient(120deg, #201d1b, #3b3328);
+  box-shadow: inset 0 3px 10px #111719;
 }
 .ra-result {
   padding-top: 8px;
 }
-.ra-board > [role='status'] {
-  display: block;
+.ra-board > .ra-pending {
   padding-top: 7px;
   color: #ffe1ab;
 }
+.ra-board > .ra-pending .ra-tile {
+  width: 27px;
+  height: 31px;
+}
 
 .ra-tile {
-  --ra-pigment: #e3c78e;
-  --ra-frame: #a18147;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  flex-direction: column;
-  text-align: center;
-  gap: 3px;
-  padding: 6px 4px;
-  border-radius: 3px;
-  color: var(--ra-ink);
-  font-weight: 700;
-  line-height: 1.23;
-  background:
-    radial-gradient(ellipse at 42% 11%, #fff0ca, transparent 69%),
-    linear-gradient(145deg, #f1e0b4, var(--ra-pigment));
-  box-shadow:
-    inset 0 0 0 1px #f6e0ae,
-    inset 0 0 0 3px var(--ra-frame),
-    inset 0 -4px #80562340;
-}
-.ra-tile.ra-disaster {
-  --ra-pigment: #d6a18b;
-  --ra-frame: #a05848;
-}
-.ra-tile.ra-nile,
-.ra-tile.ra-flood {
-  --ra-pigment: #abc8b9;
-  --ra-frame: #537472;
-}
-.ra-tile.ra-civilization {
-  --ra-pigment: #c4c5dc;
-  --ra-frame: #73758d;
-}
-.ra-tile.ra-monument {
-  --ra-pigment: #cfba95;
-  --ra-frame: #8f7353;
-}
-.ra-pictogram {
   display: block;
-  width: min(90%, 64px);
-  height: 48px;
   object-fit: contain;
-  border-radius: 3px;
-  mix-blend-mode: multiply;
+  filter: drop-shadow(0 3px 2px #120e0a8a);
 }
-.ra-ink {
-  display: grid;
-  place-items: center;
-  color: #734735;
-  font-size: 30px;
-  font-family:
-    'Segoe UI Historic', 'Noto Sans Egyptian Hieroglyphs', 'Segoe UI Symbol',
-    serif;
+.ra-lot .ra-tile {
+  width: 97%;
+  height: 96%;
+  position: absolute;
 }
-.ra-tile-name {
-  overflow-wrap: anywhere;
+.ra-holdings .ra-tile {
+  width: 48px;
+  height: 55px;
 }
+
 .ra-sun {
   display: inline-grid;
   vertical-align: middle;
@@ -330,16 +325,6 @@
   display: inline-flex;
   align-items: center;
   gap: 5px;
-}
-.ra-holdings .ra-tile {
-  min-width: 62px;
-}
-.ra-holdings .ra-pictogram {
-  height: 30px;
-  width: 38px;
-}
-.ra-holdings .ra-ink {
-  font-size: 23px;
 }
 .ra-table small {
   font-size: 16px;
@@ -441,7 +426,10 @@
 }
 .ra-choice .ra-tile {
   width: 100%;
-  min-height: 67px;
+  height: clamp(52px, 16vw, 81px);
+}
+.ra-choice:disabled .ra-tile {
+  filter: grayscale(0.3);
 }
 .ra-choice[aria-pressed='true'] {
   outline: 2px solid #a46f3b;
@@ -464,23 +452,19 @@
     padding: 10px;
   }
   .ra-lot {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-columns: repeat(4, minmax(0, 74px));
     gap: 5px;
   }
   .ra-board {
     padding: 11px;
   }
-  .ra-lot li {
-    min-height: 72px;
+  .ra-board-ornament {
+    height: 25px;
+    margin-top: 4px;
   }
-  .ra-lot .ra-pictogram {
-    height: 31px;
-  }
-  .ra-lot .ra-ink {
-    font-size: 23px;
-  }
-  .ra-lot .ra-tile {
-    font-size: 16px;
+  .ra-epoch-art {
+    width: 23px;
+    height: 27px;
   }
   .ra-status .ra-sun {
     width: 40px;

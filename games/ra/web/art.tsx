@@ -3,57 +3,47 @@ import { tileNames, type Tile } from '../rules/data';
 
 const raArt = (file: string) => resourceUrl(`ra/${file}`, import.meta.url);
 
-export function StoneRelief() {
-  return <img className="ra-relief" src={raArt('relief.webp')} alt="" />;
+export function TileFace({
+  tile,
+  decorative = false,
+}: {
+  tile: Tile;
+  decorative?: boolean;
+}) {
+  return (
+    <img
+      className={`ra-tile ra-${tile.kind}`}
+      src={raArt(`tiles/${tile.face}.webp`)}
+      alt={decorative ? '' : tileNames[tile.face]}
+      draggable={false}
+    />
+  );
 }
 
-const collected: Record<string, string> = {
-  sphinx: 'pharaoh.webp',
-  pyramid: 'pyramid.webp',
-  nile: 'nile.webp',
-  writing: 'writing.webp',
-  agriculture: 'writing.webp',
-  god: 'god.webp',
-  religion: 'religion.webp',
-  obelisk: 'obelisk.webp',
-};
+type TablePiece =
+  | 'auction-board'
+  | 'player-board'
+  | 'sun-boat'
+  | 'ra-statue'
+  | 'epoch-first'
+  | 'epoch-second'
+  | 'tile-bag'
+  | 'rulebook-illustration';
 
-const pictogram: Record<string, string> = {
-  ra: '☉',
-  gold: '◆',
-  pharaoh: '𓀭',
-  flood: '≋',
-  art: '𓏞',
-  astronomy: '✦',
-  statue: '𓀠',
-  mortuary: '𓉐',
-  shrine: '𓊹',
-  temple: '𓉳',
-  'step-pyramid': '𓉴',
-  war: '⚔︎',
-  earthquake: 'ϟ',
-  funeral: '𓊪',
-  drought: '☀',
-};
-
-export function TileFace({ tile }: { tile: Tile }) {
-  const image = collected[tile.face];
+export function TableArt({
+  piece,
+  className,
+}: {
+  piece: TablePiece;
+  className: string;
+}) {
   return (
-    <span className={`ra-tile ra-${tile.kind}`}>
-      {image ? (
-        <img
-          className="ra-pictogram"
-          src={raArt(image)}
-          alt=""
-          draggable={false}
-        />
-      ) : (
-        <span aria-hidden="true" className="ra-pictogram ra-ink">
-          {pictogram[tile.face]}
-        </span>
-      )}
-      <span className="ra-tile-name">{tileNames[tile.face]}</span>
-    </span>
+    <img
+      className={className}
+      src={raArt(`table/${piece}.webp`)}
+      alt=""
+      draggable={false}
+    />
   );
 }
 
