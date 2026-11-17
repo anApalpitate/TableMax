@@ -64,7 +64,12 @@ export type State = {
   removed: string[];
   auction: Auction | null;
   lastAuction:
-    (Auction & { winner: string | null; received: number | null }) | null;
+    | (Auction & {
+        winner: string | null;
+        received: number | null;
+        tiles?: string[];
+      })
+    | null;
   disaster: {
     owner: string;
     queue: string[];
@@ -172,6 +177,20 @@ export function validateState(input: unknown, seats: readonly string[]): State {
       allDisks.sort((a, b) => a - b).every((disk, index) => disk === index + 1),
   );
   invariant((s.phase === 'auction') === (s.auction !== null));
+  const recordedTiles = s.lastAuction?.tiles;
+  if (recordedTiles !== undefined) {
+    invariant(
+      Array.isArray(recordedTiles) &&
+        recordedTiles.length <= auctionSlots &&
+        new Set(recordedTiles).size === recordedTiles.length &&
+        recordedTiles.every(
+          (id) =>
+            typeof id === 'string' &&
+            Object.hasOwn(tilesIndex, id) &&
+            tile(id).kind !== 'ra',
+        ),
+    );
+  }
   invariant((s.phase === 'disaster') === (s.disaster !== null));
   if (s.auction) {
     const { caller, cause, bids } = s.auction;

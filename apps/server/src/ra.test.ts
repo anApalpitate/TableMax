@@ -108,6 +108,7 @@ describe('Ra retail third printing', () => {
     expect(s.actor).not.toBe(caller);
     for (let i = 0; i < 3; i++) s = apply(s, { type: 'pass' });
     expect(s.lot[0]).toBe('gold-1');
+    expect(s.lastAuction?.tiles).toEqual(['gold-1']);
     expect(s.center).toBe(1);
     const next = original.seats[(original.seats.indexOf(caller) + 1) % 3];
     expect(s.actor).toBe(next);
@@ -123,6 +124,7 @@ describe('Ra retail third printing', () => {
     for (let i = 0; i < 3; i++) s = apply(s, { type: 'pass' });
     expect(s.lot.every((id) => id === null)).toBe(true);
     expect(s.removed).toHaveLength(8);
+    expect(s.lastAuction?.tiles).toEqual(s.removed);
     s = apply(s, { type: 'invokeRa' });
     s = apply(s, { type: 'pass' });
     s = apply(s, { type: 'pass' });
@@ -132,6 +134,27 @@ describe('Ra retail third printing', () => {
     s = apply(s, { type: 'bid', disk });
     expect(s.center).toBe(disk);
     expect(s.players[winner]!.down).toEqual([1]);
+  });
+
+  it('keeps public recap tiles in slot order and restores older records without them', () => {
+    const base = rules.initialize(context(3));
+    let state = arrange(base, [null, 'gold-1', null, 'pharaoh-1'], {});
+    state = apply(state, { type: 'invokeRa' });
+    state = apply(state, { type: 'pass' });
+    state = apply(state, { type: 'pass' });
+    const disk = state.players[state.actor!]!.up[0]!;
+    state = apply(state, { type: 'bid', disk });
+    expect(state.lastAuction?.tiles).toEqual(['gold-1', 'pharaoh-1']);
+    expect(rules.project(state, { role: 'public' }).lastAuction).toEqual(
+      state.lastAuction,
+    );
+    expect(rules.validateState(state, state.seats)).toBe(state);
+    const previous = structuredClone(state);
+    delete previous.lastAuction!.tiles;
+    expect(rules.validateState(previous, previous.seats)).toBe(previous);
+    expect(rules.project(previous, { role: 'public' }).lastAuction).toEqual(
+      previous.lastAuction,
+    );
   });
 
   it('draws from an empty lot across difficulties unless the upgrade is uncontested', async () => {

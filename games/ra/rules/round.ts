@@ -206,15 +206,16 @@ function advanceAuction(s: State, tell: Tell) {
   }
   const bid = auction.bids.filter((entry) => entry.disk !== null).at(-1);
   const resume = following(s, auction.caller);
+  const lot = s.lot.filter((id) => id !== null);
   s.auction = null;
   s.lastAuction = {
     ...auction,
     winner: bid?.seat ?? null,
     received: bid ? s.center : null,
+    tiles: lot,
   };
   if (bid && bid.disk !== null) {
     const player = s.players[bid.seat]!;
-    const lot = s.lot.filter((id) => id !== null);
     s.scenes?.push({
       kind: 'won',
       seat: bid.seat,

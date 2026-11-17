@@ -21,7 +21,9 @@ import type { SettlementTable } from './settlement';
 import { RaEffects } from './effects';
 import { liveRaFeedback } from './feedback';
 import { PlayerBoard, PlayerSummary, AuctionBadge } from './player-board';
+import { AuctionRecap, AuctionRecordPanel } from './auction-recap';
 import './ra.css';
+import './table-details.css';
 
 const causes = {
   drawRa: '抽到拉',
@@ -241,8 +243,7 @@ function RaScreen({ session }: { session: GameHost }) {
     ? `${feedback.instanceId}:${feedback.branch}:${feedback.revision}`
     : '';
   const [topPanel, setTopPanel] = useState<'rules'>();
-  const [showRecord, setShowRecord] = useState(false);
-  const [showOpponents, setShowOpponents] = useState(false);
+  const [detailPanel, setDetailPanel] = useState<'record' | 'opponents'>();
   const [showScores, setShowScores] = useState<string>();
   const [exchange, setExchange] = useState<{
     key: string;
@@ -293,11 +294,6 @@ function RaScreen({ session }: { session: GameHost }) {
   const ranks = game?.phase === 'ended' ? finalRanks(game) : [];
   const scoreDetails = ranks.find((result) => result.seat === showScores);
   const lastAuction = game?.lastAuction;
-  const record = lastAuction?.winner
-    ? `${name(lastAuction.winner)}赢标 · 换得圆盘 ${lastAuction.received}`
-    : lastAuction?.cause === 'invokeFull'
-      ? '无人出价 · 拍品清空'
-      : '无人出价 · 拍品保留';
   const seatCards = (settlementTable?: SettlementTable) => (
     <section
       className="ra-seats ra-public-seats"
@@ -567,6 +563,31 @@ function RaScreen({ session }: { session: GameHost }) {
               epoch={game.epoch}
               projection={projection}
               primary
+              footer={
+                <nav className="ra-player-board-nav" aria-label="牌桌明细">
+                  <button
+                    type="button"
+                    aria-haspopup="dialog"
+                    onClick={() => setDetailPanel('opponents')}
+                  >
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                      <circle cx="9" cy="8" r="3" />
+                      <path d="M3 19v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2M16 5a3 3 0 0 1 0 6m2 2a4 4 0 0 1 3 4v2" />
+                    </svg>
+                    其他玩家
+                  </button>
+                  <button
+                    type="button"
+                    aria-haspopup="dialog"
+                    onClick={() => setDetailPanel('record')}
+                  >
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                      <path d="M6 4h12v16H6zM9 8h6m-6 4h6m-6 4h4" />
+                    </svg>
+                    拍卖记录
+                  </button>
+                </nav>
+              }
             />
           ) : session.role === 'host' ? (
             <RaPresentation
@@ -586,75 +607,41 @@ function RaScreen({ session }: { session: GameHost }) {
           ) : (
             seatCards()
           )}
-          {(ownBoard || game.lastAuction) && (
-            <div className="ra-auxiliary">
-              {ownBoard && (
-                <button
-                  type="button"
-                  className="ra-aux-button"
-                  aria-haspopup="dialog"
-                  onClick={() => setShowOpponents(true)}
-                >
-                  <svg viewBox="0 0 24 24" aria-hidden="true">
-                    <circle cx="9" cy="8" r="3" />
-                    <path d="M3 19v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2M16 5a3 3 0 0 1 0 6m2 2a4 4 0 0 1 3 4v2" />
-                  </svg>
-                  其他玩家
-                </button>
-              )}
-              {ownBoard && showOpponents && (
-                <OverlayPanel
-                  title="其他玩家"
-                  close={() => setShowOpponents(false)}
-                >
-                  <div className="ra-seats">
-                    {game.players
-                      .filter((player) => player.seat !== ownBoard.seat)
-                      .map((player) => (
-                        <PlayerSummary
-                          key={player.seat}
-                          player={player}
-                          name={name(player.seat)}
-                          active={player.seat === game.actor}
-                        />
-                      ))}
-                  </div>
-                </OverlayPanel>
-              )}
-              {lastAuction && (
-                <button
-                  className="ra-last-auction"
-                  type="button"
-                  aria-haspopup="dialog"
-                  onClick={() => setShowRecord(true)}
-                >
-                  {ownBoard ? (
-                    <>
-                      <svg viewBox="0 0 24 24" aria-hidden="true">
-                        <path d="M6 4h12v16H6zM9 8h6m-6 4h6m-6 4h4" />
-                      </svg>
-                      拍卖记录
-                    </>
-                  ) : (
-                    <>
-                      上一场拍卖 <span>{record}</span>
-                    </>
-                  )}
-                </button>
-              )}
-            </div>
+          {!ownBoard && lastAuction && (
+            <AuctionRecap
+              record={lastAuction}
+              name={name}
+              open={() => setDetailPanel('record')}
+            />
           )}
-          {showRecord && lastAuction && (
-            <OverlayPanel title="上一场拍卖" close={() => setShowRecord(false)}>
-              <p>{record}</p>
-              <ul className="ra-record-list">
-                {lastAuction.bids.map((bid) => (
-                  <li key={bid.seat}>
-                    {name(bid.seat)} <b>{bid.disk ?? '跳过'}</b>
-                  </li>
-                ))}
-              </ul>
+          {ownBoard && detailPanel === 'opponents' && (
+            <OverlayPanel
+              title="其他玩家"
+              className="ra-detail-panel ra-detail-panel--player"
+              close={() => setDetailPanel(undefined)}
+            >
+              <div className="ra-opponent-list">
+                {game.players
+                  .filter((player) => player.seat !== ownBoard.seat)
+                  .map((player) => (
+                    <PlayerSummary
+                      key={player.seat}
+                      player={player}
+                      name={name(player.seat)}
+                      active={player.seat === game.actor}
+                      auction={auctionStatus(player.seat)}
+                    />
+                  ))}
+              </div>
             </OverlayPanel>
+          )}
+          {detailPanel === 'record' && (
+            <AuctionRecordPanel
+              record={lastAuction ?? null}
+              name={name}
+              player={Boolean(ownBoard)}
+              close={() => setDetailPanel(undefined)}
+            />
           )}
           {scoreDetails && (
             <OverlayPanel

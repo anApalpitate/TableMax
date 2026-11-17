@@ -265,7 +265,7 @@ function groupTiles(tiles: Tile[]) {
 
 type TileMotion = ReturnType<ReturnType<typeof seatSettlement>['motion']>;
 
-function PreviewTile({
+export function PreviewTile({
   tile,
   count,
   motion,
@@ -279,6 +279,7 @@ function PreviewTile({
     top: number;
     width: number;
     height: number;
+    container: HTMLElement;
   }>();
   const show = (target: HTMLButtonElement) => {
     const rect = target.getBoundingClientRect();
@@ -291,6 +292,7 @@ function PreviewTile({
     setPreview({
       width,
       height,
+      container: target.closest('dialog') ?? document.body,
       left: Math.min(
         window.innerWidth - width - 8,
         Math.max(8, rect.left + (rect.width - width) / 2),
@@ -345,10 +347,19 @@ function PreviewTile({
       </button>
       {preview &&
         createPortal(
-          <div className="ra-tile-popover" style={preview} aria-hidden="true">
+          <div
+            className="ra-tile-popover"
+            style={{
+              left: preview.left,
+              top: preview.top,
+              width: preview.width,
+              height: preview.height,
+            }}
+            aria-hidden="true"
+          >
             <TileFace tile={tile} decorative />
           </div>,
-          document.body,
+          preview.container,
         )}
     </>
   );
@@ -867,7 +878,7 @@ function HoldingShelf({
           <span>已有石板</span>
           {!ended && (
             <div className="ra-forecast-label">
-              本时代预期收益
+              <span>本时代预期</span>
               <strong
                 className="ra-forecast-total"
                 data-points={projection?.delta}
@@ -890,7 +901,7 @@ function HoldingShelf({
             <SunDisk /> 圆盘另计
           </RuleButton>
         )}
-        {held.length === 0 && <p className="ra-forecast-hint">尚无石板</p>}
+        {held.length === 0 && <p className="ra-holdings-empty">尚无石板</p>}
         <div className="ra-holding-rows">
           {categories.map((category) => {
             const entries = groups.filter(({ tile }) =>
@@ -988,6 +999,7 @@ export function PlayerBoard({
   ended = false,
   projection,
   epoch,
+  footer,
 }: {
   player: Player;
   name: string;
@@ -996,6 +1008,7 @@ export function PlayerBoard({
   ended?: boolean;
   projection: Projection | null;
   epoch: number;
+  footer?: React.ReactNode;
 }) {
   const spent =
     player.private?.spentDisks ??
@@ -1010,13 +1023,17 @@ export function PlayerBoard({
     >
       <header className="ra-personal-heading">
         <h2>{name}</h2>
+        <div
+          className="ra-personal-disc-row"
+          role="group"
+          aria-label="太阳圆盘"
+        >
+          <div className="ra-personal-discs">
+            <Disks available={player.disks} spent={spent} />
+          </div>
+        </div>
         {player.private && <strong>{player.private.score} 分</strong>}
       </header>
-      <div className="ra-personal-disc-row" role="group" aria-label="太阳圆盘">
-        <div className="ra-personal-discs">
-          <Disks available={player.disks} spent={spent} />
-        </div>
-      </div>
       <HoldingShelf
         held={player.held}
         projection={projection}
@@ -1026,6 +1043,7 @@ export function PlayerBoard({
       {player.private && player.private.scores.length > 0 && (
         <ScoreHistory scores={player.private.scores} ended={ended} />
       )}
+      {footer}
     </article>
   );
 }
