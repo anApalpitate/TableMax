@@ -240,7 +240,7 @@ function RaScreen({ session }: { session: GameHost }) {
   const pushKey = feedback?.events.some((event) => event.kind === 'ra-invoke')
     ? `${feedback.instanceId}:${feedback.branch}:${feedback.revision}`
     : '';
-  const [showRules, setShowRules] = useState(false);
+  const [topPanel, setTopPanel] = useState<'rules' | 'management'>();
   const [showRecord, setShowRecord] = useState(false);
   const [showOpponents, setShowOpponents] = useState(false);
   const [showScores, setShowScores] = useState<string>();
@@ -365,7 +365,7 @@ function RaScreen({ session }: { session: GameHost }) {
             aria-label="规则"
             aria-haspopup="dialog"
             title="规则"
-            onClick={() => setShowRules(true)}
+            onClick={() => setTopPanel('rules')}
           >
             <RulebookIcon />
           </button>
@@ -405,15 +405,30 @@ function RaScreen({ session }: { session: GameHost }) {
               </div>
             </Settings>
           )}
-          {session.canControl && <RoomManagement session={session} />}
+          {session.canControl && (
+            <button
+              type="button"
+              className="secondary ra-management-control"
+              aria-label="牌桌管理"
+              aria-haspopup="dialog"
+              onClick={() => setTopPanel('management')}
+            >
+              <span className="ra-management-prefix">牌桌</span>管理
+            </button>
+          )}
         </div>
         <SessionFeedback session={session} mode="toolbar-save" />
       </header>
-      {showRules && (
+      {topPanel === 'management' && session.canControl && (
+        <OverlayPanel title="牌桌管理" close={() => setTopPanel(undefined)}>
+          <RoomManagement session={session} />
+        </OverlayPanel>
+      )}
+      {topPanel === 'rules' && (
         <OverlayPanel
           title="太阳神规则"
           className="ra-rules-panel"
-          close={() => setShowRules(false)}
+          close={() => setTopPanel(undefined)}
         >
           <TableArt piece="rulebook-illustration" className="ra-rules-art" />
           <p>

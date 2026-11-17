@@ -82,7 +82,13 @@
 .ra-header h1 .ra-sun {
   width: 30px;
 }
-.ra-header :is(.ra-home, .ra-rule-control, .countdown-settings-control) {
+.ra-header
+  :is(
+    .ra-home,
+    .ra-rule-control,
+    .ra-management-control,
+    .countdown-settings-control
+  ) {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -96,6 +102,10 @@
   color: var(--ra-text);
   background: var(--ra-surface);
   cursor: pointer;
+}
+.ra-header .ra-management-control {
+  gap: 0;
+  white-space: nowrap;
 }
 .ra-header :is(.ra-rule-control, .countdown-settings-control) {
   width: 44px;
@@ -526,6 +536,12 @@
   .ra-table[data-role='player'] .ra-home span {
     display: none;
   }
+  .ra-table[data-role='player'] .ra-management-prefix {
+    display: none;
+  }
+  .ra-table[data-role='player'] .ra-header .ra-management-control {
+    padding-inline: 8px;
+  }
   .ra-table[data-role='player'] .ra-header h1 {
     font-size: 24px;
     gap: 4px;
@@ -570,6 +586,14 @@
   .ra-table[data-role='player'] .ra-brand-mark {
     display: none;
   }
+  .ra-table[data-role='player'] .ra-header:has(.ra-management-control) {
+    flex-wrap: wrap;
+  }
+  .ra-table[data-role='player']
+    .ra-toolbar-controls:has(.ra-management-control) {
+    flex-basis: 100%;
+    justify-content: flex-end;
+  }
 }
 .ra-board-note {
   display: flex;
@@ -588,6 +612,9 @@
 }
 .ra-feedback-slot {
   min-block-size: 28px;
+}
+.ra-feedback-slot:empty {
+  display: none;
 }
 .ra-public-seats {
   grid-template-columns: repeat(var(--ra-seat-count, 5), minmax(0, 1fr));
@@ -863,9 +890,6 @@
   }
   .ra-table[data-role='player'] .ra-feedback-slot {
     min-block-size: 0;
-  }
-  .ra-table[data-role='player'] .ra-feedback-slot:empty {
-    display: none;
   }
   .ra-table[data-role='player'] .ra-auxiliary {
     grid-template-columns: repeat(2, minmax(0, 1fr));
