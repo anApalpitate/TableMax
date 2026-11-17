@@ -1,6 +1,6 @@
 .dialog-surface .seat-manager__row.seat-settings-row {
   display: grid;
-  grid-template-columns: 56px minmax(0, 1fr) 44px;
+  grid-template-columns: 56px minmax(0, 1fr) auto;
   align-items: center;
   gap: 12px;
   padding: 14px;
@@ -77,83 +77,74 @@
 .seat-settings-status[data-online='true']::before {
   background: #38845f;
 }
-.dialog-surface .seat-settings-move,
-.dialog-surface .seat-settings-rename {
-  color: #155d54;
-  background: #dbeee5;
-  border: 1px solid #bdd8ce;
-}
-.dialog-surface .seat-manager__row.seat-settings-row > .seat-settings-menu {
-  grid-area: 1 / 3;
+
+.seat-settings-owner {
+  position: absolute;
+  top: -7px;
+  right: -7px;
   display: grid;
   place-items: center;
+  width: 26px;
+  height: 26px;
+  border: 2px solid #fffef8;
+  border-radius: 50%;
+  color: #825716;
+  background: #ffe4a0;
+}
+.seat-settings-owner svg {
+  width: 18px;
+  height: 18px;
+  fill: currentColor;
+}
+.seat-settings-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  justify-content: flex-end;
+}
+.dialog-surface .seat-settings-row .seat-settings-actions button {
+  display: grid;
+  place-items: center;
+  flex: 0 0 44px;
   width: 44px;
   height: 44px;
   min-width: 44px;
   min-height: 44px;
+  padding: 0;
   margin: 0;
-  padding: 8px;
-  border-radius: 50%;
-  background: #edf3e6;
-  color: #32584b;
-  border: 1px solid #d6e0cf;
+  border-radius: 8px;
+  border: 0;
+  color: #255d4c;
+  background: transparent;
+  box-shadow: none;
 }
-.seat-settings-menu svg {
+.seat-settings-actions svg {
   display: block;
 }
-.dialog-surface .seat-settings-remove {
-  background: #ffe7dc;
+.dialog-surface .seat-settings-actions .seat-settings-remove {
   color: #8d3529;
-  border: 1px solid #ecc3b2;
 }
-.seat-settings-operations {
-  display: grid;
-  gap: 12px;
-}
-.seat-settings-target {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding-bottom: 12px;
-  border-bottom: 1px solid #d8e1d2;
-}
-.seat-settings-target img {
-  flex: 0 0 48px;
-  width: 48px;
-  height: 48px;
-  object-fit: contain;
-}
-.seat-settings-target strong {
-  min-width: 0;
-  font-size: 18px;
-  overflow-wrap: anywhere;
-}
-.dialog-surface .seat-settings-operations button {
-  width: 100%;
-  font-size: 18px;
-  min-height: 50px;
-}
-.seat-settings-hint {
-  margin: 0;
-  padding: 12px;
-  border-radius: 12px;
-  background: #fff0ce;
-  color: #72521e;
-  font-size: 16px;
+.dialog-surface .seat-settings-actions .seat-settings-owner-action {
+  color: #825716;
 }
 .seat-settings-rename-form input {
   font-size: 18px;
   min-height: 48px;
 }
 
-.dialog-surface.settings-panel--seats {
-  width: min(540px, calc(100vw - 24px));
+.dialog-surface.overlay-panel.settings-panel.settings-panel--seats {
+  width: min(720px, calc(100vw - 24px));
 }
-@media (max-width: 360px) {
+@media (max-width: 640px) {
   .dialog-surface .seat-manager__row.seat-settings-row {
-    grid-template-columns: 48px minmax(0, 1fr) 44px;
+    grid-template-columns: 48px minmax(0, 1fr);
     gap: 8px;
     padding: 12px;
+  }
+  .seat-settings-actions {
+    grid-column: 1 / -1;
+    justify-self: end;
+    gap: 2px;
   }
   .seat-settings-portrait .seat-settings-avatar {
     width: 48px;

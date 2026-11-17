@@ -167,7 +167,12 @@ export const CommandSchema = z
       z.object({ type: z.literal('lifecycle'), action: z.json() }).strict(),
       z.object({ type: z.literal('pause') }).strict(),
       z.object({ type: z.literal('resume') }).strict(),
-      z.object({ type: z.literal('end') }).strict(),
+      z
+        .object({
+          type: z.literal('end'),
+          returnToLobby: z.literal(true).optional(),
+        })
+        .strict(),
       z.object({ type: z.literal('new-room') }).strict(),
       z.object({ type: z.literal('replay') }).strict(),
       z

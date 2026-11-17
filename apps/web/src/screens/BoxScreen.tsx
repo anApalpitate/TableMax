@@ -11,7 +11,10 @@ import { gameCover } from '../assets/game-covers';
 import { avatarFor } from '../assets/avatars';
 import appIcon from '../../../../assets/platform/app-icon-180.png';
 import { ScreenLink } from '../components/ScreenLink';
-import { RoomManagementControl } from '../components/RoomManagement';
+import {
+  RoomManagement,
+  RoomManagementControl,
+} from '../components/RoomManagement';
 import { InviteFriends } from '../components/InviteFriends';
 import { BoxFeedback } from '../components/BoxFeedback';
 import { SaveStatus } from '../components/SaveStatus';
@@ -152,6 +155,7 @@ function BoxScreenContent({ session }: { session: RoomSession }) {
         <span
           className={`connection ${connected ? 'online' : ''}`}
           role="status"
+          title={connected ? '已连接' : '正在连接'}
         >
           <span className="box-connection-copy">
             {connected ? '已连接' : '正在连接'}
@@ -172,7 +176,7 @@ function BoxScreenContent({ session }: { session: RoomSession }) {
           <Settings session={session}>
             {details?.guidance && <BeginnerGuidanceSetting gameId={game!.id} />}
           </Settings>
-          <RoomManagementControl session={session} />
+          <RoomManagementControl session={session} returnToLobby />
         </div>
       </header>
       <section className="hero">
@@ -185,11 +189,32 @@ function BoxScreenContent({ session }: { session: RoomSession }) {
         {(isHost || !game) && (
           <button
             type="button"
-            className={game ? 'secondary' : 'box-library-entry'}
+            className={game ? 'secondary box-game-switch' : 'box-library-entry'}
+            aria-label={game ? '切换游戏' : '游戏库'}
+            title={game ? '切换游戏' : '游戏库'}
             disabled={locked}
             onClick={() => setPanel('library')}
           >
-            {game ? '切换游戏' : '游戏库'}
+            {game ? (
+              <>
+                <svg
+                  width="22"
+                  height="22"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.8"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  aria-hidden="true"
+                >
+                  <path d="M4 7h16m-4-4 4 4-4 4M20 17H4m4-4-4 4 4 4" />
+                </svg>
+                <span>切换游戏</span>
+              </>
+            ) : (
+              '游戏库'
+            )}
           </button>
         )}
         {game && (
@@ -246,6 +271,15 @@ function BoxScreenContent({ session }: { session: RoomSession }) {
               )}
             </div>
             <div className="room-heading__actions">
+              {canControl && (isHost || view?.status !== 'lobby') && (
+                <div className="box-table-actions">
+                  <RoomManagement
+                    session={session}
+                    display="actions"
+                    returnToLobby
+                  />
+                </div>
+              )}
               {canManageSeats && (
                 <button
                   type="button"
@@ -485,7 +519,19 @@ function BoxScreenContent({ session }: { session: RoomSession }) {
                           title="人机等级说明"
                           onClick={() => setPanel('bot-info')}
                         >
-                          ⓘ
+                          <svg
+                            width="22"
+                            height="22"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="1.8"
+                            strokeLinecap="round"
+                            aria-hidden="true"
+                          >
+                            <circle cx="12" cy="12" r="9" />
+                            <path d="M12 11v6m0-10v.1" />
+                          </svg>
                         </button>
                       </div>
                       <button

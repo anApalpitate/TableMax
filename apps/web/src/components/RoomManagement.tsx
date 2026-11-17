@@ -13,9 +13,11 @@ import './settings-panel.css';
 export function RoomManagementControl({
   session,
   lifecycleLabel,
+  returnToLobby = false,
 }: {
   session: RoomSession;
   lifecycleLabel?: string;
+  returnToLobby?: boolean;
 }) {
   const [open, setOpen] = useState(false);
   if (session.role !== 'host' || !session.isHost || !session.canControl)
@@ -55,6 +57,7 @@ export function RoomManagementControl({
             session={session}
             {...(lifecycleLabel === undefined ? {} : { lifecycleLabel })}
             hideSaved
+            returnToLobby={returnToLobby}
           />
         </BoxOverlayPanel>
       )}
@@ -67,11 +70,13 @@ export function RoomManagement({
   lifecycleLabel = '开始下一局',
   display = 'full',
   hideSaved = false,
+  returnToLobby = false,
 }: {
   session: RoomSession;
   lifecycleLabel?: string;
   display?: 'full' | 'actions' | 'details';
   hideSaved?: boolean;
+  returnToLobby?: boolean;
 }) {
   const { view, locked, command, isHost, canControl } = session;
   const [confirmation, setConfirmation] = useState<'end' | 'clear' | null>(
@@ -185,14 +190,25 @@ export function RoomManagement({
             (confirmation === 'clear' && view.status === 'playing')
           }
           confirm={() => {
-            command({ type: confirmation === 'end' ? 'end' : 'new-room' });
+            command(
+              confirmation === 'end'
+                ? {
+                    type: 'end',
+                    ...(returnToLobby ? { returnToLobby: true as const } : {}),
+                  }
+                : { type: 'new-room' },
+            );
             setConfirmation(null);
           }}
         >
           {confirmation === 'end' ? (
             <>
               <p>{feedbackText('management.confirmEnd')}</p>
-              <p>{feedbackText('management.endEffect')}</p>
+              <p>
+                {returnToLobby
+                  ? '返回准备大厅，恢复开局前的加入设置。真人玩家需重新准备。'
+                  : feedbackText('management.endEffect')}
+              </p>
             </>
           ) : (
             <p>{feedbackText('management.confirmClear')}</p>

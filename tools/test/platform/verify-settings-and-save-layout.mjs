@@ -28,6 +28,9 @@ assert(
       'settings',
       'settings-layout',
       'seat-names',
+      'seat-controls',
+      'box-header',
+      'box-layout',
       'name-limits',
       'management-layout',
       'management-controls',
@@ -150,11 +153,22 @@ window.renderManagement=({status,full=false})=>{
  window.setManagementRequests=()=>{current.session={...current.session,view:{...current.session.view,transferRequests:[{requestId:'transfer-one',seatId:'s0',verificationCode:'123456',expiresAt:Date.now()+120000},{requestId:'transfer-two',seatId:'s1',verificationCode:'654321',expiresAt:Date.now()+120000}]}};paintManagement();};
  paintManagement();
 };
-window.renderSeatNames=({role,owner,status})=>{
+window.configureHeaderUpdate=enabled=>{
+ if(!enabled){delete window.tablemaxUpdate;return;}
+ const snapshot={supported:true,phase:'up-to-date',currentVersion:'1.0.8',manualUrl:''};
+ const respond=async()=>snapshot;
+ window.tablemaxUpdate={read:respond,check:respond,download:respond,cancel:respond,apply:respond,subscribe:()=>noop};
+};
+window.renderSeatNames=({role,owner,status,count=3})=>{
  history.replaceState(null,'','/'+role);
  sessionStorage.setItem('tablemax-host','seat-host-fixture');localStorage.setItem('tablemax-player','seat-player-fixture');
  const self=role==='player'?(owner?'s0':'s1'):null;
  const view=RoomViewSchema.parse({instanceId:'00000000-0000-4000-8000-000000000001',revision:1,branch:0,status,paused:false,restored:false,joinOpen:true,playMode:'play',countdownSeconds:30,decisionClock:null,game:{id:'uno',name:'UNO',min:2,max:6,decisionTimer:true},catalog:[],ownerSeatId:'s0',capabilities:{manage:role==='host',control:role==='host'||owner,manageSeats:role==='host'||role==='player'&&owner},seats:[{id:'s0',name:'长'.repeat(8),avatarId:'avatar-1',controller:'human',ready:true,online:true,botDifficulty:null},{id:'s1',name:'WWWWWWWWWWWWWWWW',avatarId:'avatar-2',controller:'human',ready:true,online:true,botDifficulty:null},{id:'s2',name:'人机朋友',avatarId:'avatar-3',controller:'bot',ready:true,online:true,botDifficulty:'default'}],self:{role,seatId:self},gameView:null,decisionId:null,selectionToken:null,actions:[],lifecycleActions:[],history:[],botError:null,endReason:null});
+ if(count>3){
+  view.seats=[...view.seats,...Array.from({length:count-3},(_,index)=>({id:'s'+(index+3),name:'朋友'+(index+3),avatarId:'avatar-'+(index+4),controller:'human',ready:true,online:true,botDifficulty:null}))];
+  if(count>6)view.game={id:'avalon',name:'阿瓦隆',min:5,max:10,decisionTimer:false};
+  RoomViewSchema.parse(view);
+ }
  window.seatFixtureProjection={stamp:{serverSessionId:'00000000-0000-4000-8000-000000000002',instanceId:view.instanceId,branch:0,viewSeq:1},syncHint:'idle',interactionWatermark:0,view};
  window.seatFixtureCommands=[];
  flushSync(()=>root.render(<SeatNamesBox key={'seat-names-'+(++renderSequence)} role={role}/>));
@@ -218,14 +232,18 @@ export function io(){
     if(outcome==='pending'){callback(new Error('Controlled unconfirmed acknowledgement'),null);return;}
     if(outcome==='error'){callback(null,{ok:false,reason:'save-failed'});return;}
     const next=window.seatFixtureProjection;
-    next.view={...next.view,revision:next.view.revision+1,seats:next.view.seats.map(seat=>seat.id===envelope.command.seatId?{...seat,name:envelope.command.name}:seat)};
+    const command=envelope.command;
+    let seats=next.view.seats;
+    if(command.type==='set-seat-name')seats=seats.map(seat=>seat.id===command.seatId?{...seat,name:command.name}:seat);
+    if(command.type==='order')seats=command.seats.map(id=>seats.find(seat=>seat.id===id));
+    next.view={...next.view,revision:next.view.revision+1,seats,...(command.type==='set-owner'?{ownerSeatId:command.seatId}:{})};
     next.stamp={...next.stamp,viewSeq:next.stamp.viewSeq+1};handlers.get('room:view')?.(next);
     callback(null,{ok:true,revision:next.view.revision,branch:next.view.branch});
    };
   }
   return socket;
  }};
- queueMicrotask(()=>handlers.get('connect')?.());return socket;
+ window.seatFixtureSocket=socket;queueMicrotask(()=>handlers.get('connect')?.());return socket;
 }
 `,
 );
@@ -1057,6 +1075,7 @@ try {
             ),
             {
               type: status === 'playing' ? 'end' : 'new-room',
+              ...(status === 'playing' ? { returnToLobby: true } : {}),
             },
           );
           await managementPage.evaluate(
@@ -1089,6 +1108,634 @@ try {
         }
       });
     }
+
+  for (const width of [320, 390, 600])
+    for (const role of ['host', 'player']) {
+      await check('box:' + role + ':' + width + ':box-header', async () => {
+        const height = width === 320 ? 568 : 900;
+        await page.setViewportSize({ width, height });
+        await page.evaluate((options) => window.renderSeatNames(options), {
+          role,
+          owner: false,
+          status: 'lobby',
+        });
+        await page.waitForFunction(
+          () =>
+            window.seatLiveSession?.connected && window.seatLiveSession?.view,
+        );
+        const header = page.locator('.box-screen > header');
+        const brand = header.locator('.brand');
+        const connection = header.locator('.connection');
+        const settings = header.getByRole('button', {
+          name: '设置',
+          exact: true,
+        });
+        const controls = [brand, connection, settings];
+        const management = header.getByRole('button', {
+          name: '牌桌管理',
+          exact: true,
+        });
+        if (role === 'host') controls.push(management);
+        else assert.equal(await management.count(), 0);
+        const boxes = await Promise.all(
+          controls.map((control) => control.boundingBox()),
+        );
+        assert(boxes.every(Boolean));
+        assert(
+          Math.max(...boxes.map((rect) => rect.y)) <
+            Math.min(...boxes.map((rect) => rect.y + rect.height)),
+          'Brand, connection and controls share one line',
+        );
+        for (const box of boxes)
+          assert(box.x >= 0 && box.x + box.width <= width + 1);
+        assert(
+          (await header.boundingBox()).height <= 50,
+          'Portrait header uses one compact row',
+        );
+        for (const button of role === 'host'
+          ? [settings, management]
+          : [settings]) {
+          assert(
+            await button.evaluate((node) => {
+              const style = getComputedStyle(node),
+                r = node.getBoundingClientRect();
+              return (
+                r.width >= 44 &&
+                r.height >= 44 &&
+                style.borderTopWidth === '0px' &&
+                style.backgroundColor === 'rgba(0, 0, 0, 0)' &&
+                node.contains(
+                  document.elementFromPoint(
+                    r.x + r.width / 2,
+                    r.y + r.height / 2,
+                  ),
+                )
+              );
+            }),
+            'Header icons are borderless, transparent and clickable',
+          );
+        }
+        const hero = page.locator('.box-screen > .hero');
+        const intro = hero.getByRole('button', {
+          name: '玩法说明',
+          exact: true,
+        });
+        const title = hero.getByRole('heading', { name: 'UNO', exact: true });
+        const cardBoxes = await Promise.all(
+          [hero.locator(':scope > img'), title, intro].map((control) =>
+            control.boundingBox(),
+          ),
+        );
+        assert(
+          Math.max(...cardBoxes.map((rect) => rect.y)) <
+            Math.min(...cardBoxes.map((rect) => rect.y + rect.height)),
+        );
+        assert(
+          (await hero.boundingBox()).height <= 90,
+          'UNO cover, title and actions fit one card row',
+        );
+        const switchGame = hero.getByRole('button', {
+          name: '切换游戏',
+          exact: true,
+        });
+        if (role === 'host') {
+          await switchGame.click();
+          await page
+            .getByRole('dialog', { name: '游戏库', exact: true })
+            .waitFor();
+          await page.keyboard.press('Escape');
+        } else assert.equal(await switchGame.count(), 0);
+
+        for (const button of role === 'host' ? [intro, switchGame] : [intro]) {
+          assert(
+            await button.evaluate((node) => {
+              const style = getComputedStyle(node),
+                r = node.getBoundingClientRect();
+              return (
+                r.width >= 44 &&
+                r.height >= 44 &&
+                style.backgroundColor === 'rgba(0, 0, 0, 0)' &&
+                style.borderTopWidth === '0px'
+              );
+            }),
+            'Portrait game card icons are transparent and borderless',
+          );
+        }
+        await intro.click();
+        await page
+          .getByRole('dialog', { name: '游戏介绍', exact: true })
+          .waitFor();
+        await page.keyboard.press('Escape');
+        await settings.click();
+        await page.getByRole('dialog', { name: '设置', exact: true }).waitFor();
+        await page.keyboard.press('Escape');
+        await page.evaluate(() => window.seatFixtureSocket.disconnect());
+        await connection.getByText('正在连接', { exact: true }).waitFor();
+        assert(
+          (await header.boundingBox()).height <= 50,
+          'Connection failure status stays in the header',
+        );
+        await page.evaluate(() => window.seatFixtureSocket.connect());
+        await connection.getByText('已连接', { exact: true }).waitFor();
+        await page.evaluate(() => document.activeElement?.blur());
+        await page.mouse.move(0, 0);
+        const path = join(output, 'box-header-' + role + '-' + width + '.png');
+        await captureBrowserScreenshot(page, { path });
+        report.screenshots.push({ role, width, height, panel: 'header', path });
+      });
+    }
+
+  for (const [width, role, native, count] of [
+    [320, 'host', false, 3],
+    [390, 'host', false, 3],
+    [600, 'host', false, 3],
+    [320, 'player', false, 3],
+    [390, 'player', false, 3],
+    [600, 'player', false, 3],
+    [320, 'host', true, 3],
+    [390, 'host', true, 3],
+    [320, 'host', false, 6],
+    [390, 'host', false, 10],
+  ]) {
+    await check(
+      'box:' + role + ':' + width + ':' + native + ':' + count + ':box-layout',
+      async () => {
+        const height = width === 320 ? 568 : 900;
+        await page.setViewportSize({ width, height });
+        await page.evaluate(
+          (options) => {
+            window.configureHeaderUpdate(options.native);
+            window.renderSeatNames({
+              role: options.role,
+              owner: options.role === 'player',
+              status: 'lobby',
+              count: options.count,
+            });
+          },
+          { role, native, count },
+        );
+        await page.waitForFunction(
+          () =>
+            window.seatLiveSession?.connected && window.seatLiveSession?.view,
+        );
+        try {
+          const actions = page.locator('.room-heading__actions');
+          const boxes = await actions.getByRole('button').evaluateAll((nodes) =>
+            nodes.map((node) => {
+              const rect = node.getBoundingClientRect();
+              return {
+                x: rect.x,
+                y: rect.y,
+                width: rect.width,
+                height: rect.height,
+                unclipped: node.scrollWidth <= node.clientWidth + 1,
+              };
+            }),
+          );
+          assert(boxes.length > 0);
+          assert(
+            Math.max(...boxes.map((r) => r.y)) -
+              Math.min(...boxes.map((r) => r.y)) <=
+              1,
+            'Room action buttons share a row',
+          );
+          assert(
+            Math.max(...boxes.map((r) => r.width)) -
+              Math.min(...boxes.map((r) => r.width)) <=
+              1,
+            'Room action buttons have equal width',
+          );
+          assert(
+            boxes.every(
+              (r) =>
+                r.height >= 48 && r.height === boxes[0].height && r.unclipped,
+            ),
+            'Room action labels fit equal-height buttons',
+          );
+          if (role === 'host') {
+            const add = page.getByRole('button', {
+              name: '添加人机',
+              exact: true,
+            });
+            const start = page.getByRole('button', {
+              name: '开始游戏',
+              exact: true,
+            });
+            const a = await add.boundingBox(),
+              b = await start.boundingBox();
+            assert(
+              Math.abs(a.x - b.x) <= 1 && Math.abs(a.width - b.width) <= 1,
+              'Add-bot and start use the same full width',
+            );
+            const fields = page.locator('.bot-invite > div');
+            const fieldBox = await fields.boundingBox();
+            assert(
+              Math.abs(fieldBox.x - a.x) <= 1 &&
+                Math.abs(fieldBox.width - a.width) <= 1,
+            );
+            const badges = await page
+              .locator('.lobby-readiness__item')
+              .evaluateAll((nodes) =>
+                nodes.map((node) => node.getBoundingClientRect().toJSON()),
+              );
+            assert.equal(badges.length, 2);
+            assert(
+              Math.abs(badges[0].y - badges[1].y) <= 1 &&
+                Math.abs(badges[0].width - badges[1].width) <= 1,
+              'Readiness indicators align in equal columns',
+            );
+            await page
+              .getByRole('button', { name: '清空牌桌', exact: true })
+              .click();
+            await page
+              .getByRole('dialog', { name: '清空牌桌', exact: true })
+              .getByRole('button', { name: '取消', exact: true })
+              .click();
+            assert.equal(
+              await page.evaluate(() => window.seatFixtureCommands.length),
+              0,
+            );
+          }
+          for (const card of await page
+            .locator('.room-table__seat--occupied')
+            .all()) {
+            const name = await card.locator('.room-table__name').boundingBox();
+            const identity = await card
+              .locator('.room-table__identity')
+              .boundingBox();
+            assert(
+              name.y + name.height <= identity.y + 1,
+              'Long seat names do not overlap connection state',
+            );
+            assert(
+              await card.locator('.room-table__name').evaluate((node) => {
+                const range = document.createRange();
+                range.selectNodeContents(node);
+                const r = node.getBoundingClientRect();
+                return [...range.getClientRects()].every(
+                  (glyph) =>
+                    glyph.left >= r.left - 1 &&
+                    glyph.right <= r.right + 1 &&
+                    glyph.bottom <= r.bottom + 1,
+                );
+              }),
+              'Every legal nickname stays inside its slot',
+            );
+            assert(
+              await card.locator('.room-table__name').evaluate((node) => {
+                if (node.textContent !== 'W'.repeat(16)) return true;
+                const range = document.createRange();
+                range.selectNodeContents(node);
+                const widths = [...range.getClientRects()]
+                  .map((rect) => rect.width)
+                  .filter(Boolean);
+                return Math.min(...widths) >= Math.max(...widths) * 0.5;
+              }),
+              'Long English names avoid an isolated last character',
+            );
+          }
+          const header = page.locator('.box-screen > header');
+          assert((await header.boundingBox()).height <= 50);
+          if (native) {
+            const update = header.getByRole('button', {
+              name: '程序更新',
+              exact: true,
+            });
+            assert.equal(await update.count(), 1);
+            assert(
+              await update.evaluate((node) => {
+                const style = getComputedStyle(node),
+                  r = node.getBoundingClientRect();
+                return (
+                  r.width >= 44 &&
+                  style.borderTopWidth === '0px' &&
+                  style.backgroundColor === 'rgba(0, 0, 0, 0)' &&
+                  r.right <= innerWidth
+                );
+              }),
+            );
+            await update.click();
+            await page
+              .getByRole('dialog', { name: '程序更新', exact: true })
+              .waitFor();
+            await page.keyboard.press('Escape');
+            await page.evaluate(() => window.seatFixtureSocket.disconnect());
+            await page.locator('.box-feedback .feedback').waitFor();
+            assert(
+              (await page.locator('.box-feedback .feedback').innerText())
+                .length > 0,
+            );
+            await page.evaluate(() => window.seatFixtureSocket.connect());
+            await page.waitForFunction(() => window.seatLiveSession.connected);
+          }
+          await page.evaluate(() => document.activeElement?.blur());
+          await page.mouse.move(0, 0);
+          const path = join(
+            output,
+            'box-layout-' +
+              role +
+              '-' +
+              width +
+              '-' +
+              native +
+              '-' +
+              count +
+              '.png',
+          );
+          await captureBrowserScreenshot(page, { path, fullPage: true });
+          report.screenshots.push({
+            role,
+            width,
+            height,
+            native,
+            count,
+            panel: 'layout',
+            path,
+          });
+        } finally {
+          await page.evaluate(() => window.configureHeaderUpdate(false));
+        }
+      },
+    );
+  }
+  for (const [width, height, role, owner, status] of [
+    [320, 568, 'host', false, 'lobby'],
+    [390, 844, 'host', false, 'lobby'],
+    [1280, 900, 'host', false, 'lobby'],
+    [390, 844, 'host', false, 'playing'],
+    [390, 844, 'player', true, 'lobby'],
+    [390, 844, 'player', false, 'lobby'],
+  ]) {
+    await check(
+      'box:' +
+        role +
+        ':' +
+        status +
+        ':' +
+        width +
+        ':' +
+        owner +
+        ':seat-controls',
+      async () => {
+        await page.setViewportSize({ width, height });
+        await page.evaluate((options) => window.renderSeatNames(options), {
+          role,
+          owner,
+          status,
+        });
+        await page.waitForFunction(
+          () =>
+            window.seatLiveSession?.connected && window.seatLiveSession?.view,
+        );
+        const capture = async (kind) => {
+          const path = join(
+            output,
+            'seat-controls-' +
+              role +
+              '-' +
+              status +
+              '-' +
+              width +
+              '-' +
+              owner +
+              '-' +
+              kind +
+              '.png',
+          );
+          await captureBrowserScreenshot(page, { path });
+          report.screenshots.push({
+            role,
+            status,
+            width,
+            height,
+            owner,
+            panel: kind,
+            path,
+          });
+        };
+        const baseline = process.argv.includes('--baseline');
+        await capture('table');
+        const manager = page.getByRole('button', {
+          name: '座位设置',
+          exact: true,
+        });
+        if (role === 'player' && !owner) {
+          assert.equal(await manager.count(), 0);
+          return;
+        }
+        if (!baseline && role === 'host' && status === 'playing') {
+          const end = page
+            .locator('.room-heading__actions')
+            .getByRole('button', { name: '结束游戏', exact: true });
+          assert.equal(
+            await end.count(),
+            1,
+            'End remains in the original table toolbar',
+          );
+          await end.click();
+          const dialog = page.getByRole('dialog', {
+            name: '结束游戏',
+            exact: true,
+          });
+          await dialog
+            .getByRole('button', { name: '取消', exact: true })
+            .click();
+          assert.equal(
+            await page.evaluate(() => window.seatFixtureCommands.length),
+            0,
+          );
+          await end.click();
+          await dialog
+            .getByRole('button', { name: '确认结束游戏', exact: true })
+            .click();
+          assert.deepEqual(
+            await page.evaluate(
+              () => window.seatFixtureCommands.at(-1).command,
+            ),
+            { type: 'end', returnToLobby: true },
+          );
+          await page.evaluate(() => window.finishSeatName('saved'));
+          await page.waitForFunction(() => !window.seatLiveSession.locked);
+        }
+        await manager.click();
+        await capture('seats');
+        if (baseline) return;
+        assert.equal(await page.locator('.seat-settings-menu').count(), 0);
+        const rows = page.locator('.seat-settings-row');
+        assert.equal(await rows.count(), 3);
+        const ownerRow = page.locator('.seat-settings-row[data-seat-id="s0"]');
+        assert.equal(
+          await ownerRow
+            .getByRole('img', { name: '房主', exact: true })
+            .count(),
+          1,
+        );
+        assert.equal(
+          await ownerRow.locator('.seat-settings-owner-action').count(),
+          0,
+        );
+        assert.equal(
+          await page
+            .locator(
+              '.seat-settings-row[data-seat-id="s2"] .seat-settings-owner-action',
+            )
+            .count(),
+          0,
+          'Bots cannot own the table',
+        );
+        const row = page.locator('.seat-settings-row[data-seat-id="s1"]');
+        for (const button of await rows
+          .locator('.seat-settings-actions button')
+          .all()) {
+          assert.equal(await button.textContent(), '');
+          assert.equal(await button.locator('svg').count(), 1);
+          assert(await button.getAttribute('aria-label'));
+          assert(await button.getAttribute('title'));
+          assert(
+            await button.evaluate((node) => {
+              const style = getComputedStyle(node);
+              return (
+                style.backgroundColor === 'rgba(0, 0, 0, 0)' &&
+                [
+                  style.borderTopWidth,
+                  style.borderRightWidth,
+                  style.borderBottomWidth,
+                  style.borderLeftWidth,
+                ].every((value) => value === '0px')
+              );
+            }),
+            'Seat icons have a transparent background and no border',
+          );
+
+          assert(
+            await button.evaluate((node) => {
+              const r = node.getBoundingClientRect();
+              return (
+                r.width >= 44 &&
+                r.height >= 44 &&
+                node.scrollWidth <= node.clientWidth + 1
+              );
+            }),
+          );
+        }
+        assert(
+          await rows.evaluateAll((nodes) =>
+            nodes.every(
+              (node) =>
+                node.scrollWidth <= node.clientWidth + 1 &&
+                node.getBoundingClientRect().right <= innerWidth + 1,
+            ),
+          ),
+        );
+
+        assert(
+          await row
+            .locator('.seat-settings-actions button')
+            .evaluateAll((nodes) => {
+              const tops = nodes.map(
+                (node) => node.getBoundingClientRect().top,
+              );
+              return Math.max(...tops) - Math.min(...tops) <= 1;
+            }),
+          'Portrait seat action icons stay in one row',
+        );
+        const up = ownerRow.locator('.seat-settings-up');
+        assert(await up.isDisabled(), 'The first seat cannot move up');
+        const last = page.locator(
+          '.seat-settings-row[data-seat-id="s2"] .seat-settings-down',
+        );
+        assert(await last.isDisabled(), 'The last seat cannot move down');
+        if (role === 'player') {
+          assert.equal(
+            await rows.locator('.seat-settings-owner-action').count(),
+            0,
+          );
+          assert(await ownerRow.locator('.seat-settings-remove').isDisabled());
+          assert(await row.locator('.seat-settings-up').isDisabled());
+        } else if (status === 'lobby') {
+          await row.locator('.seat-settings-up').click();
+          assert.deepEqual(
+            await page.evaluate(
+              () => window.seatFixtureCommands.at(-1).command,
+            ),
+            { type: 'order', seats: ['s1', 's0', 's2'] },
+          );
+          await page.evaluate(() => window.finishSeatName('saved'));
+          await page.waitForFunction(() => !window.seatLiveSession.locked);
+          await row.locator('.seat-settings-down').click();
+          assert.deepEqual(
+            await page.evaluate(
+              () => window.seatFixtureCommands.at(-1).command,
+            ),
+            { type: 'order', seats: ['s0', 's1', 's2'] },
+          );
+          await page.evaluate(() => window.finishSeatName('saved'));
+          await page.waitForFunction(() => !window.seatLiveSession.locked);
+          await row.locator('.seat-settings-owner-action').click();
+          assert.deepEqual(
+            await page.evaluate(
+              () => window.seatFixtureCommands.at(-1).command,
+            ),
+            { type: 'set-owner', seatId: 's1' },
+          );
+          await page.evaluate(() => window.finishSeatName('saved'));
+          await page.waitForFunction(() => !window.seatLiveSession.locked);
+          assert.equal(
+            await row.getByRole('img', { name: '房主', exact: true }).count(),
+            1,
+          );
+          assert.equal(
+            await row.locator('.seat-settings-owner-action').count(),
+            0,
+          );
+        } else {
+          assert(await row.locator('.seat-settings-up').isDisabled());
+          assert(await row.locator('.seat-settings-remove').isDisabled());
+        }
+        await row.locator('.seat-settings-rename').click();
+        const rename = page.getByRole('dialog', {
+          name: '修改名称',
+          exact: true,
+        });
+        await rename.getByLabel('玩家名称').fill('新名字');
+        await rename
+          .getByRole('button', { name: '保存名称', exact: true })
+          .click();
+        assert.deepEqual(
+          await page.evaluate(() => window.seatFixtureCommands.at(-1).command),
+          { type: 'set-seat-name', seatId: 's1', name: '新名字' },
+        );
+        await page.evaluate(() => window.finishSeatName('saved'));
+        await page.waitForFunction(() => !window.seatLiveSession.locked);
+        assert.equal(
+          await row.locator('.seat-settings-identity strong').textContent(),
+          '新名字',
+        );
+        await row.locator('.seat-settings-rename').click();
+        await page
+          .getByRole('dialog', { name: '修改名称', exact: true })
+          .getByRole('button', { name: '取消', exact: true })
+          .click();
+        assert(
+          await row
+            .locator('.seat-settings-rename')
+            .evaluate((node) => node === document.activeElement),
+        );
+        if (status === 'lobby') {
+          await row.locator('.seat-settings-remove').click();
+          const remove = page.getByRole('dialog', {
+            name: '移除座位',
+            exact: true,
+          });
+          await remove.waitFor();
+          await remove
+            .getByRole('button', { name: '取消', exact: true })
+            .click();
+          assert.equal(await rows.count(), 3);
+        }
+      },
+    );
+  }
   for (const [width, height] of [
     [320, 568],
     [390, 844],
@@ -1183,11 +1830,8 @@ try {
             const openRename = async (seatId) => {
               await page
                 .locator(
-                  `.seat-settings-row[data-seat-id="${seatId}"] .seat-settings-menu`,
+                  `.seat-settings-row[data-seat-id="${seatId}"] .seat-settings-rename`,
                 )
-                .click();
-              await page
-                .getByRole('button', { name: '修改名称', exact: true })
                 .click();
               const input = page.getByLabel('玩家名称', { exact: true });
               await input.waitFor({ state: 'visible' });
@@ -1961,7 +2605,15 @@ try {
                 const r = el.getBoundingClientRect();
                 return [
                   el.tagName,
-                  el.textContent.replace(/已保存/g, ''),
+                  (() => {
+                    const copy = el.cloneNode(true);
+                    copy
+                      .querySelectorAll(
+                        '.box-save-feedback,.toolbar-save-feedback',
+                      )
+                      .forEach((node) => node.remove());
+                    return copy.textContent;
+                  })(),
                   r.x,
                   r.y,
                   r.width,

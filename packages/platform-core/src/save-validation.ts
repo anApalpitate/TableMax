@@ -58,6 +58,11 @@ export function validateSave(
     'damaged-save',
   );
   requireThat(
+    d.joinOpenBeforeStart === undefined ||
+      typeof d.joinOpenBeforeStart === 'boolean',
+    'damaged-save',
+  );
+  requireThat(
     d.playMode === undefined || d.playMode === 'play' || d.playMode === 'test',
     'damaged-save',
   );

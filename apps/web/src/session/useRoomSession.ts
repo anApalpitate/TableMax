@@ -169,6 +169,7 @@ export function useRoomSession(role: ScreenRole) {
       ) {
         const envelope = pending.current;
         const transitions = [
+          'end',
           'new-room',
           'replay',
           'select-game',

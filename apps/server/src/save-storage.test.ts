@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { DatabaseSync } from 'node:sqlite';
 import {
   copyFileSync,
@@ -13,7 +13,9 @@ import {
 } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import type { Save } from '@tablemax/platform-core';
+import { RoomCoordinator, token, type Save } from '@tablemax/platform-core';
+import type { Command } from '@tablemax/protocol';
+import { rules as lobbyRules, bot as lobbyBot } from '../../../games/template';
 import { SqliteSaveRepository } from './save-repository';
 import { readCurrentSave, readJournalSave } from './save-audit';
 import {
@@ -477,3 +479,81 @@ describe('normalized SQLite save storage', () => {
     );
   }, 120000);
 });
+
+it.each([true, false])(
+  'atomically persists Box end and join setting %s through SQLite failure and restart',
+  async (open) => {
+    const path = directory();
+    let repository = new SqliteSaveRepository(path);
+    let room = new RoomCoordinator(lobbyRules, lobbyBot, repository);
+    const send = (command: Command['command'], credential = room.hostToken) => {
+      const view = room.view(credential);
+      return room.command(credential, {
+        actionId: token(),
+        instanceId: view.instanceId,
+        branch: view.branch,
+        revision: view.revision,
+        command,
+      });
+    };
+    const players = [await room.join('朋友甲'), await room.join('朋友乙')];
+    await send({ type: 'join-open', open });
+    for (const player of players)
+      await send({ type: 'ready', ready: true }, player.token);
+    expect((await send({ type: 'start' })).ok).toBe(true);
+    repository.close();
+    repository = new SqliteSaveRepository(path);
+    room = new RoomCoordinator(lobbyRules, lobbyBot, repository);
+    const clock = vi.spyOn(Date, 'now').mockReturnValue(Date.now());
+    const before = room.view();
+    const request: Command = {
+      actionId: token(),
+      instanceId: before.instanceId,
+      branch: before.branch,
+      revision: before.revision,
+      command: { type: 'end', returnToLobby: true },
+    };
+    const database = new DatabaseSync(join(path, 'room.sqlite'));
+    try {
+      database.exec(
+        "CREATE TRIGGER reject_box_end BEFORE UPDATE ON saves BEGIN SELECT RAISE(ABORT,'failed update'); END;",
+      );
+      const prior = database.prepare('SELECT count(*) AS n FROM journal').get()!
+        .n;
+      expect(await room.command(room.hostToken, request)).toEqual({
+        ok: false,
+        reason: 'save-or-action-failed',
+      });
+      expect(room.view()).toEqual(before);
+      expect(
+        database.prepare('SELECT count(*) AS n FROM journal').get()!.n,
+      ).toBe(prior);
+      database.exec('DROP TRIGGER reject_box_end');
+      const reply = await room.command(room.hostToken, request);
+      expect(reply.ok).toBe(true);
+      expect(await room.command(room.hostToken, request)).toEqual(reply);
+      const id = database
+        .prepare('SELECT rowid FROM journal WHERE instance=? AND revision=?')
+        .get(before.instanceId, before.revision + 1)!.rowid;
+      expect(readJournalSave(database, Number(id))).toMatchObject({
+        status: 'ended',
+        endReason: '管理员结束',
+      });
+      expect(readCurrentSave(database)).toMatchObject({
+        status: 'lobby',
+        joinOpen: open,
+      });
+      repository.close();
+      repository = new SqliteSaveRepository(path);
+      room = new RoomCoordinator(lobbyRules, lobbyBot, repository);
+      expect(room.view()).toMatchObject({ status: 'lobby', joinOpen: open });
+      expect(room.view(players[0]!.token).self.seatId).toBe(
+        before.seats[0]!.id,
+      );
+    } finally {
+      database.close();
+      repository.close();
+      clock.mockRestore();
+    }
+  },
+);

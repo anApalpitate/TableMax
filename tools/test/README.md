@@ -70,7 +70,7 @@
 
 ## 设置与保存标记源码验证
 
-`tools/test/platform/verify-settings-and-save-layout.mjs --evidence=<独立安全名称>`构建当前源码夹具，当前源码角色循环为管理与玩家的盒子／玩法设置入口、仅管理端顶栏牌桌图标与确认操作、基本／视频字段一致性和设置切换高度、同源页面／iframe声音同步、手机全屏成功／拒绝／不支持、保存前后几何不变、文字碰撞及18／20／22px矢量角标；本轮只执行统一源码UI矩阵及独立Web／原生专项，不声称重跑本脚本全部组。`effects`使用真实规则保存事件验证原版／扩展蓝绿色轨迹、减少动态静态落点及恢复不重播。`--only=box,settings,settings-layout,management-controls,management-layout,save-layout,sound,mobile,icons,effects`可按实际受影响组筛选，`--games=manila`等可限制游戏专属用例；不传时运行全部。通过现有批次计划执行，范围为`box,shared`及现有正式游戏，默认隐藏、静音、127.0.0.1。证据位于`artifacts/maintenance/settings-and-save-20261020/<名称>`，绑定实际源码与脚本哈希；属于合法规则投影的源码组件夹具，不证明服务端事务、原生系统窗口或实体手机。
+`tools/test/platform/verify-settings-and-save-layout.mjs --evidence=<独立安全名称>`构建当前源码夹具，当前源码角色循环为管理与玩家的盒子／玩法设置入口、仅管理端顶栏牌桌图标与确认操作、基本／视频字段一致性和设置切换高度、同源页面／iframe声音同步、手机全屏成功／拒绝／不支持、保存前后几何不变、文字碰撞及18／20／22px矢量角标；本轮只执行统一源码UI矩阵及独立Web／原生专项，不声称重跑本脚本全部组。`effects`使用真实规则保存事件验证原版／扩展蓝绿色轨迹、减少动态静态落点及恢复不重播。`--only=box,box-header,box-layout,seat-controls,seat-names,settings,settings-layout,management-controls,management-layout,save-layout,sound,mobile,icons,effects`可按实际受影响组筛选，`--games=manila`等可限制游戏专属用例；不传时运行全部。通过现有批次计划执行，范围为`box,shared`及现有正式游戏，默认隐藏、静音、127.0.0.1。证据位于`artifacts/maintenance/settings-and-save-20261020/<名称>`，绑定实际源码与脚本哈希；属于合法规则投影的源码组件夹具，不证明服务端事务、原生系统窗口或实体手机。
 
 `--only=settings-layout --games=box,uno`定向检查320／390／1280px的紧凑游戏／视频设置、标签hover／聚焦／点按说明和成功截图。当前对盒子管理窗口注入显式原生桥接快照，核对适配方式、界面大小、三种窗口模式提交参数；只保留管理窗口的原生设置。UNO玩家检查浏览器不出现原生专属选项。桥接快照不证明原生窗口或持久化通过。
 

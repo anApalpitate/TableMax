@@ -67,6 +67,7 @@ type RejectedCommand = {
   expiresAt: number;
 };
 const instanceChangingCommands = new Set<Command['command']['type']>([
+  'end',
   'new-room',
   'replay',
   'select-game',
@@ -385,6 +386,10 @@ export class RoomCoordinator {
   }
   private lobbyWithSeats(game = this.game): Save {
     const fresh = this.fresh(game);
+    fresh.joinOpen =
+      this.data.status === 'lobby'
+        ? this.data.joinOpen
+        : (this.data.joinOpenBeforeStart ?? true);
     const sameRelease =
       !!game &&
       game.rules.manifest.id === this.data.manifest?.id &&
@@ -1254,6 +1259,7 @@ export class RoomCoordinator {
           ),
         };
         next.status = activeRules.ended(state) ? 'ended' : 'playing';
+        next.joinOpenBeforeStart = next.joinOpen;
         next.joinOpen = false;
         break;
       }
@@ -1268,12 +1274,33 @@ export class RoomCoordinator {
         next.paused = false;
         next.botError = null;
         break;
-      case 'end':
+      case 'end': {
         host();
         requireThat(next.status === 'playing', 'not-playing');
         next.status = 'ended';
         next.endReason = '管理员结束';
+        if (c.returnToLobby) {
+          next.revision++;
+          this.updateWindows(next);
+          synchronizeDecisionClocks(
+            next,
+            this.data,
+            this.game?.rules ?? null,
+            Date.now(),
+          );
+          const fresh = this.lobbyWithSeats();
+          const reply: CommandReply = {
+            ok: true,
+            revision: fresh.revision,
+            branch: fresh.branch,
+          };
+          fresh.receipts[key] = { fingerprint, reply };
+          this.commit(fresh, true, [], this.game, { journal: [next] });
+          this.restored = false;
+          return reply;
+        }
         break;
+      }
       case 'replay':
       case 'new-room':
         if (c.type === 'replay') control();

@@ -29,7 +29,11 @@ export function GameplaySelector({
     !session.awaitingConfirmation;
   return (
     <>
-      <button type="button" className="secondary" onClick={() => setOpen(true)}>
+      <button
+        type="button"
+        className="secondary gameplay-selector-control"
+        onClick={() => setOpen(true)}
+      >
         版本：
         {choices.find((variant) => variant.id === selected)?.name}
       </button>

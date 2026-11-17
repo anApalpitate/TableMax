@@ -595,3 +595,125 @@
   color: #285c47;
   border: 1px solid #b3cba5;
 }
+
+@media (max-width: 720px) {
+  .box-screen .stage .room-heading .room-heading__actions {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+    width: 100%;
+    flex-basis: 100%;
+  }
+  .box-screen
+    .stage
+    .room-heading__actions:not(:has(.room-actions-clear, .end-game)) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .box-screen .stage .room-heading__actions:not(:has(.box-table-actions)) {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .box-screen .stage .room-heading .box-table-actions,
+  .box-screen .stage .room-heading .room-actions.management {
+    display: contents;
+  }
+  .box-screen .stage .room-heading__actions button {
+    width: 100%;
+    min-width: 0;
+    height: 48px;
+    min-height: 48px;
+    margin: 0;
+    padding: 8px 6px;
+    border-radius: 12px;
+    font-size: 18px;
+    white-space: nowrap;
+  }
+  .box-screen .stage .host-lobby {
+    width: 100%;
+    margin: 0;
+    padding: 12px;
+  }
+  .box-screen .stage .lobby-toolbar,
+  .box-screen .stage .bot-invite,
+  .box-screen .stage .lobby-start {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+  }
+  .box-screen .stage .bot-invite > div {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) 44px;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+  }
+  .box-screen .stage .bot-invite label {
+    margin: 0;
+    font-size: 16px;
+  }
+  .box-screen .stage .bot-invite select {
+    width: 100%;
+    min-width: 0;
+    height: 44px;
+    padding: 6px 8px;
+    font-size: 18px;
+  }
+  .box-screen .stage .bot-invite .bot-info-control {
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    min-height: 44px;
+    padding: 0;
+    border: 0;
+    color: #255d4c;
+    background: transparent;
+    box-shadow: none;
+  }
+  .box-screen .stage .bot-invite > button,
+  .box-screen .stage .lobby-start > button {
+    width: 100%;
+    min-height: 48px;
+    margin: 0;
+    font-size: 18px;
+  }
+  .box-screen .stage .lobby-readiness {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+    width: 100%;
+  }
+  .box-screen .stage .lobby-readiness__item {
+    justify-content: center;
+    min-width: 0;
+    gap: 4px;
+    padding: 6px 0;
+    border: 0;
+    background: transparent;
+  }
+  .box-screen .stage .lobby-readiness__item svg {
+    width: 20px;
+    height: 20px;
+  }
+}
+@container (max-width: 560px) {
+  .box-screen .stage .room-table {
+    --seat-height: 200px;
+  }
+  .box-screen .stage .room-table__seat {
+    grid-template-rows: 52px 72px 24px 24px;
+  }
+  .box-screen .stage .room-table__name {
+    text-wrap: balance;
+    word-break: break-all;
+  }
+}
+@container (max-width: 300px) {
+  .box-screen .stage .room-table {
+    --seat-height: 224px;
+  }
+  .box-screen .stage .room-table__seat {
+    grid-template-rows: 52px 96px 24px 24px;
+  }
+}

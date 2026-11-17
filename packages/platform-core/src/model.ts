@@ -64,6 +64,7 @@ export interface Save {
   status: 'lobby' | 'playing' | 'ended';
   paused: boolean;
   joinOpen: boolean;
+  joinOpenBeforeStart?: boolean;
   playMode?: PlayMode;
   // Platform metadata, deliberately outside game checkpoints.
   countdownSeconds?: number;

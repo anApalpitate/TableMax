@@ -28,11 +28,9 @@ export function SeatSettings({
 }) {
   const { view, isHost, canManageSeats, locked, command } = session;
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [operation, setOperation] = useState<'menu' | 'rename'>('menu');
   const notifications = useNotifications();
   const [nameRejected, setNameRejected] = useState(false);
   const [draftName, setDraftName] = useState('');
-  const [hint, setHint] = useState('');
   const nameInput = useRef<HTMLInputElement>(null);
   const nameError = playerNameError(draftName);
   const { client } = useGameClient(
@@ -45,9 +43,16 @@ export function SeatSettings({
   const selected = view.seats.find((seat) => seat.id === selectedId);
   const playing = view.status === 'playing';
   const canOrder = isHost && view.status === 'lobby';
+  const move = (index: number, offset: number) => {
+    const target = index + offset;
+    if (locked || !canOrder || target < 0 || target >= view.seats.length)
+      return;
+    const ids = view.seats.map((seat) => seat.id);
+    [ids[index], ids[target]] = [ids[target]!, ids[index]!];
+    command({ type: 'order', seats: ids });
+  };
   const close = () => {
     setSelectedId(null);
-    setHint('');
     setNameRejected(false);
   };
   return (
@@ -73,6 +78,16 @@ export function SeatSettings({
                 alt=""
               />
               <span className="seat-manager__number">{index + 1}</span>
+              {view.ownerSeatId === seat.id && (
+                <span
+                  className="seat-settings-owner"
+                  role="img"
+                  aria-label="房主"
+                  title="房主"
+                >
+                  <SeatActionIcon kind="owner" />
+                </span>
+              )}
             </div>
             <div className="seat-settings-identity">
               <strong>{seat.name}</strong>
@@ -110,94 +125,86 @@ export function SeatSettings({
                 </span>
               )}
             </div>
-            <button
-              type="button"
-              className="secondary seat-settings-menu"
-              aria-label={`${seat.name}座位操作`}
-              disabled={locked}
-              onClick={() => {
-                setSelectedId(seat.id);
-                setOperation('menu');
-                setDraftName(seat.name);
-                setHint('');
-              }}
+            <div
+              className="seat-settings-actions"
+              role="group"
+              aria-label={seat.name + '座位操作'}
             >
-              <svg
-                viewBox="0 0 24 24"
-                width="24"
-                height="24"
-                aria-hidden="true"
+              <button
+                type="button"
+                className="secondary seat-settings-up"
+                aria-label={seat.name + '前移'}
+                title={canOrder ? '前移一位' : '仅管理员可在开局前调整顺序'}
+                disabled={locked || !canOrder || index === 0}
+                onClick={() => move(index, -1)}
               >
-                <circle cx="5" cy="12" r="2" fill="currentColor" />
-                <circle cx="12" cy="12" r="2" fill="currentColor" />
-                <circle cx="19" cy="12" r="2" fill="currentColor" />
-              </svg>
-            </button>
+                <SeatActionIcon kind="up" />
+              </button>
+              <button
+                type="button"
+                className="secondary seat-settings-down"
+                aria-label={seat.name + '后移'}
+                title={canOrder ? '后移一位' : '仅管理员可在开局前调整顺序'}
+                disabled={
+                  locked || !canOrder || index === view.seats.length - 1
+                }
+                onClick={() => move(index, 1)}
+              >
+                <SeatActionIcon kind="down" />
+              </button>
+              <button
+                type="button"
+                className="secondary seat-settings-rename"
+                aria-label={seat.name + '编辑名称'}
+                title="编辑名称"
+                disabled={locked}
+                onClick={() => {
+                  setSelectedId(seat.id);
+                  setDraftName(seat.name);
+                  setNameRejected(false);
+                }}
+              >
+                <SeatActionIcon kind="edit" />
+              </button>
+              <button
+                type="button"
+                className="secondary seat-settings-remove"
+                aria-label={'移除' + seat.name}
+                title={
+                  playing
+                    ? '请先结束对局再移除座位'
+                    : !isHost && seat.id === view.self.seatId
+                      ? '房主本人由管理员移除'
+                      : '移除座位'
+                }
+                disabled={
+                  locked || playing || (!isHost && seat.id === view.self.seatId)
+                }
+                onClick={() => removeSeat(seat.id)}
+              >
+                <SeatActionIcon kind="remove" />
+              </button>
+              {isHost &&
+                seat.controller === 'human' &&
+                seat.id !== view.ownerSeatId && (
+                  <button
+                    type="button"
+                    className="secondary seat-settings-owner-action"
+                    aria-label={seat.name + '设为房主'}
+                    title="设为房主"
+                    disabled={locked}
+                    onClick={() =>
+                      command({ type: 'set-owner', seatId: seat.id })
+                    }
+                  >
+                    <SeatActionIcon kind="owner" />
+                  </button>
+                )}
+            </div>
           </div>
         ))}
       </div>
-      {selected && operation === 'menu' && (
-        <OverlayPanel title="座位操作" close={close}>
-          <div className="seat-settings-operations">
-            <div className="seat-settings-target">
-              <img src={avatarFor(selected.avatarId)} alt="" />
-              <strong>{selected.name}</strong>
-            </div>
-            {canOrder && (
-              <button
-                type="button"
-                className="secondary seat-settings-move"
-                aria-label={`${selected.name}前移`}
-                disabled={locked || view.seats[0]?.id === selected.id}
-                onClick={() => {
-                  const ids = view.seats.map((entry) => entry.id);
-                  const index = ids.indexOf(selected.id);
-                  if (index < 1) return;
-                  [ids[index - 1], ids[index]] = [ids[index]!, ids[index - 1]!];
-                  command({ type: 'order', seats: ids });
-                  close();
-                }}
-              >
-                前移一位
-              </button>
-            )}
-            <button
-              type="button"
-              className="secondary seat-settings-rename"
-              disabled={locked}
-              onClick={() => setOperation('rename')}
-            >
-              修改名称
-            </button>
-            <button
-              type="button"
-              className="secondary seat-settings-remove"
-              disabled={locked || (!isHost && selected.id === view.self.seatId)}
-              onClick={() => {
-                if (playing) setHint(feedbackText('seats.removeWhilePlaying'));
-                else {
-                  const id = selected.id;
-                  close();
-                  removeSeat(id);
-                }
-              }}
-            >
-              移除{selected.controller === 'bot' ? '人机' : '玩家'}
-            </button>
-            {!isHost && selected.id === view.self.seatId && (
-              <p className="seat-settings-hint">
-                {feedbackText('seats.ownerManagedByHost')}
-              </p>
-            )}
-            {hint && (
-              <p className="seat-settings-hint" role="status">
-                {hint}
-              </p>
-            )}
-          </div>
-        </OverlayPanel>
-      )}
-      {selected && operation === 'rename' && (
+      {selected && (
         <OverlayPanel title="修改名称" close={close} initialFocus={nameInput}>
           <form
             className="seat-settings-rename-form"
@@ -231,7 +238,7 @@ export function SeatSettings({
               aria-invalid={nameRejected}
               disabled={locked}
               onChange={(event) => {
-                setNameRejected(false);
+                setNameRejected(Boolean(playerNameError(event.target.value)));
                 setDraftName(event.target.value);
               }}
             />
@@ -242,6 +249,7 @@ export function SeatSettings({
               <button
                 disabled={
                   locked ||
+                  Boolean(nameError) ||
                   !draftName.trim() ||
                   draftName.trim() === selected.name
                 }
@@ -253,5 +261,31 @@ export function SeatSettings({
         </OverlayPanel>
       )}
     </>
+  );
+}
+
+const seatActionPaths = {
+  up: 'M12 19V5m-6 6 6-6 6 6',
+  down: 'M12 5v14m-6-6 6 6 6-6',
+  edit: 'm15 4 5 5M4 15 16 3a2 2 0 0 1 3 0l2 2a2 2 0 0 1 0 3L9 20l-6 1 1-6Z',
+  remove: 'M3 6h18M9 6V3h6v3M5 6l1 15h12l1-15M10 10v7M14 10v7',
+  owner:
+    'm12 3 2.8 5.7 6.3.9-4.5 4.4 1.1 6.2-5.7-3-5.7 3 1.1-6.2-4.5-4.4 6.3-.9L12 3Z',
+};
+function SeatActionIcon({ kind }: { kind: keyof typeof seatActionPaths }) {
+  return (
+    <svg
+      width="22"
+      height="22"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <path d={seatActionPaths[kind]} />
+    </svg>
   );
 }

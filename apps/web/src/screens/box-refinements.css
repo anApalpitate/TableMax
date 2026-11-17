@@ -305,42 +305,135 @@
     line-height: 1.35;
   }
 }
+
+.box-game-switch > svg {
+  display: none;
+}
 @media (max-width: 720px) {
   .box-screen > header {
-    grid-template-columns: minmax(0, 1fr) auto;
-    grid-template-areas:
-      'brand connection'
-      'settings settings';
-    gap: 8px 12px;
-  }
-  .box-screen > header .header-status {
-    justify-content: flex-start;
-  }
-  .box-screen > header > .connection {
-    align-self: start;
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    grid-template-areas: 'brand connection settings';
+    gap: 4px;
   }
   .box-screen > header > .brand {
     min-height: 44px;
+    gap: 6px;
+    font-size: 20px;
+  }
+  .box-screen > header .brand-mark {
+    width: 24px;
+    height: 24px;
+  }
+  .box-screen > header .header-status {
+    gap: 0;
+    justify-content: flex-end;
+  }
+  .box-screen > header > .connection {
+    gap: 6px;
+    align-self: center;
+  }
+  .box-screen
+    > header
+    .header-status
+    > :is(.icon-label-control, .room-management-control) {
+    display: inline-grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    min-height: 44px;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    box-shadow: none;
+  }
+  .box-screen > header .icon-label-control > span {
+    display: none;
   }
   .box-screen .hero:has(.box-game-title) {
-    flex-wrap: wrap;
-    column-gap: 8px;
-    row-gap: 10px;
+    display: grid;
+    grid-template-columns: 44px minmax(0, 1fr) 44px 44px;
+    align-items: center;
+    gap: 8px;
+    margin-block: 12px;
+    padding: 12px;
+    border-radius: 18px;
+  }
+  .box-screen .hero:not(:has(.box-game-switch)) {
+    grid-template-columns: 44px minmax(0, 1fr) 44px;
   }
   .box-screen .hero > img {
-    order: 0;
+    grid-column: 1;
+    grid-row: 1;
+    width: 44px;
+    height: 54px;
+    border-radius: 8px;
   }
   .box-screen .hero .box-game-title {
-    order: 1;
-    flex: 1 0 calc(100% - 132px);
+    grid-column: 2;
+    grid-row: 1;
+    min-width: 0;
+  }
+  .box-screen .hero .box-game-title h1 {
+    margin: 0;
+    font-size: 20px;
+    line-height: 1.35;
+  }
+  .box-screen .hero:not(:has(> img)) .box-game-title {
+    grid-column: 1 / -1;
+  }
+  .box-screen .hero > button:is(.box-info-control, .box-game-switch) {
+    display: grid;
+    place-items: center;
+    width: 44px;
+    min-width: 44px;
+    height: 44px;
+    min-height: 44px;
+    padding: 0;
+    margin: 0;
+    border: 0;
+    color: #255d4c;
+    background: transparent;
+    box-shadow: none;
   }
   .box-screen .hero .box-info-control {
-    order: 2;
+    grid-column: -2 / -1;
+    grid-row: 1;
   }
-  .box-screen .hero > button:not(.box-info-control) {
-    order: 3;
-    flex: 1 1 130px;
+  .box-screen .hero .box-game-switch {
+    grid-column: 3;
+    grid-row: 1;
+  }
+  .box-screen .hero .box-game-switch > span {
+    display: none;
+  }
+  .box-screen .hero .box-game-switch > svg {
+    display: block;
+  }
+  .box-screen
+    .hero
+    > :is(.gameplay-selector-control, .box-library-entry, .box-enter-game) {
+    grid-column: 1 / -1;
+    width: 100%;
     margin: 0;
+  }
+}
+@media (max-width: 360px) {
+  .box-screen > header > .brand {
+    font-size: 18px;
+  }
+  .box-screen > header .brand-mark {
+    width: 22px;
+    height: 22px;
+  }
+}
+@media (max-width: 420px) {
+  .box-screen > header:has([aria-label='程序更新']) .box-connection-copy {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
   }
 }
 @media (max-width: 600px) {

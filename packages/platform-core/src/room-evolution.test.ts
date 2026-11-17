@@ -886,3 +886,82 @@ it('ends and switches in one transaction, preserving the old game on failures an
   expect(restored.view(owner.token).instanceId).toBe(after.instanceId);
   expect(restored.view(owner.token).game!.id).toBe('template');
 });
+
+it.each([true, false])(
+  'returns Box end to a recoverable lobby with the start join setting %s',
+  async (open) => {
+    const { repository, players, room: original } = await pokemon();
+    let room = original;
+    const owner = room.view(players[0]!.token).self.seatId!;
+    await send(room, { type: 'set-owner', seatId: owner });
+    await send(room, { type: 'join-open', open });
+    await start(room, players);
+    expect(repository.value!.joinOpenBeforeStart).toBe(open);
+    expect(room.view().joinOpen).toBe(false);
+    room = new RoomCoordinator(rules, bot, repository);
+    const before = room.view();
+    const request = envelope(before, { type: 'end', returnToLobby: true });
+    expect(await send(room, request.command, players[0]!.token)).toEqual({
+      ok: false,
+      reason: 'unauthorized',
+    });
+    repository.fail = true;
+    expect(await room.command(room.hostToken, request)).toEqual({
+      ok: false,
+      reason: 'save-or-action-failed',
+    });
+    expect(room.view()).toEqual(before);
+    repository.fail = false;
+    const reply = await room.command(room.hostToken, request);
+    expect(reply.ok).toBe(true);
+    expect(await room.command(room.hostToken, request)).toEqual(reply);
+    expect(room.commandStatus(room.hostToken, request)).toEqual({
+      status: 'completed',
+      reply,
+    });
+    const lobby = room.view();
+    expect(lobby.status).toBe('lobby');
+    expect(lobby.joinOpen).toBe(open);
+    expect(lobby.instanceId).not.toBe(before.instanceId);
+    expect(lobby.ownerSeatId).toBe(owner);
+    expect(lobby.gameView).toBeNull();
+    expect(
+      lobby.seats.map((seat) => [seat.id, seat.avatarId, seat.ready]),
+    ).toEqual(before.seats.map((seat) => [seat.id, seat.avatarId, false]));
+    const transaction = repository.transactions.at(-1)!;
+    expect(transaction.extras!.journal![0]).toMatchObject({
+      instanceId: before.instanceId,
+      status: 'ended',
+      endReason: '管理员结束',
+    });
+    room = new RoomCoordinator(rules, bot, repository);
+    expect(room.view().status).toBe('lobby');
+    expect(room.view().joinOpen).toBe(open);
+    expect(room.view(players[0]!.token).self.seatId).toBe(owner);
+    if (open)
+      await expect(room.join('新朋友')).resolves.toHaveProperty('token');
+    else await expect(room.join('新朋友')).rejects.toThrow('joining-closed');
+  },
+);
+
+it('uses the existing open-join fallback for legacy matches without a start preference', async () => {
+  const { room, repository, players } = await pokemon();
+  await start(room, players);
+  delete repository.value!.joinOpenBeforeStart;
+  const restored = new RoomCoordinator(rules, bot, repository);
+  expect((await send(restored, { type: 'end', returnToLobby: true })).ok).toBe(
+    true,
+  );
+  expect(restored.view().status).toBe('lobby');
+  expect(restored.view().joinOpen).toBe(true);
+});
+
+it('preserves a closed lobby join setting through ordinary end and replay', async () => {
+  const { room, players } = await pokemon();
+  await send(room, { type: 'join-open', open: false });
+  await start(room, players);
+  await send(room, { type: 'end' });
+  expect(room.view().status).toBe('ended');
+  expect((await send(room, { type: 'replay' })).ok).toBe(true);
+  expect(room.view().joinOpen).toBe(false);
+});
