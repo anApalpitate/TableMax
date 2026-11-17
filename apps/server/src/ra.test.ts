@@ -1,3 +1,4 @@
+import type { BotDifficulty } from '@tablemax/game-sdk';
 import { describe, expect, it } from 'vitest';
 import { mkdirSync, mkdtempSync, rmSync } from 'node:fs';
 import { join, resolve } from 'node:path';
@@ -133,7 +134,7 @@ describe('Ra retail third printing', () => {
     expect(s.players[winner]!.down).toEqual([1]);
   });
 
-  it('draws from an empty lot unless the default bot can make a clear disk upgrade', async () => {
+  it('draws from an empty lot across difficulties unless the upgrade is uncontested', async () => {
     const ctx = context(3);
     const state = rules.initialize(ctx);
     const decision = rules.decisions(state)[0]!;
@@ -142,7 +143,13 @@ describe('Ra retail third printing', () => {
       seatId: decision.seatId,
     });
     const own = view.players.find(({ seat }) => seat === decision.seatId)!;
-    const decide = async (center: number, disks: number[], auction = false) =>
+    const decide = async (
+      center: number,
+      disks: number[],
+      auction = false,
+      solo = false,
+      difficulty: BotDifficulty = 'default',
+    ) =>
       bot.decide({
         view: {
           ...view,
@@ -151,7 +158,11 @@ describe('Ra retail third printing', () => {
             ? { caller: own.seat, cause: 'invokeOpen', bids: [] }
             : null,
           players: view.players.map((player) =>
-            player === own ? { ...own, disks } : player,
+            player === own
+              ? { ...own, disks }
+              : solo
+                ? { ...player, disks: [] }
+                : player,
           ),
         },
         decision,
@@ -160,12 +171,19 @@ describe('Ra retail third printing', () => {
           : [{ type: 'draw' }, { type: 'invokeRa' }],
         memory: null,
         random: { next: () => 0.99 },
-        difficulty: 'default',
+        difficulty,
         signal: new AbortController().signal,
       });
     expect((await decide(1, [2, 7])).action).toEqual({ type: 'draw' });
     expect((await decide(6, [2, 7])).action).toEqual({ type: 'draw' });
-    expect((await decide(7, [2, 8])).action).toEqual({ type: 'invokeRa' });
+    for (const difficulty of bot.difficulties!) {
+      expect(
+        (await decide(16, [2, 8], false, false, difficulty)).action,
+      ).toEqual({ type: 'draw' });
+      expect((await decide(7, [2, 8], false, true, difficulty)).action).toEqual(
+        { type: 'invokeRa' },
+      );
+    }
     expect((await decide(12, [2])).action).toEqual({ type: 'draw' });
     expect((await decide(7, [2, 8], true)).action).toEqual({
       type: 'bid',

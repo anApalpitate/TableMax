@@ -62,30 +62,31 @@ export const bot: BotStrategy = {
       }
     };
     if (actions.length === 0) throw new Error('没有合法动作');
-    if (difficulty === 'default') {
-      if (v.lot.every((slot) => slot === null)) {
-        const draw = choices.find((action) => action.type === 'draw');
-        const invoke = choices.find((action) => action.type === 'invokeRa');
-        if (draw && invoke)
-          return {
-            action:
-              own.disks.length > 1 && v.center - Math.min(...own.disks) >= 5
-                ? invoke
-                : draw,
-            memory: null,
-          };
-        if (
-          v.auction?.caller === own.seat &&
-          v.auction.cause === 'invokeOpen'
-        ) {
-          const cheapest = choices.find(
-            (action) =>
-              action.type === 'bid' && action.disk === Math.min(...own.disks),
-          );
-          if (cheapest && !choices.some((action) => action.type === 'pass'))
-            return { action: cheapest, memory: null };
-        }
+    if (v.lot.every((slot) => slot === null)) {
+      const draw = choices.find((action) => action.type === 'draw');
+      const invoke = choices.find((action) => action.type === 'invokeRa');
+      if (draw && invoke)
+        return {
+          action:
+            own.disks.length > 1 &&
+            v.center - Math.min(...own.disks) >= 5 &&
+            v.players.every(
+              (player) => player.seat === own.seat || player.disks.length === 0,
+            )
+              ? invoke
+              : draw,
+          memory: null,
+        };
+      if (v.auction?.caller === own.seat && v.auction.cause === 'invokeOpen') {
+        const cheapest = choices.find(
+          (action) =>
+            action.type === 'bid' && action.disk === Math.min(...own.disks),
+        );
+        if (cheapest && !choices.some((action) => action.type === 'pass'))
+          return { action: cheapest, memory: null };
       }
+    }
+    if (difficulty === 'default') {
       return {
         action: actions[Math.floor(random.next() * actions.length)]!,
         memory: null,
