@@ -895,3 +895,43 @@
     block-size: calc(30 * var(--ra-display-unit, 1px));
   }
 }
+.settings-panel--preferences .ra-push-setting {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: center;
+}
+.ra-push-setting > button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .ra-track-nudge {
+    animation: ra-track-nudge 480ms ease-in-out;
+  }
+  .ra-track-token[data-active='false']:has(.ra-track-nudge) {
+    opacity: 1;
+    transform: translateY(-50%);
+    background: none;
+  }
+  .ra-track-token[data-active='false'] .ra-track-nudge {
+    animation-name: ra-track-start-nudge;
+    animation-fill-mode: both;
+  }
+}
+@keyframes ra-track-nudge {
+  42% {
+    transform: translateX(9px);
+  }
+}
+@keyframes ra-track-start-nudge {
+  0%,
+  100% {
+    opacity: 0;
+  }
+  36% {
+    opacity: 1;
+    transform: translateX(9px);
+  }
+}

@@ -6,6 +6,7 @@ import {
 } from '@tablemax/web-host';
 import type { RaView } from '../rules';
 import { SunDisk } from './art';
+import { liveRaFeedback } from './feedback';
 
 const sounds = import.meta.glob<string>(
   '../../../assets/games/ra/audio/*.flac',
@@ -24,6 +25,7 @@ const priorities = [
   'clear',
   'hold',
   'open',
+  'invoke',
   'god',
   'bid',
   'draw',
@@ -38,27 +40,21 @@ export function RaEffects({
 }) {
   const audioEnabled = useAudioOutput();
   const audio = useRef<HTMLAudioElement>(null);
-  const feedback = session.feedback;
-  const view = session.view;
-  const active =
-    view &&
-    feedback &&
-    session.connected &&
-    !view.paused &&
-    view.playMode === 'play' &&
-    view.instanceId === feedback.instanceId &&
-    view.branch === feedback.branch &&
-    view.revision === feedback.revision;
-  const cue = active
+  const feedback = liveRaFeedback(session);
+  const cue = feedback
     ? priorities.find((value) =>
         feedback.events.some(({ kind }) => kind === 'ra-' + value),
       )
     : undefined;
   const key =
-    active && cue
+    feedback && cue
       ? `${feedback.instanceId}:${feedback.branch}:${feedback.revision}:${cue}`
       : '';
-  const sound = cue && sounds[`../../../assets/games/ra/audio/${cue}.flac`];
+  const sound =
+    cue &&
+    sounds[
+      `../../../assets/games/ra/audio/${cue === 'invoke' ? 'open' : cue}.flac`
+    ];
   const audible = session.role === 'host' && audioEnabled;
 
   useEffect(() => {
@@ -120,7 +116,7 @@ export function RaEffects({
           key={key}
           ref={stage}
           className="ra-effect"
-          data-cue={cue}
+          data-cue={cue === 'invoke' ? 'open' : cue}
           data-role={session.role}
           style={
             {

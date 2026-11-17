@@ -17,6 +17,7 @@ const name = (id: string) => tileNames[tile(id).face]!;
 type Cue =
   | 'draw'
   | 'open'
+  | 'invoke'
   | 'bid'
   | 'won'
   | 'clear'
@@ -258,7 +259,7 @@ export function play(s: State, action: Action, seat: string): PublicEvent[] {
       break;
     }
     case 'invokeRa':
-      tell(`${seatName(s, seat)}呼唤拉`, 'open');
+      tell(`${seatName(s, seat)}呼唤拉`, 'invoke');
       openAuction(
         s,
         seat,

@@ -1,5 +1,5 @@
 /* eslint-disable react-refresh/only-export-components -- Lazy adapter exports a GameClient. */
-import { useState } from 'react';
+import { useId, useState } from 'react';
 import { RulebookIcon } from '@tablemax/web-host';
 import {
   CountdownSettings,
@@ -7,6 +7,7 @@ import {
   RoomManagement,
   ScreenLink,
   SessionFeedback,
+  SettingHelp,
   type GameClient,
   type GameHost,
 } from '@tablemax/web-host';
@@ -15,6 +16,7 @@ import { tileNames } from '../rules/data';
 import { holdingsBreakdown, scoreDelta } from '../rules/scoring';
 import { SunDisk, TableArt, TileFace } from './art';
 import { RaEffects } from './effects';
+import { liveRaFeedback } from './feedback';
 import { PlayerBoard, PlayerSummary, AuctionBadge } from './player-board';
 import './ra.css';
 
@@ -32,6 +34,7 @@ const simple = {
 const actionArt = { draw: 'tile-bag', invokeRa: 'ra-statue' } as const;
 
 type Exchange = Extract<Action, { type: 'spendGod' }>;
+const pushBoatPreference = 'tablemax:ra:auction-push-boat';
 
 function Controls({
   session,
@@ -220,6 +223,19 @@ function Controls({
 }
 
 function RaScreen({ session }: { session: GameHost }) {
+  const boatSettingId = useId();
+  const [pushBoat, setPushBoat] = useState(() => {
+    try {
+      return localStorage.getItem(pushBoatPreference) === '1';
+    } catch {
+      return false;
+    }
+  });
+  const [ignoredPush, setIgnoredPush] = useState('');
+  const feedback = liveRaFeedback(session);
+  const pushKey = feedback?.events.some((event) => event.kind === 'ra-invoke')
+    ? `${feedback.instanceId}:${feedback.branch}:${feedback.revision}`
+    : '';
   const [showRules, setShowRules] = useState(false);
   const [showRecord, setShowRecord] = useState(false);
   const [showScores, setShowScores] = useState<string>();
@@ -324,6 +340,38 @@ function RaScreen({ session }: { session: GameHost }) {
           </button>
           {session.role !== 'public' && (
             <CountdownSettings session={session} iconOnly>
+              <div className="display-settings-choice ra-push-setting">
+                <SettingHelp
+                  id={boatSettingId}
+                  label="玩家拍卖推船"
+                  hint="主动开拍时，太阳船短暂前探后归位。此项仅适用于当前设备。"
+                />
+                <button
+                  type="button"
+                  className="secondary"
+                  role="switch"
+                  aria-checked={pushBoat}
+                  aria-labelledby={boatSettingId}
+                  onClick={() => {
+                    setIgnoredPush(pushKey);
+                    setPushBoat(!pushBoat);
+                    try {
+                      localStorage.setItem(
+                        pushBoatPreference,
+                        pushBoat ? '0' : '1',
+                      );
+                    } catch {
+                      // The setting still works for this page without storage.
+                    }
+                  }}
+                >
+                  <span
+                    className={`settings-switch${pushBoat ? ' settings-switch--on' : ''}`}
+                    aria-hidden="true"
+                  />
+                  {pushBoat ? '已开启' : '已关闭'}
+                </button>
+              </div>
               {session.canControl && <RoomManagement session={session} />}
             </CountdownSettings>
           )}
@@ -378,7 +426,12 @@ function RaScreen({ session }: { session: GameHost }) {
                 <SunDisk value={game.center} />
               </span>
             </div>
-            <RaTrack key={game.epoch} drawn={game.raDrawn} limit={game.limit} />
+            <RaTrack
+              key={game.epoch}
+              drawn={game.raDrawn}
+              limit={game.limit}
+              pushKey={pushBoat && pushKey !== ignoredPush ? pushKey : ''}
+            />
             <ol className="ra-lot" aria-label="拍卖行">
               {game.lot.map((tile, index) => {
                 const target = godMode
@@ -565,7 +618,15 @@ function RaScreen({ session }: { session: GameHost }) {
   );
 }
 
-function RaTrack({ drawn, limit }: { drawn: number; limit: number }) {
+function RaTrack({
+  drawn,
+  limit,
+  pushKey,
+}: {
+  drawn: number;
+  limit: number;
+  pushKey: string;
+}) {
   const position = drawn ? ((drawn - 0.5) / limit) * 100 : 0;
   return (
     <div className="ra-track">
@@ -604,7 +665,13 @@ function RaTrack({ drawn, limit }: { drawn: number; limit: number }) {
           style={{ left: `${position}%` }}
           aria-hidden="true"
         >
-          <TableArt piece="sun-boat" className="ra-track-boat" />
+          <TableArt
+            key={pushKey}
+            piece="sun-boat"
+            className={
+              pushKey ? 'ra-track-boat ra-track-nudge' : 'ra-track-boat'
+            }
+          />
         </span>
       </div>
     </div>
