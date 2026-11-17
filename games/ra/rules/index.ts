@@ -70,6 +70,11 @@ function project(
 ) {
   const publicScoring = s.publicScoring === true;
   const ended = s.phase === 'ended';
+  const disaster = s.disaster;
+  const selfDisaster =
+    disaster && viewer.role === 'player' && viewer.seatId === disaster.owner
+      ? disaster
+      : undefined;
   return {
     publicScoring,
     scenes: s.scenes ?? [],
@@ -90,9 +95,24 @@ function project(
     lot: s.lot.map((id) => (id === null ? null : tile(id))),
     auction: s.auction,
     lastAuction: s.lastAuction,
-    pending: s.disaster
-      ? { owner: s.disaster.owner, tile: tile(s.disaster.queue[0]!) }
+    pending: disaster
+      ? { owner: disaster.owner, tile: tile(disaster.queue[0]!) }
       : null,
+    ...(selfDisaster && {
+      disasterDecision: {
+        ...(selfDisaster.total === undefined
+          ? {}
+          : {
+              step: selfDisaster.total - selfDisaster.queue.length + 1,
+              total: selfDisaster.total,
+            }),
+        ...(selfDisaster.queue[1] ? { next: tile(selfDisaster.queue[1]) } : {}),
+        received:
+          !selfDisaster.godChain && s.lastAuction?.winner === selfDisaster.owner
+            ? (s.lastAuction.tiles ?? [])
+            : [],
+      },
+    }),
     winner: s.winner,
     players: s.seats.map((seat) => {
       const p = s.players[seat]!;

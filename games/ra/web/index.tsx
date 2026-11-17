@@ -22,6 +22,7 @@ import { RaEffects } from './effects';
 import { liveRaFeedback } from './feedback';
 import { PlayerBoard, PlayerSummary, AuctionBadge } from './player-board';
 import { AuctionRecap, AuctionRecordPanel } from './auction-recap';
+import { DecisionControls, type Exchange } from './decision-controls';
 import './ra.css';
 import './table-details.css';
 
@@ -30,202 +31,7 @@ const causes = {
   invokeFull: '满行呼唤拉',
   invokeOpen: '呼唤拉',
 };
-const simple = {
-  draw: '抽取',
-  invokeRa: '拍卖',
-  pass: '跳过',
-  finishGod: '结束神迹行动',
-};
-const actionArt = { draw: 'tile-bag', invokeRa: 'ra-statue' } as const;
-
-type Exchange = Extract<Action, { type: 'spendGod' }>;
 const pushBoatPreference = 'tablemax:ra:auction-push-boat';
-
-function Controls({
-  session,
-  game,
-  pending,
-  godMode,
-  toggleGod,
-}: {
-  session: GameHost;
-  game: RaView;
-  pending: Exchange | undefined;
-  godMode: boolean;
-  toggleGod: () => void;
-}) {
-  const [selection, setSelection] = useState<string[]>([]);
-  const actions = (session.view?.actions ?? []) as Action[];
-  const send = (action: Action) => {
-    const decisionId = session.view?.decisionId;
-    if (decisionId && !session.locked)
-      session.command({ type: 'game', decisionId, action });
-  };
-  const slotActions = actions.filter((action) => action.type === 'spendGod');
-  const discards = actions.filter((action) => action.type === 'discard');
-  const held =
-    game.players.find((p) => p.seat === session.self?.id)?.held ?? [];
-  const label = (id: string) =>
-    tileNames[held.find((tile) => tile.id === id)?.face ?? ''] ?? id;
-  const discardChoice = discards.find(
-    (action) =>
-      selection.length === action.tileIds.length &&
-      action.tileIds.every((id) => selection.includes(id)),
-  );
-  const selected = discardChoice ?? pending;
-
-  const regular = game.phase === 'turn';
-  const draw = actions.find((action) => action.type === 'draw');
-  const invoke = actions.find((action) => action.type === 'invokeRa');
-  return (
-    <section aria-label="本席操作" className="ra-actions">
-      {regular && (
-        <>
-          <div className="ra-turn-controls">
-            <button
-              type="button"
-              className="ra-component-action"
-              disabled={!draw || session.locked || godMode}
-              onClick={() => draw && send(draw)}
-            >
-              <TableArt piece={actionArt.draw} className="ra-action-art" />
-              {simple.draw}
-            </button>
-            <button
-              type="button"
-              className="ra-component-action"
-              disabled={!invoke || session.locked || godMode}
-              onClick={() => invoke && send(invoke)}
-            >
-              <TableArt piece={actionArt.invokeRa} className="ra-action-art" />
-              {simple.invokeRa}
-            </button>
-            <button
-              type="button"
-              aria-pressed={godMode}
-              disabled={!slotActions.length || session.locked}
-              onClick={toggleGod}
-            >
-              神迹替换
-            </button>
-          </div>
-          <p className="ra-action-hint">
-            {godMode
-              ? '点选拍卖行里的石板'
-              : game.lot.every(Boolean)
-                ? '拍卖行已满，全员跳过会清空拍品'
-                : '无人出价时，发起者必须出价'}
-          </p>
-        </>
-      )}
-      {game.phase === 'godChain' && <p>可再从拍卖行换取一枚石板</p>}
-      {game.phase === 'auction' && !actions.some((a) => a.type === 'pass') && (
-        <strong>必须出价</strong>
-      )}
-      {actions.map((action) => {
-        if (
-          action.type === 'discard' ||
-          action.type === 'spendGod' ||
-          action.type === 'draw' ||
-          action.type === 'invokeRa'
-        )
-          return null;
-        return (
-          <button
-            type="button"
-            key={JSON.stringify(action)}
-            disabled={session.locked}
-            className={action.type === 'bid' ? 'ra-bid' : undefined}
-            aria-label={
-              action.type === 'bid' ? `出价 ${action.disk}` : undefined
-            }
-            onClick={() => send(action)}
-          >
-            {action.type === 'bid' ? (
-              <SunDisk value={action.disk} />
-            ) : (
-              simple[action.type]
-            )}
-          </button>
-        );
-      })}
-      {discards.length > 0 && (
-        <fieldset>
-          <legend>
-            弃置 {selection.length}／{discards[0]!.tileIds.length}
-          </legend>
-          <div className="ra-options">
-            {held
-              .filter((tile) =>
-                discards.some((action) => action.tileIds.includes(tile.id)),
-              )
-              .map((tile) => {
-                const pressed = selection.includes(tile.id);
-                const allowed =
-                  !pressed &&
-                  discards.some(
-                    (action) =>
-                      action.tileIds.includes(tile.id) &&
-                      selection.every((id) => action.tileIds.includes(id)),
-                  );
-                return (
-                  <button
-                    type="button"
-                    className="ra-choice"
-                    key={tile.id}
-                    aria-label={`选择${label(tile.id)}`}
-                    aria-pressed={pressed}
-                    disabled={session.locked || (!pressed && !allowed)}
-                    onClick={() =>
-                      setSelection(
-                        pressed
-                          ? selection.filter((id) => id !== tile.id)
-                          : [...selection, tile.id],
-                      )
-                    }
-                  >
-                    <TileFace tile={tile} decorative />
-                  </button>
-                );
-              })}
-          </div>
-          {selection.length > 0 && (
-            <button
-              type="button"
-              disabled={session.locked}
-              onClick={() => setSelection([])}
-            >
-              取消选择
-            </button>
-          )}
-        </fieldset>
-      )}
-      {selected && (
-        <button
-          type="button"
-          className="ra-confirm"
-          aria-label={
-            selected.type === 'spendGod'
-              ? `确认换取第 ${selected.slot + 1} 格 ${tileNames[game.lot[selected.slot]!.face]}`
-              : selected.type === 'discard'
-                ? `确认弃置${selected.tileIds.map(label).join('、')}`
-                : '确认'
-          }
-          disabled={session.locked}
-          onClick={() => {
-            send(selected);
-          }}
-        >
-          {selected.type === 'spendGod'
-            ? '确认换取'
-            : selected.type === 'discard'
-              ? '确认弃置'
-              : '确认'}
-        </button>
-      )}
-    </section>
-  );
-}
 
 function RaScreen({ session }: { session: GameHost }) {
   const audioEnabled = useAudioOutput();
@@ -278,6 +84,12 @@ function RaScreen({ session }: { session: GameHost }) {
     (action): action is Exchange => action.type === 'spendGod',
   );
   const currentExchange = exchange?.key === decisionKey ? exchange : undefined;
+  const exchangeTarget = exchangeOptions.find(
+    (option) =>
+      option.slot === currentExchange?.target?.slot &&
+      option.tileId === currentExchange.target.tileId &&
+      option.godId === currentExchange.target.godId,
+  );
   const godMode =
     exchangeOptions.length > 0 &&
     (game?.phase === 'godChain' || Boolean(currentExchange));
@@ -480,12 +292,14 @@ function RaScreen({ session }: { session: GameHost }) {
                           type="button"
                           className="ra-lot-target"
                           aria-label={`换取第 ${index + 1} 格 ${tileNames[tile.face]}`}
-                          aria-pressed={
-                            currentExchange?.target?.tileId === tile.id
-                          }
+                          aria-pressed={exchangeTarget?.tileId === tile.id}
                           disabled={session.locked}
                           onClick={() =>
-                            setExchange({ key: decisionKey, target })
+                            setExchange(
+                              exchangeTarget?.tileId === tile.id
+                                ? { key: decisionKey }
+                                : { key: decisionKey, target },
+                            )
                           }
                         >
                           <TileFace tile={tile} decorative />
@@ -553,16 +367,18 @@ function RaScreen({ session }: { session: GameHost }) {
               </ol>
             </section>
           )}
-          {decisionKey && (session.view?.actions?.length ?? 0) > 0 && (
-            <Controls
-              key={decisionKey}
+          {ownBoard && (
+            <DecisionControls
+              decisionKey={decisionKey}
               session={session}
               game={game}
-              pending={currentExchange?.target}
+              player={ownBoard}
+              exchange={exchangeTarget}
               godMode={godMode}
-              toggleGod={() =>
-                setExchange(currentExchange ? undefined : { key: decisionKey })
-              }
+              enterGod={() => setExchange({ key: decisionKey })}
+              exitGod={() => setExchange(undefined)}
+              clearTarget={() => setExchange({ key: decisionKey })}
+              savedFeedback={Boolean(feedback)}
             />
           )}
           {ownBoard ? (

@@ -186,7 +186,7 @@ function acquire(
   );
   s.phase = 'disaster';
   s.actor = seat;
-  s.disaster = { owner: seat, queue, resume, godChain };
+  s.disaster = { owner: seat, queue, resume, godChain, total: queue.length };
   advanceDisasters(s, tell);
 }
 

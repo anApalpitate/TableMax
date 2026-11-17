@@ -75,6 +75,7 @@ export type State = {
     queue: string[];
     resume: string;
     godChain: boolean;
+    total?: number;
   } | null;
   winner: string | null;
 };
@@ -214,13 +215,17 @@ export function validateState(input: unknown, seats: readonly string[]): State {
     });
   }
   if (s.disaster) {
-    const { owner, resume, queue, godChain } = s.disaster;
+    const { owner, resume, queue, godChain, total } = s.disaster;
     invariant(
       s.actor === owner &&
         seats.includes(resume) &&
         typeof godChain === 'boolean' &&
         Array.isArray(queue) &&
         queue.length > 0 &&
+        (total === undefined ||
+          (Number.isInteger(total) &&
+            total >= queue.length &&
+            total <= auctionSlots)) &&
         queue.every((id) => tile(id).kind === 'disaster'),
     );
     allTiles.push(...queue);

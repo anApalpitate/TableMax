@@ -214,6 +214,41 @@ describe('Ra retail third printing', () => {
     });
   });
 
+  it('keeps disaster batch progress private and accepts older pending saves', () => {
+    let state = rules.initialize(context(2));
+    const caller = state.actor!;
+    const winner = state.seats.find((seat) => seat !== caller)!;
+    state = arrange(state, ['earthquake-1', 'war-1', 'sphinx-1', 'art-1'], {
+      [winner]: ['pyramid-1', 'temple-1', 'writing-1', 'religion-1'],
+    });
+    state = apply(state, { type: 'invokeRa' });
+    state = apply(state, { type: 'bid', disk: state.players[winner]!.up[0]! });
+    if (state.phase === 'auction') state = apply(state, { type: 'pass' });
+    const view = () => rules.project(state, { role: 'player', seatId: winner });
+    expect(view().disasterDecision).toMatchObject({
+      step: 1,
+      total: 2,
+      next: { face: 'war' },
+      received: ['earthquake-1', 'war-1', 'sphinx-1', 'art-1'],
+    });
+    expect(rules.project(state, { role: 'public' })).not.toHaveProperty(
+      'disasterDecision',
+    );
+    expect(
+      rules.project(state, { role: 'player', seatId: caller }),
+    ).not.toHaveProperty('disasterDecision');
+    const legacy = structuredClone(state);
+    delete legacy.disaster!.total;
+    expect(rules.validateState(legacy, legacy.seats)).toBe(legacy);
+    expect(
+      rules.project(legacy, { role: 'player', seatId: winner })
+        .disasterDecision,
+    ).not.toHaveProperty('total');
+    state = apply(state, rules.legalActions(state, winner)[0]!);
+    expect(view().disasterDecision).toMatchObject({ step: 2, total: 2 });
+    expect(view().disasterDecision).not.toHaveProperty('next');
+  });
+
   it('resolves won famine targets before scoring, and scores all categories with third-epoch bonuses', () => {
     const base = rules.initialize(context(2));
     const caller = base.actor!;

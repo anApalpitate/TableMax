@@ -1,0 +1,193 @@
+.ra-table .ra-decision-panel {
+  display: grid;
+  gap: 7px;
+  align-content: start;
+  min-inline-size: 0;
+}
+
+.ra-decision-panel > h2 {
+  font-size: 20px;
+  line-height: 1.2;
+}
+
+.ra-decision-note {
+  line-height: 1.45;
+  text-wrap: pretty;
+}
+
+.ra-decision-note > span {
+  display: inline-block;
+  margin-inline-end: 0.28em;
+}
+
+.ra-bid-facts,
+.ra-decision-buttons {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 5px;
+  margin: 0;
+}
+
+.ra-bid-facts > div {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0 6px;
+  padding: 4px 7px;
+  border: 1px solid var(--ra-edge);
+  border-radius: 5px;
+  background: var(--ra-slot);
+}
+
+.ra-bid-facts dd {
+  margin: 0;
+  font-weight: 750;
+  font-size: 18px;
+  white-space: nowrap;
+}
+
+.ra-bid-options {
+  display: flex;
+  align-items: stretch;
+  gap: 5px;
+}
+
+.ra-table .ra-bid-options button {
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  flex: 1;
+  padding: 4px;
+  min-inline-size: 0;
+  white-space: nowrap;
+}
+
+.ra-bid-options .ra-bid .ra-sun {
+  inline-size: 37px;
+}
+
+.ra-bid-limit {
+  font-size: 16px;
+}
+
+.ra-god-preview {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 7px;
+  padding: 5px 8px;
+  border: 1px solid var(--ra-edge);
+  border-radius: 6px;
+  background: var(--ra-slot);
+}
+
+.ra-god-preview .ra-tile {
+  width: 32px;
+  height: 37px;
+  object-fit: contain;
+}
+
+.ra-god-preview strong,
+.ra-god-preview span {
+  display: block;
+  line-height: 1.34;
+}
+
+.ra-god-preview strong > span {
+  display: inline-block;
+}
+
+.ra-table .ra-lot-target[aria-pressed='false'] {
+  border-color: #407b71;
+}
+
+.ra-table .ra-lot-target[aria-pressed='true']::after {
+  content: '✓';
+  position: absolute;
+  inset: 2px 2px auto auto;
+  display: grid;
+  place-content: center;
+  width: 21px;
+  height: 21px;
+  border-radius: 50%;
+  background: #24574d;
+  color: #fff4d8;
+}
+
+.ra-decision-panel legend > span:last-child:not(:first-child) {
+  display: inline-block;
+  margin-inline-start: 0.5em;
+}
+
+.ra-discard-options {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(64px, 1fr));
+  gap: 5px;
+  max-block-size: min(164px, 34dvh);
+  overflow: auto;
+  overscroll-behavior: contain;
+}
+
+.ra-table .ra-discard-options .ra-choice {
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  inline-size: auto;
+  block-size: auto;
+  padding: 5px 2px;
+}
+
+.ra-discard-options .ra-choice .ra-tile {
+  height: 44px;
+  width: 39px;
+  object-fit: contain;
+}
+
+.ra-decision-receipt,
+.ra-decision-wait {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 1px 10px;
+  padding: 5px 8px;
+  border-inline-start: 3px solid #688b75;
+  background: var(--ra-surface);
+  border-radius: 4px;
+  text-wrap: pretty;
+}
+
+.ra-decision-receipt span:first-child {
+  font-weight: 700;
+}
+
+@media (max-width: 760px) {
+  .ra-table[data-role='player'] .ra-decision-panel:not([data-kind='turn']) {
+    position: sticky;
+    bottom: 0;
+    z-index: 2147483001;
+    padding: 8px 10px max(8px, env(safe-area-inset-bottom));
+    background: #f6eedc;
+    box-shadow: 0 -3px 12px #45321935;
+  }
+
+  .ra-decision-panel .ra-decision-warning {
+    color: #853a2e;
+  }
+
+  .ra-decision-panel .ra-decision-buttons .ra-discard-confirm:enabled {
+    background: #8a3b2f;
+    color: #fff6df;
+  }
+
+  .ra-table .ra-discard-options {
+    grid-template-columns: repeat(auto-fit, minmax(66px, 1fr));
+  }
+
+  .ra-bid-facts > div {
+    background: #ebdfc5;
+  }
+
+  .ra-god-preview {
+    background: #e5e8d3;
+  }
+}
