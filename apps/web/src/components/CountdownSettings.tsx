@@ -79,6 +79,7 @@ export function Settings({
             className="settings-section"
             aria-label="基本设置"
             hidden={tab !== 'basic'}
+            inert={tab !== 'basic'}
           >
             <SoundSetting showSpeaker />
             {role === 'player' && <ShootingFloatingWindowSetting />}
@@ -89,6 +90,7 @@ export function Settings({
             aria-label="游戏设置"
             data-locked={playing || undefined}
             hidden={tab !== 'game'}
+            inert={tab !== 'game'}
           >
             <SettingLockHelp.Provider
               value={playing ? inGameSettingsHint : undefined}
@@ -109,6 +111,7 @@ export function Settings({
             className="settings-section"
             aria-label="视频设置"
             hidden={tab !== 'video'}
+            inert={tab !== 'video'}
           >
             <VideoSettingsFields role={role} />
           </section>

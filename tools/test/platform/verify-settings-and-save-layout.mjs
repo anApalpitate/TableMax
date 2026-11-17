@@ -1657,16 +1657,35 @@ try {
               ),
           );
           await assertSettingRowsAndHelp(page);
+          const frame = await panel.boundingBox();
+          const assertSameFrame = async () => {
+            const current = await panel.boundingBox();
+            assert(frame && current);
+            for (const key of ['x', 'y', 'width', 'height'])
+              assert(
+                Math.abs(current[key] - frame[key]) <= 1,
+                `Settings frame ${key} stays fixed across tabs`,
+              );
+            assert.equal(
+              await panel
+                .getByRole('region', { name: /^(基本|游戏|视频)设置$/ })
+                .count(),
+              1,
+              'Only the selected settings pane is exposed',
+            );
+          };
           await screenshot('basic');
           await panel
             .getByRole('button', { name: '游戏', exact: true })
             .click();
+          await assertSameFrame();
           await screenshot('game');
           await panel
             .getByRole('button', { name: '视频', exact: true })
             .click();
           const mode = page.getByLabel('显示模式', { exact: true });
           await mode.waitFor({ state: 'visible' });
+          await assertSameFrame();
           if (native) {
             const resolution = page.getByLabel('适配方式', { exact: true });
             const scale = page.getByLabel('界面大小', { exact: true });

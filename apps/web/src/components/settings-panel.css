@@ -214,15 +214,26 @@
   color: #173d32;
   box-shadow: 0 1px 3px #24463617;
 }
-.settings-section:not([hidden]) {
+.unified-settings-panel > .box-overlay-panel__content {
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: auto auto;
+}
+/* The three panes share one track so the longest pane reserves its space. */
+.unified-settings-panel > .box-overlay-panel__content > .settings-section {
   display: grid;
+  grid-area: 2 / 1;
   align-content: start;
   gap: 0;
   min-width: 0;
+  min-block-size: min(248px, 45dvh);
   padding: 0 10px;
   border: 1px solid #e0e7d9;
   border-radius: 14px;
   background: #fffef8;
+}
+.unified-settings-panel .settings-section[hidden] {
+  visibility: hidden;
+  pointer-events: none;
 }
 .unified-settings-panel
   .settings-section
