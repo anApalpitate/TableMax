@@ -16,8 +16,8 @@
       "originalBytes": 56492,
       "originalSha256": "74563015e2b769995b1d139a50c4c1bf21f3afb7be0e793ebabcd8a023b7a5a6",
       "runtime": "assets/games/uno/audio/place-v1.flac",
-      "runtimeBytes": 19092,
-      "runtimeSha256": "512b89925daae38d71c704ef198e6a8342ece09d36fdb733b2d6e343ffce0aa4",
+      "runtimeBytes": 19088,
+      "runtimeSha256": "cb27bc342dc926320eacfb9727181683766cf3bf5c7d951eabf36b5feeabe1b0",
       "decodedPcm": "Identical to source WAV samples"
     },
     {
@@ -32,8 +32,8 @@
       "originalBytes": 79424,
       "originalSha256": "9c48c614777f925d5bb5e0db51842ffc95fc61972ec976cc7db4db9102d02ab5",
       "runtime": "assets/games/uno/audio/draw-v1.flac",
-      "runtimeBytes": 33485,
-      "runtimeSha256": "7c7033f1be4abf431fe37e9c6f8ac83b3e63a9ffa7bca123c7dff9001df792a6",
+      "runtimeBytes": 32275,
+      "runtimeSha256": "640e20d16f3c04472334726b31429d2056148d84bfef23945f09aa203ca58786",
       "decodedPcm": "Identical to source WAV samples"
     },
     {
@@ -47,7 +47,7 @@
       "original": "artifacts/uno/audio/source-originals/reverse-v1.wav",
       "originalBytes": 109412,
       "originalSha256": "5dadf62f808bbb30e354812655594f707abeeead9ac2100742d3dfcae86dd1c2",
-      "runtime": "assets/games/uno/audio/reverse-v1.flac",
+      "runtime": "../../../../../TMP/TableMaxMaterial/originals/material-lossless-20261118-completed/assets/games/uno/audio/reverse-v1.flac",
       "runtimeBytes": 27270,
       "runtimeSha256": "0a60d5a39576b0d7a211bc9e387dc109cd58e3050d2ab3463ca473405fc4a967",
       "decodedPcm": "Identical to source WAV samples"
@@ -63,7 +63,7 @@
       "original": "artifacts/uno/audio/source-originals/skip-v1.wav",
       "originalBytes": 84716,
       "originalSha256": "46cddde484d25549ff6aa1ce684eeb333adf42be2271c3f93c0ca88fb22d15a6",
-      "runtime": "assets/games/uno/audio/skip-v1.flac",
+      "runtime": "../../../../../TMP/TableMaxMaterial/originals/material-lossless-20261118-completed/assets/games/uno/audio/skip-v1.flac",
       "runtimeBytes": 18796,
       "runtimeSha256": "010a17eafcd406de6ebf02adaa04141fe3cf8b4104e045eb5bb14680f3664bf6",
       "decodedPcm": "Identical to source WAV samples"
@@ -79,7 +79,7 @@
       "original": "artifacts/uno/audio/source-originals/draw-two-v1.wav",
       "originalBytes": 111176,
       "originalSha256": "dbc020a0b87c805df6f5573650fd90c6d1d893b79aa886152a8822df9516d147",
-      "runtime": "assets/games/uno/audio/draw-two-v1.flac",
+      "runtime": "../../../../../TMP/TableMaxMaterial/originals/material-lossless-20261118-completed/assets/games/uno/audio/draw-two-v1.flac",
       "runtimeBytes": 37466,
       "runtimeSha256": "99afc3165405b042cfe0a81711a45ca22eceb0d53ae16c34926f2039e5e6fc6c",
       "decodedPcm": "Identical to source WAV samples"
@@ -95,7 +95,7 @@
       "original": "artifacts/uno/audio/source-originals/draw-four-v1.wav",
       "originalBytes": 157040,
       "originalSha256": "56daec707eebf9b1158fdca33892cfc48351c572c3de8a1f3f8f4ab7412b8a81",
-      "runtime": "assets/games/uno/audio/draw-four-v1.flac",
+      "runtime": "../../../../../TMP/TableMaxMaterial/originals/material-lossless-20261118-completed/assets/games/uno/audio/draw-four-v1.flac",
       "runtimeBytes": 59323,
       "runtimeSha256": "002b2b6044e518c94fe20004e72f65fd4b82f42aa7f477136c9295df66a13be3",
       "decodedPcm": "Identical to source WAV samples"
@@ -111,7 +111,7 @@
       "original": "artifacts/uno/audio/source-originals/wild-v1.wav",
       "originalBytes": 114704,
       "originalSha256": "5c0210bcf711d4c8badd4d0a4c188411258ea3ebe8f4ee897893eff855ad65cd",
-      "runtime": "assets/games/uno/audio/wild-v1.flac",
+      "runtime": "../../../../../TMP/TableMaxMaterial/originals/material-lossless-20261118-completed/assets/games/uno/audio/wild-v1.flac",
       "runtimeBytes": 25865,
       "runtimeSha256": "b8c30883779081b688ab3a0f077938c51318c936ea5bd1b13e5d5e2d59ded3ef",
       "decodedPcm": "Identical to source WAV samples"
@@ -127,7 +127,7 @@
       "original": "artifacts/uno/audio/source-originals/uno-v1.wav",
       "originalBytes": 149984,
       "originalSha256": "87d8c765b29123547bd1f64ea3ebdd59a334961c75904e7cc1488d3ab286b0a6",
-      "runtime": "assets/games/uno/audio/uno-v1.flac",
+      "runtime": "../../../../../TMP/TableMaxMaterial/originals/material-lossless-20261118-completed/assets/games/uno/audio/uno-v1.flac",
       "runtimeBytes": 25455,
       "runtimeSha256": "75ab029cc4beaa18802097ac1066254b5ff35dc87f508a16d9d5e6b6762b8dd7",
       "decodedPcm": "Identical to source WAV samples"
@@ -160,8 +160,8 @@
       "originalBytes": 317564,
       "originalSha256": "061da8bee3010fa588d9618603b519b9a87098285f3137348be1e7649129d3c5",
       "runtime": "assets/games/uno/audio/win-v1.flac",
-      "runtimeBytes": 71612,
-      "runtimeSha256": "928949e0278b8f8cff8eaf00969f39d71f0fbf3a776ab18a372bcb9f15cefd93",
+      "runtimeBytes": 69401,
+      "runtimeSha256": "dd870ae5b91617091742402c4e4698089d94715f3a8720e32d65f31a79bda70b",
       "decodedPcm": "Identical to source WAV samples"
     },
     {
@@ -175,7 +175,7 @@
       "original": "artifacts/uno/audio/source-originals/catch-uno-v1.wav",
       "originalBytes": 102356,
       "originalSha256": "ab8554c3a8ecafd9a447e5d84c54ed4213ed2c8af9456c8ff83fb818391f839d",
-      "runtime": "assets/games/uno/audio/catch-uno-v1.flac",
+      "runtime": "../../../../../TMP/TableMaxMaterial/originals/material-lossless-20261118-completed/assets/games/uno/audio/catch-uno-v1.flac",
       "runtimeBytes": 23065,
       "runtimeSha256": "d11bfbb0a61a9f06ded50efdbc365d7340e130ca933f1bfb3eaada0d0f3fc96c",
       "decodedPcm": "Identical to source WAV samples"

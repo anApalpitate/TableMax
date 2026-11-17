@@ -1,0 +1,46 @@
+{
+  "version": 1,
+  "encoding": "FLAC lossless; sample-for-sample identical to previous PCM WAV",
+  "sourceArchive": "../../../../../TMP/TableMaxMaterial/originals/material-lossless-20261118-completed",
+  "files": [
+    {
+      "file": "draw-v1.flac",
+      "bytes": 1338,
+      "sha256": "7cb4df8e101491c98f879236bfdd6295671e5dfc9f1d547ed96a60dbeefa81c4",
+      "original": "../../../../../TMP/TableMaxMaterial/originals/material-lossless-20261118-completed/assets/games/rummikub/audio/draw-v1.wav",
+      "originalBytes": 8864,
+      "originalSha256": "d7f202ad49b3c54851db6db3dd372aaa98aa7b3b80b9708d5b720583d0a158e8",
+      "decodedPcmS32leSha256": "05fb947491065d1b5ecec124f2b7d0d7caba92407615ac4fa8abbba4a30b5974",
+      "rate": 22050,
+      "channels": 1,
+      "bits": 16,
+      "samples": 4410
+    },
+    {
+      "file": "place-v1.flac",
+      "bytes": 1757,
+      "sha256": "d7ef3ff68b0a44e1df11f289978aa2af374c1768cb837b56a09623e8e5a38c35",
+      "original": "../../../../../TMP/TableMaxMaterial/originals/material-lossless-20261118-completed/assets/games/rummikub/audio/place-v1.wav",
+      "originalBytes": 10628,
+      "originalSha256": "ca62c8c2335612cf8bb815c46e7461f10ba4943cfe1a7657f650359feff4d39f",
+      "decodedPcmS32leSha256": "496d416d2bab8064156fabc95a395b66eaf60b611543b5f87d362b1be57f5eb0",
+      "rate": 22050,
+      "channels": 1,
+      "bits": 16,
+      "samples": 5292
+    },
+    {
+      "file": "win-v1.flac",
+      "bytes": 6161,
+      "sha256": "e61c75b5c2a846d69eebe26823f4f600372230152efd192f9cbda3de0b564834",
+      "original": "../../../../../TMP/TableMaxMaterial/originals/material-lossless-20261118-completed/assets/games/rummikub/audio/win-v1.wav",
+      "originalBytes": 36206,
+      "originalSha256": "a124b719eae7a04851e04a6dde41ac6ccb8868e0b715756ae6c5fc281ce26e57",
+      "decodedPcmS32leSha256": "e99092422e33a10fa818d771622d1e069cf15576a6a26e1b9d35cca83486b79a",
+      "rate": 22050,
+      "channels": 1,
+      "bits": 16,
+      "samples": 18081
+    }
+  ]
+}

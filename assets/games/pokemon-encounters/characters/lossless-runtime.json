@@ -2,7 +2,7 @@
   "encoding": "lossless WebP, exact RGBA; original PNG preserved",
   "assets": [
     {
-      "source": "assets/games/pokemon-encounters/characters/special-charizard-official.png",
+      "source": "../../../../../TMP/TableMaxMaterial/originals/material-lossless-20261118-completed/assets/games/pokemon-encounters/characters/special-charizard-official.png",
       "runtime": "assets/games/pokemon-encounters/characters/special-charizard-official-lossless-v1.webp",
       "sourceSha256": "caf344d808d8ddc23eb135bfe5b7b5478afd65e37723e351d0f5715b4eae6b48",
       "runtimeSha256": "7a7f0be56063c426330556ddd802ba3b166244f4f416f449d853874a1005223f",
@@ -14,7 +14,7 @@
       "browserVerified": false
     },
     {
-      "source": "assets/games/pokemon-encounters/characters/ordinary-5-official.png",
+      "source": "../../../../../TMP/TableMaxMaterial/originals/material-lossless-20261118-completed/assets/games/pokemon-encounters/characters/ordinary-5-official.png",
       "runtime": "assets/games/pokemon-encounters/characters/ordinary-5-official-lossless-v1.webp",
       "sourceSha256": "823c543e76c76020f0a335f9ee3477b0d0864986fd52663a68a10e93138aba8a",
       "runtimeSha256": "3c6b058127fd45873032ad48ee56228a785b6471d2550a8b11c238d56f49b54b",
@@ -26,7 +26,7 @@
       "browserVerified": false
     },
     {
-      "source": "assets/games/pokemon-encounters/characters/ordinary-9-official.png",
+      "source": "../../../../../TMP/TableMaxMaterial/originals/material-lossless-20261118-completed/assets/games/pokemon-encounters/characters/ordinary-9-official.png",
       "runtime": "assets/games/pokemon-encounters/characters/ordinary-9-official-lossless-v1.webp",
       "sourceSha256": "abff19f37e444ffa9141e95f80f2f54ac9320d2e75d556dc18c41d3a0572af67",
       "runtimeSha256": "a0cf65a1cb545aa4cefb80ffd00332d821d6322047ca1b2b0db0b6716fa4d7a6",
@@ -38,7 +38,7 @@
       "browserVerified": false
     },
     {
-      "source": "assets/games/pokemon-encounters/characters/coin-meowth-official.png",
+      "source": "../../../../../TMP/TableMaxMaterial/originals/material-lossless-20261118-completed/assets/games/pokemon-encounters/characters/coin-meowth-official.png",
       "runtime": "assets/games/pokemon-encounters/characters/coin-meowth-official-lossless-v1.webp",
       "sourceSha256": "d779bbb6f81d9187122eae51c9f7d0d7a92a0a7e65ee29bfa9694664663b9584",
       "runtimeSha256": "645614fb589ee2cb5283f8992336c49d0b44973485371101acaa3db9a1a784e7",
@@ -50,7 +50,7 @@
       "browserVerified": false
     },
     {
-      "source": "assets/games/pokemon-encounters/characters/ordinary-4-official.png",
+      "source": "../../../../../TMP/TableMaxMaterial/originals/material-lossless-20261118-completed/assets/games/pokemon-encounters/characters/ordinary-4-official.png",
       "runtime": "assets/games/pokemon-encounters/characters/ordinary-4-official-lossless-v1.webp",
       "sourceSha256": "26f31a6a3c1a50c30df81d151a163c34554b53c763553fa061924b0cf00b0f48",
       "runtimeSha256": "7e217685ce2bd48d0ffd9f193b8ae182b65f44540b4dabc0e0adcba9d9dd2863",
@@ -62,7 +62,7 @@
       "browserVerified": false
     },
     {
-      "source": "assets/games/pokemon-encounters/characters/special-snorlax-official.png",
+      "source": "../../../../../TMP/TableMaxMaterial/originals/material-lossless-20261118-completed/assets/games/pokemon-encounters/characters/special-snorlax-official.png",
       "runtime": "assets/games/pokemon-encounters/characters/special-snorlax-official-lossless-v1.webp",
       "sourceSha256": "c4fee29fc9c6212ce2befe9fdeb2d94672889ae64d0f13b1763c73a1563a3ca9",
       "runtimeSha256": "cb99c24d1a47f72e72c92383ecd387ef5a1b791d787da62aecfdae86a7eae7b3",
@@ -74,7 +74,7 @@
       "browserVerified": false
     },
     {
-      "source": "assets/games/pokemon-encounters/characters/ordinary--2-official.png",
+      "source": "../../../../../TMP/TableMaxMaterial/originals/material-lossless-20261118-completed/assets/games/pokemon-encounters/characters/ordinary--2-official.png",
       "runtime": "assets/games/pokemon-encounters/characters/ordinary--2-official-lossless-v1.webp",
       "sourceSha256": "645fbd68ba6eef4264109d16c66e4024d5851446bd40b12ead97e480911e0c5e",
       "runtimeSha256": "673848cf53051c130c6187fd92752e7ecc2d464ca03e0fc4ab83b5a12c478cd4",
@@ -86,7 +86,7 @@
       "browserVerified": false
     },
     {
-      "source": "assets/games/pokemon-encounters/characters/ordinary-1-official.png",
+      "source": "../../../../../TMP/TableMaxMaterial/originals/material-lossless-20261118-completed/assets/games/pokemon-encounters/characters/ordinary-1-official.png",
       "runtime": "assets/games/pokemon-encounters/characters/ordinary-1-official-lossless-v1.webp",
       "sourceSha256": "2f91bcb06818e3036413db3d8efbd30fb279341ca3f14ba736f705a362e68884",
       "runtimeSha256": "98e1da475c495bb07bca41d2b69f9e82aac2f720b266bf5fbf2248a8a6ce9759",
@@ -98,7 +98,7 @@
       "browserVerified": false
     },
     {
-      "source": "assets/games/pokemon-encounters/characters/ordinary-7-official.png",
+      "source": "../../../../../TMP/TableMaxMaterial/originals/material-lossless-20261118-completed/assets/games/pokemon-encounters/characters/ordinary-7-official.png",
       "runtime": "assets/games/pokemon-encounters/characters/ordinary-7-official-lossless-v1.webp",
       "sourceSha256": "1b56ff94c5095a99d35097390e1767469c92bb6bbf538d09e010fe9e80697368",
       "runtimeSha256": "ce6d6f5869240755ff6a5935e07d09e80c23e574e53d9b2f111b28396f82787e",
@@ -110,7 +110,7 @@
       "browserVerified": false
     },
     {
-      "source": "assets/games/pokemon-encounters/characters/ordinary-6-official.png",
+      "source": "../../../../../TMP/TableMaxMaterial/originals/material-lossless-20261118-completed/assets/games/pokemon-encounters/characters/ordinary-6-official.png",
       "runtime": "assets/games/pokemon-encounters/characters/ordinary-6-official-lossless-v1.webp",
       "sourceSha256": "897837bbbb6cd30c1428460018353c53264ebf289b4b8e8845ce497851b0521d",
       "runtimeSha256": "703630c0d6c7692528de57ae3c96c33c4d16f68a87b280d3299c4b128bc4a9bc",
@@ -122,7 +122,7 @@
       "browserVerified": false
     },
     {
-      "source": "assets/games/pokemon-encounters/characters/ordinary-8-official.png",
+      "source": "../../../../../TMP/TableMaxMaterial/originals/material-lossless-20261118-completed/assets/games/pokemon-encounters/characters/ordinary-8-official.png",
       "runtime": "assets/games/pokemon-encounters/characters/ordinary-8-official-lossless-v1.webp",
       "sourceSha256": "8e1dee56015e6467eb85d93eb082109904240c2a79c241d867da0890f385667d",
       "runtimeSha256": "014375f37bca9f929356e48a7c4c3ed375e0640b9503f3a3b4d2bab5c8a63109",
@@ -134,7 +134,7 @@
       "browserVerified": false
     },
     {
-      "source": "assets/games/pokemon-encounters/characters/ordinary-0-official.png",
+      "source": "../../../../../TMP/TableMaxMaterial/originals/material-lossless-20261118-completed/assets/games/pokemon-encounters/characters/ordinary-0-official.png",
       "runtime": "assets/games/pokemon-encounters/characters/ordinary-0-official-lossless-v1.webp",
       "sourceSha256": "d073c38daeec176e8dd7e410665649a2e0f75ba7e640296223444bb030a5933b",
       "runtimeSha256": "d29fcd356ea2ba9e1719c41fa5989278559754a37581800aeb623052bd75a17c",
@@ -146,7 +146,7 @@
       "browserVerified": false
     },
     {
-      "source": "assets/games/pokemon-encounters/characters/ordinary-3-official.png",
+      "source": "../../../../../TMP/TableMaxMaterial/originals/material-lossless-20261118-completed/assets/games/pokemon-encounters/characters/ordinary-3-official.png",
       "runtime": "assets/games/pokemon-encounters/characters/ordinary-3-official-lossless-v1.webp",
       "sourceSha256": "5a2c3701e8e0cc74a2b7220f036bcb0bea3e8ee1432d6a537fdbf388bb8f4316",
       "runtimeSha256": "e91cc65995c89821b9cf49cba972347cf077fcc039a7afe07aa03e27ed573e93",
@@ -158,7 +158,7 @@
       "browserVerified": false
     },
     {
-      "source": "assets/games/pokemon-encounters/characters/special-mew-official.png",
+      "source": "../../../../../TMP/TableMaxMaterial/originals/material-lossless-20261118-completed/assets/games/pokemon-encounters/characters/special-mew-official.png",
       "runtime": "assets/games/pokemon-encounters/characters/special-mew-official-lossless-v1.webp",
       "sourceSha256": "46730d36201e8c8cac88de62c9f2adec58210ab1c18a3edc9168e014dd816a01",
       "runtimeSha256": "2cc2304467392ea7e2399a8849ca8f0a424d456072d28a010cb366aa7c0a6e5a",
@@ -170,7 +170,7 @@
       "browserVerified": false
     },
     {
-      "source": "assets/games/pokemon-encounters/characters/special-zapdos-official.png",
+      "source": "../../../../../TMP/TableMaxMaterial/originals/material-lossless-20261118-completed/assets/games/pokemon-encounters/characters/special-zapdos-official.png",
       "runtime": "assets/games/pokemon-encounters/characters/special-zapdos-official-lossless-v1.webp",
       "sourceSha256": "5c27938e974481df8d4cc63c351f00696028fe7beacc797db2f79827db04d9d8",
       "runtimeSha256": "87882fd34142af6b8ce3f0407d78182ec4399959ac24c7db0103b030e77d402c",
@@ -182,7 +182,7 @@
       "browserVerified": false
     },
     {
-      "source": "assets/games/pokemon-encounters/characters/special-team-rocket-official.png",
+      "source": "../../../../../TMP/TableMaxMaterial/originals/material-lossless-20261118-completed/assets/games/pokemon-encounters/characters/special-team-rocket-official.png",
       "runtime": "assets/games/pokemon-encounters/characters/special-team-rocket-official-lossless-v1.webp",
       "sourceSha256": "eb95e7247801958d7c24e3a74206f6d0c84e20cfec6b7aea1be3c20349cf20f6",
       "runtimeSha256": "2c9b12e7588492bdc5ec491b80c7ac2665e00e87574e29c7cbc4ae7abdc4d554",

@@ -548,6 +548,8 @@ const catalogPlugin = {
     }
     if (posix(id).endsWith('/apps/web/src/game-clients/details.ts'))
       return removeDevelopmentDetails(code);
+    if (posix(id).endsWith('/apps/web/src/game-clients/introduction-source.ts'))
+      return 'export const commonSourceIllustrations = {};';
   },
 };
 export function removeDevelopmentDetails(code) {

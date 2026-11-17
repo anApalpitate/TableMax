@@ -4,7 +4,7 @@
   "generator": "tools/assets/games/uno/prepare-uno-audio.mjs",
   "ffmpegBinarySha256": "2ce797a0f88d7f067180338fb227f7b1928ea727bd9a4d7a1d022f7c52af71a3",
   "preservedV1ManifestSha256": "e366d2209c14fee2774b6a0b4771d9e8c418652b22593c5631874d41c8e27bc6",
-  "totalRuntimeBytes": 359031,
+  "totalRuntimeBytes": 349621,
   "files": [
     {
       "id": "place",
@@ -34,8 +34,8 @@
       "originalBytes": 28844,
       "originalSha256": "8916753b3726b6edb2bbba7b039bc038cb83b0baf3d24e47bb215d810b287b3e",
       "runtime": "assets/games/uno/audio/place-v2.flac",
-      "runtimeBytes": 12107,
-      "runtimeSha256": "a6ad3ddacfa0791f73bf3c348ec407390fbe5291e44f2e3f835763556e810b69",
+      "runtimeBytes": 11942,
+      "runtimeSha256": "79f66f289d925780e707936123258660567dcdd57ad0a91aaa8e42111f0ab6ba",
       "decodedPcmSha256": "52b789fa0012977e3586307b00a29aabf5e345e5b38d2077b510aa3ad2bf1fcf",
       "decodedPcm": "Identical to source WAV samples"
     },
@@ -68,8 +68,8 @@
       "originalBytes": 38444,
       "originalSha256": "57f4fa67b4d99c6e6ffda09b9bed82c42264d82da1f728e72211d18ed8d19f59",
       "runtime": "assets/games/uno/audio/draw-v2.flac",
-      "runtimeBytes": 18603,
-      "runtimeSha256": "03682406df4977e39694d7322fd0fc3f12463ca251b26fca5bd5016f640b411f",
+      "runtimeBytes": 18449,
+      "runtimeSha256": "f8772272fdd38b75e6c7dd73918bf62df8d8d7b50957235d306bab0bf7277964",
       "decodedPcmSha256": "6adf73d57ed5e7e7904cfbc76b241f3cd83e4f09751845fdc2500bd483451392",
       "decodedPcm": "Identical to source WAV samples"
     },
@@ -107,8 +107,8 @@
       "originalBytes": 51884,
       "originalSha256": "d500be9c9fbe155110fd542e8fb1f597f3d1ca8b3fd35e1e4587856a8e738740",
       "runtime": "assets/games/uno/audio/skip-v2.flac",
-      "runtimeBytes": 12291,
-      "runtimeSha256": "47ff5add2e7ba0e2964a34dbb297badc1ede1cb2bb4eefe4a6b334f7c9d13007",
+      "runtimeBytes": 11512,
+      "runtimeSha256": "34694d83a985020f318fe4dc4a48e20961eac80245bae1a7485298cb1155ae80",
       "decodedPcmSha256": "59b0571cf547f016cb61f091a1bc81803a7c23661c5c70cc666227bf284109ae",
       "decodedPcm": "Identical to source WAV samples"
     },
@@ -190,8 +190,8 @@
       "originalBytes": 63404,
       "originalSha256": "135633b329a843f8db8ce5f6a9b0986bd01328ff71e6c9484b0e8631dd6b5332",
       "runtime": "assets/games/uno/audio/draw-two-v2.flac",
-      "runtimeBytes": 24563,
-      "runtimeSha256": "e85d08c4fe2de42616b28d0653b0638885699aafbafa31af2c2a7daee2696aa0",
+      "runtimeBytes": 24456,
+      "runtimeSha256": "d758fafd9518bc1f80367ec4ea0bc0a55309d72c63deefb248193335b7d45d55",
       "decodedPcmSha256": "6ff1da238f40e3e360a50ad48920f15562113b3353ed8a9553ca7fa36ffa1a0e",
       "decodedPcm": "Identical to source WAV samples"
     },
@@ -320,8 +320,8 @@
       "originalBytes": 61484,
       "originalSha256": "ba5f5049f00dff0eaa3a041fb1fb2731f54b4848d0c6b83823a16f4a51ba75d8",
       "runtime": "assets/games/uno/audio/accept-four-v2.flac",
-      "runtimeBytes": 31360,
-      "runtimeSha256": "d645fa5dfa641b3d36a629585beff74e27a4b530b191df03d99a89ab45e14773",
+      "runtimeBytes": 30168,
+      "runtimeSha256": "e9666a6c6947be5d804d282a481932fc66038d7191300275810b060356cd2480",
       "decodedPcmSha256": "aa8087e6e01e7c40529bc6f74d4fc1f952224288f831eb21b0e13be939dbb967",
       "decodedPcm": "Identical to source WAV samples"
     },
@@ -403,8 +403,8 @@
       "originalBytes": 69164,
       "originalSha256": "af651c2dac13c47e7a8daebd4524b2c556cacbe0b66d5cd04b363b1ca775bcdd",
       "runtime": "assets/games/uno/audio/catch-uno-v2.flac",
-      "runtimeBytes": 29819,
-      "runtimeSha256": "d61fd8628ca71659f0b48a56c4c686166ed1fe1b2f45052394a15ca7315b44dc",
+      "runtimeBytes": 28184,
+      "runtimeSha256": "b318714084d9a1a9f148795bd345e9cec09bfef3e3665ed62c098dd8f509728e",
       "decodedPcmSha256": "4b6a54efc9272c5cfade739c33bc0327959f0a0e80b6a10574f69df3ed7347a0",
       "decodedPcm": "Identical to source WAV samples"
     },
@@ -450,8 +450,8 @@
       "originalBytes": 90284,
       "originalSha256": "e1db987c37f9790018cef989cea98d2a36e63ff6b6c4a75060e326d413f7e7de",
       "runtime": "assets/games/uno/audio/challenge-success-v2.flac",
-      "runtimeBytes": 33928,
-      "runtimeSha256": "2540c692591166fd25747bef1fcb4887a1b5a55f601b841bc74fd9fe0b737aea",
+      "runtimeBytes": 32863,
+      "runtimeSha256": "8ddb0ccd13eb117df4295e67c95c543d32319552ff12de4c9bdb47784ff949b5",
       "decodedPcmSha256": "b5d5f020a34016b0615b3e74adb9f75c5d8be1e08b1a36ca95370d4ca418c2b8",
       "decodedPcm": "Identical to source WAV samples"
     },
@@ -504,8 +504,8 @@
       "originalBytes": 96044,
       "originalSha256": "499f7d20ea767429dc0176aee46a665078cc3d9f4843cb5c857d975b939dc8c5",
       "runtime": "assets/games/uno/audio/challenge-failure-v2.flac",
-      "runtimeBytes": 42655,
-      "runtimeSha256": "140a2aedfccd6f25674ed6851ef56b58a8e80d0fa10470dbec65834a431fd645",
+      "runtimeBytes": 38814,
+      "runtimeSha256": "38047128ea79b03e9112dd0467d938af72d5741b77b22ac4460a7eb7a00550ce",
       "decodedPcmSha256": "63619778021584770fc41ee00ab6d3de91d4a6a052ea65acbee50f58994ffae4",
       "decodedPcm": "Identical to source WAV samples"
     },
@@ -547,8 +547,8 @@
       "originalBytes": 115244,
       "originalSha256": "306b5cf6ca0252f131b122df65adc6c130d960d4081a607945d4532aac99824e",
       "runtime": "assets/games/uno/audio/win-v2.flac",
-      "runtimeBytes": 37671,
-      "runtimeSha256": "4b8f5389f99d2c8c6e1799920e1b0e3b6381aebdc4773f9cbc2a6f7365459fe4",
+      "runtimeBytes": 37199,
+      "runtimeSha256": "db9984efbd3ae553063a6884f565d031c6f94f18366768922221f5b2c2be8d7d",
       "decodedPcmSha256": "92fb83ed28d54acda926285ad6b47ba4487dc2b876fa7a2f965939044d394233",
       "decodedPcm": "Identical to source WAV samples"
     }

@@ -2,7 +2,6 @@
 import type { CSSProperties } from 'react';
 import harbor from '../../../assets/games/manila/harbor-v1.webp';
 import boat from '../../../assets/games/manila/boat-v1.webp';
-import cover from '../../../assets/games/manila/cover-v1.webp';
 import portraitHarbor from '../../../assets/games/manila/harbor-portrait-v2.webp';
 import portraitBoat from '../../../assets/games/manila/boat-portrait-v2.webp';
 import nutmeg from '../../../assets/games/manila/cargo-nutmeg-v2.webp';
@@ -20,7 +19,6 @@ import type { CargoId, SpaceView } from '../rules/view';
 const assets = {
   'harbor-v1.webp': harbor,
   'boat-v1.webp': boat,
-  'cover-v1.webp': cover,
   'harbor-portrait-v2.webp': portraitHarbor,
   'boat-portrait-v2.webp': portraitBoat,
   'cargo-nutmeg-v2.webp': nutmeg,

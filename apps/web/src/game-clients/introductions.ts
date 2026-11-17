@@ -2,15 +2,13 @@ import type {
   GameDetails,
   ModuleManifest,
 } from '@tablemax/game-sdk/module-manifest';
+import { commonSourceIllustrations } from './introduction-source';
 export type GameIntroductionContent = NonNullable<
   ModuleManifest['introduction']
 >;
 export type IntroductionIcon = GameIntroductionContent['steps'][number]['icon'];
-const sourceIllustrations = import.meta.glob<string>(
-  [
-    '../../../../assets/games/*/introduction-*.svg',
-    '../../../../assets/games/*/expansion/introduction-*.svg',
-  ],
+const expansionSourceIllustrations = import.meta.glob<string>(
+  '../../../../assets/games/*/expansion/introduction-*.svg',
   { eager: true, query: '?url', import: 'default' },
 );
 
@@ -36,7 +34,8 @@ export function gameIntroductionIllustration(
       : undefined;
   return import.meta.env.PROD
     ? `/games/${gameId}/resources/${resource}`
-    : sourceIllustrations[`../../../../${path}`];
+    : (commonSourceIllustrations[`../../../../${path}`] ??
+        expansionSourceIllustrations[`../../../../${path}`]);
 }
 
 export const gameIntroduction = (

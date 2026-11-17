@@ -543,7 +543,7 @@
           "firstSample": 0,
           "lastSample": 0,
           "maxSampleStep": 0.06036376953125,
-          "powerAbove4khz": 0.000012732797511737025
+          "powerAbove4khz": 1.2732797511737025e-5
         }
       },
       {
@@ -721,7 +721,7 @@
           "firstSample": 0,
           "lastSample": 0,
           "maxSampleStep": 0.068695068359375,
-          "powerAbove4khz": 0.000011211076980469106
+          "powerAbove4khz": 1.1211076980469106e-5
         }
       },
       {
@@ -1043,7 +1043,7 @@
           "firstSample": 0,
           "lastSample": 0,
           "maxSampleStep": 0.049224853515625,
-          "powerAbove4khz": 0.000028563942218112452
+          "powerAbove4khz": 2.8563942218112452e-5
         }
       },
       {
@@ -1107,7 +1107,7 @@
           "firstSample": 0,
           "lastSample": 0,
           "maxSampleStep": 0.051605224609375,
-          "powerAbove4khz": 0.000016792649209678185
+          "powerAbove4khz": 1.6792649209678185e-5
         }
       },
       {
@@ -1207,7 +1207,7 @@
           "firstSample": 0,
           "lastSample": 0,
           "maxSampleStep": 0.061004638671875,
-          "powerAbove4khz": 0.00009549578478969819
+          "powerAbove4khz": 9.549578478969819e-5
         }
       }
     ],
@@ -1244,52 +1244,52 @@
     "files": [
       {
         "id": "hand",
-        "file": "rules/hand.webp",
+        "file": "../../../../TMP/TableMaxMaterial/originals/material-lossless-20261118-completed/assets/games/modern-art/rules/hand.webp",
         "bytes": 268340,
         "width": 539,
         "height": 786,
         "sha256": "ad4375ab07bc17f5c9f65daa8ae78259d77e650d915d5e8aa2e2d184bf3a2cec",
         "source": "Actual hidden WebView2 screenshot of the named UI region",
-        "sourceFile": "rules/hand.png",
+        "sourceFile": "../../../../TMP/TableMaxMaterial/originals/material-lossless-20261118-completed/assets/games/modern-art/rules/hand.png",
         "sourceBytes": 385217,
         "sourceSha256": "90d92e192e7ef59a0146dcbdaf07b2ec17cd22c6d99e1f1726dce37ed6ccb81f",
         "pixelsVerifiedIdentical": true
       },
       {
         "id": "market",
-        "file": "rules/market.webp",
+        "file": "../../../../TMP/TableMaxMaterial/originals/material-lossless-20261118-completed/assets/games/modern-art/rules/market.webp",
         "bytes": 31900,
         "width": 1469,
         "height": 539,
         "sha256": "e25be644536f724264a75f6f03309ab3d9647d1d413f34468b549a81bdcc6f6a",
         "source": "Actual hidden WebView2 screenshot of the named UI region",
-        "sourceFile": "rules/market.png",
+        "sourceFile": "../../../../TMP/TableMaxMaterial/originals/material-lossless-20261118-completed/assets/games/modern-art/rules/market.png",
         "sourceBytes": 81158,
         "sourceSha256": "806eed0a24cfafe626b0d53764b200969ca7099f4dd9305b22166915d153264f",
         "pixelsVerifiedIdentical": true
       },
       {
         "id": "auction",
-        "file": "rules/auction.webp",
+        "file": "../../../../TMP/TableMaxMaterial/originals/material-lossless-20261118-completed/assets/games/modern-art/rules/auction.webp",
         "bytes": 56478,
         "width": 896,
         "height": 440,
         "sha256": "b3effe9bb13af2bd8f08e1a75e9d209a8a570ae8b001ce40bccb93215b6828fb",
         "source": "Actual hidden WebView2 screenshot of the named UI region",
-        "sourceFile": "rules/auction.png",
+        "sourceFile": "../../../../TMP/TableMaxMaterial/originals/material-lossless-20261118-completed/assets/games/modern-art/rules/auction.png",
         "sourceBytes": 74916,
         "sourceSha256": "7b8e126fe63597ac20e4a3a4fb69083d34eaf01f5e3f21a274769948eeb0ea21",
         "pixelsVerifiedIdentical": true
       },
       {
         "id": "collection",
-        "file": "rules/collection.webp",
+        "file": "../../../../TMP/TableMaxMaterial/originals/material-lossless-20261118-completed/assets/games/modern-art/rules/collection.webp",
         "bytes": 57108,
         "width": 362,
         "height": 359,
         "sha256": "d59974eed6bad7322e807fbe57929512fcdc7ed5d896c6d44c3cafafeba897e0",
         "source": "Actual hidden WebView2 screenshot of the named UI region",
-        "sourceFile": "rules/collection.png",
+        "sourceFile": "../../../../TMP/TableMaxMaterial/originals/material-lossless-20261118-completed/assets/games/modern-art/rules/collection.png",
         "sourceBytes": 82677,
         "sourceSha256": "70d09d8cb0ec19484b06f6ea3518ae9c6248d3d86d941d3f67408137c7f3dbfd",
         "pixelsVerifiedIdentical": true

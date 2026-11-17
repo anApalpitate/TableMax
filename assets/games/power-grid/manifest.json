@@ -144,7 +144,7 @@
       "version": 2,
       "source": "built-in imagegen precise-object-edit",
       "transparent": false,
-      "editTarget": "assets/games/power-grid/board-v1.webp",
+      "editTarget": "../../../../TMP/TableMaxMaterial/originals/material-lossless-20261118-completed/assets/games/power-grid/board-v1.webp",
       "sourceFile": "artifacts/maintenance/v1.0.3/power-grid-ui-refinement-20261006/imagegen/board-v2-original.png",
       "promptFile": "artifacts/maintenance/v1.0.3/power-grid-ui-refinement-20261006/imagegen/board-v2-prompt.txt",
       "prompt": "Use case: precise-object-edit.\nAsset type: local tabletop-game terrain background for a classic Germany Power Grid board, displayed at high zoom behind exact vector cities and network paths.\nInput image 1 is the exact edit target, a north-up 900×1200 portrait terrain map with six tinted regions. Treat the entire coastline, all river courses, all six colored-region outlines and their boundaries as locked coordinate landmarks. Preserve their exact placement and relative dimensions. Do not shift, stretch, crop, rotate, recolor or redesign these landmarks.\nPrimary request: restore this same map as a sharper, refined premium printed board illustration at high resolution. Fill the existing blank cream paper strips at the very edges, particularly the upper-left empty rounded rectangular label and the bottom border, with seamless continuations of the adjacent terrain or sea. Remove the black outer frame and label outline. Extend the blue sea through the upper-left label area and the nearest water areas to the canvas edges, and extend green land, fields and existing foothills naturally into the narrow remaining border strips. Keep all existing land/sea boundaries inside the map exactly where they are. The final picture must have actual map landscape or sea everywhere, edge-to-edge, with no empty parchment margins, no blank labels and no framing line.\nStyle: crisp fine hand-painted board-game cartography printed on subtly grained matte paper, restrained warm tactile texture, clear softly shaded small forest clusters and agricultural terrain, blue water with delicate quiet wave texture. Improve micro-detail and clarity while keeping the same six distinctive flat tints: turquoise north/northwest, orange northeast, magenta central-west, blue southwest, yellow central-east, purple south, with green surrounding neighboring lands. Keep contrast moderate so dark vector cities and network cost labels are easy to read.\nPreserve the existing south-edge Alps where they are, but do not add mountain ranges across the six colored playable regions. Keep forests fine and scattered, do not create dense decorative clutter or giant peaks.\nComposition and output: exact 3:4 portrait aspect ratio, north-up. Aim for at least 1800×2400 pixels; deliver at the highest supported resolution, with no added outer padding. This is a fidelity-preserving image edit, not a new interpretation.\nNo city names, no letters, no numbers, no roads, no power lines, no icons, no buildings, no map keys, no logos, no watermark, no title.\n",
@@ -169,7 +169,7 @@
     },
     {
       "id": "board",
-      "file": "board-v1.webp",
+      "file": "../../../../TMP/TableMaxMaterial/originals/material-lossless-20261118-completed/assets/games/power-grid/board-v1.webp",
       "version": 1,
       "source": "built-in imagegen",
       "transparent": false,
@@ -402,8 +402,8 @@
     "files": [
       {
         "id": "market",
-        "file": "rules/market.webp",
-        "sourceFile": "rules/market-v2.png",
+        "file": "../../../../TMP/TableMaxMaterial/originals/material-lossless-20261118-completed/assets/games/power-grid/rules/market.webp",
+        "sourceFile": "../../../../TMP/TableMaxMaterial/originals/material-lossless-20261118-completed/assets/games/power-grid/rules/market-v2.png",
         "width": 306,
         "height": 927,
         "bytes": 133996,
@@ -416,8 +416,8 @@
       },
       {
         "id": "network",
-        "file": "rules/network.webp",
-        "sourceFile": "rules/network-v2.png",
+        "file": "../../../../TMP/TableMaxMaterial/originals/material-lossless-20261118-completed/assets/games/power-grid/rules/network.webp",
+        "sourceFile": "../../../../TMP/TableMaxMaterial/originals/material-lossless-20261118-completed/assets/games/power-grid/rules/network-v2.png",
         "width": 378,
         "height": 723,
         "bytes": 200896,
@@ -430,8 +430,8 @@
       },
       {
         "id": "company",
-        "file": "rules/company.webp",
-        "sourceFile": "rules/companies-v2.png",
+        "file": "../../../../TMP/TableMaxMaterial/originals/material-lossless-20261118-completed/assets/games/power-grid/rules/company.webp",
+        "sourceFile": "../../../../TMP/TableMaxMaterial/originals/material-lossless-20261118-completed/assets/games/power-grid/rules/companies-v2.png",
         "width": 272,
         "height": 509,
         "bytes": 50024,
@@ -444,8 +444,8 @@
       },
       {
         "id": "order",
-        "file": "rules/order.webp",
-        "sourceFile": "rules/order.png",
+        "file": "../../../../TMP/TableMaxMaterial/originals/material-lossless-20261118-completed/assets/games/power-grid/rules/order.webp",
+        "sourceFile": "../../../../TMP/TableMaxMaterial/originals/material-lossless-20261118-completed/assets/games/power-grid/rules/order.png",
         "width": 378,
         "height": 326,
         "bytes": 19122,
@@ -458,8 +458,8 @@
       },
       {
         "id": "resource-prices",
-        "file": "rules/resource-prices.webp",
-        "sourceFile": "rules/resource-prices.png",
+        "file": "../../../../TMP/TableMaxMaterial/originals/material-lossless-20261118-completed/assets/games/power-grid/rules/resource-prices.webp",
+        "sourceFile": "../../../../TMP/TableMaxMaterial/originals/material-lossless-20261118-completed/assets/games/power-grid/rules/resource-prices.png",
         "width": 269,
         "height": 1038,
         "bytes": 17212,
@@ -474,9 +474,9 @@
     "postprocessing": "PNG to WebP lossless via tools/assets/rules/compress-rule-captures.py, Pillow 11.1.0; original dimensions and RGB pixel bytes verified identical. Source PNGs retained.",
     "previousEvidence": "artifacts/maintenance/v1.0.2/shared-visual-20261004/power-grid/source-controls-fit/results.json",
     "rawOriginalsRetained": [
-      "rules/market-v1.png",
-      "rules/network-v1.png",
-      "rules/companies-v1.png"
+      "../../../../TMP/TableMaxMaterial/originals/material-lossless-20261118-completed/assets/games/power-grid/rules/market-v1.png",
+      "../../../../TMP/TableMaxMaterial/originals/material-lossless-20261118-completed/assets/games/power-grid/rules/network-v1.png",
+      "../../../../TMP/TableMaxMaterial/originals/material-lossless-20261118-completed/assets/games/power-grid/rules/companies-v1.png"
     ],
     "encoding": "Pillow lossless WebP, dimensions and decoded RGB pixels exactly match each actual region capture",
     "portableVerification": {
@@ -502,7 +502,7 @@
         "role": "inspected visually for mature industrial contour, matte material and painterly style; not supplied as edit target"
       },
       {
-        "path": "assets/games/power-grid/board-v1.webp",
+        "path": "../../../../TMP/TableMaxMaterial/originals/material-lossless-20261118-completed/assets/games/power-grid/board-v1.webp",
         "role": "inspected visually for traditional tabletop palette; not supplied as edit target"
       }
     ],

@@ -996,8 +996,8 @@
     "files": [
       {
         "id": "table",
-        "file": "rules/table.webp",
-        "sourceFile": "rules/table.png",
+        "file": "../../../../TMP/TableMaxMaterial/originals/material-lossless-20261118-completed/assets/games/pokemon-encounters/rules/table.webp",
+        "sourceFile": "../../../../TMP/TableMaxMaterial/originals/material-lossless-20261118-completed/assets/games/pokemon-encounters/rules/table.png",
         "width": 369,
         "height": 372,
         "bytes": 55502,
@@ -1011,8 +1011,8 @@
       },
       {
         "id": "draw",
-        "file": "rules/draw.webp",
-        "sourceFile": "rules/draw.png",
+        "file": "../../../../TMP/TableMaxMaterial/originals/material-lossless-20261118-completed/assets/games/pokemon-encounters/rules/draw.webp",
+        "sourceFile": "../../../../TMP/TableMaxMaterial/originals/material-lossless-20261118-completed/assets/games/pokemon-encounters/rules/draw.png",
         "width": 543,
         "height": 249,
         "bytes": 50130,
@@ -1026,8 +1026,8 @@
       },
       {
         "id": "scoring",
-        "file": "rules/scoring.webp",
-        "sourceFile": "rules/scoring.png",
+        "file": "../../../../TMP/TableMaxMaterial/originals/material-lossless-20261118-completed/assets/games/pokemon-encounters/rules/scoring.webp",
+        "sourceFile": "../../../../TMP/TableMaxMaterial/originals/material-lossless-20261118-completed/assets/games/pokemon-encounters/rules/scoring.png",
         "width": 369,
         "height": 405,
         "bytes": 75776,

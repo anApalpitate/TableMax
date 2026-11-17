@@ -9,9 +9,9 @@ import {
   type GameHost,
 } from '@tablemax/web-host';
 import type { RummikubView } from '../types';
-import place from '../../../assets/games/rummikub/audio/place-v1.wav';
-import draw from '../../../assets/games/rummikub/audio/draw-v1.wav';
-import win from '../../../assets/games/rummikub/audio/win-v1.wav';
+import place from '../../../assets/games/rummikub/audio/place-v1.flac';
+import draw from '../../../assets/games/rummikub/audio/draw-v1.flac';
+import win from '../../../assets/games/rummikub/audio/win-v1.flac';
 
 type RoomFeedback = NonNullable<GameHost['feedback']>;
 const keyFor = (feedback: RoomFeedback | null) =>

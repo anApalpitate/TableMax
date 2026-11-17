@@ -34,8 +34,8 @@
       "originalBytes": 179244,
       "originalSha256": "a451d6d055eeaae7f0f0f7ebfc5b81363eff9a3f9bc9fe08bcd26c3ef0adbed9",
       "runtime": "assets/games/avalon/audio/team-v1.flac",
-      "runtimeBytes": 47360,
-      "runtimeSha256": "58eda1f6663235a0ae459721f4983856ce23f356f841c66a200734fe089dc988",
+      "runtimeBytes": 46778,
+      "runtimeSha256": "ba5e51a23207cdfa9d35f00332450277a5a49a7504713a1b1f9ff13ac208cf31",
       "decodedPcm": "Identical to source WAV samples"
     },
     {
@@ -51,8 +51,8 @@
       "originalBytes": 61484,
       "originalSha256": "05205069ffc9e38058b68ddda9028b4a4378e75337ec0c50e0f5739972e05c0b",
       "runtime": "assets/games/avalon/audio/ballot-v1.flac",
-      "runtimeBytes": 29158,
-      "runtimeSha256": "ad9269435d76648509ad0ae268b4589ebe0a399396300b829b83f38f1d215c60",
+      "runtimeBytes": 29129,
+      "runtimeSha256": "7849aa4989f14e99c126a613d521c3951df04f7f51b1a4e4cdf8b3bc5eefc5ab",
       "decodedPcm": "Identical to source WAV samples"
     },
     {
@@ -68,8 +68,8 @@
       "originalBytes": 160044,
       "originalSha256": "f4020b1b3bda9eb09084eacd9897ce4f2d762286204901c5ad9ad7368fd2dc18",
       "runtime": "assets/games/avalon/audio/approved-v1.flac",
-      "runtimeBytes": 39710,
-      "runtimeSha256": "490f83acb3247c83cfde4a954544976d0d435308d9b313d91cd1868c2b46c308",
+      "runtimeBytes": 38683,
+      "runtimeSha256": "48561eb69f32c803b940f77585a3e9ef452b5197d26f9e8ea8a1682f0723a2d3",
       "decodedPcm": "Identical to source WAV samples"
     },
     {
@@ -85,8 +85,8 @@
       "originalBytes": 153644,
       "originalSha256": "c011deffa6f046bf24e302ac8a6f78d264ed96af0581bf54efe13d8a468fcbbb",
       "runtime": "assets/games/avalon/audio/rejected-v1.flac",
-      "runtimeBytes": 47178,
-      "runtimeSha256": "80e91f36fd182e2c42c691d2aff3f9aa8899fdd28c4fec814746f40ba9230194",
+      "runtimeBytes": 46503,
+      "runtimeSha256": "7e7aa6437b1061630ff523c33c0e1fe8ec91a177851e192dc8919c1ed36170dc",
       "decodedPcm": "Identical to source WAV samples"
     },
     {
@@ -102,8 +102,8 @@
       "originalBytes": 236844,
       "originalSha256": "5937a6ead9e82ac730e4017b4e4eca0d5af8b7efea7d93157407ee50d2b43dca",
       "runtime": "assets/games/avalon/audio/quest-success-v1.flac",
-      "runtimeBytes": 44902,
-      "runtimeSha256": "c702a048858dc163e60be01c710ee7f06a7ecfeec0fc3b13890d18266316e4a8",
+      "runtimeBytes": 41994,
+      "runtimeSha256": "4d7a960e8ead7d4eba612673c4988971b5214c9758b174d7f8f505a63d97fa37",
       "decodedPcm": "Identical to source WAV samples"
     },
     {
@@ -119,8 +119,8 @@
       "originalBytes": 230444,
       "originalSha256": "b0398db98ceff5b7cf066ce165b5b7286e83ee3fe09849ad805474f0b8cdde26",
       "runtime": "assets/games/avalon/audio/quest-fail-v1.flac",
-      "runtimeBytes": 64499,
-      "runtimeSha256": "9aa581ede7fcc10d3f14ed7c507433831096d8efabfc6a7a27ce460412fcffbf",
+      "runtimeBytes": 64090,
+      "runtimeSha256": "9a0e5636a6d068dcc6ad18f3ddde0f7cc4f84af6f095eab779553ba1abc455bf",
       "decodedPcm": "Identical to source WAV samples"
     },
     {
@@ -136,8 +136,8 @@
       "originalBytes": 147244,
       "originalSha256": "ed9ac769a3f120b7bc8f4989e2d72501e19ccd4fda398b29d31bc61d3897b220",
       "runtime": "assets/games/avalon/audio/assassination-v1.flac",
-      "runtimeBytes": 57495,
-      "runtimeSha256": "6ae295b731ab89aa8acec2e3a3c1806c712327cc93a2f7e946c99ecf2d7786ef",
+      "runtimeBytes": 56109,
+      "runtimeSha256": "fb5033ca3d44508b3f9169535d256e08888354c600921a99f7e9785ee9ce7bab",
       "decodedPcm": "Identical to source WAV samples"
     },
     {
@@ -153,8 +153,8 @@
       "originalBytes": 294444,
       "originalSha256": "abb61cab3e5b9cd8adb7a7ee164eccff121e7ec099c06a2bce71550dfa43866d",
       "runtime": "assets/games/avalon/audio/good-win-v1.flac",
-      "runtimeBytes": 56833,
-      "runtimeSha256": "d25137f368be22963233a7953cde5e195798822f63a29745b88fb05e6e81582e",
+      "runtimeBytes": 55161,
+      "runtimeSha256": "c0291fd2f352a0ce3352e42af4d2a8facd61fb0bbeccda4e552bae9789cae5f8",
       "decodedPcm": "Identical to source WAV samples"
     },
     {
@@ -170,8 +170,8 @@
       "originalBytes": 294444,
       "originalSha256": "713de1e5d8e1dccdc704cbade7c4db53384cebf44e6a10f9d2f9efd638d95c94",
       "runtime": "assets/games/avalon/audio/evil-win-v1.flac",
-      "runtimeBytes": 61157,
-      "runtimeSha256": "504c13a7d29b57c586eabe728e60e2fa350b33e2dc520283e7088b61fd1d4861",
+      "runtimeBytes": 59863,
+      "runtimeSha256": "010bfac43562dc7913bc564fa4a12f4b3d4dc6b6962e0180839306c1509eeae2",
       "decodedPcm": "Identical to source WAV samples"
     },
     {
@@ -187,8 +187,8 @@
       "originalBytes": 332844,
       "originalSha256": "5750e00bf421d3c756500cb99f60218bf3cc2eeb92dfb7f394fb005734c12a4e",
       "runtime": "assets/games/avalon/audio/assassination-good-v1.flac",
-      "runtimeBytes": 96462,
-      "runtimeSha256": "b9a3fee3d507d720aa01a4ff83f7e0a80fed82cf26b9cc6ec31e4893a8a93971",
+      "runtimeBytes": 93933,
+      "runtimeSha256": "d1306bcc2e3ca92db2abca35259b508fbcd08b8d5380623ed94f5e523be995a5",
       "decodedPcm": "Identical to source WAV samples"
     },
     {
@@ -204,8 +204,8 @@
       "originalBytes": 332844,
       "originalSha256": "0815f68419e0e509e377a80d48297ed686305e2594e01dac724bffb6c53e7bb1",
       "runtime": "assets/games/avalon/audio/assassination-evil-v1.flac",
-      "runtimeBytes": 104043,
-      "runtimeSha256": "f39444519660709e6f2eba151915e7f0e25c2eb55ebcd1bccf83ebf8b03f2da1",
+      "runtimeBytes": 103934,
+      "runtimeSha256": "92e4e3709d74955dd42943ebf3b510e93610dbde502f241802afbe49a146d703",
       "decodedPcm": "Identical to source WAV samples"
     }
   ]

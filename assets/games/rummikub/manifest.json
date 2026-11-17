@@ -7,7 +7,7 @@
   "files": [
     {
       "id": "cover",
-      "file": "cover.svg",
+      "file": "../../../../TMP/TableMaxMaterial/originals/material-lossless-20261118-completed/assets/games/rummikub/cover.svg",
       "width": 640,
       "height": 400,
       "bytes": 3849,
@@ -22,7 +22,7 @@
       "height": 400,
       "bytes": 69762,
       "sha256": "e2d69c46e147b9594b8566972dc8772dff63a0670b5939dd89fe1559d2c8401a",
-      "source": "cover.svg",
+      "source": "../../../../TMP/TableMaxMaterial/originals/material-lossless-20261118-completed/assets/games/rummikub/cover.svg",
       "sourceSha256": "d5de50f51efde4b863f14f78102d9aa4633d7c85d52adf4161d4c423f78f5523",
       "derivation": {
         "renderer": "Microsoft Edge headless 154.0.4258.62",
@@ -43,7 +43,7 @@
     },
     {
       "id": "place-v1",
-      "file": "audio/place-v1.wav",
+      "file": "../../../../TMP/TableMaxMaterial/originals/material-lossless-20261118-completed/assets/games/rummikub/audio/place-v1.wav",
       "durationSeconds": 0.24,
       "sampleRate": 22050,
       "channels": 1,
@@ -56,7 +56,7 @@
     },
     {
       "id": "draw-v1",
-      "file": "audio/draw-v1.wav",
+      "file": "../../../../TMP/TableMaxMaterial/originals/material-lossless-20261118-completed/assets/games/rummikub/audio/draw-v1.wav",
       "durationSeconds": 0.2,
       "sampleRate": 22050,
       "channels": 1,
@@ -69,7 +69,7 @@
     },
     {
       "id": "win-v1",
-      "file": "audio/win-v1.wav",
+      "file": "../../../../TMP/TableMaxMaterial/originals/material-lossless-20261118-completed/assets/games/rummikub/audio/win-v1.wav",
       "durationSeconds": 0.82,
       "sampleRate": 22050,
       "channels": 1,
