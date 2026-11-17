@@ -13,7 +13,9 @@ export const scoreCategories = [
 ] as const;
 
 export type ScoreCategory = keyof Breakdown;
+export type ScoreStep = ScoreCategory | 'total';
 export const scoreBeatMs = 180;
+export const totalStep = scoreCategories.length;
 
 type Settlement = Extract<Scene, { kind: 'settlement' }>;
 export type SettlementTable = {
@@ -23,55 +25,45 @@ export type SettlementTable = {
   key: string;
 };
 
-export function isSampleCategory(category?: ScoreCategory) {
-  return (
-    category === 'pharaoh' ||
-    category === 'river' ||
-    category === 'civilization' ||
-    category === 'monument'
-  );
-}
+export const scoringStep = (step: number): ScoreStep | undefined =>
+  step === totalStep ? 'total' : scoreCategories[step]?.[0];
+
+const discardSteps: Partial<Record<Tile['kind'], number>> = {
+  god: 1,
+  gold: 2,
+  flood: 3,
+  civilization: 4,
+};
 
 export function publicCategoryPoints(
   table: SettlementTable,
   seat: string,
-  category: ScoreCategory,
+  category: ScoreStep,
 ) {
   const score = table.game.publicScores?.find(
     (entry) => entry.seat === seat,
   )?.latest;
-  return score?.epoch === table.scene.epoch ? score.parts[category] : undefined;
+  if (score?.epoch !== table.scene.epoch) return undefined;
+  return category === 'total' ? score.total : score.parts[category];
 }
 
 export function seatSettlement(table: SettlementTable, seat: string) {
   const ids =
     table.scene.holdings.find((holding) => holding.seat === seat)?.ids ?? [];
   const held = ids.map(tile);
-  const category = scoreCategories[table.step]?.[0];
-  const sample = isSampleCategory(category);
+  const category = scoringStep(table.step);
   const activated = held.some(({ kind }) => kind === 'flood');
-  const lost = new Set(
-    table.scene.epoch < 3
-      ? ids.filter((id) => {
-          const kind = tile(id).kind;
-          return (
-            (kind === 'god' && table.step > 1) ||
-            (kind === 'gold' && table.step > 2) ||
-            (kind === 'flood' && table.step > 3) ||
-            (kind === 'civilization' && table.step > 4)
-          );
-        })
-      : [],
-  );
   const current = (piece: Tile) =>
-    sample &&
-    (category === 'river'
+    category === 'river'
       ? piece.kind === 'flood' || (piece.kind === 'nile' && activated)
-      : piece.kind === category);
+      : piece.kind === category;
   const participating = held.filter(current);
   const order = [...new Set(participating.map(({ face }) => face))];
   const motion = (piece: Tile, count: number) => {
-    if (lost.has(piece.id)) return { hidden: true };
+    const discardAt =
+      table.scene.epoch < 3 ? discardSteps[piece.kind] : undefined;
+    if (discardAt !== undefined && table.step > discardAt)
+      return { hidden: true };
     if (!current(piece)) return undefined;
     const start =
       piece.kind === 'nile'
@@ -83,14 +75,22 @@ export function seatSettlement(table: SettlementTable, seat: string) {
       hit: piece.kind,
       start,
       set: category === 'monument' && count >= 3,
-      discard:
-        table.scene.epoch < 3 &&
-        (piece.kind === 'flood' || piece.kind === 'civilization'),
+      discard: discardAt === table.step,
     };
   };
-  const points =
-    category && sample
-      ? publicCategoryPoints(table, seat, category)
+  const points = category && publicCategoryPoints(table, seat, category);
+  const player = table.game.players.find((entry) => entry.seat === seat);
+  const spent =
+    category === 'disks' && table.game.phase === 'ended'
+      ? player?.private?.spentDisks
       : undefined;
-  return { held, category, points, motion };
+  const score =
+    category === 'total' && points !== undefined
+      ? table.game.publicScores?.find((entry) => entry.seat === seat)?.latest
+      : undefined;
+  const floor = score
+    ? score.delta -
+      Object.values(score.parts).reduce((sum, part) => sum + part, 0)
+    : 0;
+  return { held, category, points, motion, player, spent, floor };
 }

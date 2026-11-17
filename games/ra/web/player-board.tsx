@@ -5,7 +5,7 @@ import type { RaView } from '../rules';
 import { persists, tile, tileIds, tileNames, type Tile } from '../rules/data';
 import type { Breakdown } from '../rules/state';
 import { SunDisk, TableArt, TileFace } from './art';
-import { seatSettlement, type SettlementTable } from './sample-scoring';
+import { seatSettlement, type SettlementTable } from './settlement';
 import { RaScoreNumber } from './score-motion';
 import './player-board.css';
 
@@ -263,15 +263,6 @@ function groupTiles(tiles: Tile[]) {
   return [...groups.values()];
 }
 
-const smallerPreviewFaces = new Set([
-  'agriculture',
-  'shrine',
-  'step-pyramid',
-  'war',
-  'funeral',
-  'ra',
-]);
-
 type TileMotion = ReturnType<ReturnType<typeof seatSettlement>['motion']>;
 
 function PreviewTile({
@@ -291,12 +282,8 @@ function PreviewTile({
   }>();
   const show = (target: HTMLButtonElement) => {
     const rect = target.getBoundingClientRect();
-    const maxHeight = smallerPreviewFaces.has(tile.face)
-      ? 388 / window.devicePixelRatio
-      : 288;
     const height = Math.min(
       288,
-      maxHeight,
       window.innerHeight - 16,
       (window.innerWidth - 16) / 0.87,
     );
@@ -359,7 +346,7 @@ function PreviewTile({
       {preview &&
         createPortal(
           <div className="ra-tile-popover" style={preview} aria-hidden="true">
-            <TileFace tile={tile} decorative preview />
+            <TileFace tile={tile} decorative />
           </div>,
           document.body,
         )}
@@ -466,14 +453,16 @@ type PublicPlayer = Pick<Player, 'seat' | 'disks' | 'spent' | 'held'>;
 function Disks({
   available,
   spent,
+  scoring = false,
 }: {
   available: Player['disks'];
   spent: readonly (number | undefined)[];
+  scoring?: boolean;
 }) {
   return (
     <>
       {available.map((disk) => (
-        <span key={disk}>
+        <span key={disk} data-ra-score-hit={scoring ? 'disk' : undefined}>
           <SunDisk value={disk} />
         </span>
       ))}
@@ -481,6 +470,7 @@ function Disks({
         <span
           key={`spent-${index}`}
           data-spent="true"
+          data-ra-score-hit={scoring ? 'disk' : undefined}
           role="img"
           aria-label={disk === undefined ? '已用太阳盘' : `已用太阳盘 ${disk}`}
         >
@@ -614,8 +604,15 @@ export function PlayerSummary({
       )}
       <div className="ra-seat-summary-disks" role="group" aria-label="太阳圆盘">
         <Disks
-          available={player.disks}
-          spent={Array.from({ length: player.spent }, () => undefined)}
+          available={settlement?.player?.disks ?? player.disks}
+          spent={
+            settlement?.spent ??
+            Array.from(
+              { length: settlement?.player?.spent ?? player.spent },
+              () => undefined,
+            )
+          }
+          scoring={settlement?.category === 'disks'}
         />
         {result?.tied && (
           <span className="ra-tiebreak" title="同分，比较最高太阳圆盘">
@@ -658,6 +655,7 @@ export function PlayerSummary({
           key={settlementTable?.key}
           points={settlement.points}
           category={settlement.category}
+          floor={settlement.floor}
         />
       )}
       {!table && overflow > 0 && (

@@ -74,18 +74,16 @@ export function RaEntrance({
         <span className="ra-entrance-halo" />
         <span className="ra-entrance-shape" />
         <div className="ra-entrance-subject">
-          {scene.kind === 'ra' && (
-            <TileFace tile={tile('ra-1')} preview decorative />
-          )}
+          {scene.kind === 'ra' && <TileFace tile={tile('ra-1')} decorative />}
           {scene.kind === 'auction' && (
             <TableArt piece="ra-statue" className="ra-entrance-art" />
           )}
           {scene.kind === 'won' && <SunDisk value={scene.disk} />}
           {scene.kind === 'god' && (
-            <TileFace tile={tile(scene.godId)} preview decorative />
+            <TileFace tile={tile(scene.godId)} decorative />
           )}
           {scene.kind === 'disaster' && (
-            <TileFace tile={tile(scene.id)} preview decorative />
+            <TileFace tile={tile(scene.id)} decorative />
           )}
           {scene.kind === 'settlement' && (
             <TableArt piece="sun-boat" className="ra-entrance-art" />

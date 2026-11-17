@@ -47,105 +47,12 @@
   font-size: 22px;
   white-space: nowrap;
 }
-.ra-settlement-seats {
-  position: absolute;
-  left: 2%;
-  right: 2%;
-  bottom: 13%;
-  display: grid;
-  grid-auto-flow: column;
-  grid-auto-columns: minmax(0, 1fr);
-  gap: 8px;
-}
-.ra-settlement-seats article {
-  display: grid;
-  align-content: start;
-  gap: 8px;
-  padding: 9px;
-  background: #372b22f2;
-  border: 1px solid #b59459;
-  border-radius: 8px;
-  min-width: 0;
-  overflow: hidden;
-  font-size: 17px;
-}
-.ra-settlement-tiles {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 4px;
-}
-.ra-settlement-tiles span {
-  display: flex;
-  align-items: end;
-}
-.ra-settlement-tiles img {
-  width: 29px;
-  height: 34px;
-}
-.ra-settlement-seats
-  article:is(
-    [data-category='god'],
-    [data-category='gold'],
-    [data-category='civilization']
-  )
-  .ra-settlement-tiles
-  img {
-  animation: ra-dissolve 700ms ease-out;
-}
-.ra-settlement-seats article[data-category='river'] {
-  border-color: #61b4ad;
-}
-.ra-settlement-seats article[data-category='monument'] {
-  border-color: #d5ad7f;
-}
-.ra-stage-points {
-  font:
-    bold 31px Georgia,
-    serif;
-  color: #ffe398;
-  animation: ra-points 440ms ease-out;
-}
-.ra-stage-points[data-negative='true'] {
-  color: #ffa985;
-}
-.ra-stage-points small {
-  font: 15px system-ui;
-}
 .ra-skip-presentation {
   position: fixed;
   right: 20px;
   bottom: 14px;
   z-index: 25;
   min-height: 44px;
-}
-@keyframes ra-dissolve {
-  0%,
-  40% {
-    opacity: 1;
-  }
-  100% {
-    opacity: 0.1;
-  }
-}
-@keyframes ra-points {
-  from {
-    transform: translateY(11px);
-    opacity: 0;
-  }
-}
-.ra-settlement-seats article[data-comparison='high'] {
-  border-color: #ffd27f;
-  box-shadow: inset 0 0 20px #d98c2a75;
-}
-.ra-settlement-seats article[data-comparison='low'] {
-  border-color: #c27e66;
-}
-.ra-settlement-tiles [data-face='flood'] img {
-  animation: ra-dissolve 700ms ease-out;
-}
-.ra-settlement-tiles i {
-  font-style: normal;
 }
 .ra-table:has(.ra-settlement-pending) .ra-running-score {
   visibility: hidden;
@@ -156,18 +63,8 @@
 .ra-table:has(.ra-settlement-pending) .ra-seat-summary[data-rank] .ra-rank {
   visibility: hidden;
 }
-.ra-settlement-seats
-  article[data-category='civilization']
-  .ra-settlement-tiles
-  span {
-  border: 1px solid #b69669;
-  border-radius: 4px;
-}
-.ra-settlement-seats
-  article[data-category='monument']
-  .ra-settlement-tiles
-  span {
-  border-bottom: 2px solid #d9ad7a;
+.ra-table:has(.ra-settlement-pending) .ra-tiebreak {
+  visibility: hidden;
 }
 @media (prefers-reduced-motion: reduce) {
   .ra-scene * {

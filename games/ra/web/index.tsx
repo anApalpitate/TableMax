@@ -17,7 +17,7 @@ import { tileNames } from '../rules/data';
 import { holdingsBreakdown, scoreDelta } from '../rules/scoring';
 import { SunDisk, TableArt, TileFace } from './art';
 import { RaPresentation, RaSetupSettings } from './presentation';
-import type { SettlementTable } from './sample-scoring';
+import type { SettlementTable } from './settlement';
 import { RaEffects } from './effects';
 import { liveRaFeedback } from './feedback';
 import { PlayerBoard, PlayerSummary, AuctionBadge } from './player-board';

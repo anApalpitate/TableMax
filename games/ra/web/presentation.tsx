@@ -2,15 +2,16 @@ import { useEffect, useId, useState, type ReactNode } from 'react';
 import { SettingHelp, type GameHost, type GameSetupSettingsProps } from '@tablemax/web-host';
 import type { RaView } from '../rules';
 import { tile } from '../rules/data';
-import type { Scene, Breakdown } from '../rules/state';
+import type { Scene } from '../rules/state';
 import { SunDisk, TileFace } from './art';
 import { RaEntrance } from './entrance';
 import { liveRaFeedback } from './feedback';
 import {
-  isSampleCategory,
+  scoringStep,
+  totalStep,
   scoreCategories,
   type SettlementTable,
-} from './sample-scoring';
+} from './settlement';
 import { RaScoreSound } from './score-motion';
 import './presentation.css';
 
@@ -19,8 +20,8 @@ export function RaSetupSettings({
   disabled,
   onChange,
 }: GameSetupSettingsProps) {
-  const enabled = !!(
   const labelId = useId();
+  const enabled = !!(
     value &&
     typeof value === 'object' &&
     !Array.isArray(value) &&
@@ -47,17 +48,6 @@ export function RaSetupSettings({
       </button>
     </div>
   );
-}
-
-function tilesFor(ids: string[], category: keyof Breakdown) {
-  const pieces = ids
-    .map(tile)
-    .filter(({ kind }) =>
-      category === 'river'
-        ? kind === 'nile' || kind === 'flood'
-        : kind === category,
-    );
-  return pieces;
 }
 
 type Frame = {
@@ -99,7 +89,7 @@ function buildFrames(
       ...Array.from({ length: scene.epoch === 3 ? 7 : 5 }, (_, step) =>
         frame(step, 700),
       ),
-      frame(7, 1000),
+      frame(totalStep, 1000),
     ];
   });
 }
@@ -213,8 +203,7 @@ export function RaPresentation({
   const { scene, step, duration } = frame;
   const category = scoreCategories[step];
   const settlement = scene.kind === 'settlement';
-  const sampled =
-    settlement && table && category && isSampleCategory(category[0]);
+  const scoreStep = settlement ? scoringStep(step) : undefined;
   return (
     <>
       {curtain}
@@ -257,7 +246,7 @@ export function RaPresentation({
             }
           >
             {id ? (
-              <TileFace tile={tile(id)} preview decorative />
+              <TileFace tile={tile(id)} decorative />
             ) : (
               <SunDisk value={disk!} />
             )}
@@ -268,10 +257,10 @@ export function RaPresentation({
             <strong>{category?.[1] ?? '总分结算'}</strong>
           </div>
         )}
-        {sampled && (
+        {scoreStep && table && (
           <RaScoreSound
             table={table}
-            category={category[0]}
+            category={scoreStep}
             enabled={audioEnabled}
           />
         )}
@@ -280,121 +269,8 @@ export function RaPresentation({
           !frame.reducedMotion && (
             <div className="ra-disaster-loss">
               {scene.discarded.map((id) => (
-                <TileFace key={id} tile={tile(id)} preview decorative />
+                <TileFace key={id} tile={tile(id)} decorative />
               ))}
-            </div>
-          )}
-        {settlement &&
-          step !== -1 &&
-          !sampled &&
-          (step !== 7 || frame.game.publicScores) && (
-            <div className="ra-settlement-seats">
-              {scene.holdings.map(({ seat, ids }) => {
-                const score = frame.game.publicScores?.find(
-                  (item) => item.seat === seat,
-                )?.latest;
-                const valid = score?.epoch === scene.epoch ? score : null;
-                const delta =
-                  category && valid ? valid.parts[category[0]] : undefined;
-                const pieces = category ? tilesFor(ids, category[0]) : [];
-                const pharaohCounts = scene.holdings.map(
-                  ({ ids }) => tilesFor(ids, 'pharaoh').length,
-                );
-                const max = Math.max(...pharaohCounts);
-                const min = Math.min(...pharaohCounts);
-                const comparison =
-                  category?.[0] === 'pharaoh' && max !== min
-                    ? pieces.length === max
-                      ? 'high'
-                      : pieces.length === min
-                        ? 'low'
-                        : undefined
-                    : undefined;
-                const disks =
-                  category?.[0] === 'disks'
-                    ? frame.game.players.find((player) => player.seat === seat)
-                    : undefined;
-                const grouped = Object.entries(
-                  pieces.reduce<Record<string, number>>((counts, piece) => {
-                    counts[piece.face] = (counts[piece.face] ?? 0) + 1;
-                    return counts;
-                  }, {}),
-                );
-                const floor = valid
-                  ? valid.delta -
-                    Object.values(valid.parts).reduce(
-                      (sum, value) => sum + value,
-                      0,
-                    )
-                  : 0;
-                return (
-                  <article
-                    key={seat}
-                    data-category={category?.[0]}
-                    data-comparison={comparison}
-                  >
-                    <b>
-                      {session.view?.seats.find(({ id }) => id === seat)
-                        ?.name ?? seat}
-                    </b>
-                    <div className="ra-settlement-tiles">
-                      {grouped.map(([face, count]) => (
-                        <span key={face} data-face={face}>
-                          <TileFace
-                            tile={pieces.find((piece) => piece.face === face)!}
-                          />
-                          {count > 1 && '×' + count}
-                        </span>
-                      ))}
-                      {category?.[0] === 'river' &&
-                        pieces.some(({ kind }) => kind === 'flood') && (
-                          <i>洪水激活尼罗河</i>
-                        )}
-                      {category?.[0] === 'civilization' && (
-                        <i>{grouped.length} 种</i>
-                      )}
-                      {category?.[0] === 'pharaoh' && (
-                        <i>
-                          {pieces.length} 枚{' '}
-                          {comparison === 'high'
-                            ? '最多'
-                            : comparison === 'low'
-                              ? '最少'
-                              : ''}
-                        </i>
-                      )}
-                      {disks &&
-                        [
-                          ...disks.disks,
-                          ...(disks.private?.spentDisks ?? []),
-                        ].map((disk) => <SunDisk key={disk} value={disk} />)}
-                      {category?.[0] === 'god' && <i>每枚 ×2</i>}
-                      {category?.[0] === 'gold' && <i>每枚 ×3</i>}
-                      {category?.[0] === 'monument' && (
-                        <i>{grouped.length} 种</i>
-                      )}
-                    </div>
-                    {delta !== undefined && (
-                      <strong
-                        className="ra-stage-points"
-                        data-negative={delta < 0}
-                      >
-                        {delta > 0
-                          ? '+' + delta
-                          : delta < 0
-                            ? '−' + Math.abs(delta)
-                            : '0'}
-                      </strong>
-                    )}
-                    {step === 7 && valid && (
-                      <strong className="ra-stage-points">
-                        {valid.total}
-                        {floor > 0 && <small> 下限修正 +{floor}</small>}
-                      </strong>
-                    )}
-                  </article>
-                );
-              })}
             </div>
           )}
       </div>

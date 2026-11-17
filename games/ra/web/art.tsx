@@ -3,7 +3,6 @@ import { tileNames, type Tile } from '../rules/data';
 const artwork = import.meta.glob<string>(
   [
     '../../../assets/games/ra/tiles/*.webp',
-    '../../../assets/games/ra/previews/*.webp',
     '../../../assets/games/ra/table/*.webp',
     '../../../assets/games/ra/sun-*.svg',
   ],
@@ -14,16 +13,14 @@ const raArt = (file: string) => artwork[`../../../assets/games/ra/${file}`];
 export function TileFace({
   tile,
   decorative = false,
-  preview = false,
 }: {
   tile: Tile;
   decorative?: boolean;
-  preview?: boolean;
 }) {
   return (
     <img
       className={`ra-tile ra-${tile.kind}`}
-      src={raArt(`${preview ? 'previews' : 'tiles'}/${tile.face}.webp`)}
+      src={raArt(`tiles/${tile.face}.webp`)}
       alt={decorative ? '' : tileNames[tile.face]}
       draggable={false}
     />
