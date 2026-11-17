@@ -9,9 +9,8 @@ import {
 import type { JsonValue } from '@tablemax/game-sdk';
 import { MenuIcon, RulebookIcon } from '@tablemax/web-host';
 import {
-  CountdownSettings,
+  Settings,
   DecisionCountdown,
-  DisplaySettings,
   OverlayPanel,
   PlayModeBadge,
   PlayModeControl,
@@ -636,8 +635,7 @@ function ManilaScreen({ session }: { session: GameHost }) {
           ) : (
             <>
               <div className="dialog-actions game-menu-settings">
-                <CountdownSettings session={session} />
-                <DisplaySettings role={role} />
+                <Settings session={session} />
               </div>
               {canControl && (
                 <RoomManagement

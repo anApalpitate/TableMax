@@ -45,6 +45,9 @@ export function projectRoomView(
     joinOpen: d.joinOpen,
     playMode: d.playMode ?? 'play',
     countdownSeconds: d.countdownSeconds ?? DEFAULT_COUNTDOWN_SECONDS,
+    ...(d.status === 'ended' && d.nextCountdownSeconds !== undefined
+      ? { nextCountdownSeconds: d.nextCountdownSeconds }
+      : {}),
     decisionClock: projectDecisionClock(
       d,
       context.game?.rules ?? null,
@@ -67,6 +70,9 @@ export function projectRoomView(
                     ? rules!.setup.fromState(snap.state)
                     : (d.gameSetup ?? rules!.setup.defaults),
                 ),
+                ...(d.status === 'ended' && d.nextGameSetup !== undefined
+                  ? { nextSetup: structuredClone(d.nextGameSetup) }
+                  : {}),
               }
             : {}),
         }

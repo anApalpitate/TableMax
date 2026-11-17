@@ -59,6 +59,7 @@ const games = [
   'uno',
   'avalon',
   'manila',
+  'ra',
 ];
 const selectedGames =
   process.argv
@@ -80,7 +81,7 @@ import {createRoot} from 'react-dom/client';
 import {flushSync} from 'react-dom';
 import {PlatformGame} from ${file('apps/web/src/session/gameHostAdapter.tsx')};
 import {BoxScreen} from ${file('apps/web/src/screens/BoxScreen.tsx')};
-import {useSoundPreference} from ${file('packages/web-host/src/index.tsx')};
+import {useSoundPreference,setPlaybackVolume,trackPlaybackVolume} from ${file('packages/web-host/src/index.tsx')};
 import {useRoomSession} from ${file('apps/web/src/session/useRoomSession.ts')};
 import {RoomViewSchema} from ${file('packages/protocol/src/index.ts')};
 import {RoomManagement} from ${file('apps/web/src/components/RoomManagement.tsx')};
@@ -94,6 +95,7 @@ import ${file('apps/web/src/scrollbars.css')};
 ${games.map((id, i) => `import {client as client${i}} from ${file(source(id) + '/web/index.tsx')};\nimport {rules as rules${i}} from ${file(source(id) + (id === 'expansion' ? '/index.ts' : '/rules/index.ts'))};`).join('\n')}
 const entries={${games.map((id, i) => `${JSON.stringify(id)}:{client:client${i},rules:rules${i}}`).join(',')}};
 const root=createRoot(document.getElementById('root'));
+window.makeVolumeProbe=()=>{const output=new Audio();setPlaybackVolume(output,0.4);const release=trackPlaybackVolume(output);window.probeVolume=()=>output.volume;window.releaseVolumeProbe=release;};
 const noop=()=>{};
 let current;
 function Probe(){const [enabled,setEnabled]=useSoundPreference();window.setSound=setEnabled;return <output data-sound-probe={enabled?'on':'off'} hidden/>;}
@@ -111,11 +113,11 @@ function sessionFor(key,role){
  }
  const actor=ids.find(id=>entry.rules.legalActions(state,id).length)??ids[0];
  const projected=entry.rules.project(state,role==='player'?{role:'player',seatId:actor}:{role:'public'});
- return {role,credential:"fixture",canManageSeats:role==="host",isHost:role==='host',self:role==='player'?seats.find(s=>s.id===actor):undefined,connected:true,locked:false,busy:false,canControl:role==='host',message:'',messageKind:'none',admissionPending:false,awaitingConfirmation:false,feedback:null,errorId:'',motion:[],saved:false,submitting:false,name:'',setName:noop,command:noop,retry:noop,retryAdmission:noop,subscribeInteractions:()=>noop,subscribeInteractionReset:()=>noop,addresses:[],adapters:[],port:38473,catalog:[],games:[],address:'',joinUrl:'',view:{instanceId:'settings-'+key+'-'+role,branch:0,revision:1,status:key==='box'?'lobby':'playing',paused:false,playMode:'play',game:{...entry.rules.manifest,decisionTimer:true},gameView:key==='box'?null:projected,decisionId:entry.rules.decisions(state)[0]?.id??null,countdownSeconds:30,decisionClock:null,actions:role==='player'?entry.rules.legalActions(state,actor):[],lifecycleActions:[],catalog:Object.values(entries).map(e=>e.rules.manifest),seats,history:[],ownerSeatId:ids[0],joinOpen:true},client:entry.client};
+ return {role,credential:"fixture",canManageSeats:role==="host",isHost:role==='host',self:role==='player'?seats.find(s=>s.id===actor):undefined,connected:true,locked:false,busy:false,canControl:role==='host',message:'',messageKind:'none',admissionPending:false,awaitingConfirmation:false,feedback:null,errorId:'',motion:[],saved:false,submitting:false,name:'',setName:noop,command:noop,retry:noop,retryAdmission:noop,subscribeInteractions:()=>noop,subscribeInteractionReset:()=>noop,addresses:[],adapters:[],port:38473,catalog:[],games:[],address:'',joinUrl:'',view:{instanceId:'settings-'+key+'-'+role,branch:0,revision:1,status:key==='box'?'lobby':'playing',paused:false,playMode:'play',game:{...entry.rules.manifest,decisionTimer:entry.rules.manifest.decisionTimer!==false,...(entry.rules.setup?{setup:entry.rules.setup.defaults}:{})},capabilities:{manage:role==='host',control:role==='host',manageSeats:role==='host'},gameView:key==='box'?null:projected,decisionId:entry.rules.decisions(state)[0]?.id??null,countdownSeconds:30,decisionClock:null,actions:role==='player'?entry.rules.legalActions(state,actor):[],lifecycleActions:[],catalog:Object.values(entries).map(e=>e.rules.manifest),seats,history:[],ownerSeatId:ids[0],joinOpen:true},client:entry.client};
 }
 function paint(){const key=current.session.fixtureKey??current.key+'-'+current.session.role;flushSync(()=>root.render(<><Probe/>{current.key==='box'?<BoxScreen key={key} session={current.session}/>:<PlatformGame key={key} session={current.session} client={current.session.client}/>}</>));}
 let renderSequence=0;
-window.renderGame=(key,role)=>{history.replaceState(null,'','/'+role+(key==='box'?'':'/game'));const session=sessionFor(key,role);session.fixtureKey='case-'+key+'-'+(++renderSequence);current={key,session};paint();};
+window.renderGame=(key,role,status)=>{history.replaceState(null,'','/'+role+(key==='box'?'':'/game'));const session=sessionFor(key,role);if(status){session.view.status=status;window.settingsCommands=[];session.command=value=>window.settingsCommands.push(structuredClone(value));}session.fixtureKey='case-'+key+'-'+(++renderSequence);current={key,session};paint();};
 function GuestNameBox(){const [name,setName]=React.useState('');const session={...sessionFor('box','player'),credential:'',self:undefined,name,setName,join:()=>{window.guestJoinCount=(window.guestJoinCount??0)+1;}};return <BoxScreen session={session}/>;}
 window.renderNameLimits=()=>{history.replaceState(null,'','/player');flushSync(()=>root.render(<GuestNameBox key={'guest-'+(++renderSequence)}/>));};
 window.configureNativeSettings=(enabled)=>{
@@ -227,7 +229,7 @@ export function io(){
 `,
 );
 async function assertSettingRowsAndHelp(page, { touch = false } = {}) {
-  const labels = page.locator('.dialog-surface .setting-help__label');
+  const labels = page.locator('.dialog-surface .setting-help__label:visible');
   assert((await labels.count()) > 0, 'Settings expose concise help labels');
   for (let index = 0; index < (await labels.count()); index++) {
     const label = labels.nth(index);
@@ -1412,6 +1414,36 @@ try {
           },
         );
       }
+  async function openSettings(key) {
+    const opener = page.getByRole('button', { name: '设置', exact: true });
+    if (!(await opener.isVisible()) && key !== 'box')
+      await page
+        .getByRole('button', { name: /游戏菜单|^菜单$|管理与设置/ })
+        .first()
+        .click({ timeout: 3000 });
+    assert.equal(await opener.count(), 1, 'Exactly one settings entry');
+    assert.equal(
+      await page.getByRole('button', { name: '视频设置', exact: true }).count(),
+      0,
+    );
+    await opener.click({ timeout: 3000 });
+    const panel = page.getByRole('dialog', { name: '设置', exact: true });
+    await panel.waitFor({ timeout: 3000 });
+    assert.deepEqual(
+      await panel
+        .getByRole('navigation', { name: '设置分类' })
+        .getByRole('button')
+        .allTextContents(),
+      ['基本设置', '游戏设置', '视频设置'],
+    );
+    assert.equal(
+      await panel
+        .getByRole('button', { name: '基本设置', exact: true })
+        .getAttribute('aria-pressed'),
+      'true',
+    );
+    return panel;
+  }
   for (const key of ['box', ...games])
     for (const role of ['host', 'player']) {
       await check(`${key}:${role}:settings`, async () => {
@@ -1420,44 +1452,98 @@ try {
             ? { width: 390, height: 844 }
             : { width: 1280, height: 900 },
         );
-        await page.evaluate(({ key, role }) => window.renderGame(key, role), {
-          key,
-          role,
-        });
-        if (key !== 'box') {
-          const menu = page
-            .getByRole('button', { name: /游戏菜单|菜单|管理与设置/ })
-            .first();
-          await menu.click({ timeout: 3000 });
-        }
-        await page
-          .getByRole('button', { name: '游戏设置', exact: true })
-          .click({ timeout: 3000 });
-        const sound = page.getByRole('switch', { name: /声音/ });
-        await sound.waitFor({ state: 'visible', timeout: 3000 });
+        await page.evaluate(
+          ({ key, role }) => {
+            window.configureNativeSettings(role === 'host');
+            window.renderGame(key, role, 'playing');
+          },
+          { key, role },
+        );
+        const panel = await openSettings(key);
+        const sound = panel.getByRole('switch', { name: '声音' });
         const was = await sound.getAttribute('aria-checked');
         await sound.click();
         assert.notEqual(await sound.getAttribute('aria-checked'), was);
-        await assertSettingRowsAndHelp(page);
-        await page.keyboard.press('Escape');
-        await page
-          .getByRole('button', { name: '视频设置', exact: true })
-          .click({ timeout: 3000 });
-        await page
-          .getByText('显示模式', { exact: true })
-          .waitFor({ timeout: 3000 });
-        assert(
-          (await page
-            .locator('select')
-            .filter({ has: page.locator('option[value="fullscreen"]') })
-            .count()) > 0,
+        const volume = panel.getByRole('slider', { name: '音量' });
+        if (key === 'box' && role === 'host')
+          await page.evaluate(() => window.makeVolumeProbe());
+        await volume.fill('35');
+        assert.equal(await volume.getAttribute('aria-valuetext'), '35%');
+        if (key === 'box' && role === 'host') {
+          assert(
+            Math.abs((await page.evaluate(() => window.probeVolume())) - 0.14) <
+              1e-6,
+          );
+          await page.evaluate(() => window.releaseVolumeProbe());
+        }
+        assert.equal(
+          await panel.getByRole('switch', { name: '射击悬浮窗' }).count(),
+          role === 'player' ? 1 : 0,
         );
         await assertSettingRowsAndHelp(page);
+        await panel
+          .getByRole('button', { name: '游戏设置', exact: true })
+          .click();
+        await panel.getByRole('heading', { name: '本局设置 · 只读' }).waitFor();
+        assert.equal(
+          await panel.getByRole('button', { name: /^保存/ }).count(),
+          0,
+        );
+        if (key === 'ra' || key === 'uno') {
+          const switches = panel.getByRole('switch');
+          assert((await switches.count()) > 0);
+          for (const control of await switches.all())
+            assert(await control.isDisabled());
+        }
+        await panel
+          .getByRole('button', { name: '视频设置', exact: true })
+          .click();
+        await panel
+          .getByText('显示模式', { exact: true })
+          .waitFor({ timeout: 3000 });
+        assert.equal(
+          await panel.getByRole('switch', { name: '射击悬浮窗' }).count(),
+          0,
+        );
+        assert.equal(
+          await panel.getByRole('switch', { name: '互动特效' }).count(),
+          1,
+        );
+        await assertSettingRowsAndHelp(page);
+        await page.keyboard.press('Escape');
       });
     }
+  await check('uno:host:ended:settings', async () => {
+    await page.setViewportSize({ width: 1280, height: 900 });
+    await page.evaluate(() => window.renderGame('uno', 'host', 'ended'));
+    const panel = await openSettings('uno');
+    await panel.getByRole('button', { name: '游戏设置', exact: true }).click();
+    await panel.getByRole('heading', { name: '下一局设置' }).waitFor();
+    await panel.getByRole('switch', { name: '补牌传递' }).click();
+    await panel
+      .getByRole('button', { name: '保存下一局设置', exact: true })
+      .click();
+    const timer = panel.getByRole('slider', { name: '思考时间提醒' });
+    await timer.fill('8');
+    assert.equal(await timer.getAttribute('aria-valuetext'), '40 秒');
+    await panel
+      .getByRole('button', { name: '保存下一局思考时间', exact: true })
+      .click();
+    const commands = await page.evaluate(() => window.settingsCommands);
+    assert.deepEqual(
+      commands.map(({ type }) => type),
+      ['set-game-setup', 'set-countdown'],
+    );
+    assert.equal(commands[1].seconds, 40);
+    await captureBrowserScreenshot(page, {
+      path: join(output, 'settings-uno-host-ended.png'),
+    });
+    await page.keyboard.press('Escape');
+  });
   for (const [key, role, native] of [
     ['box', 'host', true],
     ['uno', 'player', false],
+    ['ra', 'host', true],
   ])
     for (const [width, height] of [
       [320, 568],
@@ -1498,20 +1584,23 @@ try {
           });
         };
         try {
-          if (key !== 'box')
-            await page
-              .getByRole('button', { name: '菜单', exact: true })
-              .click();
-          await page
+          const panel = await openSettings(key);
+          assert(
+            await panel
+              .locator('.settings-tabs button')
+              .evaluateAll((buttons) =>
+                buttons.every(
+                  (button) => button.scrollWidth <= button.clientWidth + 1,
+                ),
+              ),
+          );
+          await assertSettingRowsAndHelp(page);
+          await screenshot('basic');
+          await panel
             .getByRole('button', { name: '游戏设置', exact: true })
             .click();
-          await page
-            .getByRole('switch', { name: '声音', exact: true })
-            .waitFor({ state: 'visible' });
-          await assertSettingRowsAndHelp(page);
           await screenshot('game');
-          await page.keyboard.press('Escape');
-          await page
+          await panel
             .getByRole('button', { name: '视频设置', exact: true })
             .click();
           const mode = page.getByLabel('显示模式', { exact: true });
@@ -1752,6 +1841,7 @@ try {
         );
         await phone.evaluate(() => window.renderGame('manila', 'player'));
         await phone.getByRole('button', { name: '菜单', exact: true }).click();
+        await phone.getByRole('button', { name: '设置', exact: true }).click();
         await phone
           .getByRole('button', { name: '视频设置', exact: true })
           .click();
@@ -1777,6 +1867,7 @@ try {
             value: false,
           });
         });
+        await phone.getByRole('button', { name: '设置', exact: true }).click();
         await phone
           .getByRole('button', { name: '视频设置', exact: true })
           .click();

@@ -140,6 +140,9 @@ it('repairs an exact missing UNO release with pending grace, persists paused clo
     catchUnoDelayMs: 1000,
   });
   let room = fixture.room;
+  expect((await send(room, { type: 'set-countdown', seconds: 40 })).ok).toBe(
+    true,
+  );
   expect((await send(room, { type: 'start' })).ok).toBe(true);
   expect(
     (
@@ -155,7 +158,7 @@ it('repairs an exact missing UNO release with pending grace, persists paused clo
     ).ok,
   ).toBe(true);
   now += 100;
-  expect((await send(room, { type: 'set-countdown', seconds: 40 })).ok).toBe(
+  expect((await send(room, { type: 'set-play-mode', mode: 'play' })).ok).toBe(
     true,
   );
   expect(room.view(fixture.b).actionTiming?.[0]?.remainingMs).toBe(900);

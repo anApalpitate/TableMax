@@ -21,10 +21,9 @@ import { OverlayPanel } from '@tablemax/web-host';
 import { RoomManagement } from '@tablemax/web-host';
 import { PlayModeControl } from '@tablemax/web-host';
 import { PlayModeBadge } from '@tablemax/web-host';
-import { DisplaySettings } from '@tablemax/web-host';
 import { RulesGuide } from '@tablemax/web-host';
 import { pokemonRulebook } from '../ui/RulesGuide';
-import { CountdownSettings } from '@tablemax/web-host';
+import { Settings } from '@tablemax/web-host';
 import { BeginnerGuidanceSetting } from '@tablemax/web-host';
 import { useGuidancePreference } from '@tablemax/web-host';
 import { usePokemonViewport } from '../ui/usePokemonViewport';
@@ -348,10 +347,9 @@ function PokemonScreen({ session }: { session: RoomSession }) {
                   </div>
                 )}
                 <div className="dialog-actions game-menu-settings">
-                  <CountdownSettings session={session}>
+                  <Settings session={session}>
                     <BeginnerGuidanceSetting gameId="pokemon-encounters" />
-                  </CountdownSettings>
-                  <DisplaySettings role={role} />
+                  </Settings>
                 </div>
                 {canControl && <RoomManagement session={session} />}
 

@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useLayoutEffect, useState } from 'react';
 import {
+  getSoundVolume,
+  subscribeSoundVolume,
   subscribeSoundPreference,
   useSoundPreference,
 } from '@tablemax/web-host';
@@ -62,6 +64,11 @@ export function useInteractionAudio(enabled: boolean) {
       ),
     [engine, enabled],
   );
+  useLayoutEffect(() => {
+    const update = () => engine.setVolume(getSoundVolume());
+    update();
+    return subscribeSoundVolume(update);
+  }, [engine]);
   useEffect(() => {
     const bridge = window.tablemaxInteractionAudio;
     let active = true;

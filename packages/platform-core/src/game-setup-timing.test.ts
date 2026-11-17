@@ -206,6 +206,28 @@ it('validates, authorizes and atomically saves pregame options while clearing re
   ).toMatchObject({ ok: false, reason: 'not-in-lobby' });
   const restored = new RoomCoordinator(fixtureRules, bot, repository);
   expect(restored.view().game?.setup).toEqual({ delayMs: 1000 });
+  expect((await send(room, { type: 'end' })).ok).toBe(true);
+  expect(
+    await send(room, { type: 'set-game-setup', setup: defaults }, b),
+  ).toMatchObject({ ok: false, reason: 'unauthorized' });
+  const snapshot = structuredClone(repository.value!.snapshot);
+  expect(
+    (await send(room, { type: 'set-game-setup', setup: defaults })).ok,
+  ).toBe(true);
+  expect(repository.value!.snapshot).toEqual(snapshot);
+  const reopened = new RoomCoordinator(
+    fixtureRules,
+    bot,
+    repository,
+    room.hostToken,
+  );
+  expect(reopened.view().game).toMatchObject({
+    setup: { delayMs: 1000 },
+    nextSetup: defaults,
+  });
+  expect((await send(reopened, { type: 'replay' })).ok).toBe(true);
+  expect(reopened.view().game?.setup).toEqual(defaults);
+  expect(reopened.view().game?.nextSetup).toBeUndefined();
 });
 
 it('enforces the exact server grace boundary while leaving the owner declaration immediate', async () => {
@@ -247,7 +269,10 @@ it('freezes grace on pause/restart, resists reminder resets and resets a rollbac
   const { room, repository, a, b } = await fixture();
   await act(room, a, 'open');
   vi.advanceTimersByTime(100);
-  await send(room, { type: 'set-countdown', seconds: 40 });
+  expect(await send(room, { type: 'set-countdown', seconds: 40 })).toEqual({
+    ok: false,
+    reason: 'not-in-lobby',
+  });
   expect(room.view(b).actionTiming?.[0]?.remainingMs).toBe(400);
   await send(room, { type: 'pause' });
   vi.advanceTimersByTime(5000);
@@ -346,7 +371,9 @@ it('recalculates a fresh bot decision after a metadata revision interrupts the g
   const scheduler = new BotScheduler(room, 0, 100);
   try {
     await vi.advanceTimersByTimeAsync(100);
-    await send(room, { type: 'set-countdown', seconds: 40 });
+    expect((await send(room, { type: 'set-play-mode', mode: 'play' })).ok).toBe(
+      true,
+    );
     await vi.advanceTimersByTimeAsync(4899);
     expect((room.view().gameView as State).open).toBe(true);
     await vi.advanceTimersByTimeAsync(11);

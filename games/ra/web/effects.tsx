@@ -1,3 +1,4 @@
+import { trackPlaybackVolume } from '@tablemax/web-host';
 import { useEffect, useRef, type CSSProperties } from 'react';
 import { claimAudioEvent, type GameHost } from '@tablemax/web-host';
 import type { RaView } from '../rules';
@@ -46,6 +47,7 @@ export function RaEffects({
   useEffect(() => {
     const element = audio.current;
     if (!audible || !key || !sound || !element) return;
+    const untrackVolume = trackPlaybackVolume(element);
     let cancelled = false;
     void Promise.resolve(claimAudioEvent(key))
       .then((claimed) => {
@@ -55,6 +57,7 @@ export function RaEffects({
       })
       .catch(() => {});
     return () => {
+      untrackVolume();
       cancelled = true;
       element.pause();
     };

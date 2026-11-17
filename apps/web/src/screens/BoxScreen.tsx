@@ -25,11 +25,10 @@ import { SeatSettings } from '../components/SeatSettings';
 import { GameLibrary } from '../components/GameLibrary';
 import { PlayModeControl } from '../components/PlayModeControl';
 import { PlayModeBadge } from '../components/PlayModeBadge';
-import { DisplaySettings } from '../components/DisplaySettings';
 import { AvatarPicker } from '../components/AvatarPicker';
 import { AvatarUpload } from '../components/AvatarUpload';
 import { GameIntroduction } from '../components/GameIntroduction';
-import { CountdownSettings } from '../components/CountdownSettings';
+import { Settings } from '../components/CountdownSettings';
 import { BeginnerGuidanceSetting } from '../components/BeginnerGuidanceSetting';
 import { LobbyReadiness } from '../components/LobbyReadiness';
 import { BotInformation } from '../components/BotInformation';
@@ -177,10 +176,9 @@ function BoxScreenContent({ session }: { session: RoomSession }) {
         <div className="header-status" role="group" aria-label="牌桌设置">
           <PlayModeBadge mode={view?.playMode} />
           {isHost && <ApplicationUpdate playing={view?.status === 'playing'} />}
-          <CountdownSettings session={session}>
+          <Settings session={session}>
             {details?.guidance && <BeginnerGuidanceSetting gameId={game!.id} />}
-          </CountdownSettings>
-          <DisplaySettings role={role} />
+          </Settings>
         </div>
       </header>
       <section className="hero">

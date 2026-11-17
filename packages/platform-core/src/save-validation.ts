@@ -70,12 +70,28 @@ export function validateSave(
       requireThat(false, 'damaged-save');
     }
   }
+  if (d.nextGameSetup !== undefined) {
+    requireThat(rules?.setup && d.status !== 'lobby', 'damaged-save');
+    try {
+      d.nextGameSetup = rules!.setup!.validate(d.nextGameSetup);
+    } catch {
+      requireThat(false, 'damaged-save');
+    }
+  }
   requireThat(
     d.countdownSeconds === undefined ||
       CountdownSecondsSchema.safeParse(d.countdownSeconds).success,
     'damaged-save',
   );
   d.countdownSeconds ??= DEFAULT_COUNTDOWN_SECONDS;
+  requireThat(
+    d.nextCountdownSeconds === undefined ||
+      (d.status !== 'lobby' &&
+        !!rules &&
+        rules.manifest.decisionTimer !== false &&
+        CountdownSecondsSchema.safeParse(d.nextCountdownSeconds).success),
+    'damaged-save',
+  );
   requireThat(
     d.decisionClocks === undefined ||
       (Array.isArray(d.decisionClocks) &&

@@ -345,6 +345,7 @@ export interface RoomView {
   joinOpen: boolean;
   playMode: PlayMode;
   countdownSeconds: number;
+  nextCountdownSeconds?: number | undefined;
   decisionClock: DecisionClock | null;
   game: {
     id: string;
@@ -356,6 +357,7 @@ export interface RoomView {
     releaseRef?: string | undefined;
     restoreOnly?: boolean | undefined;
     setup?: unknown;
+    nextSetup?: unknown;
   } | null;
   catalog: {
     id: string;
@@ -439,6 +441,7 @@ export const RoomViewSchema = z
     joinOpen: z.boolean(),
     playMode: PlayModeSchema,
     countdownSeconds: CountdownSecondsSchema,
+    nextCountdownSeconds: CountdownSecondsSchema.optional(),
     decisionClock: DecisionClockSchema.nullable(),
     game: z
       .object({
@@ -449,6 +452,7 @@ export const RoomViewSchema = z
         decisionTimer: z.boolean().optional(),
         restoreOnly: z.boolean().optional(),
         setup: z.json().optional(),
+        nextSetup: z.json().optional(),
         variantId: z.string().optional(),
         releaseRef: z
           .string()

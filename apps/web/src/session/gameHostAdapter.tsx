@@ -6,7 +6,7 @@ import { DisplaySettings } from '../components/DisplaySettings';
 import { RoomManagement } from '../components/RoomManagement';
 import { SessionFeedback } from '../components/SessionFeedback';
 import { PlayModeControl } from '../components/PlayModeControl';
-import { CountdownSettings } from '../components/CountdownSettings';
+import { Settings } from '../components/CountdownSettings';
 import { useAudioOutput } from './useAudioOutput';
 import { avatarFor, avatarChoices } from '../assets/avatars';
 import type { RoomSession } from './useRoomSession';
@@ -50,7 +50,7 @@ export function PlatformGame({
         feedback: (props) => <SessionFeedback session={session} {...props} />,
         playMode: () => <PlayModeControl session={session} />,
         countdown: (props) => (
-          <CountdownSettings session={session} inGame {...props} />
+          <Settings session={session} gameClient={client} {...props} />
         ),
       }}
     />

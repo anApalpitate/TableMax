@@ -1,3 +1,4 @@
+import { setPlaybackVolume, trackPlaybackVolume } from '@tablemax/web-host';
 import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { SoundIcon } from '@tablemax/web-host';
@@ -263,6 +264,7 @@ export function ManilaEffects({ session }: { session: GameHost }) {
   const generation = useRef(0);
   useEffect(() => {
     const audio = new Audio();
+    const untrackVolume = trackPlaybackVolume(audio);
     audio.preload = 'none';
     media.current = audio;
     const unsubscribeSound = subscribeSoundPreference((audible) => {
@@ -282,6 +284,7 @@ export function ManilaEffects({ session }: { session: GameHost }) {
     query.addEventListener('change', change);
     document.addEventListener('visibilitychange', hide);
     return () => {
+      untrackVolume();
       // eslint-disable-next-line react-hooks/exhaustive-deps -- Invalidate asynchronous sound claims on unmount.
       generation.current++;
       unsubscribeSound();
@@ -335,7 +338,7 @@ export function ManilaEffects({ session }: { session: GameHost }) {
           return;
         audio.pause();
         audio.src = sources[cue];
-        audio.volume = 0.55;
+        setPlaybackVolume(audio, 0.55);
         audio.muted = false;
         void audio.play().then(
           () => {

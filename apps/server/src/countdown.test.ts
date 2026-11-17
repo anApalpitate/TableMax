@@ -163,10 +163,11 @@ it('synchronizes HTTP players and Socket.IO viewers from saved platform timing; 
     });
     expect((await send(a, { type: 'resume' })).ok).toBe(true);
     const before = readSave(config.dataDir);
-    const failedRequest = envelope(await sync(host), {
-      type: 'set-countdown',
-      seconds: 120,
+    expect(await send(host, { type: 'set-countdown', seconds: 120 })).toEqual({
+      ok: false,
+      reason: 'not-in-lobby',
     });
+    const failedRequest = envelope(await sync(host), { type: 'pause' });
     const fail = vi
       .spyOn(SqliteSaveRepository.prototype, 'save')
       .mockImplementationOnce(() => {

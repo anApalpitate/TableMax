@@ -2,7 +2,7 @@
 import { useId, useState } from 'react';
 import { RulebookIcon } from '@tablemax/web-host';
 import {
-  CountdownSettings,
+  Settings,
   OverlayPanel,
   RoomManagement,
   ScreenLink,
@@ -370,7 +370,7 @@ function RaScreen({ session }: { session: GameHost }) {
             <RulebookIcon />
           </button>
           {session.role !== 'public' && (
-            <CountdownSettings session={session} iconOnly>
+            <Settings session={session} iconOnly>
               <div className="display-settings-choice ra-push-setting">
                 <SettingHelp
                   id={boatSettingId}
@@ -403,9 +403,9 @@ function RaScreen({ session }: { session: GameHost }) {
                   {pushBoat ? '已开启' : '已关闭'}
                 </button>
               </div>
-              {session.canControl && <RoomManagement session={session} />}
-            </CountdownSettings>
+            </Settings>
           )}
+          {session.canControl && <RoomManagement session={session} />}
         </div>
         <SessionFeedback session={session} mode="toolbar-save" />
       </header>

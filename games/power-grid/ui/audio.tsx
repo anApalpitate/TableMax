@@ -1,3 +1,4 @@
+import { setPlaybackVolume, trackPlaybackVolume } from '@tablemax/web-host';
 import { SoundIcon } from '@tablemax/web-host';
 import {
   claimAudioEvent,
@@ -62,6 +63,7 @@ export function PowerGridSoundControl({
   const queued = useRef<Cue | null>(null);
   useEffect(() => {
     const audio = new Audio();
+    const untrackVolume = trackPlaybackVolume(audio);
     audio.preload = 'none';
     playback.current = audio;
     const unsubscribeSound = subscribeSoundPreference((audible) => {
@@ -74,6 +76,7 @@ export function PowerGridSoundControl({
       }
     });
     return () => {
+      untrackVolume();
       // These counters invalidate pending native claims and media promises.
       // eslint-disable-next-line react-hooks/exhaustive-deps
       generation.current++;
@@ -138,7 +141,7 @@ export function PowerGridSoundControl({
         audio.pause();
         audio.src = sources[cue];
         audio.currentTime = 0;
-        audio.volume = item.major ? 0.42 : 0.26;
+        setPlaybackVolume(audio, item.major ? 0.42 : 0.26);
         void audio.play().then(
           () => {
             if (current === generation.current) setBlocked(false);
@@ -160,7 +163,7 @@ export function PowerGridSoundControl({
     audio.pause();
     audio.src = bid;
     audio.currentTime = 0;
-    audio.volume = 0;
+    setPlaybackVolume(audio, 0);
     void audio.play().then(
       () => {
         if (current !== generation.current || audio !== playback.current)
@@ -172,7 +175,7 @@ export function PowerGridSoundControl({
         queued.current = null;
         if (cue) {
           audio.src = sources[cue];
-          audio.volume = 0.42;
+          setPlaybackVolume(audio, 0.42);
           void audio.play().then(
             () => {
               if (current === generation.current) setBlocked(false);

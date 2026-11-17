@@ -1,3 +1,4 @@
+import { trackPlaybackVolume } from '@tablemax/web-host';
 import { SoundIcon } from '@tablemax/web-host';
 import {
   claimAudioEvent,
@@ -113,6 +114,8 @@ export function SoundControl({
   }, []);
   useEffect(() => {
     const audio = { effect: new Audio(), cry: new Audio() };
+    const untrackEffect = trackPlaybackVolume(audio.effect);
+    const untrackCry = trackPlaybackVolume(audio.cry);
     audio.effect.preload = 'none';
     audio.cry.preload = 'none';
     const playback = new SavedSoundPlayer(audio, () => setBlocked(true));
@@ -124,6 +127,8 @@ export function SoundControl({
       }
     });
     return () => {
+      untrackEffect();
+      untrackCry();
       playback.dispose();
       player.current = null;
       unsubscribeSound();

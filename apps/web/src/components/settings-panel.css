@@ -134,12 +134,8 @@
 }
 .game-setup-settings {
   display: grid;
-  gap: 4px;
+  gap: 6px;
   min-width: 0;
-  padding: 8px 12px;
-  border: 1px solid #c5d8c5;
-  border-radius: 12px;
-  background: #f3f8ed;
 }
 .game-setup-settings > :is(h3, p) {
   margin: 0;
@@ -149,6 +145,82 @@
 }
 .game-setup-settings p {
   font-size: 16px;
+}
+.settings-tabs {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 4px;
+  padding: 4px;
+  border-radius: 12px;
+  background: #e8efe4;
+}
+.settings-tabs button {
+  min-height: 44px;
+  padding: 4px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: #254e42;
+  white-space: nowrap;
+}
+.settings-tabs button[aria-pressed='true'] {
+  border-color: #aac6b5;
+  background: #fffdf3;
+  color: #173d32;
+}
+.settings-section:not([hidden]) {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+}
+.settings-section .interaction-button-setting {
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+.settings-section .interaction-button-setting > button {
+  white-space: nowrap;
+  padding-inline: 8px;
+}
+.settings-section h3,
+.settings-section > p {
+  margin: 2px 0;
+}
+.settings-section
+  :is(.game-setup-settings, .countdown-settings)
+  .dialog-actions {
+  justify-content: end;
+  margin: 4px 0 0;
+}
+.settings-section
+  :is(.game-setup-settings, .countdown-settings)
+  .dialog-actions
+  > button {
+  flex: 0 1 auto;
+}
+.settings-section .settings-volume-row {
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr) max-content;
+  align-items: center;
+  gap: 8px;
+}
+.settings-volume-row input {
+  width: 100%;
+  min-height: 44px;
+  margin: 0;
+  padding: 0;
+  accent-color: #196653;
+}
+.settings-volume-row output {
+  min-width: 3.5em;
+  text-align: end;
+  font-variant-numeric: tabular-nums;
+}
+.settings-section .countdown-settings__row output {
+  grid-column: -2;
+}
+@media (max-width: 420px) {
+  .settings-tabs button {
+    font-size: 16px;
+    padding-inline: 0;
+  }
 }
 html:has(.settings-panel--preferences[open]),
 body:has(.settings-panel--preferences[open]) {

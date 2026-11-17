@@ -23,15 +23,37 @@ const resolutions = [
   ['3840x2160', '3840 × 2160 · 4K'],
 ] as const;
 
-export function DisplaySettings({
-  role = location.pathname.startsWith('/host') ? 'host' : 'player',
-}: {
-  role?: ScreenRole;
-}) {
+export function ShootingFloatingWindowSetting() {
+  const [buttonHidden, setButtonHidden] =
+    useInteractionButtonPreference('player');
+  return (
+    <div className="display-settings-choice interaction-button-setting">
+      <SettingHelp
+        id="interaction-button-label"
+        label="射击悬浮窗"
+        hint="显示或隐藏本设备的互动射击入口。"
+      />
+      <button
+        type="button"
+        className="secondary"
+        role="switch"
+        aria-checked={!buttonHidden}
+        aria-labelledby="interaction-button-label"
+        onClick={() => setButtonHidden(!buttonHidden)}
+      >
+        <span
+          className={`settings-switch${!buttonHidden ? ' settings-switch--on' : ''}`}
+          aria-hidden="true"
+        />
+        {buttonHidden ? '已隐藏' : '已显示'}
+      </button>
+    </div>
+  );
+}
+
+export function VideoSettingsFields({ role }: { role: ScreenRole }) {
   const bridge = window.tablemaxDisplay;
   const [blocked, setBlocked] = useInteractionPreference(role);
-  const [buttonHidden, setButtonHidden] = useInteractionButtonPreference(role);
-  const [open, setOpen] = useState(false);
   const [snapshot, setSnapshot] = useState<DisplaySnapshot | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
@@ -65,6 +87,142 @@ export function DisplaySettings({
       setBusy(false);
     }
   };
+
+  return (
+    <>
+      <WindowModeSettings />
+      <div className="display-settings-choice interaction-video-setting">
+        <SettingHelp
+          id="interaction-effects-label"
+          label="互动特效"
+          hint={
+            blocked
+              ? feedbackText('display.interactionDisabled')
+              : feedbackText('display.interactionEnabled')
+          }
+        />
+        <button
+          type="button"
+          className="secondary"
+          role="switch"
+          aria-checked={!blocked}
+          aria-labelledby="interaction-effects-label"
+          onClick={() => setBlocked(!blocked)}
+        >
+          <span
+            className={`settings-switch${!blocked ? ' settings-switch--on' : ''}`}
+            aria-hidden="true"
+          />
+          {blocked ? '已关闭' : '已开启'}
+        </button>
+      </div>
+
+      {error && (
+        <p className="display-settings-error" role="alert">
+          {error}
+        </p>
+      )}
+      {snapshot ? (
+        <div className="display-settings-fields">
+          <div className="display-settings-current">
+            <SettingHelp
+              label="当前显示器"
+              hint={`Windows 缩放 ${Math.round(snapshot.screen.scaleFactor * 100)}%，界面缩放 ${Math.round(snapshot.zoomFactor * 100)}%。当前窗口独立保存显示设置，即时生效。`}
+            />
+            <strong>
+              {Math.round(snapshot.screen.width * snapshot.screen.scaleFactor)}
+              {' × '}
+              {Math.round(snapshot.screen.height * snapshot.screen.scaleFactor)}
+            </strong>
+          </div>
+          <div className="display-settings-choice">
+            <SettingHelp
+              id="display-resolution-label"
+              label="适配方式"
+              hint={feedbackText('display.autoHint')}
+            />
+            <select
+              id="display-resolution"
+              aria-labelledby="display-resolution-label"
+              value={snapshot.preferences.resolution}
+              disabled={busy}
+              onChange={(event) =>
+                void update({
+                  ...snapshot.preferences,
+                  resolution: event.target
+                    .value as DisplayPreferences['resolution'],
+                })
+              }
+            >
+              {resolutions.map(([value, label]) => (
+                <option key={value} value={value}>
+                  {label}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="display-settings-choice">
+            <SettingHelp
+              id="display-interface-scale-label"
+              label="界面大小"
+              hint="调整管理兼展示窗口的界面大小，保存后在本机沿用。"
+            />
+            <select
+              id="display-interface-scale"
+              aria-labelledby="display-interface-scale-label"
+              value={snapshot.preferences.interfaceScale}
+              disabled={busy}
+              onChange={(event) =>
+                void update({
+                  ...snapshot.preferences,
+                  interfaceScale: Number(
+                    event.target.value,
+                  ) as DisplayPreferences['interfaceScale'],
+                })
+              }
+            >
+              <option value="100">标准（100%）</option>
+              <option value="125">放大（125%）</option>
+              <option value="150">更大（150%）</option>
+            </select>
+          </div>
+          {snapshot.limited && (
+            <p className="display-settings-hint" role="status">
+              {feedbackText('display.limited')}
+            </p>
+          )}
+          <div className="dialog-actions">
+            <button
+              type="button"
+              className="secondary"
+              disabled={busy}
+              onClick={() =>
+                void update({ resolution: 'auto', interfaceScale: 100 })
+              }
+            >
+              恢复自动适配
+            </button>
+          </div>
+          {busy && (
+            <p className="display-settings-hint" role="status">
+              {feedbackText('common.saving')}
+            </p>
+          )}
+        </div>
+      ) : (
+        bridge &&
+        !error && <p role="status">{feedbackText('display.reading')}</p>
+      )}
+    </>
+  );
+}
+
+export function DisplaySettings({
+  role = location.pathname.startsWith('/host') ? 'host' : 'player',
+}: {
+  role?: ScreenRole;
+}) {
+  const [open, setOpen] = useState(false);
   return (
     <>
       <button
@@ -72,17 +230,7 @@ export function DisplaySettings({
         className="secondary icon-label-control display-settings-control"
         aria-label="视频设置"
         title="视频设置"
-        onClick={() => {
-          setOpen(true);
-          if (bridge && !snapshot)
-            void bridge.read().then(
-              (value) => {
-                setSnapshot(value);
-                setError('');
-              },
-              () => setError(feedbackText('display.readFailed')),
-            );
-        }}
+        onClick={() => setOpen(true)}
       >
         <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true">
           <rect
@@ -105,161 +253,15 @@ export function DisplaySettings({
         </svg>
         <span>视频设置</span>
       </button>
+
       {open && (
         <BoxOverlayPanel
           title="视频设置"
           className="settings-panel settings-panel--preferences"
           close={() => setOpen(false)}
         >
-          <WindowModeSettings />
-          <div className="display-settings-choice interaction-video-setting">
-            <SettingHelp
-              id="interaction-effects-label"
-              label="互动特效"
-              hint={
-                blocked
-                  ? feedbackText('display.interactionDisabled')
-                  : feedbackText('display.interactionEnabled')
-              }
-            />
-            <button
-              type="button"
-              className="secondary"
-              role="switch"
-              aria-checked={!blocked}
-              aria-labelledby="interaction-effects-label"
-              onClick={() => setBlocked(!blocked)}
-            >
-              <span
-                className={`settings-switch${!blocked ? ' settings-switch--on' : ''}`}
-                aria-hidden="true"
-              />
-              {blocked ? '已关闭' : '已开启'}
-            </button>
-          </div>
-          {role === 'player' && (
-            <div className="display-settings-choice interaction-button-setting">
-              <SettingHelp
-                id="interaction-button-label"
-                label="射击按钮"
-                hint="显示或隐藏本设备的互动射击入口。"
-              />
-              <button
-                type="button"
-                className="secondary"
-                role="switch"
-                aria-checked={!buttonHidden}
-                aria-labelledby="interaction-button-label"
-                onClick={() => setButtonHidden(!buttonHidden)}
-              >
-                <span
-                  className={`settings-switch${!buttonHidden ? ' settings-switch--on' : ''}`}
-                  aria-hidden="true"
-                />
-                {buttonHidden ? '已隐藏' : '已显示'}
-              </button>
-            </div>
-          )}
-          {error && (
-            <p className="display-settings-error" role="alert">
-              {error}
-            </p>
-          )}
-          {snapshot ? (
-            <div className="display-settings-fields">
-              <div className="display-settings-current">
-                <SettingHelp
-                  label="当前显示器"
-                  hint={`Windows 缩放 ${Math.round(snapshot.screen.scaleFactor * 100)}%，界面缩放 ${Math.round(snapshot.zoomFactor * 100)}%。当前窗口独立保存显示设置，即时生效。`}
-                />
-                <strong>
-                  {Math.round(
-                    snapshot.screen.width * snapshot.screen.scaleFactor,
-                  )}
-                  {' × '}
-                  {Math.round(
-                    snapshot.screen.height * snapshot.screen.scaleFactor,
-                  )}
-                </strong>
-              </div>
-              <div className="display-settings-choice">
-                <SettingHelp
-                  id="display-resolution-label"
-                  label="适配方式"
-                  hint={feedbackText('display.autoHint')}
-                />
-                <select
-                  id="display-resolution"
-                  aria-labelledby="display-resolution-label"
-                  value={snapshot.preferences.resolution}
-                  disabled={busy}
-                  onChange={(event) =>
-                    void update({
-                      ...snapshot.preferences,
-                      resolution: event.target
-                        .value as DisplayPreferences['resolution'],
-                    })
-                  }
-                >
-                  {resolutions.map(([value, label]) => (
-                    <option key={value} value={value}>
-                      {label}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div className="display-settings-choice">
-                <SettingHelp
-                  id="display-interface-scale-label"
-                  label="界面大小"
-                  hint="调整管理兼展示窗口的界面大小，保存后在本机沿用。"
-                />
-                <select
-                  id="display-interface-scale"
-                  aria-labelledby="display-interface-scale-label"
-                  value={snapshot.preferences.interfaceScale}
-                  disabled={busy}
-                  onChange={(event) =>
-                    void update({
-                      ...snapshot.preferences,
-                      interfaceScale: Number(
-                        event.target.value,
-                      ) as DisplayPreferences['interfaceScale'],
-                    })
-                  }
-                >
-                  <option value="100">标准（100%）</option>
-                  <option value="125">放大（125%）</option>
-                  <option value="150">更大（150%）</option>
-                </select>
-              </div>
-              {snapshot.limited && (
-                <p className="display-settings-hint" role="status">
-                  {feedbackText('display.limited')}
-                </p>
-              )}
-              <div className="dialog-actions">
-                <button
-                  type="button"
-                  className="secondary"
-                  disabled={busy}
-                  onClick={() =>
-                    void update({ resolution: 'auto', interfaceScale: 100 })
-                  }
-                >
-                  恢复自动适配
-                </button>
-              </div>
-              {busy && (
-                <p className="display-settings-hint" role="status">
-                  {feedbackText('common.saving')}
-                </p>
-              )}
-            </div>
-          ) : (
-            bridge &&
-            !error && <p role="status">{feedbackText('display.reading')}</p>
-          )}
+          <VideoSettingsFields role={role} />
+          {role === 'player' && <ShootingFloatingWindowSetting />}
         </BoxOverlayPanel>
       )}
     </>

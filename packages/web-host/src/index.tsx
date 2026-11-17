@@ -41,6 +41,13 @@ export {
   useSoundActivation,
   subscribeSoundPreference,
 } from './preferences/useSoundPreference';
+export {
+  getSoundVolume,
+  subscribeSoundVolume,
+  useSoundVolume,
+  setPlaybackVolume,
+  trackPlaybackVolume,
+} from './preferences/sound-volume';
 
 const Context = createContext<GameHostSlots | null>(null);
 function useSlots() {
@@ -81,6 +88,7 @@ export function CountdownSettings({
     ...(iconOnly ? { iconOnly } : {}),
   });
 }
+export const Settings = CountdownSettings;
 export function ScreenLink(
   props: AnchorHTMLAttributes<HTMLAnchorElement> & { href: string },
 ) {

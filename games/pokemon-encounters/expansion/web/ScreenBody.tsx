@@ -7,8 +7,7 @@ import {
   useAudioOutput,
   OverlayPanel,
   ScreenLink,
-  DisplaySettings,
-  CountdownSettings,
+  Settings,
   RoomManagement,
   SessionFeedback,
   PlayModeControl,
@@ -624,8 +623,7 @@ export function ScreenBody({
           ) : (
             <>
               <div className="dialog-actions game-menu-settings">
-                <CountdownSettings session={session} />
-                <DisplaySettings role={session.role} />
+                <Settings session={session} />
               </div>
               {session.canControl && <RoomManagement session={session} />}
               {game.voteCounts && (

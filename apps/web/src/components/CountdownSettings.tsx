@@ -4,141 +4,198 @@ import type { RoomSession } from '../session/useRoomSession';
 import { BoxOverlayPanel } from './BoxOverlayPanel';
 import { feedbackText } from '../content/feedback';
 import { SoundSetting } from './SoundSetting';
+import {
+  ShootingFloatingWindowSetting,
+  VideoSettingsFields,
+} from './DisplaySettings';
 import { GameSetupSettings } from './GameSetupSettings';
-import { MenuIcon, SettingHelp } from '@tablemax/web-host';
+import { MenuIcon, SettingHelp, type GameClient } from '@tablemax/web-host';
 import './countdown.css';
 import './settings-panel.css';
 
-export function CountdownSettings({
+const tabs = [
+  ['basic', '基本设置'],
+  ['game', '游戏设置'],
+  ['video', '视频设置'],
+] as const;
+
+export function Settings({
   session,
   children,
   iconOnly = false,
-  inGame = false,
+  gameClient,
 }: {
   session: RoomSession;
   children?: ReactNode;
   iconOnly?: boolean;
-  inGame?: boolean;
+  gameClient?: GameClient;
 }) {
-  const [open, setOpen] = useState(false);
-  const [step, setStep] = useState<number>(
-    COUNTDOWN_STEPS.indexOf(DEFAULT_COUNTDOWN_SECONDS),
-  );
-  const [attempted, setAttempted] = useState(false);
-  const sliderId = useId();
-  const canSetTimer = session.isHost && session.view?.game?.decisionTimer;
-  const seconds = COUNTDOWN_STEPS[step]!;
+  const [tab, setTab] = useState<(typeof tabs)[number][0] | null>(null);
+  const { view, role } = session;
+  const ended = view?.status === 'ended';
+  const playing = view?.status === 'playing';
+  const hasTimer = view?.game?.decisionTimer === true;
+  const hasGameSetup = view?.game?.setup !== undefined;
   return (
     <>
       <button
         type="button"
         className="secondary icon-label-control countdown-settings-control"
-        aria-label="游戏设置"
-        title="游戏设置"
-        onClick={() => {
-          const current =
-            session.view?.countdownSeconds ?? DEFAULT_COUNTDOWN_SECONDS;
-          setStep(
-            Math.max(
-              0,
-              COUNTDOWN_STEPS.findIndex((value) => value === current),
-            ),
-          );
-          setAttempted(false);
-          setOpen(true);
-        }}
+        aria-label="设置"
+        aria-haspopup="dialog"
+        title="设置"
+        onClick={() => setTab('basic')}
       >
-        {inGame || iconOnly ? (
-          <MenuIcon />
-        ) : (
-          <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true">
-            <path
-              d="M4 6h16M4 12h16M4 18h16"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.8"
-              strokeLinecap="round"
-            />
-            <path
-              d="M8 3v6M16 9v6M10 15v6"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="3.5"
-              strokeLinecap="round"
-            />
-          </svg>
-        )}
-        {!iconOnly && <span>游戏设置</span>}
+        <MenuIcon />
+        {!iconOnly && <span>设置</span>}
       </button>
-      {open && (
+      {tab && (
         <BoxOverlayPanel
-          title="游戏设置"
+          title="设置"
           className="settings-panel settings-panel--preferences"
-          close={() => setOpen(false)}
+          close={() => setTab(null)}
         >
-          <SoundSetting showSpeaker={inGame} />
-          <GameSetupSettings session={session} />
-          {children}
-          {canSetTimer && (
-            <div className="countdown-settings">
-              <div className="countdown-settings__row">
-                <SettingHelp
-                  id={`${sliderId}-label`}
-                  label="思考时间提醒"
-                  hint={`${feedbackText('countdown.hint')} ${feedbackText('countdown.current', { seconds: session.view?.countdownSeconds ?? DEFAULT_COUNTDOWN_SECONDS })}`}
-                />
-                <input
-                  id={sliderId}
-                  aria-labelledby={`${sliderId}-label`}
-                  type="range"
-                  min="0"
-                  max={COUNTDOWN_STEPS.length - 1}
-                  step="1"
-                  value={step}
-                  aria-valuetext={`${seconds} 秒`}
-                  disabled={session.locked}
-                  onChange={(event) => {
-                    setStep(Number(event.target.value));
-                    setAttempted(false);
-                  }}
-                />
-                <output htmlFor={sliderId}>{seconds} 秒</output>
-              </div>
-              {attempted && (
-                <p role="status">
-                  {session.awaitingConfirmation
-                    ? feedbackText('common.waitingForSave')
-                    : session.message}
-                </p>
-              )}
-              <div className="dialog-actions">
-                {session.awaitingConfirmation && (
-                  <button
-                    type="button"
-                    className="secondary"
-                    disabled={!session.connected}
-                    onClick={session.retry}
-                  >
-                    重试确认
-                  </button>
-                )}
-                <button
-                  type="button"
-                  disabled={
-                    session.locked || seconds === session.view?.countdownSeconds
-                  }
-                  onClick={() => {
-                    setAttempted(true);
-                    session.command({ type: 'set-countdown', seconds });
-                  }}
-                >
-                  保存设置
-                </button>
-              </div>
-            </div>
-          )}
+          <nav className="settings-tabs" aria-label="设置分类">
+            {tabs.map(([value, label]) => (
+              <button
+                key={value}
+                type="button"
+                aria-pressed={value === tab}
+                onClick={() => setTab(value)}
+              >
+                {label}
+              </button>
+            ))}
+          </nav>
+          <section
+            className="settings-section"
+            aria-label="基本设置"
+            hidden={tab !== 'basic'}
+          >
+            <SoundSetting showSpeaker />
+            {role === 'player' && <ShootingFloatingWindowSetting />}
+            {children}
+          </section>
+          <section
+            className="settings-section"
+            aria-label="游戏设置"
+            hidden={tab !== 'game'}
+          >
+            <h3>
+              {playing ? '本局设置 · 只读' : ended ? '下一局设置' : '开局设置'}
+            </h3>
+            {ended && view?.game?.restoreOnly && (
+              <p role="status">
+                旧版配置仅供查看；开始当前版本的新局后可调整。
+              </p>
+            )}
+            {hasGameSetup && gameClient?.SetupSettings && (
+              <GameSetupSettings
+                session={session}
+                settings={gameClient.SetupSettings}
+              />
+            )}
+            {hasGameSetup && !gameClient && (
+              <GameSetupSettings session={session} />
+            )}
+            {hasTimer && <CountdownPreference session={session} />}
+            {!hasGameSetup && !hasTimer && (
+              <p>当前玩法没有可配置的游戏选项。</p>
+            )}
+          </section>
+          <section
+            className="settings-section"
+            aria-label="视频设置"
+            hidden={tab !== 'video'}
+          >
+            <VideoSettingsFields role={role} />
+          </section>
         </BoxOverlayPanel>
       )}
     </>
+  );
+}
+
+function CountdownPreference({ session }: { session: RoomSession }) {
+  const { view } = session;
+  const ended = view?.status === 'ended';
+  const saved =
+    (ended ? view?.nextCountdownSeconds : undefined) ??
+    view?.countdownSeconds ??
+    DEFAULT_COUNTDOWN_SECONDS;
+  const source = `${view?.instanceId}:${view?.status}:${saved}`;
+  const [draft, setDraft] = useState<{ source: string; seconds: number }>();
+  const [attempted, setAttempted] = useState(false);
+  const sliderId = useId();
+  const seconds = draft?.source === source ? draft.seconds : saved;
+  const editable =
+    session.isHost &&
+    (view?.status === 'lobby' || (ended && !view.game?.restoreOnly));
+  return (
+    <div className="countdown-settings">
+      <div className="countdown-settings__row">
+        <SettingHelp
+          id={`${sliderId}-label`}
+          label="思考时间提醒"
+          hint={feedbackText('countdown.hint')}
+        />
+        {editable && (
+          <input
+            id={sliderId}
+            aria-labelledby={`${sliderId}-label`}
+            type="range"
+            min="0"
+            max={COUNTDOWN_STEPS.length - 1}
+            step="1"
+            value={COUNTDOWN_STEPS.findIndex((value) => value === seconds)}
+            aria-valuetext={`${seconds} 秒`}
+            disabled={session.locked || session.awaitingConfirmation}
+            onChange={(event) => {
+              setDraft({
+                source,
+                seconds: COUNTDOWN_STEPS[Number(event.target.value)]!,
+              });
+              setAttempted(false);
+            }}
+          />
+        )}
+        <output htmlFor={editable ? sliderId : undefined}>{seconds} 秒</output>
+      </div>
+      {attempted && (
+        <p role="status">
+          {session.awaitingConfirmation
+            ? feedbackText('common.waitingForSave')
+            : session.message}
+        </p>
+      )}
+      {editable && (
+        <div className="dialog-actions">
+          {attempted && session.awaitingConfirmation && (
+            <button
+              type="button"
+              className="secondary"
+              disabled={!session.connected}
+              onClick={session.retry}
+            >
+              重试确认
+            </button>
+          )}
+          <button
+            type="button"
+            disabled={
+              session.locked ||
+              session.awaitingConfirmation ||
+              seconds === saved
+            }
+            onClick={() => {
+              setAttempted(true);
+              session.command({ type: 'set-countdown', seconds });
+            }}
+          >
+            {ended ? '保存下一局思考时间' : '保存思考时间'}
+          </button>
+        </div>
+      )}
+    </div>
   );
 }

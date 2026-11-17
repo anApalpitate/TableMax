@@ -1,3 +1,4 @@
+import { setPlaybackVolume } from '@tablemax/web-host';
 import type { SoundCueRecipe, SoundLane } from './presentation-state';
 import { SOUND_PLAYBACK_VOLUME } from './sound-timing';
 
@@ -37,7 +38,7 @@ export class SavedSoundPlayer {
       cry: { audio: audio.cry, version: 0, active: null },
     };
     for (const { audio: port } of Object.values(this.slots))
-      port.volume = SOUND_PLAYBACK_VOLUME;
+      setPlaybackVolume(port, SOUND_PLAYBACK_VOLUME);
   }
   enqueueEvent(
     eventKey: string,
@@ -115,7 +116,7 @@ export class SavedSoundPlayer {
       await Promise.all(
         Object.values(this.slots).map(async ({ audio }) => {
           audio.src = source;
-          audio.volume = 0;
+          setPlaybackVolume(audio, 0);
           await audio.play();
           if (generation === this.generation) audio.pause();
         }),
@@ -125,7 +126,7 @@ export class SavedSoundPlayer {
       throw error;
     } finally {
       for (const { audio } of Object.values(this.slots))
-        audio.volume = SOUND_PLAYBACK_VOLUME;
+        setPlaybackVolume(audio, SOUND_PLAYBACK_VOLUME);
     }
   }
   dispose() {

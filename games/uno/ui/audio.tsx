@@ -1,3 +1,4 @@
+import { setPlaybackVolume, trackPlaybackVolume } from '@tablemax/web-host';
 import { useEffect, useRef, useState } from 'react';
 import { SoundIcon } from '@tablemax/web-host';
 import {
@@ -67,6 +68,7 @@ export function UnoSoundControl({
   const generation = useRef(0);
   useEffect(() => {
     const audio = new Audio();
+    const untrackVolume = trackPlaybackVolume(audio);
     audio.preload = 'none';
     media.current = audio;
     const unsubscribeSound = subscribeSoundPreference((audible) => {
@@ -83,6 +85,7 @@ export function UnoSoundControl({
     };
     document.addEventListener('visibilitychange', hide);
     return () => {
+      untrackVolume();
       // Invalidate native claims and pending playback before releasing the source.
       // eslint-disable-next-line react-hooks/exhaustive-deps
       generation.current++;
@@ -129,7 +132,7 @@ export function UnoSoundControl({
           return;
         audio.pause();
         audio.src = source;
-        audio.volume = 0.58;
+        setPlaybackVolume(audio, 0.58);
         audio.muted = false;
         void audio.play().then(
           () => {

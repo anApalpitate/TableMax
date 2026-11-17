@@ -1,3 +1,4 @@
+import { trackPlaybackVolume } from '@tablemax/web-host';
 import { useEffect, useLayoutEffect, useRef } from 'react';
 import { claimAudioEvent } from '@tablemax/web-host';
 import { raSound } from './feedback';
@@ -118,4 +119,6 @@ export function RaScoreSound({
       preload="auto"
     />
   );
+    const untrackVolume = trackPlaybackVolume(element);
 }
+      untrackVolume();

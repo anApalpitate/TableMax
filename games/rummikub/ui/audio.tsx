@@ -1,3 +1,4 @@
+import { setPlaybackVolume, trackPlaybackVolume } from '@tablemax/web-host';
 import { useEffect, useRef, useState } from 'react';
 import { SoundIcon } from '@tablemax/web-host';
 import {
@@ -39,6 +40,7 @@ export function RummikubSoundControl({
   const generation = useRef(0);
   useEffect(() => {
     const media = new Audio();
+    const untrackVolume = trackPlaybackVolume(media);
     media.preload = 'none';
     audio.current = media;
     const unsubscribeSound = subscribeSoundPreference((audible) => {
@@ -48,6 +50,7 @@ export function RummikubSoundControl({
       }
     });
     return () => {
+      untrackVolume();
       // Invalidate native claims and browser playback promises on unmount.
       // eslint-disable-next-line react-hooks/exhaustive-deps
       generation.current++;
@@ -96,7 +99,7 @@ export function RummikubSoundControl({
         if (!accepted || permit !== generation.current || !media) return;
         media.pause();
         media.src = source;
-        media.volume = 0.42;
+        setPlaybackVolume(media, 0.42);
         media.muted = false;
         void media.play().then(
           () => {

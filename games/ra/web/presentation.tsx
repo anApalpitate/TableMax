@@ -1,5 +1,5 @@
-import { useEffect, useState, type ReactNode } from 'react';
-import type { GameHost, GameSetupSettingsProps } from '@tablemax/web-host';
+import { useEffect, useId, useState, type ReactNode } from 'react';
+import { SettingHelp, type GameHost, type GameSetupSettingsProps } from '@tablemax/web-host';
 import type { RaView } from '../rules';
 import { tile } from '../rules/data';
 import type { Scene, Breakdown } from '../rules/state';
@@ -20,24 +20,32 @@ export function RaSetupSettings({
   onChange,
 }: GameSetupSettingsProps) {
   const enabled = !!(
+  const labelId = useId();
     value &&
     typeof value === 'object' &&
     !Array.isArray(value) &&
     value.publicScoring === true
   );
   return (
-    <label className="ra-scoring-setting">
-      <input
-        type="checkbox"
-        checked={enabled}
-        disabled={disabled}
-        onChange={(event) => onChange({ publicScoring: event.target.checked })}
+    <div className="display-settings-choice ra-scoring-setting">
+      <SettingHelp
+        id={labelId}
+        label="公开计分"
+        hint="开启后，全桌可看到各席累计分与时代分项。开局后锁定。"
       />
-      <span>
-        公开计分
-        <small>开启后，全桌可看到各席累计分与时代分项。开局后锁定。</small>
-      </span>
-    </label>
+      <button
+        type="button"
+        className="secondary"
+        role="switch"
+        aria-checked={enabled}
+        aria-labelledby={labelId}
+        disabled={disabled}
+        onClick={() => onChange({ publicScoring: !enabled })}
+      >
+        <span className={`settings-switch${enabled ? ' settings-switch--on' : ''}`} aria-hidden="true" />
+        {enabled ? '已开启' : '已关闭'}
+      </button>
+    </div>
   );
 }
 

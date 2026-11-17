@@ -69,6 +69,8 @@ export interface Save {
   countdownSeconds?: number;
   decisionClocks?: DecisionClockState[];
   gameSetup?: JsonValue;
+  nextGameSetup?: JsonValue;
+  nextCountdownSeconds?: number;
   actionClocks?: ActionClockState[];
   automaticClock?: ActionClockState | null;
   seats: Seat[];

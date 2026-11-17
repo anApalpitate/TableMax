@@ -46,6 +46,8 @@ export class InteractionAudioPlayer {
   private context: AudioContext | null = null;
   private effects: GainNode | null = null;
   private voice: GainNode | null = null;
+  private master: GainNode | null = null;
+  private volume = 1;
   private resuming: Promise<void> | null = null;
   private enabled = true;
   private owner = true;
@@ -63,6 +65,10 @@ export class InteractionAudioPlayer {
     this.owner = value;
     if (!value) this.stop();
   }
+  setVolume(volume: number) {
+    this.volume = volume;
+    if (this.master) this.master.gain.value = 0.8 * volume;
+  }
   private canPlay() {
     return this.enabled && this.owner && this.options.canPlay();
   }
@@ -74,7 +80,7 @@ export class InteractionAudioPlayer {
       master = context.createGain();
     effects.gain.value = 1;
     voice.gain.value = 1;
-    master.gain.value = 0.8;
+    master.gain.value = 0.8 * this.volume;
     const limiter = context.createWaveShaper();
     limiter.curve = interactionLimiterCurve();
     limiter.oversample = 'none';
@@ -85,6 +91,7 @@ export class InteractionAudioPlayer {
     this.context = context;
     this.effects = effects;
     this.voice = voice;
+    this.master = master;
     return context;
   }
   private bytes(url: string) {
@@ -369,6 +376,7 @@ export class InteractionAudioPlayer {
     this.stop();
     void this.context?.close().catch(() => undefined);
     this.context = null;
+    this.master = null;
     this.effects = null;
     this.voice = null;
     this.resuming = null;

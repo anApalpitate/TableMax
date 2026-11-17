@@ -1,3 +1,4 @@
+import { trackPlaybackVolume } from '@tablemax/web-host';
 import { useEffect, useRef } from 'react';
 import { claimAudioEvent } from '@tablemax/web-host';
 import { tile, tileNames } from '../rules/data';
@@ -40,6 +41,7 @@ export function RaEntrance({
   useEffect(() => {
     const element = audio.current;
     if (!audioEnabled || !element || !sound) return;
+    const untrackVolume = trackPlaybackVolume(element);
     let cancelled = false;
     const timer = window.setTimeout(
       () => {
@@ -52,6 +54,7 @@ export function RaEntrance({
       reducedMotion ? 0 : 460,
     );
     return () => {
+      untrackVolume();
       cancelled = true;
       window.clearTimeout(timer);
       element.pause();

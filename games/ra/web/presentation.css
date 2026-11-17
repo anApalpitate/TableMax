@@ -1,13 +1,13 @@
 .ra-scoring-setting {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+}
+.ra-scoring-setting > button {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 10px;
-  min-height: 44px;
-}
-.ra-scoring-setting small {
-  display: block;
-  font-size: 16px;
+  gap: 8px;
 }
 .ra-running-score {
   justify-self: end;

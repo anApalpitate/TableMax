@@ -385,19 +385,22 @@ export class RoomCoordinator {
   }
   private lobbyWithSeats(game = this.game): Save {
     const fresh = this.fresh(game);
-    if (
-      game?.rules.setup &&
-      this.data.gameSetup !== undefined &&
+    const sameRelease =
+      !!game &&
       game.rules.manifest.id === this.data.manifest?.id &&
       game.releaseRef === this.data.releaseRef &&
-      game.variantId === this.data.variantId
-    )
-      fresh.gameSetup = game.rules.setup.validate(
-        structuredClone(this.data.gameSetup),
-      );
+      game.variantId === this.data.variantId;
+    const setup =
+      this.data.nextGameSetup === undefined
+        ? this.data.gameSetup
+        : this.data.nextGameSetup;
+    if (sameRelease && game?.rules.setup && setup !== undefined)
+      fresh.gameSetup = game.rules.setup.validate(structuredClone(setup));
     fresh.playMode = this.data.playMode ?? 'play';
     fresh.countdownSeconds =
-      this.data.countdownSeconds ?? DEFAULT_COUNTDOWN_SECONDS;
+      (sameRelease ? this.data.nextCountdownSeconds : undefined) ??
+      this.data.countdownSeconds ??
+      DEFAULT_COUNTDOWN_SECONDS;
     fresh.seats = this.data.seats.map((seat) => ({
       ...seat,
       ready: seat.controller === 'bot',
@@ -958,18 +961,29 @@ export class RoomCoordinator {
     const lobby = () => requireThat(next.status === 'lobby', 'not-in-lobby');
     let events: PublicEvent[] = [];
     switch (c.type) {
-      case 'set-game-setup':
+      case 'set-game-setup': {
         control();
-        lobby();
+        requireThat(next.status !== 'playing', 'not-in-lobby');
         requireThat(this.game?.rules.setup, 'game-setup-unavailable');
+        requireThat(
+          next.status === 'lobby' || !this.game!.restoreOnly,
+          'game-setup-unavailable',
+        );
+        let setup: JsonValue;
         try {
-          next.gameSetup = this.rules.setup!.validate(c.setup);
+          setup = this.rules.setup!.validate(c.setup);
         } catch {
           throw new Rejection('invalid-game-setup');
         }
+        if (next.status === 'ended') {
+          next.nextGameSetup = setup;
+          break;
+        }
+        next.gameSetup = setup;
         for (const seat of next.seats)
           if (seat.controller === 'human') seat.ready = false;
         break;
+      }
       case 'approve-transfer':
       case 'reject-transfer':
         host();
@@ -1065,11 +1079,15 @@ export class RoomCoordinator {
         break;
       case 'set-countdown':
         host();
+        requireThat(next.status !== 'playing', 'not-in-lobby');
         requireThat(
-          this.game?.rules.manifest.decisionTimer !== false,
+          this.game &&
+            this.game.rules.manifest.decisionTimer !== false &&
+            (next.status === 'lobby' || !this.game.restoreOnly),
           'invalid-setting',
         );
-        next.countdownSeconds = c.seconds;
+        if (next.status === 'ended') next.nextCountdownSeconds = c.seconds;
+        else next.countdownSeconds = c.seconds;
         break;
       case 'join-open':
         host();
@@ -1285,8 +1303,9 @@ export class RoomCoordinator {
             else fresh.releaseRef = nextGame.releaseRef;
           }
           fresh.playMode = next.playMode ?? 'play';
-          fresh.countdownSeconds =
-            next.countdownSeconds ?? DEFAULT_COUNTDOWN_SECONDS;
+          if (c.type === 'new-room' || nextGame !== this.game)
+            fresh.countdownSeconds =
+              next.countdownSeconds ?? DEFAULT_COUNTDOWN_SECONDS;
           const reply: CommandReply = {
             ok: true,
             revision: fresh.revision,

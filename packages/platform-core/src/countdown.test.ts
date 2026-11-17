@@ -68,6 +68,7 @@ async function fixture(
   gameRules: GameRules = rules,
   strategy: BotStrategy = bot,
   count = 2,
+  start = true,
 ) {
   const repository = new Repository();
   const room = new RoomCoordinator(gameRules, strategy, repository);
@@ -77,7 +78,7 @@ async function fixture(
     players.push(player.token);
     await send(room, { type: 'ready', ready: true }, player.token);
   }
-  await send(room, { type: 'start' });
+  if (start) await send(room, { type: 'start' });
   return { room, repository, players };
 }
 function offerRules(kind: 'open' | 'sealed'): GameRules {
@@ -123,9 +124,11 @@ async function offer(
 
 it('preserves an explicitly saved 20-second setting after the default changes', async () => {
   clock();
-  const { room, repository } = await fixture();
+  const { room, repository } = await fixture(rules, bot, 2, false);
   expect(room.view().countdownSeconds).toBe(100);
-  await send(room, { type: 'set-countdown', seconds: 20 });
+  expect((await send(room, { type: 'set-countdown', seconds: 20 })).ok).toBe(
+    true,
+  );
   const restored = new RoomCoordinator(rules, bot, repository);
   expect(restored.view().countdownSeconds).toBe(20);
 });
@@ -137,7 +140,7 @@ it('validates all 16 non-linear settings and restricts updates to the computer a
   ]);
   for (const bad of [0, 4, 6, 21, 121, 20.5, NaN, Infinity, '20', null])
     expect(CountdownSecondsSchema.safeParse(bad).success).toBe(false);
-  const { room, players, repository } = await fixture();
+  const { room, players, repository } = await fixture(rules, bot, 2, false);
   expect(room.view().countdownSeconds).toBe(100);
   await send(room, {
     type: 'set-owner',
@@ -151,16 +154,16 @@ it('validates all 16 non-linear settings and restricts updates to the computer a
       ),
     ).toEqual({ ok: false, reason: 'unauthorized' });
   }
-  const oldClock = room.view().decisionClock!.id;
   for (const seconds of COUNTDOWN_STEPS) {
     expect((await send(room, { type: 'set-countdown', seconds })).ok).toBe(
       true,
     );
     expect(room.view().countdownSeconds).toBe(seconds);
-    expect(room.view().decisionClock!.remainingMs).toBe(seconds * 1000);
+    expect(room.view().decisionClock).toBeNull();
     expect(repository.value!.countdownSeconds).toBe(seconds);
   }
-  expect(room.view().decisionClock!.id).not.toBe(oldClock);
+  expect((await send(room, { type: 'start' })).ok).toBe(true);
+  expect(room.view().decisionClock!.remainingMs).toBe(120_000);
   for (const seconds of [4, 6, 121, 20.5])
     expect(
       await room.command(
@@ -231,11 +234,9 @@ it('freezes on pause, resumes the same clock, and leaves timers/settings unchang
     running: true,
   });
   const saved = structuredClone(repository.value);
-  const failing = input(room, { type: 'set-countdown', seconds: 120 });
-  repository.fail = true;
-  expect(await room.command(room.hostToken, failing)).toEqual({
+  expect(await send(room, { type: 'set-countdown', seconds: 120 })).toEqual({
     ok: false,
-    reason: 'save-or-action-failed',
+    reason: 'not-in-lobby',
   });
   expect(repository.value).toEqual(saved);
   expect(room.view().countdownSeconds).toBe(100);
@@ -243,9 +244,24 @@ it('freezes on pause, resumes the same clock, and leaves timers/settings unchang
     id: first.id,
     remainingMs: 90_000,
   });
+  expect((await send(room, { type: 'end' })).ok).toBe(true);
+  const ended = structuredClone(repository.value);
+  const failing = input(room, { type: 'set-countdown', seconds: 120 });
+  repository.fail = true;
+  expect(await room.command(room.hostToken, failing)).toEqual({
+    ok: false,
+    reason: 'save-or-action-failed',
+  });
+  expect(repository.value).toEqual(ended);
   repository.fail = false;
   expect((await room.command(room.hostToken, failing)).ok).toBe(true);
-  expect(room.view().decisionClock!.remainingMs).toBe(120_000);
+  expect(room.view()).toMatchObject({
+    countdownSeconds: 100,
+    nextCountdownSeconds: 120,
+  });
+  expect((await send(room, { type: 'replay' })).ok).toBe(true);
+  expect(room.view().countdownSeconds).toBe(120);
+  expect(room.view().nextCountdownSeconds).toBeUndefined();
 });
 
 it('restores paused at the last committed sample, excluding the closed interval, and rebuilds clocks on rollback', async () => {
@@ -325,8 +341,10 @@ it('migrates missing old metadata once and rejects damaged explicit numbers or c
 it('keeps configuration across game switch, replay and new-room while creating fresh decision clocks', async () => {
   clock();
   const { room, repository } = await fixture();
-  await send(room, { type: 'set-countdown', seconds: 75 });
   await send(room, { type: 'end' });
+  expect((await send(room, { type: 'set-countdown', seconds: 75 })).ok).toBe(
+    true,
+  );
   await send(room, { type: 'replay' });
   expect(room.view().countdownSeconds).toBe(75);
   expect(room.view().decisionClock).toBeNull();

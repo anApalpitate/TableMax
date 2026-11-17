@@ -1,3 +1,4 @@
+import { setPlaybackVolume, trackPlaybackVolume } from '@tablemax/web-host';
 import { useEffect, useRef, useState } from 'react';
 import { SoundIcon } from '@tablemax/web-host';
 import {
@@ -61,6 +62,7 @@ export function AvalonSoundControl({
   const generation = useRef(0);
   useEffect(() => {
     const audio = new Audio();
+    const untrackVolume = trackPlaybackVolume(audio);
     audio.preload = 'none';
     media.current = audio;
     const unsubscribeSound = subscribeSoundPreference((audible) => {
@@ -77,6 +79,7 @@ export function AvalonSoundControl({
     };
     document.addEventListener('visibilitychange', hide);
     return () => {
+      untrackVolume();
       // eslint-disable-next-line react-hooks/exhaustive-deps
       generation.current++;
       unsubscribeSound();
@@ -132,7 +135,7 @@ export function AvalonSoundControl({
           return;
         audio.pause();
         audio.src = source;
-        audio.volume = 0.56;
+        setPlaybackVolume(audio, 0.56);
         audio.muted = false;
         void audio.play().then(
           () => {

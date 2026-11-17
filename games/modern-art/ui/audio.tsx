@@ -1,3 +1,4 @@
+import { trackPlaybackVolume } from '@tablemax/web-host';
 import { SoundIcon } from '@tablemax/web-host';
 import {
   claimAudioEvent,
@@ -86,6 +87,7 @@ export function ModernArtSoundControl({
     // Reuse the same phone decoder across the box route: some mobile browsers
     // grant gesture playback to the element rather than the whole document.
     const audio = localOnly ? (phoneAudio ??= new Audio()) : new Audio();
+    const untrackVolume = trackPlaybackVolume(audio);
     audio.preload = 'none';
     const playback = new ModernArtSoundPlayer(audio, () => {
       if (localOnly) phoneUnlocked = false;
@@ -100,6 +102,7 @@ export function ModernArtSoundControl({
       }
     });
     return () => {
+      untrackVolume();
       if (localOnly) phoneUnlocking = false;
       playback.dispose();
       player.current = null;

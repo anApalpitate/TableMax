@@ -1,3 +1,4 @@
+import { setPlaybackVolume } from '@tablemax/web-host';
 export interface ModernArtAudioPort {
   src: string;
   volume: number;
@@ -21,7 +22,7 @@ export class ModernArtSoundPlayer {
     private readonly audio: ModernArtAudioPort,
     private readonly blocked: () => void,
   ) {
-    audio.volume = this.volume;
+    setPlaybackVolume(audio, this.volume);
     const complete = () => {
       if (this.unlocking || !this.playing || this.disposed) return;
       this.playing = false;
@@ -59,7 +60,7 @@ export class ModernArtSoundPlayer {
     this.playing = false;
     this.unlocking = false;
     this.audio.pause();
-    this.audio.volume = this.volume;
+    setPlaybackVolume(this.audio, this.volume);
   }
   async unlock(source: string) {
     if (this.disposed) return false;
@@ -67,7 +68,7 @@ export class ModernArtSoundPlayer {
     const generation = this.generation;
     this.unlocking = true;
     this.audio.src = source;
-    this.audio.volume = 0;
+    setPlaybackVolume(this.audio, 0);
     try {
       await this.audio.play();
       return generation === this.generation && !this.disposed;
@@ -77,7 +78,7 @@ export class ModernArtSoundPlayer {
     } finally {
       if (generation === this.generation && !this.disposed) {
         this.audio.pause();
-        this.audio.volume = this.volume;
+        setPlaybackVolume(this.audio, this.volume);
         this.unlocking = false;
         this.next();
       }
