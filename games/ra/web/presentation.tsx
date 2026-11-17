@@ -3,7 +3,8 @@ import type { GameHost, GameSetupSettingsProps } from '@tablemax/web-host';
 import type { RaView } from '../rules';
 import { tile } from '../rules/data';
 import type { Scene, Breakdown } from '../rules/state';
-import { SunDisk, TableArt, TileFace } from './art';
+import { SunDisk, TileFace } from './art';
+import { RaEntrance } from './entrance';
 import { liveRaFeedback } from './feedback';
 import './presentation.css';
 
@@ -55,25 +56,46 @@ function tilesFor(ids: string[], category: keyof Breakdown) {
   return pieces;
 }
 
-type Frame = { scene: Scene; step: number; duration: number; game: RaView };
+type Frame = {
+  scene: Scene;
+  step: number;
+  duration: number;
+  game: RaView;
+  key: string;
+  reducedMotion: boolean;
+};
 type Flight = { id?: string; disk?: number; from: DOMRect; to: DOMRect };
+const entranceDuration = 1600;
+const reducedEntranceDuration = 500;
 
-function buildFrames(game: RaView): Frame[] {
-  return game.scenes.flatMap<Frame>((scene) => {
-    if (scene.kind !== 'settlement')
-      return [
-        { scene, step: -1, duration: scene.kind === 'won' ? 620 : 460, game },
-      ];
-    const count = scene.epoch === 3 ? 7 : 5;
+function buildFrames(
+  game: RaView,
+  receipt: string,
+  reducedMotion: boolean,
+): Frame[] {
+  const drawnRa = game.scenes.some(({ kind }) => kind === 'ra');
+  return game.scenes.flatMap<Frame>((scene, index) => {
+    // A drawn Ra already introduces the auction it opens in this receipt.
+    if (scene.kind === 'auction' && drawnRa) return [];
+    const frame = (step: number, duration: number) => ({
+      scene,
+      step,
+      duration,
+      game,
+      reducedMotion,
+      key: `${receipt}:${index}:${step}`,
+    });
+    const intro = frame(
+      -1,
+      reducedMotion ? reducedEntranceDuration : entranceDuration,
+    );
+    if (scene.kind !== 'settlement') return [intro];
     return [
-      { scene, step: -1, duration: 500, game },
-      ...Array.from({ length: count }, (_, step) => ({
-        scene,
-        step,
-        duration: 700,
-        game,
-      })),
-      { scene, step: 7, duration: 1000, game },
+      intro,
+      ...Array.from({ length: scene.epoch === 3 ? 7 : 5 }, (_, step) =>
+        frame(step, 700),
+      ),
+      frame(7, 1000),
     ];
   });
 }
@@ -83,9 +105,7 @@ function flightsFor(scene: Scene): Flight[] {
   const card = Array.from(
     document.querySelectorAll<HTMLElement>('[data-ra-seat]'),
   ).find((item) => item.dataset.raSeat === scene.seat);
-  const to = card
-    ?.querySelector('.ra-seat-summary-disks')
-    ?.getBoundingClientRect();
+  const to = card?.querySelector('.ra-seat-holdings')?.getBoundingClientRect();
   if (!to) return [];
   const slots = document.querySelectorAll('.ra-lot > li');
   const boards =
@@ -101,89 +121,100 @@ function flightsFor(scene: Scene): Flight[] {
     const from = document
       .querySelector('.ra-central-disk')
       ?.getBoundingClientRect();
-    if (from) flights.push({ disk: scene.disk, from, to });
+    const disks = card
+      ?.querySelector('.ra-seat-summary-disks')
+      ?.getBoundingClientRect();
+    if (from && disks) flights.push({ disk: scene.disk, from, to: disks });
   }
   return flights;
 }
 
-const sceneTitles = {
-  ra: '拉',
-  auction: '开始拍卖',
-  won: '成交',
-  god: '神迹',
-  disaster: '灾难',
-  settlement: '时代结算',
-};
-
 export function RaPresentation({
   session,
   game,
+  audioEnabled,
 }: {
   session: GameHost;
   game: RaView | null;
+  audioEnabled: boolean;
 }) {
   const feedback = liveRaFeedback(session);
   const [active, setActive] = useState<{
-    frames: Frame[];
-    index: number;
+    queue: Frame[];
     flights: Flight[];
-    serial: string;
   }>();
+  const [queuedRevision, setQueuedRevision] = useState<number>();
   const revision = feedback?.revision;
   useEffect(() => {
-    if (revision === undefined || !game?.scenes.length) return;
-    if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-    const frames = buildFrames(game);
-    const frame = requestAnimationFrame(() => {
-      const flights = flightsFor(frames[0]!.scene);
-      setActive((current) => {
-        if (current?.frames.some(({ scene }) => scene.kind === 'settlement')) {
-          if (!frames.some(({ scene }) => scene.kind === 'settlement'))
-            return current;
-          return {
-            ...current,
-            frames: [...current.frames.slice(0, current.index + 1), ...frames],
-          };
-        }
-        return { frames, index: 0, flights, serial: String(revision) };
-      });
+    if (!feedback || !game?.scenes.length) return;
+    const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const receipt = `${feedback.instanceId}:${feedback.branch}:${feedback.revision}`;
+    const frames = buildFrames(game, receipt, reduced);
+    const flights = reduced ? [] : flightsFor(frames[0]!.scene);
+    const request = requestAnimationFrame(() => {
+      setQueuedRevision(feedback.revision);
+      setActive((current) =>
+        current
+          ? { ...current, queue: [...current.queue, ...frames] }
+          : { queue: frames, flights },
+      );
     });
-    return () => cancelAnimationFrame(frame);
+    return () => cancelAnimationFrame(request);
     // Start only from a new matching saved feedback revision.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [revision]);
-  const frame = active?.frames[active.index];
+  const frame = active?.queue[0];
   useEffect(() => {
-    if (!frame || !active) return;
+    if (!frame) return;
     const timer = window.setTimeout(() => {
-      const index = active.index + 1;
-      const next = active.frames[index];
-      setActive(
-        next
-          ? { ...active, index, flights: flightsFor(next.scene) }
-          : undefined,
-      );
+      setActive((current) => {
+        if (current?.queue[0] !== frame) return current;
+        const queue = current.queue.slice(1);
+        const next = queue[0];
+        if (!next) return undefined;
+        return {
+          queue,
+          flights: next.reducedMotion ? [] : flightsFor(next.scene),
+        };
+      });
     }, frame.duration);
     return () => window.clearTimeout(timer);
-  }, [active, frame]);
-  if (!active || !frame) return null;
+  }, [frame]);
+  const settlementPending =
+    (revision !== undefined &&
+      queuedRevision !== revision &&
+      game?.scenes.some(({ kind }) => kind === 'settlement')) ||
+    active?.queue.some(({ scene }) => scene.kind === 'settlement');
+  const curtain = settlementPending && (
+    <span className="ra-settlement-pending" hidden />
+  );
+  if (!active || !frame) return curtain || null;
   const { scene, step, duration } = frame;
   const category = categories[step];
   const settlement = scene.kind === 'settlement';
   return (
     <>
+      {curtain}
       <div
         className="ra-scene"
-        key={active.serial + ':' + active.index}
+        key={frame.key}
         data-scene={scene.kind}
+        data-beat={step === -1 ? 'entrance' : 'scoring'}
+        data-reduced={frame.reducedMotion || undefined}
         data-disaster={
           scene.kind === 'disaster' ? tile(scene.id).face : undefined
         }
         style={{ '--scene-time': duration + 'ms' } as React.CSSProperties}
         aria-hidden="true"
       >
-        <span className="ra-scene-light" />
-        {scene.kind === 'ra' && <span className="ra-scene-sunring" />}
+        {step === -1 && (
+          <RaEntrance
+            scene={scene}
+            soundKey={frame.key}
+            reducedMotion={frame.reducedMotion}
+            audioEnabled={audioEnabled}
+          />
+        )}
         {active.flights.map(({ id, disk, from, to }, i) => (
           <div
             key={id ?? 'disk'}
@@ -196,44 +227,32 @@ export function RaPresentation({
                   to.left + to.width / 2 - from.left - from.width / 2 + 'px',
                 '--dy':
                   to.top + to.height / 2 - from.top - from.height / 2 + 'px',
-                animationDelay: Math.min(i, 7) * 22 + 'ms',
+                '--flight-size': Math.min(101, from.width) + 'px',
+                '--flight-delay': Math.min(i, 8) * 20 + 'ms',
               } as React.CSSProperties
             }
           >
-            {id ? <TileFace tile={tile(id)} /> : <SunDisk value={disk!} />}
+            {id ? (
+              <TileFace tile={tile(id)} preview decorative />
+            ) : (
+              <SunDisk value={disk!} />
+            )}
           </div>
         ))}
-        {(scene.kind === 'ra' ||
-          scene.kind === 'auction' ||
-          scene.kind === 'disaster' ||
-          settlement) && (
+        {settlement && step !== -1 && (
           <div className="ra-scene-caption">
-            {scene.kind === 'ra' && <TileFace tile={tile('ra-1')} />}
-            {scene.kind === 'auction' && (
-              <TableArt piece="ra-statue" className="ra-scene-emblem" />
-            )}
-            {scene.kind === 'disaster' && <TileFace tile={tile(scene.id)} />}
-            {settlement && step === -1 && (
-              <TableArt piece="sun-boat" className="ra-scene-emblem" />
-            )}
-            <strong>
-              {settlement
-                ? (category?.[1] ??
-                  (step === 7 ? '总分结算' : '第 ' + scene.epoch + ' 时代结算'))
-                : sceneTitles[scene.kind]}
-            </strong>
+            <strong>{category?.[1] ?? '总分结算'}</strong>
           </div>
         )}
-        {scene.kind === 'disaster' && (
-          <div className="ra-disaster-loss">
-            <strong>
-              {session.view?.seats.find(({ id }) => id === scene.seat)?.name}
-            </strong>
-            {scene.discarded.map((id) => (
-              <TileFace key={id} tile={tile(id)} />
-            ))}
-          </div>
-        )}
+        {scene.kind === 'disaster' &&
+          scene.discarded.length > 0 &&
+          !frame.reducedMotion && (
+            <div className="ra-disaster-loss">
+              {scene.discarded.map((id) => (
+                <TileFace key={id} tile={tile(id)} preview decorative />
+              ))}
+            </div>
+          )}
         {settlement &&
           step !== -1 &&
           (step !== 7 || frame.game.publicScores) && (
@@ -347,15 +366,13 @@ export function RaPresentation({
             </div>
           )}
       </div>
-      {active.frames.some(({ scene }) => scene.kind === 'settlement') && (
-        <button
-          className="ra-skip-presentation secondary"
-          type="button"
-          onClick={() => setActive(undefined)}
-        >
-          跳过演出
-        </button>
-      )}
+      <button
+        className="ra-skip-presentation secondary"
+        type="button"
+        onClick={() => setActive(undefined)}
+      >
+        跳过演出
+      </button>
     </>
   );
 }

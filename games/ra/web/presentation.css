@@ -32,30 +32,6 @@
   z-index: 24;
   color: #fff0d0;
 }
-.ra-scene-light {
-  position: absolute;
-  inset: 0;
-  opacity: 0;
-  background: radial-gradient(ellipse at 50% 30%, #f7c26d84, transparent 66%);
-  animation: ra-scene-light var(--scene-time) ease-out;
-}
-.ra-scene[data-scene='auction'] .ra-scene-light {
-  background: conic-gradient(
-    from 235deg at 50% 22%,
-    transparent,
-    #f4c35c70,
-    transparent 25%
-  );
-}
-.ra-scene[data-scene='god'] .ra-scene-light {
-  background: radial-gradient(ellipse at 50% 32%, #36b2a483, transparent 66%);
-}
-.ra-scene[data-scene='disaster'] .ra-scene-light {
-  background: radial-gradient(ellipse, transparent 32%, #9e592291 80%);
-}
-.ra-scene[data-scene='settlement'] .ra-scene-light {
-  background: linear-gradient(110deg, transparent, #d5a45449, transparent);
-}
 .ra-scene-caption {
   position: absolute;
   left: 50%;
@@ -70,19 +46,6 @@
   border-radius: 6px;
   font-size: 22px;
   white-space: nowrap;
-}
-.ra-scene-caption img {
-  width: 40px;
-  height: 45px;
-  object-fit: contain;
-}
-.ra-scene-flight {
-  position: absolute;
-  width: 50px;
-  animation: ra-fly 435ms ease-in both;
-}
-.ra-scene-flight img {
-  max-width: 100%;
 }
 .ra-settlement-seats {
   position: absolute;
@@ -165,62 +128,11 @@
     opacity: 0.1;
   }
 }
-@keyframes ra-fly {
-  from {
-    transform: translate(-50%, -50%);
-  }
-  to {
-    transform: translate(calc(var(--dx) - 50%), calc(var(--dy) - 50%))
-      scale(0.72);
-    opacity: 0.1;
-  }
-}
 @keyframes ra-points {
   from {
     transform: translateY(11px);
     opacity: 0;
   }
-}
-@keyframes ra-scene-light {
-  25% {
-    opacity: 1;
-  }
-}
-.ra-disaster-loss {
-  position: absolute;
-  left: 50%;
-  top: 32%;
-  transform: translateX(-50%);
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  background: #30251de8;
-  border-radius: 8px;
-  padding: 10px;
-}
-.ra-disaster-loss img {
-  width: 45px;
-  height: 54px;
-  animation: ra-dissolve 450ms ease-out both;
-}
-.ra-scene[data-disaster='earthquake'] .ra-scene-light {
-  background: repeating-conic-gradient(
-    from 40deg at 50% 65%,
-    transparent 0 46deg,
-    #b575523c 47deg 49deg,
-    transparent 51deg 72deg
-  );
-}
-.ra-scene[data-disaster='drought'] .ra-scene-light {
-  background:
-    linear-gradient(to top, #783d2175, transparent 42%),
-    radial-gradient(ellipse at 40% 80%, #c99c6549, transparent 70%);
-}
-.ra-scene[data-disaster='war'] .ra-scene-light {
-  background: linear-gradient(115deg, #b87c564f, transparent 48%, #7737144f);
-}
-.ra-scene[data-disaster='funeral'] .ra-scene-light {
-  background: radial-gradient(ellipse, transparent 33%, #30201bbf 80%);
 }
 .ra-settlement-seats article[data-comparison='high'] {
   border-color: #ffd27f;
@@ -235,35 +147,11 @@
 .ra-settlement-tiles i {
   font-style: normal;
 }
-.ra-table:has(.ra-scene[data-scene='settlement']) .ra-running-score {
+.ra-table:has(.ra-settlement-pending) .ra-running-score {
   visibility: hidden;
 }
-.ra-table:has(.ra-scene[data-scene='settlement'])
-  .ra-seat-summary[data-rank]
-  .ra-rank {
+.ra-table:has(.ra-settlement-pending) .ra-seat-summary[data-rank] .ra-rank {
   visibility: hidden;
-}
-.ra-scene-sunring {
-  position: absolute;
-  left: 50%;
-  top: 15%;
-  width: 160px;
-  aspect-ratio: 1;
-  border: 2px solid #ffe2a4;
-  border-radius: 50%;
-  box-shadow:
-    0 0 27px #e8b257a0,
-    inset 0 0 12px #ffe7b571;
-  animation: ra-sunring 460ms ease-out both;
-}
-.ra-scene[data-scene='ra'] .ra-scene-caption img {
-  animation: ra-turn-tile 460ms ease-out both;
-}
-.ra-scene[data-scene='auction'] .ra-scene-light {
-  animation: ra-fan 460ms ease-out both;
-}
-.ra-scene[data-scene='settlement'] .ra-scene-emblem {
-  animation: ra-dusk-boat 500ms ease-out both;
 }
 .ra-settlement-seats
   article[data-category='civilization']
@@ -277,47 +165,6 @@
   .ra-settlement-tiles
   span {
   border-bottom: 2px solid #d9ad7a;
-}
-@keyframes ra-sunring {
-  from {
-    transform: translate(-50%, -50%) scale(0.45);
-    opacity: 0;
-  }
-  40% {
-    opacity: 1;
-  }
-  to {
-    transform: translate(-50%, -50%) scale(1.2);
-    opacity: 0;
-  }
-}
-@keyframes ra-turn-tile {
-  from {
-    transform: perspective(200px) rotateY(-80deg);
-  }
-}
-@keyframes ra-fan {
-  from {
-    transform: rotate(-3deg);
-    opacity: 0;
-  }
-  38% {
-    opacity: 1;
-  }
-  to {
-    transform: rotate(4deg);
-    opacity: 0;
-  }
-}
-@keyframes ra-dusk-boat {
-  from {
-    transform: translateX(-16px);
-    filter: brightness(1.6);
-  }
-  to {
-    transform: translateX(3px);
-    filter: brightness(0.9);
-  }
 }
 @media (prefers-reduced-motion: reduce) {
   .ra-scene * {

@@ -1,21 +1,8 @@
 import { useEffect, useRef, type CSSProperties } from 'react';
-import {
-  claimAudioEvent,
-  useAudioOutput,
-  type GameHost,
-} from '@tablemax/web-host';
+import { claimAudioEvent, type GameHost } from '@tablemax/web-host';
 import type { RaView } from '../rules';
 import { SunDisk } from './art';
-import { liveRaFeedback } from './feedback';
-
-const sounds = import.meta.glob<string>(
-  '../../../assets/games/ra/audio/*.flac',
-  {
-    eager: true,
-    query: '?url',
-    import: 'default',
-  },
-);
+import { liveRaFeedback, raSound } from './feedback';
 
 const priorities = [
   'final',
@@ -34,27 +21,26 @@ const priorities = [
 export function RaEffects({
   session,
   game,
+  audioEnabled,
 }: {
   session: GameHost;
   game?: RaView | null;
+  audioEnabled: boolean;
 }) {
-  const audioEnabled = useAudioOutput();
   const audio = useRef<HTMLAudioElement>(null);
   const feedback = liveRaFeedback(session);
-  const cue = feedback
-    ? priorities.find((value) =>
-        feedback.events.some(({ kind }) => kind === 'ra-' + value),
-      )
-    : undefined;
+  const structuredHost = session.role === 'host' && !!game?.scenes?.length;
+  const cue =
+    feedback && !structuredHost
+      ? priorities.find((value) =>
+          feedback.events.some(({ kind }) => kind === 'ra-' + value),
+        )
+      : undefined;
   const key =
     feedback && cue
       ? `${feedback.instanceId}:${feedback.branch}:${feedback.revision}:${cue}`
       : '';
-  const sound =
-    cue &&
-    sounds[
-      `../../../assets/games/ra/audio/${cue === 'invoke' ? 'open' : cue}.flac`
-    ];
+  const sound = cue && raSound(cue === 'invoke' ? 'open' : cue);
   const audible = session.role === 'host' && audioEnabled;
 
   useEffect(() => {

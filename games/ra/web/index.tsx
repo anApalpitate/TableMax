@@ -8,6 +8,7 @@ import {
   ScreenLink,
   SessionFeedback,
   SettingHelp,
+  useAudioOutput,
   type GameClient,
   type GameHost,
 } from '@tablemax/web-host';
@@ -224,6 +225,7 @@ function Controls({
 }
 
 function RaScreen({ session }: { session: GameHost }) {
+  const audioEnabled = useAudioOutput();
   const boatSettingId = useId();
   const [pushBoat, setPushBoat] = useState(() => {
     try {
@@ -402,17 +404,19 @@ function RaScreen({ session }: { session: GameHost }) {
       <div className="ra-feedback-slot">
         <SessionFeedback session={session} mode="messages" />
       </div>
-      <RaEffects session={session} game={game} />
+      <RaEffects session={session} game={game} audioEnabled={audioEnabled} />
       {session.role === 'host' && (
         <RaPresentation
           key={[
             session.view?.instanceId,
             session.view?.branch,
             session.view?.paused,
+            session.view?.playMode,
             session.connected,
           ].join(':')}
           session={session}
           game={game}
+          audioEnabled={audioEnabled}
         />
       )}
       {game && (
