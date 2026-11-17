@@ -5,6 +5,7 @@
 ## 开始开发
 
 - **改盒子或游戏 UI**：先查[用户美术偏好](reference/art-preferences.md#agent-使用入口)和[通用视觉](reference/visual-design.md)，再查[盒子视觉](reference/box-visual-design.md)或[游戏索引](games/README.md)。复用边界见[界面复用](reference/ui-composition.md)。
+- **改设置**：查[统一设置](reference/box-visual-design.md#统一设置)；改可编辑阶段、权限或落盘时，再查[平台契约](reference/phase-02-platform-spec.md#游戏所属的开局设置与行动宽限2026-10-20)。
 - **改手机布局**：查[三类工作区](reference/visual-design.md#三类布局与宽高比适配)和[手机横向的门禁、恢复与验收](reference/visual-design.md#手机仅竖屏与横屏提示2026-10-28)。游戏特例直达[马尼拉航道与宽屏](games/manila/visual-design.md#三类工作区与净区2026-10-29)、[阿瓦隆座位与断点](games/avalon/interaction.md#三类布局落地2026-10-29)或对应[游戏](games/README.md)。源码与真机证据见[布局接续](tasks/all-games-layout-rollout.md)。
 - **改游戏规则或人机**：从[游戏索引](games/README.md)查采用版次、来源、秘密及验证。共享人机边界见[人机规格](reference/bot-players.md)，新模块见[扩展指南](reference/game-development.md)。
 - **改入座、权限或同步**：查[身份、房主与信息权限](reference/phase-02-platform-spec.md#身份房主与信息权限)和[连接与连续游玩](reference/phase-02-platform-spec.md#连接与连续游玩)。

@@ -8,6 +8,7 @@ Windows 全数字桌游平台。电脑管理兼展示，真人使用玩家端，
 
 - 游戏规则、版本、秘密、人机与验证查[游戏索引](docs/games/README.md)，模块接入查[扩展指南](docs/reference/game-development.md)。
 - UI／声画先查[用户偏好](docs/reference/art-preferences.md#agent-使用入口)和[通用视觉](docs/reference/visual-design.md)，再查[盒子](docs/reference/box-visual-design.md)或游戏。手机横屏门禁直接查[通用正文](docs/reference/visual-design.md#手机仅竖屏与横屏提示2026-10-28)。
+- 设置直接查[统一设置](docs/reference/box-visual-design.md#统一设置)，权限和落盘从该节进入平台契约。
 - 权限、保存及回退查[平台规格](docs/reference/phase-02-platform-spec.md#身份房主与信息权限)。运行、工具链和冻结查[构建与运行](docs/reference/build-and-run.md)，命令查[工具索引](tools/README.md)。
 
 ## 关键边界
