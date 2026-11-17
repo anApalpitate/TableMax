@@ -35,18 +35,42 @@ const categories = [
 ] as const;
 type Rule = Resource | 'disks';
 type Projection = { parts: Omit<Breakdown, 'disks'>; delta: number };
-const ruleText: Record<Rule, string> = {
-  pharaoh: '数量最多者各 +5，最少者各 −2。全桌相同时为 0。',
-  god: '未花费的神明每枚 +2。花费一枚可从拍卖行取走一枚非神明板块。',
-  gold: '黄金每枚 +3。',
-  civilization:
-    '不同种类数为 0／1／2／3／4／5 时，得分是 −5／0／0／5／10／15。',
-  monument:
-    '第三时代将两项相加。每组 3／4／5 枚同类分别 +5／+10／+15。有 1–6 种时每种 +1，有 7／8 种时分别 +10／+15。',
-  nile: '有洪水时尼罗河每枚 +1，否则为 0。洪水自身每枚 +1。',
-  flood: '洪水每枚 +1，有至少一枚还能让每枚尼罗河 +1。旱灾先弃洪水再弃尼罗河。',
-  disks:
-    '第三时代比较各席正反面圆盘的合计。最高各 +5，最低各 −5，全桌相同为 0。中央盘不计。',
+const ruleDetails: Record<Rule, ReadonlyArray<readonly [string, string]>> = {
+  pharaoh: [
+    ['数量最多', '各 +5 分。'],
+    ['数量最少', '各 −2 分。'],
+    ['全桌相同', '所有玩家得 0 分。'],
+  ],
+  god: [
+    ['未使用', '每枚 +2 分。'],
+    ['用作神迹', '花费一枚，从拍卖行取走一枚非神明石板。'],
+  ],
+  gold: [['按枚计分', '每枚 +3 分。']],
+  civilization: [
+    ['没有文明', '−5 分。'],
+    ['1 或 2 种', '0 分。'],
+    ['3–5 种', '分别得 +5、+10、+15 分。'],
+  ],
+  monument: [
+    ['同类成组', '每组 3 枚 +5，4 枚 +10，5 枚 +15。'],
+    ['不同种类', '1–6 种每种 +1 分。7 种 +10，8 种 +15。'],
+  ],
+  nile: [
+    ['有洪水', '尼罗河每枚 +1 分。'],
+    ['无洪水', '尼罗河每枚计 0 分。'],
+    ['洪水本身', '每枚另计 +1 分。'],
+  ],
+  flood: [
+    ['按枚计分', '洪水每枚 +1 分。'],
+    ['激活河流', '有至少一枚洪水时，尼罗河每枚 +1 分。'],
+    ['遇到旱灾', '先弃洪水，再弃尼罗河。'],
+  ],
+  disks: [
+    ['比较总值', '各自相加正反面的圆盘，中央盘不计。'],
+    ['总值最高', '各 +5 分。'],
+    ['总值最低', '各 −5 分。'],
+    ['全桌相同', '所有玩家得 0 分。'],
+  ],
 };
 const pool = new Map<string, number>();
 for (const id of tileIds) {
@@ -977,13 +1001,43 @@ function HoldingShelf({
         {rule && (
           <>
             <header>
-              <h3 id={titleId}>{names[rule]}计分</h3>
-              <button type="button" onClick={() => dialog.current?.close()}>
-                关闭
+              <div>
+                <h3 id={titleId}>{names[rule]}计分</h3>
+                <p className="ra-rule-timing">
+                  {rule === 'monument'
+                    ? '第三时代结算 · 两项相加'
+                    : rule === 'disks'
+                      ? '第三时代结算'
+                      : '每个时代结算'}
+                </p>
+              </div>
+              <button
+                type="button"
+                aria-label="关闭"
+                onClick={() => dialog.current?.close()}
+              >
+                <svg
+                  viewBox="0 0 24 24"
+                  width="22"
+                  height="22"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.8"
+                  aria-hidden="true"
+                >
+                  <path d="m6 6 12 12M18 6 6 18" strokeLinecap="round" />
+                </svg>
               </button>
             </header>
             <RuleArtwork rule={rule} flooded={flooded} />
-            <p>{ruleText[rule]}</p>
+            <dl className="ra-rule-details">
+              {ruleDetails[rule].map(([condition, result]) => (
+                <div key={condition}>
+                  <dt>{condition}</dt>
+                  <dd>{result}</dd>
+                </div>
+              ))}
+            </dl>
           </>
         )}
       </dialog>

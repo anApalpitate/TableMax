@@ -602,15 +602,15 @@
   --ra-personal-epoch-first: #236047;
   --ra-personal-epoch-second: #995020;
   --ra-personal-epoch-third: #a03433;
-  width: min(calc(100% - 26px), 396px);
+  width: min(calc(100% - 24px), 398px);
   max-height: calc(100dvh - 32px);
-  padding: 12px;
+  padding: 14px;
   overflow: auto;
   overscroll-behavior: contain;
   border: 1px solid #887863;
-  border-radius: 9px;
+  border-radius: 12px;
   color: var(--ra-board-ink);
-  background: #f4e8ce;
+  background: #f5eddc;
   box-shadow: 0 13px 37px #170d07aa;
 }
 
@@ -622,21 +622,83 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 7px;
-  margin-block-end: 8px;
+  gap: 10px;
+  margin-block-end: 10px;
+  padding-block-end: 9px;
+  border-block-end: 1px solid #bead8d;
 }
 
 .ra-holding-dialog h3 {
-  font-size: 20px;
+  margin: 0;
+  color: #283d36;
+  font-family: 'Songti SC', STSong, SimSun, serif;
+  font-size: 25px;
+  font-weight: 750;
+  line-height: 1.2;
 }
 
 .ra-holding-dialog button {
-  padding-inline: 9px;
-  border-color: #988064;
+  flex: none;
+  padding: 0;
+  border-color: #b5a17e;
+  background: #e9dec7;
+  color: #284740;
 }
 
-.ra-holding-dialog p {
-  margin-block-start: 8px;
+.ra-holding-dialog .ra-rule-timing {
+  margin: 3px 0 0;
+  color: #625440;
+  font-size: 16px;
+  line-height: 1.4;
+}
+
+.ra-rule-details {
+  display: grid;
+  margin: 10px 0 0;
+  padding-inline: 10px;
+  border-inline-start: 2px solid #8e794f;
+  border-radius: 4px;
+  background: #efe5ce;
+  font-size: 16px;
+  line-height: 1.5;
+  font-variant-numeric: tabular-nums;
+}
+
+.ra-rule-details > div {
+  display: grid;
+  grid-template-columns: 4.25em minmax(0, 1fr);
+  gap: 7px;
+  padding-block: 6px;
+}
+
+.ra-rule-details > div + div {
+  border-block-start: 1px solid #baa9877a;
+}
+
+.ra-rule-details dt {
+  font-weight: 700;
+  color: #285649;
+}
+
+.ra-rule-details dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+@media (max-height: 680px) {
+  .ra-holding-dialog {
+    padding: 10px;
+  }
+  .ra-holding-dialog header {
+    margin-block-end: 7px;
+    padding-block-end: 6px;
+  }
+  .ra-holding-dialog .ra-rule-artwork {
+    padding-block: 5px;
+  }
+  .ra-rule-details {
+    margin-block-start: 7px;
+  }
 }
 
 .ra-rule-artwork {
@@ -645,7 +707,8 @@
   justify-items: center;
   gap: 6px;
   min-inline-size: 0;
-  padding: 6px 3px 9px;
+  padding: 9px 4px;
+  border: 1px solid #b59f7080;
   border-radius: 6px;
   background:
     repeating-linear-gradient(0deg, #71582b06 0 1px, transparent 1px 4px),

@@ -331,6 +331,48 @@
   stroke-width: 1.7;
 }
 
+@media (max-width: 760px) {
+  .ra-table .ra-compact-auction {
+    display: grid;
+    gap: 4px;
+  }
+
+  .ra-table .ra-compact-auction article {
+    display: grid;
+    grid-template-rows: 22px 22px;
+    justify-items: center;
+    min-inline-size: 0;
+    padding: 2px;
+    gap: 1px;
+    background: #eae0ca;
+  }
+
+  .ra-table .ra-compact-auction article[data-active='true'] {
+    background: #dae0ce;
+    border-width: 1px;
+    box-shadow: inset 0 0 0 1px var(--ra-accent);
+  }
+
+  .ra-auction-seat-name {
+    max-inline-size: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .ra-compact-auction .ra-seat-badges {
+    min-block-size: 0;
+    gap: 2px;
+  }
+
+  .ra-compact-auction .ra-seat-badges :is(.ra-sun, svg, .ra-auction-statue) {
+    display: block;
+    inline-size: 19px;
+    block-size: 19px;
+    object-fit: contain;
+  }
+}
+
 @media (max-height: 790px), (max-width: 900px) {
   .ra-auction-recap .ra-recap-wide {
     display: none;

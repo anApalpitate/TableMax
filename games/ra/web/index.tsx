@@ -516,13 +516,24 @@ function RaScreen({ session }: { session: GameHost }) {
             </div>
           </section>
           {ownBoard && auction && (
-            <section className="ra-compact-auction" aria-label="各席竞拍状态">
+            <section
+              className="ra-compact-auction"
+              aria-label="各席竞拍状态"
+              style={{
+                gridTemplateColumns: `repeat(${game.players.length}, minmax(0, 1fr))`,
+              }}
+            >
               {game.players.map((player) => (
                 <article
                   key={player.seat}
                   data-active={player.seat === game.actor}
                 >
-                  <span title={name(player.seat)}>{name(player.seat)}</span>
+                  <span
+                    className="ra-auction-seat-name"
+                    title={name(player.seat)}
+                  >
+                    {name(player.seat)}
+                  </span>
                   <AuctionBadge status={auctionStatus(player.seat)} />
                 </article>
               ))}
