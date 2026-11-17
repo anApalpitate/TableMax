@@ -15,6 +15,7 @@ import type { Action, RaView } from '../rules';
 import { tileNames } from '../rules/data';
 import { holdingsBreakdown, scoreDelta } from '../rules/scoring';
 import { SunDisk, TableArt, TileFace } from './art';
+import { RaPresentation, RaSetupSettings } from './presentation';
 import { RaEffects } from './effects';
 import { liveRaFeedback } from './feedback';
 import { PlayerBoard, PlayerSummary, AuctionBadge } from './player-board';
@@ -401,6 +402,18 @@ function RaScreen({ session }: { session: GameHost }) {
         <SessionFeedback session={session} mode="messages" />
       </div>
       <RaEffects session={session} game={game} />
+      {session.role === 'host' && (
+        <RaPresentation
+          key={[
+            session.view?.instanceId,
+            session.view?.branch,
+            session.view?.paused,
+            session.connected,
+          ].join(':')}
+          session={session}
+          game={game}
+        />
+      )}
       {game && (
         <>
           <section className="ra-board" aria-label="公共牌桌">
@@ -545,6 +558,13 @@ function RaScreen({ session }: { session: GameHost }) {
                   name={name(player.seat)}
                   active={player.seat === game.actor}
                   auction={auctionStatus(player.seat)}
+                  score={
+                    game.publicScoring
+                      ? game.publicScores?.find(
+                          (entry) => entry.seat === player.seat,
+                        )?.total
+                      : undefined
+                  }
                   result={ranks.find((result) => result.seat === player.seat)}
                   showScores={() => setShowScores(player.seat)}
                 />
@@ -704,6 +724,7 @@ function finalRanks(game: RaView) {
 
 export const client: GameClient = {
   Screen: RaScreen,
+  SetupSettings: RaSetupSettings,
   savedChanges: () => [],
   motionDuration: 0,
 };

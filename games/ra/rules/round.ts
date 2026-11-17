@@ -114,6 +114,14 @@ export function legal(s: State, seat: string): Action[] {
 
 function scoreEpoch(s: State, tell: Tell) {
   tell(`第 ${s.epoch} 时代结算`, s.epoch === 3 ? 'final' : 'epoch');
+  s.scenes?.push({
+    kind: 'settlement',
+    epoch: s.epoch,
+    holdings: s.seats.map((seat) => ({
+      seat,
+      ids: [...s.players[seat]!.held],
+    })),
+  });
   settle(s);
 }
 
@@ -138,6 +146,12 @@ function discard(s: State, ids: string[], tell: Tell) {
   const pending = s.disaster!;
   const disasterId = pending.queue.shift()!;
   const owner = s.players[pending.owner]!;
+  s.scenes?.push({
+    kind: 'disaster',
+    seat: pending.owner,
+    id: disasterId,
+    discarded: [...ids],
+  });
   owner.held = owner.held.filter((id) => !ids.includes(id));
   s.removed.push(disasterId, ...ids);
   tell(
@@ -201,6 +215,12 @@ function advanceAuction(s: State, tell: Tell) {
   if (bid && bid.disk !== null) {
     const player = s.players[bid.seat]!;
     const lot = s.lot.filter((id) => id !== null);
+    s.scenes?.push({
+      kind: 'won',
+      seat: bid.seat,
+      disk: s.center,
+      tiles: s.lot.flatMap((id, slot) => (id === null ? [] : [{ id, slot }])),
+    });
     s.lot.fill(null);
     player.up = player.up.filter((disk) => disk !== bid.disk);
     player.down.push(s.center);
@@ -226,6 +246,7 @@ function advanceAuction(s: State, tell: Tell) {
 }
 
 function openAuction(s: State, caller: string, cause: Cause, tell: Tell) {
+  s.scenes?.push({ kind: 'auction', seat: caller });
   s.phase = 'auction';
   s.actor = following(s, caller);
   s.auction = { cause, caller, bids: [] };
@@ -233,6 +254,7 @@ function openAuction(s: State, caller: string, cause: Cause, tell: Tell) {
 }
 
 export function play(s: State, action: Action, seat: string): PublicEvent[] {
+  s.scenes = [];
   const events: PublicEvent[] = [];
   const tell: Tell = (text, cue) => {
     events.push({ kind: cue ? `ra-${cue}` : 'ra-turn', text });
@@ -251,6 +273,7 @@ export function play(s: State, action: Action, seat: string): PublicEvent[] {
         nextTurn(s, next, tell);
       } else {
         s.removed.push(id);
+        s.scenes.push({ kind: 'ra', seat });
         s.raDrawn++;
         if (s.raDrawn === limits[playerCount(s.seats.length)])
           scoreEpoch(s, tell);
@@ -281,6 +304,13 @@ export function play(s: State, action: Action, seat: string): PublicEvent[] {
       advanceAuction(s, tell);
       break;
     case 'spendGod':
+      s.scenes.push({
+        kind: 'god',
+        seat,
+        id: action.tileId,
+        godId: action.godId,
+        slot: action.slot,
+      });
       s.players[seat]!.held = s.players[seat]!.held.filter(
         (id) => id !== action.godId,
       );

@@ -32,7 +32,25 @@ export type Player = {
   held: string[];
   scores: Score[];
 };
+export type Scene =
+  | { kind: 'ra' | 'auction'; seat: string }
+  | {
+      kind: 'won';
+      seat: string;
+      tiles: { id: string; slot: number }[];
+      disk: number;
+    }
+  | { kind: 'god'; seat: string; id: string; godId: string; slot: number }
+  | { kind: 'disaster'; seat: string; id: string; discarded: string[] }
+  | {
+      kind: 'settlement';
+      epoch: number;
+      holdings: { seat: string; ids: string[] }[];
+    };
+
 export type State = {
+  publicScoring?: boolean;
+  scenes?: Scene[];
   seats: string[];
   players: Record<string, Player>;
   epoch: number;
@@ -68,6 +86,13 @@ function invariant(value: unknown): asserts value {
 
 export function validateState(input: unknown, seats: readonly string[]): State {
   const s = input as State;
+  invariant(
+    s.publicScoring === undefined || typeof s.publicScoring === 'boolean',
+  );
+  invariant(
+    s.scenes === undefined ||
+      (Array.isArray(s.scenes) && s.scenes.length <= 12),
+  );
   const n = playerCount(seats.length);
   invariant(
     s &&

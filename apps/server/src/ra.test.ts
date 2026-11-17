@@ -43,6 +43,30 @@ const apply = (s: State, action: Action) =>
   }).state;
 
 describe('Ra retail third printing', () => {
+  it('projects settlement effects without exposing hidden scores', () => {
+    const closed = arrange(rules.initialize(context(2)), [], {}, ['ra-1']);
+    closed.raDrawn = limits[2] - 1;
+    const result = apply(closed, { type: 'draw' });
+    const hidden = rules.project(result, { role: 'public' });
+    expect(hidden.scenes.map(({ kind }) => kind)).toEqual(['ra', 'settlement']);
+    expect(hidden.publicScores).toBeUndefined();
+    expect(
+      hidden.players.every(({ private: details }) => details === null),
+    ).toBe(true);
+    expect(JSON.stringify(hidden.scenes)).not.toMatch(
+      /parts|delta|total|spentDisks/,
+    );
+    const open = rules.project(
+      { ...result, publicScoring: true },
+      { role: 'public' },
+    );
+    expect(open.publicScores?.map(({ latest }) => latest?.epoch)).toEqual([
+      1, 1,
+    ]);
+    expect(open.players.every(({ private: details }) => details === null)).toBe(
+      true,
+    );
+  });
   it.each([2, 3, 4, 5] as const)(
     'completes a three-epoch match with %i seats',
     async (n) => {

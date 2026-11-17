@@ -68,8 +68,19 @@ function project(
   s: State,
   viewer: { role: 'public' } | { role: 'player'; seatId: string },
 ) {
+  const publicScoring = s.publicScoring === true;
   const ended = s.phase === 'ended';
   return {
+    publicScoring,
+    scenes: s.scenes ?? [],
+    ...(publicScoring || ended
+      ? {
+          publicScores: s.seats.map((seat) => {
+            const p = s.players[seat]!;
+            return { seat, total: total(p), latest: p.scores.at(-1) ?? null };
+          }),
+        }
+      : {}),
     epoch: s.epoch,
     raDrawn: s.raDrawn,
     limit: limits[playerCount(s.seats.length)],
@@ -112,12 +123,34 @@ export const rules: GameRules<State, Action, RaView> = {
     players: { min: 2, max: 5 },
     assetNamespace: 'ra',
   },
-  initialize({ seats, random }) {
+  setup: {
+    defaults: { publicScoring: false },
+    validate(input) {
+      if (
+        !input ||
+        typeof input !== 'object' ||
+        Array.isArray(input) ||
+        Object.keys(input).length !== 1 ||
+        !('publicScoring' in input) ||
+        typeof input.publicScoring !== 'boolean'
+      )
+        throw new Error('公开计分设置无效');
+      return { publicScoring: input.publicScoring };
+    },
+    fromState: (s) => ({ publicScoring: s.publicScoring === true }),
+  },
+  initialize({ seats, random, setup }) {
     const groups = shuffle<readonly number[]>(
       startingDisks[playerCount(seats.length)],
       random,
     );
     const s: State = {
+      publicScoring: !!(
+        setup &&
+        typeof setup === 'object' &&
+        !Array.isArray(setup) &&
+        setup.publicScoring === true
+      ),
       seats: [...seats],
       players: Object.fromEntries(
         seats.map((id, index) => [

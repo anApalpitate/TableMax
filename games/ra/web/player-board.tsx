@@ -496,6 +496,7 @@ export function PlayerSummary({
   active,
   auction,
   result,
+  score,
   showScores,
 }: {
   player: PublicPlayer;
@@ -504,6 +505,7 @@ export function PlayerSummary({
   auction?: AuctionStatus | undefined;
   result?:
     { rank: number; total: number; tied: boolean; highest: number } | undefined;
+  score?: number | undefined;
   showScores?: () => void;
 }) {
   const [expanded, setExpanded] = useState(false);
@@ -538,6 +540,12 @@ export function PlayerSummary({
           <AuctionBadge status={auction} />
         )}
       </header>
+      {!result && score !== undefined && (
+        <span className="ra-running-score" aria-label={'累计 ' + score + ' 分'}>
+          {score}
+          <small> 分</small>
+        </span>
+      )}
       <div className="ra-seat-summary-disks" role="group" aria-label="太阳圆盘">
         <Disks
           available={player.disks}
