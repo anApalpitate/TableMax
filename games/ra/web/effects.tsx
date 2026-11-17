@@ -76,8 +76,16 @@ export function RaEffects({
 
   const stage = useRef<HTMLDivElement>(null);
   const winner = game?.lastAuction?.winner;
+  const legacyFlight = !game?.scenes?.some((scene) => scene.kind === 'won');
   useEffect(() => {
-    if (!key || cue !== 'won' || !winner || session.role !== 'host') return;
+    if (
+      !key ||
+      cue !== 'won' ||
+      !winner ||
+      session.role !== 'host' ||
+      !legacyFlight
+    )
+      return;
     const layer = stage.current;
     const table = layer?.closest('.ra-table');
     const origin = table
@@ -106,7 +114,7 @@ export function RaEffects({
       `${destination.top + 36 - origin.top - origin.height / 2}px`,
     );
     layer.dataset.flight = 'true';
-  }, [cue, key, session.role, winner]);
+  }, [cue, key, legacyFlight, session.role, winner]);
 
   return (
     <>
@@ -131,11 +139,13 @@ export function RaEffects({
           aria-hidden="true"
         >
           <span className="ra-effect-wash" />
-          {cue === 'won' && game?.lastAuction?.received != null && (
-            <span className="ra-effect-flight">
-              <SunDisk value={game.lastAuction.received} />
-            </span>
-          )}
+          {cue === 'won' &&
+            legacyFlight &&
+            game?.lastAuction?.received != null && (
+              <span className="ra-effect-flight">
+                <SunDisk value={game.lastAuction.received} />
+              </span>
+            )}
         </div>
       )}
     </>
