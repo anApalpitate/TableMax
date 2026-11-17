@@ -1,4 +1,12 @@
-import { useId, useLayoutEffect, useRef, useState } from 'react';
+import {
+  useContext,
+  useEffect,
+  useId,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from 'react';
+import { SettingLockHelp } from './setting-lock-help';
 import './setting-help.css';
 
 /** A setting's label doubles as its hover, keyboard and touch help target. */
@@ -12,10 +20,28 @@ export function SettingHelp({
   hint: string;
 }) {
   const generatedId = useId();
+  const lockHint = useContext(SettingLockHelp);
   const tipId = `${generatedId}-help`;
   const [open, setOpen] = useState(false);
   const anchor = useRef<HTMLButtonElement>(null);
   const tip = useRef<HTMLSpanElement>(null);
+  useEffect(() => {
+    if (!lockHint) return;
+    const button = anchor.current!;
+    const row = button.closest('.setting-help')?.parentElement;
+    const enter = (event: PointerEvent) => {
+      if (event.pointerType !== 'touch') setOpen(true);
+    };
+    const leave = () => {
+      if (document.activeElement !== button) setOpen(false);
+    };
+    row?.addEventListener('pointermove', enter);
+    row?.addEventListener('pointerleave', leave);
+    return () => {
+      row?.removeEventListener('pointermove', enter);
+      row?.removeEventListener('pointerleave', leave);
+    };
+  }, [lockHint]);
   useLayoutEffect(() => {
     if (!open || !tip.current) return;
     const node = tip.current;
@@ -34,7 +60,7 @@ export function SettingHelp({
       window.removeEventListener('resize', position);
       window.removeEventListener('scroll', position, true);
     };
-  }, [open]);
+  }, [open, lockHint]);
   return (
     <span className="setting-help">
       <button
@@ -44,9 +70,12 @@ export function SettingHelp({
         className="setting-help__label"
         aria-expanded={open}
         aria-describedby={open ? tipId : undefined}
-        onPointerEnter={() => setOpen(true)}
+        onPointerEnter={() => {
+          if (!lockHint) setOpen(true);
+        }}
         onPointerLeave={() => {
-          if (document.activeElement !== anchor.current) setOpen(false);
+          if (!lockHint && document.activeElement !== anchor.current)
+            setOpen(false);
         }}
         onFocus={() => setOpen(true)}
         onBlur={() => setOpen(false)}
@@ -69,7 +98,7 @@ export function SettingHelp({
           popover="manual"
           className="setting-help__tip"
         >
-          {hint}
+          {lockHint ?? hint}
         </span>
       )}
     </span>

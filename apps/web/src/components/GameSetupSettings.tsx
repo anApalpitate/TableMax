@@ -1,8 +1,8 @@
-import { useState } from 'react';
+import { useContext, useState } from 'react';
 import type { JsonValue } from '@tablemax/game-sdk';
 import type { RoomSession } from '../session/useRoomSession';
 import { useGameClient } from '../game-clients/registry';
-import type { GameClient } from '@tablemax/web-host';
+import { SettingLockHelp, type GameClient } from '@tablemax/web-host';
 
 export function GameSetupSettings({
   session,
@@ -45,6 +45,7 @@ function SelectedGameSetup({
     game.releaseRef,
   );
   const [attempted, setAttempted] = useState(false);
+  const lockHint = useContext(SettingLockHelp);
   const ended = session.view?.status === 'ended';
   const canEdit =
     session.view!.capabilities.control &&
@@ -66,9 +67,9 @@ function SelectedGameSetup({
       ) : Settings ? (
         <>
           <Settings value={draft} disabled={!editable} onChange={setDraft} />
-          {canEdit && (
-            <div className="dialog-actions">
-              {attempted && session.awaitingConfirmation && (
+          {session.view!.capabilities.control && (
+            <div className="dialog-actions" title={lockHint}>
+              {canEdit && attempted && session.awaitingConfirmation && (
                 <button
                   type="button"
                   className="secondary"
@@ -86,11 +87,11 @@ function SelectedGameSetup({
                   session.command({ type: 'set-game-setup', setup: draft });
                 }}
               >
-                {ended ? '保存下一局设置' : '保存开局设置'}
+                保存规则
               </button>
             </div>
           )}
-          {attempted && session.message && (
+          {canEdit && attempted && session.message && (
             <p role="status">{session.message}</p>
           )}
         </>

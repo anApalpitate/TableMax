@@ -12,6 +12,7 @@ import {
   type ContextType,
 } from 'react';
 import { createPortal } from 'react-dom';
+import { BackIcon } from './ToolbarIcons';
 import './overlay-panel.css';
 
 function canFocus(element: Element | null): element is HTMLElement {
@@ -49,6 +50,7 @@ type Props = {
   className?: string;
   navigation?: boolean;
   back?: () => void;
+  iconBack?: boolean;
   embedded?: boolean;
   boxAppearance?: boolean;
 };
@@ -70,6 +72,7 @@ function EmbeddedPanel({
   children,
   className,
   boxAppearance,
+  iconBack,
 }: Props & { parent: NonNullable<ContextType<typeof MenuNavigation>> }) {
   const enter = parent.enter;
   const closeRef = useRef(close);
@@ -88,8 +91,8 @@ function EmbeddedPanel({
       aria-labelledby={titleId}
     >
       <div className="panel-heading">
-        <button type="button" onClick={close}>
-          返回
+        <button type="button" aria-label="返回" title="返回" onClick={close}>
+          {iconBack ? <BackIcon /> : '返回'}
         </button>
         <h2 id={titleId} ref={heading} tabIndex={-1}>
           {title}
@@ -135,6 +138,7 @@ function ModalPanel({
   className,
   navigation = false,
   back,
+  iconBack,
   boxAppearance = false,
 }: Props) {
   const [target, setTarget] = useState<HTMLDivElement | null>(null);
@@ -255,8 +259,8 @@ function ModalPanel({
     >
       <div className="panel-heading" hidden={Boolean(childPage)}>
         {back && (
-          <button type="button" onClick={back}>
-            返回
+          <button type="button" aria-label="返回" title="返回" onClick={back}>
+            {iconBack ? <BackIcon /> : '返回'}
           </button>
         )}
         <h2 id={titleId} tabIndex={-1}>

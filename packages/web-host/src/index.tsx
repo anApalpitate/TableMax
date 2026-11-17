@@ -24,7 +24,12 @@ export { OverlayPanel } from './components/OverlayPanel';
 export { PlayModeBadge } from './components/PlayModeBadge';
 export { DecisionCountdown } from './components/DecisionCountdown';
 export { RulesGuide } from './components/RulesGuide';
-export { MenuIcon, RulebookIcon, SoundIcon } from './components/ToolbarIcons';
+export {
+  MenuIcon,
+  RulebookIcon,
+  SoundIcon,
+  PreferencesIcon,
+} from './components/ToolbarIcons';
 export { useDecisionClock } from './components/useDecisionClock';
 export { useViewportSnapshot } from './viewport/useViewportSnapshot';
 export type {
@@ -35,6 +40,7 @@ export type {
 } from './viewport/viewport';
 export { BeginnerGuidanceSetting } from './components/BeginnerGuidanceSetting';
 export { SettingHelp } from './components/SettingHelp';
+export { SettingLockHelp } from './components/setting-lock-help';
 export { useGuidancePreference } from './preferences/useGuidancePreference';
 export {
   useSoundPreference,

@@ -9,15 +9,22 @@ import {
   VideoSettingsFields,
 } from './DisplaySettings';
 import { GameSetupSettings } from './GameSetupSettings';
-import { MenuIcon, SettingHelp, type GameClient } from '@tablemax/web-host';
+import {
+  MenuIcon,
+  PreferencesIcon,
+  SettingHelp,
+  SettingLockHelp,
+  type GameClient,
+} from '@tablemax/web-host';
 import './countdown.css';
 import './settings-panel.css';
 
 const tabs = [
-  ['basic', '基本设置'],
-  ['game', '游戏设置'],
-  ['video', '视频设置'],
+  ['basic', '基本'],
+  ['game', '游戏'],
+  ['video', '视频'],
 ] as const;
+const inGameSettingsHint = '对局进行中游戏设置暂时无法调整';
 
 export function Settings({
   session,
@@ -32,7 +39,6 @@ export function Settings({
 }) {
   const [tab, setTab] = useState<(typeof tabs)[number][0] | null>(null);
   const { view, role } = session;
-  const ended = view?.status === 'ended';
   const playing = view?.status === 'playing';
   const hasTimer = view?.game?.decisionTimer === true;
   const hasGameSetup = view?.game?.setup !== undefined;
@@ -52,7 +58,8 @@ export function Settings({
       {tab && (
         <BoxOverlayPanel
           title="设置"
-          className="settings-panel settings-panel--preferences"
+          className="settings-panel settings-panel--preferences unified-settings-panel"
+          iconBack
           close={() => setTab(null)}
         >
           <nav className="settings-tabs" aria-label="设置分类">
@@ -63,7 +70,8 @@ export function Settings({
                 aria-pressed={value === tab}
                 onClick={() => setTab(value)}
               >
-                {label}
+                <PreferencesIcon kind={value} />
+                <span>{label}</span>
               </button>
             ))}
           </nav>
@@ -79,26 +87,20 @@ export function Settings({
           <section
             className="settings-section"
             aria-label="游戏设置"
+            data-locked={playing || undefined}
             hidden={tab !== 'game'}
           >
-            <h3>
-              {playing ? '本局设置 · 只读' : ended ? '下一局设置' : '开局设置'}
-            </h3>
-            {ended && view?.game?.restoreOnly && (
-              <p role="status">
-                旧版配置仅供查看；开始当前版本的新局后可调整。
-              </p>
-            )}
-            {hasGameSetup && gameClient?.SetupSettings && (
-              <GameSetupSettings
-                session={session}
-                settings={gameClient.SetupSettings}
-              />
-            )}
-            {hasGameSetup && !gameClient && (
-              <GameSetupSettings session={session} />
-            )}
-            {hasTimer && <CountdownPreference session={session} />}
+            <SettingLockHelp.Provider
+              value={playing ? inGameSettingsHint : undefined}
+            >
+              {hasGameSetup && (!gameClient || gameClient.SetupSettings) && (
+                <GameSetupSettings
+                  session={session}
+                  settings={gameClient?.SetupSettings}
+                />
+              )}
+              {hasTimer && <CountdownPreference session={session} />}
+            </SettingLockHelp.Provider>
             {!hasGameSetup && !hasTimer && (
               <p>当前玩法没有可配置的游戏选项。</p>
             )}
@@ -119,6 +121,7 @@ export function Settings({
 function CountdownPreference({ session }: { session: RoomSession }) {
   const { view } = session;
   const ended = view?.status === 'ended';
+  const playing = view?.status === 'playing';
   const saved =
     (ended ? view?.nextCountdownSeconds : undefined) ??
     view?.countdownSeconds ??
@@ -139,7 +142,7 @@ function CountdownPreference({ session }: { session: RoomSession }) {
           label="思考时间提醒"
           hint={feedbackText('countdown.hint')}
         />
-        {editable && (
+        {session.isHost && (
           <input
             id={sliderId}
             aria-labelledby={`${sliderId}-label`}
@@ -149,7 +152,9 @@ function CountdownPreference({ session }: { session: RoomSession }) {
             step="1"
             value={COUNTDOWN_STEPS.findIndex((value) => value === seconds)}
             aria-valuetext={`${seconds} 秒`}
-            disabled={session.locked || session.awaitingConfirmation}
+            disabled={
+              !editable || session.locked || session.awaitingConfirmation
+            }
             onChange={(event) => {
               setDraft({
                 source,
@@ -159,18 +164,23 @@ function CountdownPreference({ session }: { session: RoomSession }) {
             }}
           />
         )}
-        <output htmlFor={editable ? sliderId : undefined}>{seconds} 秒</output>
+        <output htmlFor={session.isHost ? sliderId : undefined}>
+          {seconds} 秒
+        </output>
       </div>
-      {attempted && (
+      {editable && attempted && (
         <p role="status">
           {session.awaitingConfirmation
             ? feedbackText('common.waitingForSave')
             : session.message}
         </p>
       )}
-      {editable && (
-        <div className="dialog-actions">
-          {attempted && session.awaitingConfirmation && (
+      {session.isHost && (
+        <div
+          className="dialog-actions"
+          title={playing ? inGameSettingsHint : undefined}
+        >
+          {editable && attempted && session.awaitingConfirmation && (
             <button
               type="button"
               className="secondary"
@@ -183,6 +193,7 @@ function CountdownPreference({ session }: { session: RoomSession }) {
           <button
             type="button"
             disabled={
+              !editable ||
               session.locked ||
               session.awaitingConfirmation ||
               seconds === saved
@@ -192,7 +203,7 @@ function CountdownPreference({ session }: { session: RoomSession }) {
               session.command({ type: 'set-countdown', seconds });
             }}
           >
-            {ended ? '保存下一局思考时间' : '保存思考时间'}
+            保存思考时间
           </button>
         </div>
       )}

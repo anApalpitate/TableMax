@@ -1,3 +1,55 @@
+export function BackIcon() {
+  return (
+    <svg
+      width="22"
+      height="22"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <path d="m11 6-6 6 6 6M5 12h14" />
+    </svg>
+  );
+}
+
+export function PreferencesIcon({
+  kind,
+}: {
+  kind: 'basic' | 'game' | 'video';
+}) {
+  return (
+    <svg
+      width="20"
+      height="20"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.7"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      {kind === 'basic' && <path d="M4 7h5m4 0h7M4 17h9m4 0h3M9 4v6m8 4v6" />}
+      {kind === 'game' && (
+        <>
+          <rect x="4" y="4" width="16" height="16" rx="3" />
+          <path d="M8.5 8.5h.01m3.5 3.5h.01m3.5 3.5h.01" strokeWidth="2.8" />
+        </>
+      )}
+      {kind === 'video' && (
+        <>
+          <rect x="3" y="4" width="18" height="13" rx="2" />
+          <path d="M12 17v4m-4 0h8" />
+        </>
+      )}
+    </svg>
+  );
+}
+
 export function MenuIcon() {
   return (
     <svg

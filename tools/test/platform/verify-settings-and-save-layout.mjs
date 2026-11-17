@@ -1434,14 +1434,33 @@ try {
         .getByRole('navigation', { name: '设置分类' })
         .getByRole('button')
         .allTextContents(),
-      ['基本设置', '游戏设置', '视频设置'],
+      ['基本', '游戏', '视频'],
     );
     assert.equal(
       await panel
-        .getByRole('button', { name: '基本设置', exact: true })
+        .getByRole('button', { name: '基本', exact: true })
         .getAttribute('aria-pressed'),
       'true',
     );
+    const title = panel.getByRole('heading', { name: '设置', exact: true });
+    const header = await title.evaluate((node) => {
+      const label = node.getBoundingClientRect();
+      const row = node.parentElement.getBoundingClientRect();
+      return {
+        offset: Math.abs((label.left + label.right - row.left - row.right) / 2),
+        weight: Number(getComputedStyle(node).fontWeight),
+      };
+    });
+    assert(
+      header.offset <= 1 && header.weight >= 700,
+      'Bold, centered settings title',
+    );
+    assert.equal(await panel.locator('.settings-tabs button svg').count(), 3);
+    const back = panel.getByRole('button', { name: '返回', exact: true });
+    if (await back.isVisible()) {
+      assert.equal(await back.textContent(), '');
+      assert.equal(await back.locator('svg').count(), 1);
+    }
     return panel;
   }
   for (const key of ['box', ...games])
@@ -1481,23 +1500,42 @@ try {
           role === 'player' ? 1 : 0,
         );
         await assertSettingRowsAndHelp(page);
-        await panel
-          .getByRole('button', { name: '游戏设置', exact: true })
-          .click();
-        await panel.getByRole('heading', { name: '本局设置 · 只读' }).waitFor();
-        assert.equal(
-          await panel.getByRole('button', { name: /^保存/ }).count(),
-          0,
+        await panel.getByRole('button', { name: '游戏', exact: true }).click();
+        const gameSection = panel.getByRole('region', {
+          name: '游戏设置',
+          exact: true,
+        });
+        await gameSection.waitFor();
+        assert(
+          !/本局设置|下一局设置|暂时无法调整/.test(
+            await gameSection.innerText(),
+          ),
+          'Opening the game tab does not display a phase label or tooltip',
         );
+        for (const button of await gameSection
+          .getByRole('button', { name: /^保存/ })
+          .all())
+          assert(await button.isDisabled());
+        const timer = gameSection.getByRole('slider', { name: '思考时间提醒' });
+        if (await timer.count()) {
+          assert(await timer.isDisabled());
+          await timer.hover({ force: true });
+          await panel
+            .getByRole('tooltip')
+            .filter({ hasText: '对局进行中游戏设置暂时无法调整' })
+            .waitFor({ timeout: 3000 });
+          if (key === 'uno' && role === 'host')
+            await captureBrowserScreenshot(page, {
+              path: join(output, 'settings-uno-host-locked-hover.png'),
+            });
+        }
         if (key === 'ra' || key === 'uno') {
-          const switches = panel.getByRole('switch');
-          assert((await switches.count()) > 0);
+          const switches = gameSection.getByRole('switch');
+          assert((await switches.count()) > 0, 'Rule switches stay visible');
           for (const control of await switches.all())
             assert(await control.isDisabled());
         }
-        await panel
-          .getByRole('button', { name: '视频设置', exact: true })
-          .click();
+        await panel.getByRole('button', { name: '视频', exact: true }).click();
         await panel
           .getByText('显示模式', { exact: true })
           .waitFor({ timeout: 3000 });
@@ -1517,17 +1555,21 @@ try {
     await page.setViewportSize({ width: 1280, height: 900 });
     await page.evaluate(() => window.renderGame('uno', 'host', 'ended'));
     const panel = await openSettings('uno');
-    await panel.getByRole('button', { name: '游戏设置', exact: true }).click();
-    await panel.getByRole('heading', { name: '下一局设置' }).waitFor();
+    await panel.getByRole('button', { name: '游戏', exact: true }).click();
+    assert(
+      !/下一局设置|本局设置/.test(
+        await panel
+          .getByRole('region', { name: '游戏设置', exact: true })
+          .innerText(),
+      ),
+    );
     await panel.getByRole('switch', { name: '补牌传递' }).click();
-    await panel
-      .getByRole('button', { name: '保存下一局设置', exact: true })
-      .click();
+    await panel.getByRole('button', { name: '保存规则', exact: true }).click();
     const timer = panel.getByRole('slider', { name: '思考时间提醒' });
     await timer.fill('8');
     assert.equal(await timer.getAttribute('aria-valuetext'), '40 秒');
     await panel
-      .getByRole('button', { name: '保存下一局思考时间', exact: true })
+      .getByRole('button', { name: '保存思考时间', exact: true })
       .click();
     const commands = await page.evaluate(() => window.settingsCommands);
     assert.deepEqual(
@@ -1538,6 +1580,8 @@ try {
     await captureBrowserScreenshot(page, {
       path: join(output, 'settings-uno-host-ended.png'),
     });
+    await panel.getByRole('button', { name: '返回', exact: true }).click();
+    await page.getByRole('button', { name: '设置', exact: true }).waitFor();
     await page.keyboard.press('Escape');
   });
   for (const [key, role, native] of [
@@ -1597,11 +1641,11 @@ try {
           await assertSettingRowsAndHelp(page);
           await screenshot('basic');
           await panel
-            .getByRole('button', { name: '游戏设置', exact: true })
+            .getByRole('button', { name: '游戏', exact: true })
             .click();
           await screenshot('game');
           await panel
-            .getByRole('button', { name: '视频设置', exact: true })
+            .getByRole('button', { name: '视频', exact: true })
             .click();
           const mode = page.getByLabel('显示模式', { exact: true });
           await mode.waitFor({ state: 'visible' });
@@ -1842,9 +1886,7 @@ try {
         await phone.evaluate(() => window.renderGame('manila', 'player'));
         await phone.getByRole('button', { name: '菜单', exact: true }).click();
         await phone.getByRole('button', { name: '设置', exact: true }).click();
-        await phone
-          .getByRole('button', { name: '视频设置', exact: true })
-          .click();
+        await phone.getByRole('button', { name: '视频', exact: true }).click();
         await assertSettingRowsAndHelp(phone, { touch: true });
         const mode = phone.getByLabel('显示模式', { exact: true });
         await mode.selectOption('fullscreen');
@@ -1868,9 +1910,7 @@ try {
           });
         });
         await phone.getByRole('button', { name: '设置', exact: true }).click();
-        await phone
-          .getByRole('button', { name: '视频设置', exact: true })
-          .click();
+        await phone.getByRole('button', { name: '视频', exact: true }).click();
         assert(
           await phone.getByLabel('显示模式', { exact: true }).isDisabled(),
         );
