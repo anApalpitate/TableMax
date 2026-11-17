@@ -5,6 +5,8 @@ import type { RaView } from '../rules';
 import { persists, tile, tileIds, tileNames, type Tile } from '../rules/data';
 import type { Breakdown } from '../rules/state';
 import { SunDisk, TableArt, TileFace } from './art';
+import { seatSettlement, type SettlementTable } from './sample-scoring';
+import { RaScoreNumber } from './score-motion';
 import './player-board.css';
 
 const names = {
@@ -270,7 +272,17 @@ const smallerPreviewFaces = new Set([
   'ra',
 ]);
 
-function PreviewTile({ tile, count }: { tile: Tile; count: number }) {
+type TileMotion = ReturnType<ReturnType<typeof seatSettlement>['motion']>;
+
+function PreviewTile({
+  tile,
+  count,
+  motion,
+}: {
+  tile: Tile;
+  count: number;
+  motion?: TileMotion;
+}) {
   const [preview, setPreview] = useState<{
     left: number;
     top: number;
@@ -310,6 +322,15 @@ function PreviewTile({ tile, count }: { tile: Tile; count: number }) {
       <button
         type="button"
         className="ra-personal-stack ra-preview-tile"
+        data-ra-score-hit={motion?.hit}
+        data-ra-score-hidden={motion?.hidden || undefined}
+        data-ra-score-set={motion?.set || undefined}
+        data-ra-score-discard={motion?.discard || undefined}
+        style={
+          motion?.hit
+            ? ({ '--ra-prelight': `${motion.start}ms` } as React.CSSProperties)
+            : undefined
+        }
         aria-label={`${tileNames[tile.face]}${count > 1 ? `，${count} 枚` : ''}，查看石板`}
         aria-expanded={Boolean(preview)}
         onPointerEnter={(event) => {
@@ -346,12 +367,25 @@ function PreviewTile({ tile, count }: { tile: Tile; count: number }) {
   );
 }
 
-function Tokens({ tiles, limit }: { tiles: Tile[]; limit?: number }) {
+function Tokens({
+  tiles,
+  limit,
+  motion,
+}: {
+  tiles: Tile[];
+  limit?: number;
+  motion?: ReturnType<typeof seatSettlement>['motion'] | undefined;
+}) {
   const groups = groupTiles(tiles);
   return (
     <div className="ra-personal-tiles">
       {groups.slice(0, limit ?? groups.length).map(({ tile, count }) => (
-        <PreviewTile key={tile.face} tile={tile} count={count} />
+        <PreviewTile
+          key={tile.face}
+          tile={tile}
+          count={count}
+          motion={motion?.(tile, count)}
+        />
       ))}
     </div>
   );
@@ -523,6 +557,7 @@ export function PlayerSummary({
   score,
   showScores,
   table = false,
+  settlementTable,
 }: {
   player: PublicPlayer;
   name: string;
@@ -533,8 +568,12 @@ export function PlayerSummary({
   score?: number | undefined;
   showScores?: () => void;
   table?: boolean;
+  settlementTable?: SettlementTable | undefined;
 }) {
   const [expanded, setExpanded] = useState(false);
+  const settlement =
+    settlementTable && seatSettlement(settlementTable, player.seat);
+  const held = settlement?.held ?? player.held;
   const limit = 8;
   const overflow = groupTiles(player.held)
     .slice(limit)
@@ -546,6 +585,7 @@ export function PlayerSummary({
       data-ra-seat={player.seat}
       data-active={active}
       data-rank={result?.rank}
+      data-ra-settling={settlementTable ? settlementTable.step : undefined}
     >
       <header className="ra-seat-head">
         <h2 className="ra-seat-summary-heading" title={name}>
@@ -588,23 +628,37 @@ export function PlayerSummary({
           {[
             {
               name: '跨时代',
-              tiles: player.held.filter(({ id }) => persists(id)),
+              band: 'persistent',
+              tiles: held.filter(({ id }) => persists(id)),
             },
             {
               name: '本时代',
-              tiles: player.held.filter(({ id }) => !persists(id)),
+              band: 'temporary',
+              tiles: held.filter(({ id }) => !persists(id)),
             },
           ]
             .filter(({ tiles }) => tiles.length)
-            .map(({ name, tiles }) => (
-              <section className="ra-holding-band" aria-label={name} key={name}>
+            .map(({ name, band, tiles }) => (
+              <section
+                className="ra-holding-band"
+                data-ra-holding-band={band}
+                aria-label={name}
+                key={name}
+              >
                 <span className="ra-holding-label">{name}</span>
-                <Tokens tiles={tiles} />
+                <Tokens tiles={tiles} motion={settlement?.motion} />
               </section>
             ))}
         </div>
       ) : (
         <Tokens tiles={player.held} limit={limit} />
+      )}
+      {settlement?.category && settlement.points !== undefined && (
+        <RaScoreNumber
+          key={settlementTable?.key}
+          points={settlement.points}
+          category={settlement.category}
+        />
       )}
       {!table && overflow > 0 && (
         <button

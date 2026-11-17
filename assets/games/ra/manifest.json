@@ -1649,6 +1649,66 @@
       "processing": "From the approved source. Proportional Lanczos reduction if needed; lossless WebP with exact RGBA round trip.",
       "originalFile": "work/ra/component-review/tile-disaster-drought.png",
       "originalSha256": "e9cdbf39a8d531fe96f7a70735b1108ef7d55284d90b6aa4fdbebe2130df2b8a"
+    },
+    {
+      "id": "ra/audio/score-neutral",
+      "file": "audio/score-neutral.flac",
+      "purpose": "管理端逐类计分打点",
+      "version": 1,
+      "bytes": 10946,
+      "sha256": "79296018b83d5c790b9fc2de2dc2b3d493c1ee6bb3d6835f9518ad7fa48b0fbe",
+      "sampleRate": 32000,
+      "samples": 8320,
+      "decodedPcmSha256": "a46960244dea1d31d6efc8f9205139a849b0d9e82ab0a2f62ccb541781d130b1",
+      "source": "Original procedural ceramic strike and damped metal partials for TableMax Ra",
+      "sourceFile": "artifacts/maintenance/ra-score-sample-20261117/synthesize.py",
+      "rights": "Original TableMax cue",
+      "processing": "FLAC level 12; decoded signed 16-bit PCM verified sample-exact."
+    },
+    {
+      "id": "ra/audio/score-gain",
+      "file": "audio/score-gain.flac",
+      "purpose": "管理端逐类计分打点",
+      "version": 1,
+      "bytes": 11165,
+      "sha256": "633d0d436c7d770388550ca4fe4e3d21970a08bed2da25ac276c506f61eb0590",
+      "sampleRate": 32000,
+      "samples": 8320,
+      "decodedPcmSha256": "b2ee6d7c15ea9a3dfa49adf5d1aad1515253c65c7a822f9eeb84f5fbee2fee30",
+      "source": "Original procedural ceramic strike and damped metal partials for TableMax Ra",
+      "sourceFile": "artifacts/maintenance/ra-score-sample-20261117/synthesize.py",
+      "rights": "Original TableMax cue",
+      "processing": "FLAC level 12; decoded signed 16-bit PCM verified sample-exact."
+    },
+    {
+      "id": "ra/audio/score-loss",
+      "file": "audio/score-loss.flac",
+      "purpose": "管理端逐类计分打点",
+      "version": 1,
+      "bytes": 11034,
+      "sha256": "7896238558bceaf0a5ce58d84bea52d2f4936f4be3c4e056badeded23433e885",
+      "sampleRate": 32000,
+      "samples": 8320,
+      "decodedPcmSha256": "84904eebd8a66fb43c0e1137aab9c79b08072e5111cf2789eb19e8872c6ebd13",
+      "source": "Original procedural ceramic strike and damped metal partials for TableMax Ra",
+      "sourceFile": "artifacts/maintenance/ra-score-sample-20261117/synthesize.py",
+      "rights": "Original TableMax cue",
+      "processing": "FLAC level 12; decoded signed 16-bit PCM verified sample-exact."
+    },
+    {
+      "id": "ra/audio/score-mixed",
+      "file": "audio/score-mixed.flac",
+      "purpose": "管理端逐类计分打点",
+      "version": 1,
+      "bytes": 11178,
+      "sha256": "8f42383cefabcbfbc5f176b2513d5bfd95f6901598b6a27cf08853d233c923d9",
+      "sampleRate": 32000,
+      "samples": 8320,
+      "decodedPcmSha256": "5a8e2385926cdbf70b7456d859accd1cf558c4b5fdf5f9471c7263c7ccb0beef",
+      "source": "Original procedural ceramic strike and damped metal partials for TableMax Ra",
+      "sourceFile": "artifacts/maintenance/ra-score-sample-20261117/synthesize.py",
+      "rights": "Original TableMax cue",
+      "processing": "FLAC level 12; decoded signed 16-bit PCM verified sample-exact."
     }
   ]
 }

@@ -264,14 +264,12 @@ export function play(s: State, action: Action, seat: string): PublicEvent[] {
     case 'draw': {
       const id = s.bag.pop();
       if (!id) throw new Error('板块袋异常耗尽');
-      tell(
-        `${seatName(s, seat)}抽出${name(id)}`,
-        tile(id).kind === 'ra' ? 'open' : 'draw',
-      );
       if (tile(id).kind !== 'ra') {
+        tell(`${seatName(s, seat)}抽出${name(id)}`, 'draw');
         s.lot[s.lot.indexOf(null)] = id;
         nextTurn(s, next, tell);
       } else {
+        tell(`${seatName(s, seat)}抽取石板，太阳神降临`, 'open');
         s.removed.push(id);
         s.scenes.push({ kind: 'ra', seat });
         s.raDrawn++;

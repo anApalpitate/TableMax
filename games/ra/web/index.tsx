@@ -17,6 +17,7 @@ import { tileNames } from '../rules/data';
 import { holdingsBreakdown, scoreDelta } from '../rules/scoring';
 import { SunDisk, TableArt, TileFace } from './art';
 import { RaPresentation, RaSetupSettings } from './presentation';
+import type { SettlementTable } from './sample-scoring';
 import { RaEffects } from './effects';
 import { liveRaFeedback } from './feedback';
 import { PlayerBoard, PlayerSummary, AuctionBadge } from './player-board';
@@ -297,6 +298,32 @@ function RaScreen({ session }: { session: GameHost }) {
     : lastAuction?.cause === 'invokeFull'
       ? '无人出价 · 拍品清空'
       : '无人出价 · 拍品保留';
+  const seatCards = (settlementTable?: SettlementTable) => (
+    <section
+      className="ra-seats ra-public-seats"
+      aria-label={ranks.length ? '终局排名' : '玩家摘要'}
+    >
+      {game?.players.map((player) => (
+        <PlayerSummary
+          key={player.seat}
+          player={player}
+          name={name(player.seat)}
+          active={player.seat === game.actor}
+          auction={auctionStatus(player.seat)}
+          table
+          score={
+            game.publicScoring
+              ? game.publicScores?.find((entry) => entry.seat === player.seat)
+                  ?.total
+              : undefined
+          }
+          result={ranks.find((result) => result.seat === player.seat)}
+          showScores={() => setShowScores(player.seat)}
+          settlementTable={settlementTable}
+        />
+      ))}
+    </section>
+  );
   return (
     <main
       className="ra-table shell"
@@ -405,20 +432,6 @@ function RaScreen({ session }: { session: GameHost }) {
         <SessionFeedback session={session} mode="messages" />
       </div>
       <RaEffects session={session} game={game} audioEnabled={audioEnabled} />
-      {session.role === 'host' && (
-        <RaPresentation
-          key={[
-            session.view?.instanceId,
-            session.view?.branch,
-            session.view?.paused,
-            session.view?.playMode,
-            session.connected,
-          ].join(':')}
-          session={session}
-          game={game}
-          audioEnabled={audioEnabled}
-        />
-      )}
       {game && (
         <>
           <section className="ra-board" aria-label="公共牌桌">
@@ -551,31 +564,23 @@ function RaScreen({ session }: { session: GameHost }) {
               projection={projection}
               primary
             />
-          ) : (
-            <section
-              className="ra-seats ra-public-seats"
-              aria-label={ranks.length ? '终局排名' : '玩家摘要'}
+          ) : session.role === 'host' ? (
+            <RaPresentation
+              key={[
+                session.view?.instanceId,
+                session.view?.branch,
+                session.view?.paused,
+                session.view?.playMode,
+                session.connected,
+              ].join(':')}
+              session={session}
+              game={game}
+              audioEnabled={audioEnabled}
             >
-              {game.players.map((player) => (
-                <PlayerSummary
-                  key={player.seat}
-                  player={player}
-                  name={name(player.seat)}
-                  active={player.seat === game.actor}
-                  auction={auctionStatus(player.seat)}
-                  table
-                  score={
-                    game.publicScoring
-                      ? game.publicScores?.find(
-                          (entry) => entry.seat === player.seat,
-                        )?.total
-                      : undefined
-                  }
-                  result={ranks.find((result) => result.seat === player.seat)}
-                  showScores={() => setShowScores(player.seat)}
-                />
-              ))}
-            </section>
+              {seatCards}
+            </RaPresentation>
+          ) : (
+            seatCards()
           )}
           {(ownBoard || game.lastAuction) && (
             <div className="ra-auxiliary">

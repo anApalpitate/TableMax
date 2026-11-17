@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import type { GameHost, GameSetupSettingsProps } from '@tablemax/web-host';
 import type { RaView } from '../rules';
 import { tile } from '../rules/data';
@@ -6,6 +6,12 @@ import type { Scene, Breakdown } from '../rules/state';
 import { SunDisk, TileFace } from './art';
 import { RaEntrance } from './entrance';
 import { liveRaFeedback } from './feedback';
+import {
+  isSampleCategory,
+  scoreCategories,
+  type SettlementTable,
+} from './sample-scoring';
+import { RaScoreSound } from './score-motion';
 import './presentation.css';
 
 export function RaSetupSettings({
@@ -34,16 +40,6 @@ export function RaSetupSettings({
     </label>
   );
 }
-
-const categories = [
-  ['pharaoh', '法老'],
-  ['god', '神明'],
-  ['gold', '黄金'],
-  ['river', '河流'],
-  ['civilization', '文明'],
-  ['monument', '纪念物'],
-  ['disks', '太阳圆盘'],
-] as const;
 
 function tilesFor(ids: string[], category: keyof Breakdown) {
   const pieces = ids
@@ -133,10 +129,12 @@ export function RaPresentation({
   session,
   game,
   audioEnabled,
+  children,
 }: {
   session: GameHost;
   game: RaView | null;
   audioEnabled: boolean;
+  children: (table?: SettlementTable) => ReactNode;
 }) {
   const feedback = liveRaFeedback(session);
   const [active, setActive] = useState<{
@@ -180,21 +178,39 @@ export function RaPresentation({
     }, frame.duration);
     return () => window.clearTimeout(timer);
   }, [frame]);
-  const settlementPending =
-    (revision !== undefined &&
-      queuedRevision !== revision &&
-      game?.scenes.some(({ kind }) => kind === 'settlement')) ||
-    active?.queue.some(({ scene }) => scene.kind === 'settlement');
-  const curtain = settlementPending && (
-    <span className="ra-settlement-pending" hidden />
-  );
-  if (!active || !frame) return curtain || null;
+  const queued = active?.queue.find(({ scene }) => scene.kind === 'settlement');
+  const pending =
+    revision !== undefined && queuedRevision !== revision
+      ? game?.scenes.find((scene) => scene.kind === 'settlement')
+      : undefined;
+  const table: SettlementTable | undefined =
+    queued?.scene.kind === 'settlement'
+      ? { ...queued, scene: queued.scene }
+      : pending && game
+        ? {
+            scene: pending,
+            game,
+            step: -1,
+            key: String(revision),
+          }
+        : undefined;
+  const curtain = table && <span className="ra-settlement-pending" hidden />;
+  if (!active || !frame)
+    return (
+      <>
+        {curtain}
+        {children(table)}
+      </>
+    );
   const { scene, step, duration } = frame;
-  const category = categories[step];
+  const category = scoreCategories[step];
   const settlement = scene.kind === 'settlement';
+  const sampled =
+    settlement && table && category && isSampleCategory(category[0]);
   return (
     <>
       {curtain}
+      {children(table)}
       <div
         className="ra-scene"
         key={frame.key}
@@ -244,6 +260,13 @@ export function RaPresentation({
             <strong>{category?.[1] ?? '总分结算'}</strong>
           </div>
         )}
+        {sampled && (
+          <RaScoreSound
+            table={table}
+            category={category[0]}
+            enabled={audioEnabled}
+          />
+        )}
         {scene.kind === 'disaster' &&
           scene.discarded.length > 0 &&
           !frame.reducedMotion && (
@@ -255,6 +278,7 @@ export function RaPresentation({
           )}
         {settlement &&
           step !== -1 &&
+          !sampled &&
           (step !== 7 || frame.game.publicScores) && (
             <div className="ra-settlement-seats">
               {scene.holdings.map(({ seat, ids }) => {

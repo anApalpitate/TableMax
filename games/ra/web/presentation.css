@@ -150,6 +150,9 @@
 .ra-table:has(.ra-settlement-pending) .ra-running-score {
   visibility: hidden;
 }
+.ra-table:has(.ra-settlement-pending) .ra-status > strong {
+  visibility: hidden;
+}
 .ra-table:has(.ra-settlement-pending) .ra-seat-summary[data-rank] .ra-rank {
   visibility: hidden;
 }

@@ -13,7 +13,7 @@ function entranceSound(scene: Scene) {
 }
 
 const titles = {
-  ra: '拉',
+  ra: '太阳神降临',
   auction: '开始拍卖',
   won: '成交',
   god: '神迹替换',
