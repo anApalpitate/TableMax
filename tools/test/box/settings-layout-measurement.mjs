@@ -197,7 +197,7 @@ export function measureSettingsLayout({ header = false } = {}) {
         });
     }
   for (const card of root.querySelectorAll(
-    '.interaction-video-setting, .interaction-button-setting, .beginner-guidance-setting',
+    '.interaction-effects-setting, .interaction-button-setting, .beginner-guidance-setting',
   )) {
     const heading = card.querySelector('h3'),
       button = card.querySelector('button');

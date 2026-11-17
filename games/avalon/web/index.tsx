@@ -320,6 +320,7 @@ function AvalonScreen({ session }: { session: GameHost }) {
           >
             <MenuIcon />
           </button>
+          <RoomManagement session={session} />
         </div>
         <SessionFeedback session={session} mode="toolbar-save" />
       </header>
@@ -586,7 +587,6 @@ function AvalonScreen({ session }: { session: GameHost }) {
                   <div className="dialog-actions game-menu-settings">
                     <Settings session={session} />
                   </div>
-                  {canControl && <RoomManagement session={session} />}
                   <button
                     type="button"
                     className="av-history-entry game-menu-entry"

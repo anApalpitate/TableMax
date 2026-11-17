@@ -1,3 +1,59 @@
+button.room-management-control {
+  display: inline-grid;
+  place-items: center;
+  flex: 0 0 44px;
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+  min-height: 44px;
+  margin: 0;
+  padding: 0;
+}
+.room-management-control svg {
+  display: block;
+}
+.dialog-surface.overlay-panel.room-management-panel {
+  width: min(520px, calc(100vw - 32px));
+}
+.room-management-panel .management {
+  gap: 12px;
+}
+.room-management-panel
+  :is(.room-management-action-group, .room-management-section) {
+  display: grid;
+  gap: 8px;
+  padding: 12px;
+  border: 1px solid #d1dfd2;
+  border-radius: 16px;
+  background: #f8faf2;
+}
+.room-management-panel .management h3 {
+  margin: 0;
+  color: #254e42;
+  font-size: 20px;
+}
+.room-management-action-buttons {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(140px, 100%), 1fr));
+  gap: 8px;
+}
+.dialog-surface .room-management-action-buttons button {
+  width: 100%;
+  min-width: 0;
+  min-height: 44px;
+  margin: 0;
+  white-space: normal;
+}
+.dialog-surface .room-management-action-buttons button.danger {
+  border: 1px solid #d6aaa2;
+  background: #fff6f1;
+  color: #8c322b;
+}
+.dialog-surface
+  .room-management-action-buttons
+  button.danger:hover:not(:disabled) {
+  background: #f9e3dd;
+}
 .dialog-surface .management.room-management-details {
   display: grid;
   gap: 8px;

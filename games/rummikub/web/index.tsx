@@ -167,6 +167,7 @@ function RummikubScreen({ session }: { session: GameHost }) {
           >
             <MenuIcon />
           </button>
+          <RoomManagement session={session} />
         </div>
         <SessionFeedback session={session} mode="toolbar-save" />
       </header>
@@ -435,12 +436,6 @@ function RummikubScreen({ session }: { session: GameHost }) {
                   <div className="dialog-actions game-menu-settings">
                     <Settings session={session} />
                   </div>
-                  {canControl && (
-                    <RoomManagement
-                      session={session}
-                      lifecycleLabel="开始下一局"
-                    />
-                  )}
                   <button
                     type="button"
                     className="game-menu-entry"

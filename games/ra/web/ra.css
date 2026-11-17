@@ -86,7 +86,7 @@
   :is(
     .ra-home,
     .ra-rule-control,
-    .ra-management-control,
+    .room-management-control,
     .countdown-settings-control
   ) {
   display: inline-flex;
@@ -103,11 +103,8 @@
   background: var(--ra-surface);
   cursor: pointer;
 }
-.ra-header .ra-management-control {
-  gap: 0;
-  white-space: nowrap;
-}
-.ra-header :is(.ra-rule-control, .countdown-settings-control) {
+.ra-header
+  :is(.ra-rule-control, .countdown-settings-control, .room-management-control) {
   width: 44px;
   padding: 0;
 }
@@ -536,12 +533,6 @@
   .ra-table[data-role='player'] .ra-home span {
     display: none;
   }
-  .ra-table[data-role='player'] .ra-management-prefix {
-    display: none;
-  }
-  .ra-table[data-role='player'] .ra-header .ra-management-control {
-    padding-inline: 8px;
-  }
   .ra-table[data-role='player'] .ra-header h1 {
     font-size: 24px;
     gap: 4px;
@@ -585,14 +576,6 @@
 @media (max-width: 365px) {
   .ra-table[data-role='player'] .ra-brand-mark {
     display: none;
-  }
-  .ra-table[data-role='player'] .ra-header:has(.ra-management-control) {
-    flex-wrap: wrap;
-  }
-  .ra-table[data-role='player']
-    .ra-toolbar-controls:has(.ra-management-control) {
-    flex-basis: 100%;
-    justify-content: flex-end;
   }
 }
 .ra-board-note {

@@ -279,6 +279,7 @@ function ModernArtScreen({ session }: { session: RoomSession }) {
           >
             <MenuIcon />
           </button>
+          <RoomManagement session={session} lifecycleLabel="开始下一轮" />
         </div>
         <SessionFeedback session={session} mode="toolbar-save" />
       </header>
@@ -421,9 +422,6 @@ function ModernArtScreen({ session }: { session: RoomSession }) {
               <div className="dialog-actions game-menu-settings">
                 <Settings session={session} />
               </div>
-              {canControl && (
-                <RoomManagement session={session} lifecycleLabel="开始下一轮" />
-              )}
               {game && (
                 <button
                   type="button"

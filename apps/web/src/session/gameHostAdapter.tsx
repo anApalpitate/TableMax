@@ -3,7 +3,7 @@ import { configureGameHost } from '@tablemax/web-host/platform';
 import { ScreenLink } from '../components/ScreenLink';
 import { FullscreenControl } from '../components/FullscreenControl';
 import { DisplaySettings } from '../components/DisplaySettings';
-import { RoomManagement } from '../components/RoomManagement';
+import { RoomManagementControl } from '../components/RoomManagement';
 import { SessionFeedback } from '../components/SessionFeedback';
 import { PlayModeControl } from '../components/PlayModeControl';
 import { Settings } from '../components/CountdownSettings';
@@ -17,7 +17,7 @@ configureGameHost({
   // webHost 1 keeps its legacy public role ABI for frozen releases, but the
   // current platform no longer provides a public-screen settings surface.
   DisplaySettings: ({ role }) =>
-    role === 'public' ? null : <DisplaySettings {...(role ? { role } : {})} />,
+    role === 'public' ? null : <DisplaySettings />,
   useAudioOutput,
   avatarFor,
   avatarChoices,
@@ -45,7 +45,7 @@ export function PlatformGame({
         : {})}
       presentation={{
         management: (props) => (
-          <RoomManagement session={session} {...props} hideSaved />
+          <RoomManagementControl session={session} {...props} />
         ),
         feedback: (props) => <SessionFeedback session={session} {...props} />,
         playMode: () => <PlayModeControl session={session} />,

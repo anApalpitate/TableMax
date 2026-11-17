@@ -11,7 +11,7 @@ import { gameCover } from '../assets/game-covers';
 import { avatarFor } from '../assets/avatars';
 import appIcon from '../../../../assets/platform/app-icon-180.png';
 import { ScreenLink } from '../components/ScreenLink';
-import { RoomManagement } from '../components/RoomManagement';
+import { RoomManagementControl } from '../components/RoomManagement';
 import { InviteFriends } from '../components/InviteFriends';
 import { BoxFeedback } from '../components/BoxFeedback';
 import { SaveStatus } from '../components/SaveStatus';
@@ -51,14 +51,7 @@ const difficultyNames: Record<BotDifficulty, string> = {
   juewu: '绝悟',
 };
 type BoxPanel =
-  | 'intro'
-  | 'seats'
-  | 'management'
-  | 'library'
-  | 'bot-info'
-  | 'avatars'
-  | 'transfer'
-  | null;
+  'intro' | 'seats' | 'library' | 'bot-info' | 'avatars' | 'transfer' | null;
 
 export function BoxScreen({ session }: { session: RoomSession }) {
   return (
@@ -179,6 +172,7 @@ function BoxScreenContent({ session }: { session: RoomSession }) {
           <Settings session={session}>
             {details?.guidance && <BeginnerGuidanceSetting gameId={game!.id} />}
           </Settings>
+          <RoomManagementControl session={session} />
         </div>
       </header>
       <section className="hero">
@@ -252,21 +246,6 @@ function BoxScreenContent({ session }: { session: RoomSession }) {
               )}
             </div>
             <div className="room-heading__actions">
-              {canControl && (isHost || view?.status !== 'lobby') && (
-                <div className="box-table-actions">
-                  <RoomManagement session={session} display="actions" />
-                  {isHost && (
-                    <button
-                      type="button"
-                      className="secondary"
-                      onClick={() => setPanel('management')}
-                    >
-                      管理设置
-                    </button>
-                  )}
-                </div>
-              )}
-
               {canManageSeats && (
                 <button
                   type="button"
@@ -667,15 +646,6 @@ function BoxScreenContent({ session }: { session: RoomSession }) {
             session={session}
             removeSeat={(id) => removal.request(id)}
           />
-        </OverlayPanel>
-      )}
-      {panel === 'management' && isHost && (
-        <OverlayPanel
-          title="管理设置"
-          className="settings-panel settings-panel--management"
-          close={() => setPanel(null)}
-        >
-          <RoomManagement session={session} display="details" />
         </OverlayPanel>
       )}
       {panel === 'bot-info' && isHost && game && (

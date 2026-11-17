@@ -240,7 +240,7 @@ function RaScreen({ session }: { session: GameHost }) {
   const pushKey = feedback?.events.some((event) => event.kind === 'ra-invoke')
     ? `${feedback.instanceId}:${feedback.branch}:${feedback.revision}`
     : '';
-  const [topPanel, setTopPanel] = useState<'rules' | 'management'>();
+  const [topPanel, setTopPanel] = useState<'rules'>();
   const [showRecord, setShowRecord] = useState(false);
   const [showOpponents, setShowOpponents] = useState(false);
   const [showScores, setShowScores] = useState<string>();
@@ -409,25 +409,10 @@ function RaScreen({ session }: { session: GameHost }) {
               }
             />
           )}
-          {session.canControl && (
-            <button
-              type="button"
-              className="secondary ra-management-control"
-              aria-label="牌桌管理"
-              aria-haspopup="dialog"
-              onClick={() => setTopPanel('management')}
-            >
-              <span className="ra-management-prefix">牌桌</span>管理
-            </button>
-          )}
+          <RoomManagement session={session} />
         </div>
         <SessionFeedback session={session} mode="toolbar-save" />
       </header>
-      {topPanel === 'management' && session.canControl && (
-        <OverlayPanel title="牌桌管理" close={() => setTopPanel(undefined)}>
-          <RoomManagement session={session} />
-        </OverlayPanel>
-      )}
       {topPanel === 'rules' && (
         <OverlayPanel
           title="太阳神规则"

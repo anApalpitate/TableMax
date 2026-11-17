@@ -1093,7 +1093,7 @@ async function verifyMenusOnly() {
           .querySelector('.interaction-orb')
           .getBoundingClientRect();
         const button = document
-          .querySelector('.interaction-video-setting button')
+          .querySelector('.interaction-effects-setting button')
           .getBoundingClientRect();
         return {
           width: innerWidth,

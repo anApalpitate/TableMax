@@ -469,6 +469,7 @@ function PowerGridScreen({ session }: { session: RoomSession }) {
           >
             <MenuIcon />
           </button>
+          <RoomManagement session={session} />
         </div>
         <SessionFeedback session={session} mode="toolbar-save" />
       </header>
@@ -739,7 +740,6 @@ function PowerGridScreen({ session }: { session: RoomSession }) {
                   <div className="dialog-actions game-menu-settings">
                     <Settings session={session} />
                   </div>
-                  {canControl && <RoomManagement session={session} />}
                   <button
                     type="button"
                     className="game-menu-entry"

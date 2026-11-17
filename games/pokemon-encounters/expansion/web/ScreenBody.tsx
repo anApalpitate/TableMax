@@ -288,6 +288,7 @@ export function ScreenBody({
           >
             <MenuIcon />
           </button>
+          <RoomManagement session={session} />
         </header>
         {!showSupply && (
           <div className="ex-round-banner">
@@ -625,7 +626,6 @@ export function ScreenBody({
               <div className="dialog-actions game-menu-settings">
                 <Settings session={session} />
               </div>
-              {session.canControl && <RoomManagement session={session} />}
               {game.voteCounts && (
                 <button
                   type="button"

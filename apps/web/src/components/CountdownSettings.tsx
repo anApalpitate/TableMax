@@ -5,6 +5,7 @@ import { BoxOverlayPanel } from './BoxOverlayPanel';
 import { feedbackText } from '../content/feedback';
 import { SoundSetting } from './SoundSetting';
 import {
+  InteractionEffectsSetting,
   ShootingFloatingWindowSetting,
   VideoSettingsFields,
 } from './DisplaySettings';
@@ -84,8 +85,8 @@ export function Settings({
             inert={tab !== 'basic'}
           >
             <SoundSetting showSpeaker />
-            {role === 'player' && <ShootingFloatingWindowSetting />}
-            {children}
+            <InteractionEffectsSetting role={role} />
+            <ShootingFloatingWindowSetting role={role} />
           </section>
           <section
             className="settings-section"
@@ -105,10 +106,12 @@ export function Settings({
               )}
               {hasTimer && <CountdownPreference session={session} />}
             </SettingLockHelp.Provider>
+            {children}
             {localGamePreferences}
-            {!hasGameSetup && !hasTimer && !localGamePreferences && (
-              <p>当前玩法没有可配置的游戏选项。</p>
-            )}
+            {!hasGameSetup &&
+              !hasTimer &&
+              !children &&
+              !localGamePreferences && <p>当前玩法没有可配置的游戏选项。</p>}
           </section>
           <section
             className="settings-section"
@@ -116,7 +119,7 @@ export function Settings({
             hidden={tab !== 'video'}
             inert={tab !== 'video'}
           >
-            <VideoSettingsFields role={role} />
+            <VideoSettingsFields />
           </section>
         </BoxOverlayPanel>
       )}

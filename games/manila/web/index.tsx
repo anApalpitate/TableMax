@@ -418,6 +418,7 @@ function ManilaScreen({ session }: { session: GameHost }) {
           >
             <MenuIcon />
           </button>
+          <RoomManagement session={session} lifecycleLabel="开始下一航次" />
         </div>
         <SessionFeedback session={session} mode="toolbar-save" />
       </header>
@@ -637,12 +638,6 @@ function ManilaScreen({ session }: { session: GameHost }) {
               <div className="dialog-actions game-menu-settings">
                 <Settings session={session} />
               </div>
-              {canControl && (
-                <RoomManagement
-                  session={session}
-                  lifecycleLabel="开始下一航次"
-                />
-              )}
             </>
           )}
         </OverlayPanel>

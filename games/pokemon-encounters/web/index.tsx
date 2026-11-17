@@ -162,6 +162,7 @@ function PokemonScreen({ session }: { session: RoomSession }) {
             >
               <MenuIcon />
             </button>
+            <RoomManagement session={session} />
           </header>
           <SessionFeedback session={session} mode="messages" />
           {viewport.belowMinimum && (
@@ -351,7 +352,6 @@ function PokemonScreen({ session }: { session: RoomSession }) {
                     <BeginnerGuidanceSetting gameId="pokemon-encounters" />
                   </Settings>
                 </div>
-                {canControl && <RoomManagement session={session} />}
 
                 {game && (
                   <div className={`pokemon-screen pokemon-panel ${role}`}>

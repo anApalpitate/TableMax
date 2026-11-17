@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useId, useState } from 'react';
 import type {
   DisplayPreferences,
   DisplaySnapshot,
@@ -23,37 +23,75 @@ const resolutions = [
   ['3840x2160', '3840 × 2160 · 4K'],
 ] as const;
 
-export function ShootingFloatingWindowSetting() {
-  const [buttonHidden, setButtonHidden] =
-    useInteractionButtonPreference('player');
+export function ShootingFloatingWindowSetting({ role }: { role: ScreenRole }) {
+  const [buttonHidden, setButtonHidden] = useInteractionButtonPreference(role);
+  const labelId = useId();
+  const available = role === 'player';
+  const visible = available && !buttonHidden;
   return (
     <div className="display-settings-choice interaction-button-setting">
       <SettingHelp
-        id="interaction-button-label"
+        id={labelId}
         label="射击悬浮窗"
-        hint="显示或隐藏本设备的互动射击入口。"
+        hint={
+          available
+            ? '显示或隐藏本设备的互动射击入口。'
+            : '仅玩家端可发起互动射击。'
+        }
       />
       <button
         type="button"
         className="secondary"
         role="switch"
-        aria-checked={!buttonHidden}
-        aria-labelledby="interaction-button-label"
+        aria-checked={visible}
+        aria-labelledby={labelId}
+        disabled={!available}
         onClick={() => setButtonHidden(!buttonHidden)}
       >
         <span
-          className={`settings-switch${!buttonHidden ? ' settings-switch--on' : ''}`}
+          className={`settings-switch${visible ? ' settings-switch--on' : ''}`}
           aria-hidden="true"
         />
-        {buttonHidden ? '已隐藏' : '已显示'}
+        {!available ? '仅玩家端' : buttonHidden ? '已隐藏' : '已显示'}
       </button>
     </div>
   );
 }
 
-export function VideoSettingsFields({ role }: { role: ScreenRole }) {
-  const bridge = window.tablemaxDisplay;
+export function InteractionEffectsSetting({ role }: { role: ScreenRole }) {
   const [blocked, setBlocked] = useInteractionPreference(role);
+  const labelId = useId();
+  return (
+    <div className="display-settings-choice interaction-effects-setting">
+      <SettingHelp
+        id={labelId}
+        label="互动特效"
+        hint={
+          blocked
+            ? feedbackText('display.interactionDisabled')
+            : feedbackText('display.interactionEnabled')
+        }
+      />
+      <button
+        type="button"
+        className="secondary"
+        role="switch"
+        aria-checked={!blocked}
+        aria-labelledby={labelId}
+        onClick={() => setBlocked(!blocked)}
+      >
+        <span
+          className={`settings-switch${!blocked ? ' settings-switch--on' : ''}`}
+          aria-hidden="true"
+        />
+        {blocked ? '已关闭' : '已开启'}
+      </button>
+    </div>
+  );
+}
+
+export function VideoSettingsFields() {
+  const bridge = window.tablemaxDisplay;
   const [snapshot, setSnapshot] = useState<DisplaySnapshot | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
@@ -91,31 +129,6 @@ export function VideoSettingsFields({ role }: { role: ScreenRole }) {
   return (
     <>
       <WindowModeSettings />
-      <div className="display-settings-choice interaction-video-setting">
-        <SettingHelp
-          id="interaction-effects-label"
-          label="互动特效"
-          hint={
-            blocked
-              ? feedbackText('display.interactionDisabled')
-              : feedbackText('display.interactionEnabled')
-          }
-        />
-        <button
-          type="button"
-          className="secondary"
-          role="switch"
-          aria-checked={!blocked}
-          aria-labelledby="interaction-effects-label"
-          onClick={() => setBlocked(!blocked)}
-        >
-          <span
-            className={`settings-switch${!blocked ? ' settings-switch--on' : ''}`}
-            aria-hidden="true"
-          />
-          {blocked ? '已关闭' : '已开启'}
-        </button>
-      </div>
 
       {error && (
         <p className="display-settings-error" role="alert">
@@ -217,11 +230,7 @@ export function VideoSettingsFields({ role }: { role: ScreenRole }) {
   );
 }
 
-export function DisplaySettings({
-  role = location.pathname.startsWith('/host') ? 'host' : 'player',
-}: {
-  role?: ScreenRole;
-}) {
+export function DisplaySettings() {
   const [open, setOpen] = useState(false);
   return (
     <>
@@ -260,8 +269,7 @@ export function DisplaySettings({
           className="settings-panel settings-panel--preferences"
           close={() => setOpen(false)}
         >
-          <VideoSettingsFields role={role} />
-          {role === 'player' && <ShootingFloatingWindowSetting />}
+          <VideoSettingsFields />
         </BoxOverlayPanel>
       )}
     </>

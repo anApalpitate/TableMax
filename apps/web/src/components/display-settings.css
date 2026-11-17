@@ -2,17 +2,17 @@
   flex: 0 0 auto;
   font-size: 18px;
 }
-.interaction-video-setting,
+.interaction-effects-setting,
 .interaction-button-setting,
 .window-mode-setting {
   margin-bottom: 14px;
 }
-.dialog-surface .interaction-video-setting button,
+.dialog-surface .interaction-effects-setting button,
 .dialog-surface .interaction-button-setting button {
   min-height: 44px;
   font-size: 18px;
 }
-.interaction-video-setting button[aria-pressed='true'] {
+.interaction-effects-setting button[aria-pressed='true'] {
   background: #f9ded9;
   color: #953e37;
 }

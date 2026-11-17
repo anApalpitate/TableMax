@@ -30,6 +30,7 @@ assert(
       'seat-names',
       'name-limits',
       'management-layout',
+      'management-controls',
       'connection-layout',
       'save-layout',
       'sound',
@@ -84,7 +85,7 @@ import {BoxScreen} from ${file('apps/web/src/screens/BoxScreen.tsx')};
 import {useSoundPreference,setPlaybackVolume,trackPlaybackVolume} from ${file('packages/web-host/src/index.tsx')};
 import {useRoomSession} from ${file('apps/web/src/session/useRoomSession.ts')};
 import {RoomViewSchema} from ${file('packages/protocol/src/index.ts')};
-import {RoomManagement} from ${file('apps/web/src/components/RoomManagement.tsx')};
+import {RoomManagementControl} from ${file('apps/web/src/components/RoomManagement.tsx')};
 import {OverlayPanel} from ${file('apps/web/src/components/OverlayPanel.tsx')};
 import type {DisplaySnapshot, WindowMode} from ${file('apps/desktop/src/display-types.ts')};
 import {AbilityIcon} from ${file('games/pokemon-encounters/ui/AbilityIcon.tsx')};
@@ -117,7 +118,7 @@ function sessionFor(key,role){
 }
 function paint(){const key=current.session.fixtureKey??current.key+'-'+current.session.role;flushSync(()=>root.render(<><Probe/>{current.key==='box'?<BoxScreen key={key} session={current.session}/>:<PlatformGame key={key} session={current.session} client={current.session.client}/>}</>));}
 let renderSequence=0;
-window.renderGame=(key,role,status)=>{history.replaceState(null,'','/'+role+(key==='box'?'':'/game'));const session=sessionFor(key,role);if(status){session.view.status=status;window.settingsCommands=[];session.command=value=>window.settingsCommands.push(structuredClone(value));}session.fixtureKey='case-'+key+'-'+(++renderSequence);current={key,session};paint();};
+window.renderGame=(key,role,status,owner=false)=>{history.replaceState(null,'','/'+role+(key==='box'?'':'/game'));const session=sessionFor(key,role);if(status){session.view.status=status;window.settingsCommands=[];session.command=value=>window.settingsCommands.push(structuredClone(value));}if(owner){session.canControl=true;session.view.capabilities.control=true;}session.fixtureKey='case-'+key+'-'+(++renderSequence);current={key,session};paint();};
 function GuestNameBox(){const [name,setName]=React.useState('');const session={...sessionFor('box','player'),credential:'',self:undefined,name,setName,join:()=>{window.guestJoinCount=(window.guestJoinCount??0)+1;}};return <BoxScreen session={session}/>;}
 window.renderNameLimits=()=>{history.replaceState(null,'','/player');flushSync(()=>root.render(<GuestNameBox key={'guest-'+(++renderSequence)}/>));};
 window.configureNativeSettings=(enabled)=>{
@@ -143,7 +144,7 @@ window.renderManagement=({status,full=false})=>{
  session.fixtureKey='management-'+(++renderSequence);
  session.view={...session.view,status,ownerSeatId:'s0',self:{role:'host',seatId:null},capabilities:{manage:true,control:true,manageSeats:true},transferRequests:[],history:[{id:'checkpoint-one',label:'检查点一',revealedInformation:false,step:1,seatId:'s0',roundNumber:1},{id:'checkpoint-two',label:'检查点二',revealedInformation:true,step:2,seatId:'s1',roundNumber:1}],seats:session.view.seats.map((seat,index)=>({...seat,name:index===0?'长'.repeat(8):index===1?'WWWWWWWWWWWWWWWW':seat.name}))};
  window.managementCommands=[];
- const paintManagement=()=>{if(full)flushSync(()=>root.render(<OverlayPanel key={session.fixtureKey} title="共享管理组件" className="settings-panel settings-panel--management" close={noop}><RoomManagement session={current.session}/></OverlayPanel>));else paint();};
+ const paintManagement=()=>{if(full)flushSync(()=>root.render(<RoomManagementControl key={session.fixtureKey} session={current.session}/>));else paint();};
  session.command=command=>{window.managementCommands.push(structuredClone(command));if(command.type==='set-owner')current.session={...current.session,view:{...current.session.view,ownerSeatId:command.seatId}};if(command.type==='approve-transfer'||command.type==='reject-transfer')current.session={...current.session,view:{...current.session.view,transferRequests:current.session.view.transferRequests.filter(request=>request.requestId!==command.requestId)}};paintManagement();};
  current={key:'box',session};
  window.setManagementRequests=()=>{current.session={...current.session,view:{...current.session.view,transferRequests:[{requestId:'transfer-one',seatId:'s0',verificationCode:'123456',expiresAt:Date.now()+120000},{requestId:'transfer-two',seatId:'s1',verificationCode:'654321',expiresAt:Date.now()+120000}]}};paintManagement();};
@@ -798,7 +799,7 @@ try {
     [390, 844],
     [1280, 900],
   ])
-    for (const status of ['lobby', 'playing']) {
+    for (const status of ['lobby', 'playing', 'ended']) {
       await check(`box:${status}:${width}:management-layout`, async () => {
         const managementContext = await browser.newContext({
           viewport: { width, height },
@@ -877,9 +878,9 @@ try {
             status,
           );
           await managementPage
-            .getByRole('button', { name: '管理设置', exact: true })
+            .getByRole('button', { name: '牌桌管理', exact: true })
             .click();
-          const panel = managementPage.locator('.settings-panel--management');
+          const panel = managementPage.locator('.room-management-panel');
           await panel.waitFor({ state: 'visible' });
           assert.equal(
             await managementPage.locator('.seat-settings-row').count(),
@@ -907,16 +908,11 @@ try {
               .count(),
             0,
           );
-          if (status === 'playing') {
-            const rollback = panel.getByRole('button', {
-              name: '决策点回退（2）',
-              exact: true,
-            });
-            await row(
-              rollback.locator('..').getByText('决策点回退', { exact: true }),
-              rollback,
-            );
-          }
+          assert.equal(
+            await panel.getByRole('button', { name: /回退/ }).count(),
+            0,
+            'Rollback entry is absent even with valid checkpoint history',
+          );
           await owner.selectOption('s1');
           assert.deepEqual(
             await managementPage.evaluate(() => window.managementCommands),
@@ -931,7 +927,7 @@ try {
             { type: 'set-owner', seatId: null },
           );
           await unclipped(
-            '.settings-panel--management,.owner-control,.device-transfer-requests',
+            '.room-management-panel,.owner-control,.device-transfer-requests',
           );
           await screenshot('empty');
           await managementPage.evaluate(() => window.setManagementRequests());
@@ -1028,64 +1024,50 @@ try {
             ],
           );
           assert.equal(await requests.count(), 0);
-          if (status === 'playing') {
-            const prior = await managementPage.evaluate(
+          const destructive = status === 'playing' ? '结束游戏' : '清空牌桌';
+          const beforeAction = await managementPage.evaluate(
+            () => window.managementCommands.length,
+          );
+          await panel
+            .getByRole('button', { name: destructive, exact: true })
+            .click();
+          const actionDialog = managementPage.getByRole('dialog', {
+            name: destructive,
+            exact: true,
+          });
+          await actionDialog.waitFor();
+          await actionDialog
+            .getByRole('button', { name: '取消', exact: true })
+            .click();
+          assert.equal(
+            await managementPage.evaluate(
               () => window.managementCommands.length,
-            );
-            const openRollback = async () => {
-              await panel
-                .getByRole('button', { name: '决策点回退（2）', exact: true })
-                .click();
-              await managementPage
-                .locator('.rollback-history')
-                .getByRole('button', { name: /检查点二/ })
-                .click();
-            };
-            await openRollback();
-            const rollbackConfirm = managementPage.getByRole('dialog', {
-              name: '确认回退',
-              exact: true,
-            });
-            await rollbackConfirm.waitFor({ state: 'visible' });
-            assert(
-              (
-                await rollbackConfirm
-                  .locator('.confirmation-message')
-                  .textContent()
-              ).includes('检查点二'),
-              'Rollback confirmation describes the selected checkpoint',
-            );
-            await rollbackConfirm
-              .getByRole('button', { name: '取消', exact: true })
-              .click();
-            assert.equal(
-              await managementPage.evaluate(
-                () => window.managementCommands.length,
-              ),
-              prior,
-            );
-            await managementPage
-              .locator('.rollback-history')
-              .getByRole('button', { name: /检查点二/ })
-              .click();
-            await managementPage
-              .getByRole('dialog', { name: '确认回退', exact: true })
-              .getByRole('button', { name: '确认回退', exact: true })
-              .click();
-            assert.deepEqual(
-              await managementPage.evaluate(
-                (prior) => window.managementCommands.slice(prior),
-                prior,
-              ),
-              [{ type: 'rollback', checkpointId: 'checkpoint-two' }],
-            );
-          }
+            ),
+            beforeAction,
+          );
+          await panel
+            .getByRole('button', { name: destructive, exact: true })
+            .click();
+          await actionDialog
+            .getByRole('button', { name: '确认' + destructive, exact: true })
+            .click();
+          assert.deepEqual(
+            await managementPage.evaluate(() =>
+              window.managementCommands.at(-1),
+            ),
+            {
+              type: status === 'playing' ? 'end' : 'new-room',
+            },
+          );
           await managementPage.evaluate(
             (status) => window.renderManagement({ status, full: true }),
             status,
           );
+          await managementPage
+            .getByRole('button', { name: '牌桌管理', exact: true })
+            .click();
           const full = managementPage.getByRole('dialog', {
-            name: '共享管理组件',
+            name: '牌桌管理',
             exact: true,
           });
           await full.waitFor({ state: 'visible' });
@@ -1414,6 +1396,145 @@ try {
           },
         );
       }
+
+  for (const key of ['box', ...games]) {
+    await check(key + ':host:management-controls', async () => {
+      await page.setViewportSize({ width: 1280, height: 720 });
+      await page.evaluate(
+        (key) => window.renderGame(key, 'host', 'playing'),
+        key,
+      );
+      const opener = page.getByRole('button', {
+        name: '牌桌管理',
+        exact: true,
+      });
+      assert.equal(await opener.count(), 1);
+      assert.equal(await opener.textContent(), '');
+      assert.equal(await opener.locator('svg').count(), 1);
+      assert(
+        await opener.evaluate(
+          (node) => Boolean(node.closest('header')) && !node.closest('dialog'),
+        ),
+      );
+      const rect = await opener.boundingBox();
+      assert(rect && rect.width >= 44 && rect.height >= 44);
+      assert(
+        await opener.evaluate((node) => {
+          const r = node.getBoundingClientRect();
+          return (
+            r.x >= 0 &&
+            r.right <= innerWidth &&
+            r.y >= 0 &&
+            r.bottom <= innerHeight &&
+            node.contains(
+              document.elementFromPoint(r.x + r.width / 2, r.y + r.height / 2),
+            )
+          );
+        }),
+        'Management entry is visible and uncovered',
+      );
+      const toolbarPath = join(
+        output,
+        'management-toolbar-' + key + '-host.png',
+      );
+      await captureBrowserScreenshot(page, { path: toolbarPath });
+      report.screenshots.push({
+        key,
+        role: 'host',
+        width: 1280,
+        height: 720,
+        panel: 'toolbar',
+        path: toolbarPath,
+      });
+      await opener.click();
+      const panel = page.getByRole('dialog', { name: '牌桌管理', exact: true });
+      await panel.waitFor();
+      assert.equal(
+        await panel
+          .getByRole('heading', { name: '对局操作', exact: true })
+          .count(),
+        1,
+      );
+      assert.equal(
+        await panel
+          .getByRole('heading', { name: '玩家与设备', exact: true })
+          .count(),
+        1,
+      );
+      assert.equal(
+        await panel.getByRole('button', { name: /回退/ }).count(),
+        0,
+      );
+      assert.equal(
+        await panel.getByRole('button', { name: '设置', exact: true }).count(),
+        0,
+      );
+      await panel
+        .getByRole('button', { name: '暂停游戏', exact: true })
+        .click();
+      assert.deepEqual(await page.evaluate(() => window.settingsCommands), [
+        { type: 'pause' },
+      ]);
+      await panel
+        .getByRole('button', { name: '结束游戏', exact: true })
+        .click();
+      const confirm = page.getByRole('dialog', {
+        name: '结束游戏',
+        exact: true,
+      });
+      await confirm.waitFor();
+      await confirm.getByRole('button', { name: '取消', exact: true }).click();
+      assert.deepEqual(await page.evaluate(() => window.settingsCommands), [
+        { type: 'pause' },
+      ]);
+      await page.evaluate(() => document.activeElement?.blur());
+      await page.mouse.move(0, 0);
+      const path = join(output, 'management-controls-' + key + '-host.png');
+      await captureBrowserScreenshot(page, { path });
+      report.screenshots.push({
+        key,
+        role: 'host',
+        width: 1280,
+        height: 720,
+        panel: 'management',
+        path,
+      });
+      await page.keyboard.press('Escape');
+      assert(
+        await opener.evaluate((node) => node === document.activeElement),
+        'Closing management restores toolbar focus',
+      );
+      assert.equal(
+        await page
+          .getByRole('dialog', { name: '牌桌管理', exact: true })
+          .count(),
+        0,
+      );
+    });
+    await check(key + ':player:management-controls', async () => {
+      await page.setViewportSize({ width: 390, height: 844 });
+      for (const owner of [false, true]) {
+        await page.evaluate(
+          ({ key, owner }) =>
+            window.renderGame(key, 'player', 'playing', owner),
+          { key, owner },
+        );
+        assert.equal(
+          await page
+            .getByRole('button', { name: '牌桌管理', exact: true })
+            .count(),
+          0,
+          'Player with control permission has no management entry',
+        );
+        const settings = await openSettings(key);
+        assert.equal(
+          await settings.getByRole('button', { name: /牌桌管理|回退/ }).count(),
+          0,
+        );
+        await page.keyboard.press('Escape');
+      }
+    });
+  }
   async function openSettings(key) {
     const opener = page.getByRole('button', { name: '设置', exact: true });
     if (!(await opener.isVisible()) && key !== 'box')
@@ -1497,7 +1618,48 @@ try {
         }
         assert.equal(
           await panel.getByRole('switch', { name: '射击悬浮窗' }).count(),
-          role === 'player' ? 1 : 0,
+          1,
+        );
+        const basic = panel.getByRole('region', {
+          name: '基本设置',
+          exact: true,
+        });
+        assert.deepEqual(
+          await basic.locator('.setting-help__label').allTextContents(),
+          ['声音', '音量', '互动特效', '射击悬浮窗'],
+        );
+        const shooting = basic.getByRole('switch', { name: '射击悬浮窗' });
+        if (role === 'player') {
+          const previous = await shooting.getAttribute('aria-checked');
+          await shooting.click();
+          assert.notEqual(
+            await shooting.getAttribute('aria-checked'),
+            previous,
+          );
+          assert.equal(
+            await page.evaluate(() =>
+              localStorage.getItem('tablemax-interaction-button-hidden-player'),
+            ),
+            previous,
+          );
+        } else {
+          assert(await shooting.isDisabled());
+          assert.equal(await shooting.getAttribute('aria-checked'), 'false');
+        }
+        const effects = basic.getByRole('switch', { name: '互动特效' });
+        const previousEffects = await effects.getAttribute('aria-checked');
+        await effects.click();
+        assert.notEqual(
+          await effects.getAttribute('aria-checked'),
+          previousEffects,
+        );
+        assert.equal(
+          await page.evaluate(
+            (role) =>
+              localStorage.getItem('tablemax-interaction-blocked-' + role),
+            role,
+          ),
+          previousEffects,
         );
         await assertSettingRowsAndHelp(page);
         await panel.getByRole('button', { name: '游戏', exact: true }).click();
@@ -1548,7 +1710,9 @@ try {
           }
         }
         if (key === 'ra' || key === 'uno') {
-          const switches = gameSection.getByRole('switch');
+          const switches = gameSection
+            .locator('.game-setup-settings')
+            .getByRole('switch');
           assert((await switches.count()) > 0, 'Rule switches stay visible');
           for (const control of await switches.all())
             assert(await control.isDisabled());
@@ -1563,7 +1727,19 @@ try {
         );
         assert.equal(
           await panel.getByRole('switch', { name: '互动特效' }).count(),
-          1,
+          0,
+        );
+        if (role === 'host')
+          await panel.getByLabel('适配方式', { exact: true }).waitFor();
+        const video = panel.getByRole('region', {
+          name: '视频设置',
+          exact: true,
+        });
+        assert.deepEqual(
+          await video.locator('.setting-help__label').allTextContents(),
+          role === 'host'
+            ? ['显示模式', '当前显示器', '适配方式', '界面大小']
+            : ['显示模式'],
         );
         await assertSettingRowsAndHelp(page);
         await page.keyboard.press('Escape');
@@ -1674,6 +1850,18 @@ try {
               'Only the selected settings pane is exposed',
             );
           };
+          for (const button of await panel
+            .getByRole('region', { name: '基本设置', exact: true })
+            .getByRole('switch')
+            .all())
+            assert(
+              await button.evaluate(
+                (node) =>
+                  node.scrollWidth <= node.clientWidth &&
+                  node.getBoundingClientRect().height <= 60,
+              ),
+              'Basic switch labels fit one line at the supported viewport',
+            );
           await screenshot('basic');
           await panel
             .getByRole('button', { name: '游戏', exact: true })

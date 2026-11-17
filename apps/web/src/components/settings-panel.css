@@ -68,7 +68,7 @@
   background: #fffdf6;
   border: 1px solid #b7d2c6;
 }
-.settings-panel .interaction-video-setting,
+.settings-panel .interaction-effects-setting,
 .settings-panel--preferences .interaction-button-setting,
 .settings-panel--preferences .sound-setting,
 .settings-panel--preferences .window-mode-setting,
@@ -80,7 +80,7 @@
   gap: 10px;
   align-items: center;
 }
-.settings-panel .interaction-video-setting button,
+.settings-panel .interaction-effects-setting button,
 .settings-panel--preferences .interaction-button-setting button,
 .settings-panel--preferences .sound-setting > button {
   display: flex;
@@ -91,6 +91,17 @@
   padding: 8px;
   background: transparent;
   color: #255a4c;
+}
+.settings-panel--preferences
+  :is(.interaction-effects-setting, .interaction-button-setting) {
+  grid-template-columns: minmax(0, 1fr) max-content;
+}
+.settings-panel--preferences
+  :is(.interaction-effects-setting, .interaction-button-setting)
+  button {
+  padding-inline: 0;
+  white-space: nowrap;
+  overflow-wrap: normal;
 }
 .settings-switch {
   display: inline-flex;
