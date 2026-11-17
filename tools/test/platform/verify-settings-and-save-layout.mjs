@@ -1512,22 +1512,40 @@ try {
           ),
           'Opening the game tab does not display a phase label or tooltip',
         );
-        for (const button of await gameSection
-          .getByRole('button', { name: /^保存/ })
-          .all())
-          assert(await button.isDisabled());
+        assert.equal(
+          await gameSection.getByRole('button', { name: /^保存/ }).count(),
+          0,
+          'Read-only game settings have no save actions',
+        );
         const timer = gameSection.getByRole('slider', { name: '思考时间提醒' });
         if (await timer.count()) {
           assert(await timer.isDisabled());
           await timer.hover({ force: true });
-          await panel
+          const hint = panel
             .getByRole('tooltip')
-            .filter({ hasText: '对局进行中游戏设置暂时无法调整' })
-            .waitFor({ timeout: 3000 });
-          if (key === 'uno' && role === 'host')
+            .filter({ hasText: '对局进行中游戏设置暂时无法调整' });
+          await hint.waitFor({ timeout: 3000 });
+          const hintRect = await hint.boundingBox();
+          const timerRect = await timer.boundingBox();
+          assert(
+            hintRect && timerRect && hintRect.y + hintRect.height < timerRect.y,
+            'Lock hint appears above the disabled control',
+          );
+          if (key === 'uno' && role === 'host') {
             await captureBrowserScreenshot(page, {
               path: join(output, 'settings-uno-host-locked-hover.png'),
             });
+            await hint.waitFor({ state: 'hidden', timeout: 2500 });
+            await page.mouse.move(
+              timerRect.x + timerRect.width / 2 + 3,
+              timerRect.y + timerRect.height / 2,
+            );
+            assert.equal(
+              await hint.count(),
+              0,
+              'An expired hint stays closed until the pointer leaves the row',
+            );
+          }
         }
         if (key === 'ra' || key === 'uno') {
           const switches = gameSection.getByRole('switch');

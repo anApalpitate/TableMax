@@ -40,3 +40,6 @@
   overflow-wrap: anywhere;
   z-index: 1000;
 }
+.setting-help__tip--transient {
+  pointer-events: none;
+}

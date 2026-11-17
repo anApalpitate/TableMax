@@ -121,7 +121,6 @@ export function Settings({
 function CountdownPreference({ session }: { session: RoomSession }) {
   const { view } = session;
   const ended = view?.status === 'ended';
-  const playing = view?.status === 'playing';
   const saved =
     (ended ? view?.nextCountdownSeconds : undefined) ??
     view?.countdownSeconds ??
@@ -175,12 +174,9 @@ function CountdownPreference({ session }: { session: RoomSession }) {
             : session.message}
         </p>
       )}
-      {session.isHost && (
-        <div
-          className="dialog-actions"
-          title={playing ? inGameSettingsHint : undefined}
-        >
-          {editable && attempted && session.awaitingConfirmation && (
+      {editable && (
+        <div className="dialog-actions">
+          {attempted && session.awaitingConfirmation && (
             <button
               type="button"
               className="secondary"
@@ -193,7 +189,6 @@ function CountdownPreference({ session }: { session: RoomSession }) {
           <button
             type="button"
             disabled={
-              !editable ||
               session.locked ||
               session.awaitingConfirmation ||
               seconds === saved
