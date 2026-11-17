@@ -209,10 +209,14 @@ try {
   const tracked = [
     game,
     frame,
+    join(sourceRoot, 'games/modern-art/ui/AuctionTheme.tsx'),
     join(sourceRoot, 'games/modern-art/ui/style.css'),
     join(sourceRoot, 'games/modern-art/ui/public/index.tsx'),
     join(sourceRoot, 'games/modern-art/ui/player-wide.css'),
     join(sourceRoot, 'games/modern-art/ui/viewport.css'),
+    ...(phase === 'after'
+      ? [join(sourceRoot, 'games/modern-art/ui/management.css')]
+      : []),
     join(sourceRoot, 'games/modern-art/ui/player/index.tsx'),
     join(sourceRoot, 'apps/web/src/components/player-frame.css'),
     join(sourceRoot, 'apps/web/src/components/player-frame.ts'),

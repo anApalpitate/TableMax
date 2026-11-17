@@ -73,7 +73,7 @@ export function AuctionTheme({
                   style={
                     {
                       left: `${50 + 35 * Math.cos(angle)}%`,
-                      top: `${50 + 36 * Math.sin(angle)}%`,
+                      top: `clamp(var(--ma-ring-seat-inset, 0px), ${50 + 36 * Math.sin(angle)}%, calc(100% - var(--ma-ring-seat-inset, 0px)))`,
                     } as CSSProperties
                   }
                 >

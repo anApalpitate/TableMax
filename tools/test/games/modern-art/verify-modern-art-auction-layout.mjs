@@ -89,8 +89,10 @@ const scenes = fixedComparisonOnly
           '4-fixed-single',
         ]
       : [
+          'offer',
           'auction-sealed',
           'auction-open',
+          'auction-once',
           'auction-pair',
           'auction-double',
           'auction-fixed',
@@ -264,10 +266,7 @@ try {
                     connected: !scene.endsWith('-disconnected'),
                   },
                 );
-              await page
-                .locator('.ma-auction__paintings > .ma-card')
-                .first()
-                .waitFor();
+              await page.locator('.ma-auction').waitFor();
               await page.evaluate(() => document.fonts.ready);
               const geometry = await page.evaluate(() => {
                 const rect = (element) => {
@@ -293,11 +292,10 @@ try {
                 ].map(rect);
                 const theme = find('.ma-theme');
                 const themeText = [];
-                const walker = document.createTreeWalker(
-                  theme,
-                  NodeFilter.SHOW_TEXT,
-                );
-                while (walker.nextNode()) {
+                const walker =
+                  theme &&
+                  document.createTreeWalker(theme, NodeFilter.SHOW_TEXT);
+                while (walker?.nextNode()) {
                   const node = walker.currentNode;
                   if (
                     !node.textContent.trim() ||
@@ -323,17 +321,17 @@ try {
                     right: innerWidth,
                     bottom: innerHeight,
                   },
-                  featured: table.classList.contains(
-                    'ma-table--featured-auction',
-                  ),
                   active: table.dataset.auctionActive,
                   activeIndicators: document.querySelectorAll(
                     '.ma-auction .ma-active, .ma-theme .ma-theme__current',
                   ).length,
-                  activityMessage: theme.dataset.activityMessage,
+                  activityMessage: theme?.dataset.activityMessage,
                   tableRows: getComputedStyle(table).gridTemplateRows,
                   auctionRows: getComputedStyle(auction).gridTemplateRows,
                   market: rect(find('.ma-market')),
+                  marketContent: ['.ma-exhibit-prices', '.ma-exhibit-supply']
+                    .map((selector) => rect(find(selector)))
+                    .filter(Boolean),
                   center: rect(find('.ma-center')),
                   auction: rect(auction),
                   museums: rect(find('.ma-museums')),
@@ -345,8 +343,19 @@ try {
                   participants: rect(find('.ma-auction__participants')),
                   countdown: rect(find('.ma-auction__countdown')),
                   cards,
-                  labelToPainting:
-                    Math.min(...cards.map((card) => card.y)) - label.bottom,
+                  museumActivity:
+                    document.querySelectorAll('.ma-museum--active').length,
+                  sortControl: Boolean(find('.ma-toolbar .ma-sort')),
+                  collections: [
+                    ...document.querySelectorAll('.ma-museum__collection'),
+                  ].map((collection) => ({
+                    columns: getComputedStyle(collection)
+                      .gridTemplateColumns.split(' ')
+                      .map(parseFloat),
+                    width: collection.clientWidth,
+                    scrollbar: getComputedStyle(collection).overflowY,
+                    cards: [...collection.children].map(rect),
+                  })),
                   bodyOverflow:
                     Math.max(
                       document.documentElement.scrollWidth,
@@ -366,7 +375,7 @@ try {
                 height,
                 ...geometry,
               });
-              if (width === 1280 || width === 3840) {
+              if (width === 960 || width === 1280 || width === 3840) {
                 await captureBrowserScreenshot(page, {
                   path: join(output, `${id}.png`),
                   fullPage: false,
@@ -394,6 +403,60 @@ try {
                 });
               }
               if (phase === 'after') {
+                assert.equal(
+                  geometry.sortControl,
+                  false,
+                  `${id}: no management sort control`,
+                );
+                for (const edge of ['y', 'bottom']) {
+                  assert.ok(
+                    Math.abs(geometry.market[edge] - geometry.auction[edge]) <=
+                      1,
+                    `${id}: market and auction share ${edge}`,
+                  );
+                }
+                for (const child of geometry.marketContent)
+                  assert.ok(
+                    contains(geometry.market, child),
+                    `${id}: market content contained`,
+                  );
+                const equivalent = report.layouts.find(
+                  (layout) =>
+                    layout.id !== id &&
+                    layout.phase === phase &&
+                    layout.width === width &&
+                    layout.height === height,
+                );
+                if (equivalent) {
+                  assert.ok(
+                    Math.abs(geometry.museums.y - equivalent.museums.y) <= 1,
+                    `${id}: gallery starts at the same height across phases`,
+                  );
+                }
+                for (const collection of geometry.collections) {
+                  const minimum = height <= 600 ? 78 : 96;
+                  const count = Math.floor(
+                    (collection.width + 6.5) / (minimum + 6),
+                  );
+                  assert.equal(
+                    collection.columns.length,
+                    Math.max(1, count),
+                    `${id}: maximum complete columns`,
+                  );
+                  assert.ok(
+                    collection.columns.every((width) => width >= minimum - 1),
+                    `${id}: artwork width floor`,
+                  );
+                  assert.equal(
+                    collection.scrollbar,
+                    'visible',
+                    `${id}: no nested scrolling`,
+                  );
+                  assert.ok(
+                    collection.cards[0].bottom <= geometry.museums.bottom + 1,
+                    `${id}: complete first painting visible`,
+                  );
+                }
                 if (inactiveOnly) {
                   assert.equal(
                     geometry.active,
@@ -401,7 +464,7 @@ try {
                     `${id}: inactive session has no active auction layout hook`,
                   );
                   assert.equal(
-                    geometry.activeIndicators,
+                    geometry.activeIndicators + geometry.museumActivity,
                     0,
                     `${id}: inactive session has no acting highlight`,
                   );
@@ -420,13 +483,8 @@ try {
                 }
                 assert.equal(
                   geometry.active,
-                  'true',
+                  scene === 'offer' ? undefined : 'true',
                   `${id}: active auction hook`,
-                );
-                assert.ok(
-                  geometry.labelToPainting >= 15.9 &&
-                    geometry.labelToPainting <= 24.1,
-                  `${id}: title-to-painting gap ${geometry.labelToPainting}`,
                 );
                 assert.ok(
                   geometry.market.right <= geometry.center.x + 1,
@@ -449,21 +507,34 @@ try {
                   ...geometry.cards,
                   geometry.theme,
                   geometry.label,
+                  geometry.participants,
                 ])
-                  assert.ok(
-                    contains(geometry.auction, child),
-                    `${id}: auction child contained`,
-                  );
+                  if (child)
+                    assert.ok(
+                      contains(geometry.auction, child),
+                      `${id}: auction child contained`,
+                    );
                 for (const text of geometry.themeText)
                   assert.ok(
                     contains(geometry.theme, text),
                     `${id}: theme text remains inside its column: ${text.text}`,
                   );
                 for (const card of geometry.cards)
+                  for (const region of [
+                    geometry.theme,
+                    geometry.label,
+                    geometry.participants,
+                  ])
+                    assert.equal(
+                      overlaps(card, region),
+                      false,
+                      `${id}: lot remains in its own slot`,
+                    );
+                if (geometry.theme)
                   assert.equal(
-                    overlaps(card, geometry.theme),
+                    overlaps(geometry.theme, geometry.participants),
                     false,
-                    `${id}: lot and theme do not overlap`,
+                    `${id}: theme and participant strip do not overlap`,
                   );
                 for (const region of [
                   geometry.market,
@@ -494,11 +565,30 @@ try {
                   );
                 assert.equal(
                   Boolean(geometry.countdown),
-                  extraOnly ||
-                    fixedComparisonOnly ||
-                    scene !== 'auction-double',
+                  scene !== 'offer' &&
+                    (extraOnly ||
+                      fixedComparisonOnly ||
+                      scene !== 'auction-double'),
                   `${id}: auction-only progress bar`,
                 );
+                if (scene === 'offer' && width === 1280) {
+                  const history = page.locator('.ma-exhibit-supply button');
+                  await history.focus();
+                  await page.keyboard.press('Enter');
+                  await page
+                    .locator('.ma-market-history table')
+                    .waitFor({ timeout: 3000 });
+                  await page.keyboard.press('Escape');
+                  await page
+                    .locator('.ma-market-history')
+                    .waitFor({ state: 'hidden', timeout: 3000 });
+                  assert.ok(
+                    await history.evaluate(
+                      (button) => button === document.activeElement,
+                    ),
+                    `${id}: history returns keyboard focus`,
+                  );
+                }
               }
             } catch (error) {
               report.failures.push({ id, error: error.message });

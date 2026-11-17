@@ -16,6 +16,7 @@ import '../ui/style.css';
 import '../ui/public/avatars.css';
 import '../ui/player-wide.css';
 import '../ui/viewport.css';
+import '../ui/management.css';
 import { MenuIcon, RulebookIcon } from '@tablemax/web-host';
 import type { GameClient, GameHost as RoomSession } from '@tablemax/web-host';
 import { ScreenLink } from '@tablemax/web-host';
@@ -87,17 +88,7 @@ function ModernArtScreen({ session }: { session: RoomSession }) {
   const emptyFinalMuseums =
     ended &&
     game.seatOrder.every((seat) => game.players[seat]?.collection.length === 0);
-  const featuredAuction =
-    role !== 'player' &&
-    connected &&
-    view?.status === 'playing' &&
-    !view.paused &&
-    !view.botError &&
-    game &&
-    (game.phase === 'auction' || game.phase === 'double') &&
-    game.auction !== null &&
-    game.auction.cards.length > 0 &&
-    game.seatOrder.every((seat) => game.players[seat]?.collection.length === 0);
+  const managementTable = role !== 'player' && Boolean(game && view);
   const mergedPausedOffer =
     role === 'player' && view?.paused === true && game?.phase === 'offer';
   const notice =
@@ -229,13 +220,6 @@ function ModernArtScreen({ session }: { session: RoomSession }) {
           {connected ? '本地已连接' : '正在连接'}
         </span>
 
-        {role !== 'player' && (
-          <PaintingSortControl
-            value={collectionSort}
-            change={setCollectionSort}
-            label="全局收藏排序"
-          />
-        )}
         <PlayModeBadge mode={view?.playMode} />
         <div className="ma-toolbar-tools">
           {role === 'player' && (
@@ -283,7 +267,9 @@ function ModernArtScreen({ session }: { session: RoomSession }) {
         </div>
         <SessionFeedback session={session} mode="toolbar-save" />
       </header>
-      <SessionFeedback session={session} mode="messages" />
+      {!managementTable && (
+        <SessionFeedback session={session} mode="messages" />
+      )}
       {!game || !view ? (
         <div className="ma-unavailable">
           <h1>等待拍卖开始</h1>
@@ -311,18 +297,20 @@ function ModernArtScreen({ session }: { session: RoomSession }) {
               (view.actions as Action[]).some((action) => 'cardId' in action) ||
               undefined
             }
-            className={`ma-table ${featuredAuction ? 'ma-table--featured-auction' : ''} ${featuredAuction && game.auction && game.auction.cards.length > 1 ? 'ma-table--paired-auction' : ''}`}
+            className={`ma-table ${managementTable ? 'ma-table--management' : ''}`}
           >
             <MarketBoard
               view={game}
               showHistory={() => setPanel('market')}
               compact={role === 'player'}
+              management={managementTable}
             />
             {role !== 'player' && playerStage}
-            {role !== 'player' && (!ended || notice) && (
+            {managementTable && (
               <div className="ma-table-footer">
                 {!ended && <SavedAction view={game} names={names} />}
                 {notice}
+                <SessionFeedback session={session} mode="messages" />
               </div>
             )}
             {role === 'player' && game.self && (
@@ -343,7 +331,8 @@ function ModernArtScreen({ session }: { session: RoomSession }) {
                 names={names}
                 portraits={portraits}
                 selfId={null}
-                sort={collectionSort}
+                management
+                inactive={Boolean(activityMessage)}
               />
             )}
             {role === 'player' && (

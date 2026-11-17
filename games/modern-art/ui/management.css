@@ -1,0 +1,431 @@
+.ma-screen .ma-table--management {
+  --ma-exhibit-height: clamp(
+    248px,
+    calc(var(--ma-viewport-height, 100dvh) * 0.43),
+    440px
+  );
+}
+
+.ma-screen:has(> .ma-table--management) {
+  background: radial-gradient(ellipse at 52% 0%, #f6ead5, #dcc5a6 92%);
+}
+
+.ma-screen .ma-table--management:has(.ma-auction) {
+  grid-template-columns: minmax(0, 1.08fr) minmax(0, 1fr);
+  grid-template-rows: var(--ma-exhibit-height) minmax(0, 1fr) auto;
+}
+
+.ma-table--management:has(.ma-auction) > .ma-market--exhibit {
+  align-self: stretch;
+}
+
+.ma-table--management:has(.ma-auction) > .ma-center > .ma-auction {
+  flex: 1;
+  min-height: 0;
+  background:
+    radial-gradient(ellipse at 35% 40%, #fffdf7, transparent 75%), #f7ecd9;
+}
+
+.ma-screen .ma-table--management .ma-auction--waiting {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  border-style: solid;
+}
+
+.ma-screen .ma-table--management .ma-auction--waiting .ma-offer-status {
+  flex: none;
+}
+
+.ma-screen .ma-table--management .ma-auction:not(.ma-auction--waiting) {
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+  grid-template-rows: 8px auto minmax(0, 1fr) auto;
+  gap: 8px 14px;
+  align-content: stretch;
+}
+
+.ma-screen .ma-table--management .ma-auction__label {
+  grid-row: 2;
+}
+
+.ma-screen .ma-table--management .ma-auction__label p {
+  white-space: normal;
+  overflow-wrap: anywhere;
+  max-width: none;
+}
+
+.ma-screen .ma-table--management .ma-auction__paintings {
+  grid-column: 1;
+  grid-row: 3;
+  container-type: size;
+  align-self: stretch;
+  width: 100%;
+  min-height: 0;
+}
+
+.ma-screen .ma-table--management .ma-auction__paintings > .ma-card {
+  width: clamp(72px, min(100cqw, calc(100cqh - 76px)), 215px);
+  min-width: 0;
+  transform: none;
+}
+
+.ma-screen
+  .ma-table--management
+  .ma-auction__paintings:has(> :nth-child(2))
+  > .ma-card {
+  width: clamp(
+    72px,
+    min(calc((100cqw - 12px) / 2), calc(100cqh - 76px)),
+    190px
+  );
+}
+
+.ma-screen .ma-table--management .ma-auction__paintings .ma-card__artist-name,
+.ma-screen .ma-table--management .ma-auction__paintings .ma-card__foot > span {
+  display: none;
+}
+
+.ma-screen
+  .ma-table--management
+  .ma-auction__paintings
+  :is(.ma-card__artist-mark, .ma-card__auction-mark) {
+  width: 32px;
+  min-width: 32px;
+}
+
+.ma-screen .ma-table--management .ma-theme {
+  grid-column: 2;
+  grid-row: 3;
+  min-width: 0;
+  gap: 3px;
+  padding: 2px;
+}
+
+.ma-screen .ma-table--management .ma-theme > strong {
+  font-size: clamp(24px, 2.4vw, 36px);
+  line-height: 1.15;
+}
+
+.ma-screen .ma-table--management .ma-theme__stairs {
+  height: 34px;
+}
+
+.ma-screen .ma-table--management .ma-theme__stairs i {
+  max-height: 48%;
+}
+
+.ma-screen .ma-table--management .ma-theme__stairs i:nth-child(2) {
+  max-height: 70%;
+}
+
+.ma-screen .ma-table--management .ma-theme__stairs i:nth-child(3) {
+  max-height: 100%;
+}
+
+.ma-screen .ma-table--management .ma-theme__stairs svg {
+  top: 0;
+  width: 24px;
+  height: 24px;
+}
+
+.ma-screen .ma-table--management .ma-theme__ring {
+  height: 76px;
+}
+
+.ma-screen .ma-table--management .ma-theme__pair > span {
+  height: 40px;
+}
+
+.ma-screen .ma-table--management .ma-theme__envelopes {
+  flex-wrap: nowrap;
+  gap: 2px;
+}
+
+.ma-screen .ma-table--management .ma-theme__envelopes > span {
+  min-width: 0;
+  padding-inline: 0;
+}
+
+.ma-screen .ma-table--management .ma-theme__envelopes svg {
+  max-width: 100%;
+}
+
+.ma-screen .ma-table--management .ma-theme--sealed > strong {
+  line-height: 1;
+}
+
+.ma-screen .ma-table--management .ma-auction__participants {
+  grid-column: 1 / -1;
+  grid-row: 4;
+}
+
+.ma-screen .ma-market--exhibit {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 6px;
+  padding: clamp(8px, 1.1vw, 18px);
+  background: #fbf5e9;
+}
+
+.ma-screen .ma-market--exhibit .ma-section-heading {
+  margin: 0;
+}
+
+.ma-exhibit-prices {
+  table-layout: fixed;
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 3px 0;
+  font-size: 16px;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+}
+
+.ma-exhibit-prices thead td {
+  width: 40px;
+}
+
+.ma-exhibit-prices th,
+.ma-exhibit-prices td {
+  padding: 2px 0;
+}
+
+.ma-exhibit-prices thead th {
+  border-top: 3px solid var(--ma-artist);
+  border-radius: 5px 5px 0 0;
+  padding-top: 5px;
+}
+
+.ma-screen .ma-exhibit-prices .ma-artist__swatch {
+  display: inline-grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  margin: 0 3px 0 0;
+  vertical-align: middle;
+  background: var(--ma-artist);
+  color: white;
+}
+
+.ma-screen .ma-exhibit-prices .ma-artist__swatch svg {
+  width: 15px;
+  height: 15px;
+}
+
+.ma-exhibit-prices thead th,
+.ma-exhibit-prices tbody td {
+  background: #fffaf0;
+}
+
+.ma-exhibit-prices tbody tr + tr > * {
+  border-top: 1px solid #dfd1bc;
+}
+
+.ma-exhibit-prices abbr {
+  text-decoration: none;
+}
+
+.ma-exhibit-prices__amount td {
+  font:
+    bold clamp(24px, 2.6vw, 48px) / 1 Georgia,
+    serif;
+}
+
+.ma-exhibit-prices__pips {
+  display: flex;
+  justify-content: center;
+  gap: 2px;
+}
+
+.ma-exhibit-prices__pips i {
+  width: 7px;
+  height: 4px;
+  border-radius: 2px;
+  background: #dbcfbd;
+}
+
+.ma-exhibit-prices__pips [data-filled='true'] {
+  background: var(--ma-artist);
+}
+
+.ma-exhibit-supply {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 10px;
+}
+
+.ma-exhibit-supply button {
+  margin-inline-start: auto;
+}
+
+.ma-screen .ma-table--management > .ma-museums {
+  grid-template-columns: repeat(var(--ma-seats), minmax(0, 1fr));
+  gap: 8px;
+  scrollbar-gutter: stable;
+}
+
+.ma-table--management > .ma-museums:focus-visible {
+  outline: 2px solid #624724;
+  outline-offset: 2px;
+}
+
+.ma-screen .ma-table--management .ma-museum {
+  background: var(--ma-gallery-wall);
+}
+
+.ma-table--management .ma-museum__screen {
+  background: var(--ma-gallery-pattern);
+  background-size: var(--ma-gallery-pattern-size, auto);
+  background-position: right top;
+}
+
+.ma-table--management [data-gallery-theme='1'] {
+  --ma-gallery-wall: #f5e8d2;
+  --ma-gallery-pattern: radial-gradient(
+    ellipse at 50% 100%,
+    transparent 51%,
+    #a8785032 52% 57%,
+    transparent 58%
+  );
+  --ma-gallery-pattern-size: 42px 28px;
+}
+
+.ma-table--management [data-gallery-theme='2'] {
+  --ma-gallery-wall: #faf7ed;
+  --ma-gallery-pattern: repeating-linear-gradient(
+    90deg,
+    transparent 0 18px,
+    #75674e24 18px 19px
+  );
+}
+
+.ma-table--management [data-gallery-theme='3'] {
+  --ma-gallery-wall: #f6ebdf;
+  --ma-gallery-pattern: repeating-radial-gradient(
+    ellipse at 100% 90%,
+    transparent 0 10px,
+    #b074562e 11px 12px
+  );
+}
+
+.ma-table--management [data-gallery-theme='4'] {
+  --ma-gallery-wall: #f5e3d9;
+  --ma-gallery-pattern: repeating-linear-gradient(
+    0deg,
+    transparent 0 8px,
+    #ab624328 9px 10px
+  );
+}
+
+.ma-table--management [data-gallery-theme='5'] {
+  --ma-gallery-wall: #e9f0ef;
+  --ma-gallery-pattern: repeating-linear-gradient(
+    125deg,
+    transparent 0 16px,
+    #47637325 17px 19px
+  );
+}
+
+.ma-screen .ma-table--management .ma-museum__collection {
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 96px), 1fr));
+  gap: 6px;
+  padding-inline: 0;
+}
+
+.ma-screen .ma-table--management .ma-museum__collection .ma-card {
+  border-width: 3px;
+}
+
+.ma-screen .ma-table--management .ma-museum__collection .ma-card__artist-name {
+  display: none;
+}
+
+@media (max-height: 600px) {
+  .ma-screen .ma-table--management .ma-theme__ring {
+    --ma-ring-seat-inset: 14px;
+    height: 48px;
+  }
+
+  .ma-screen .ma-table--management .ma-theme__stairs {
+    height: 24px;
+  }
+
+  .ma-screen .ma-table--management .ma-theme__pair > span {
+    height: 32px;
+  }
+
+  .ma-exhibit-prices :is(th, td) {
+    padding-block: 1px;
+  }
+
+  .ma-exhibit-prices thead th {
+    padding-block: 3px 1px;
+  }
+
+  .ma-screen .ma-exhibit-prices .ma-artist__swatch {
+    display: grid;
+    margin: 0 auto;
+  }
+
+  .ma-screen .ma-table--management .ma-auction__paintings .ma-card__head {
+    flex-wrap: nowrap;
+  }
+
+  .ma-screen
+    .ma-table--management
+    .ma-auction__paintings
+    :is(.ma-card__artist-mark, .ma-card__auction-mark) {
+    width: 24px;
+    min-width: 24px;
+  }
+
+  .ma-screen .ma-table--management .ma-museum__collection {
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 78px), 1fr));
+  }
+
+  .ma-screen .ma-table--management .ma-museum__collection .ma-card__foot {
+    display: none;
+  }
+
+  .ma-screen .ma-table--management .ma-auction__paintings > .ma-card,
+  .ma-screen
+    .ma-table--management
+    .ma-auction__paintings:has(> :nth-child(2))
+    > .ma-card {
+    width: clamp(
+      72px,
+      min(calc((100cqw - 8px) / 2), calc(100cqh - 34px)),
+      120px
+    );
+  }
+}
+
+@media (max-width: 959px), (max-height: 539px) {
+  .ma-screen .ma-table--management {
+    overflow-y: auto;
+  }
+
+  .ma-screen .ma-table--management:has(.ma-auction) {
+    grid-template-rows: var(--ma-exhibit-height) auto auto;
+  }
+
+  .ma-screen .ma-table--management > .ma-museums {
+    overflow: visible;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 164px), 1fr));
+  }
+}
+
+@media (max-width: 959px) {
+  .ma-screen .ma-table--management:has(.ma-auction) {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: repeat(2, var(--ma-exhibit-height)) auto auto;
+  }
+
+  .ma-screen .ma-table--management > .ma-table-footer {
+    grid-row: 4;
+  }
+}

@@ -1483,12 +1483,7 @@ try {
             '你的手牌和收藏排序',
           );
         if (stage === 'collections')
-          await sortingChecks(
-            host,
-            `${fixture.count}-global-collections-sort`,
-            '.ma-table > .ma-museums .ma-card',
-            '全局收藏排序',
-          );
+          assert.equal(await host.getByLabel('全局收藏排序').count(), 0);
         if (stage === 'result') {
           assert.equal(
             await host.locator('.ma-results__income > div').count(),

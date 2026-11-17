@@ -1852,47 +1852,6 @@
     padding: 8px 2px;
   }
 }
-@media (min-width: 701px) {
-  .ma-screen .ma-table--featured-auction {
-    grid-template-rows: minmax(0, 1fr) auto auto;
-  }
-  .ma-screen .ma-table--featured-auction > .ma-center {
-    container-type: size;
-  }
-  .ma-screen .ma-table--featured-auction > .ma-museums {
-    grid-row: 2;
-  }
-  .ma-screen .ma-table--featured-auction .ma-auction {
-    flex: 1;
-    min-height: 0;
-    grid-template-columns: minmax(0, 3fr) minmax(130px, 2fr);
-    grid-template-rows: auto minmax(0, 1fr) auto;
-  }
-  .ma-screen .ma-table--featured-auction .ma-auction__paintings {
-    container-type: size;
-    --ma-featured-width-limit: calc(100cqw - 12px);
-    min-width: 0;
-    min-height: 0;
-    width: 100%;
-    height: 100%;
-    align-self: stretch;
-  }
-  .ma-screen
-    .ma-table--featured-auction
-    .ma-auction__paintings:has(> :nth-child(2)) {
-    --ma-featured-width-limit: calc((100cqw - 12px) / 2);
-  }
-  .ma-screen .ma-table--featured-auction .ma-auction__paintings > .ma-card {
-    width: clamp(
-      80px,
-      min(calc((100cqh - 80px) / 1.28), var(--ma-featured-width-limit)),
-      520px
-    );
-    flex-shrink: 0;
-    transform: none;
-  }
-}
-
 /* Galleries scroll vertically and keep two paintings per row at narrow sizes. */
 .ma-screen .ma-museums {
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
@@ -1900,9 +1859,6 @@
   align-content: start;
   overscroll-behavior-y: contain;
   padding: 2px;
-}
-.ma-screen .ma-table--featured-auction > .ma-museums {
-  grid-template-columns: repeat(var(--ma-seats), minmax(0, 1fr));
 }
 .ma-screen .ma-museum__collection {
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -2320,9 +2276,6 @@
 }
 .ma-screen .ma-auction:has(.ma-auction__countdown) .ma-auction__participants {
   grid-row: 4;
-}
-.ma-screen .ma-table--featured-auction .ma-auction:has(.ma-auction__countdown) {
-  grid-template-rows: auto auto minmax(0, 1fr) auto;
 }
 .ma-screen .ma-theme {
   width: 100%;
@@ -2894,89 +2847,4 @@
 }
 .ma-screen .ma-market-history__unit {
   font-size: 16px;
-}
-
-/* During an auction the two existing columns follow their content height.
-   The galleries keep their original second-row scroll area. */
-@media (min-width: 701px) {
-  .ma-screen:not(.player) .ma-table[data-auction-active='true'] {
-    grid-template-rows: auto minmax(0, 1fr) auto;
-  }
-  .ma-screen:not(.player) .ma-table[data-auction-active='true'] > .ma-center {
-    container-type: inline-size;
-    align-self: start;
-  }
-  .ma-screen:not(.player) .ma-table[data-auction-active='true'] .ma-auction {
-    flex: none;
-    grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
-    grid-template-rows: auto auto auto;
-    align-items: start;
-    align-content: start;
-    row-gap: 18px;
-  }
-  .ma-screen:not(.player)
-    .ma-table[data-auction-active='true']
-    .ma-auction:has(.ma-auction__countdown) {
-    grid-template-rows: auto auto auto auto;
-    row-gap: 18px;
-  }
-  .ma-screen:not(.player)
-    .ma-table[data-auction-active='true']
-    .ma-auction__paintings {
-    container-type: normal;
-    width: 100%;
-    height: auto;
-    align-self: start;
-    align-items: start;
-  }
-  .ma-screen:not(.player)
-    .ma-table[data-auction-active='true']
-    .ma-auction__paintings
-    > .ma-card {
-    width: min(100%, clamp(140px, 14vw, 340px));
-    min-width: 0;
-    flex-shrink: 1;
-    transform: none;
-  }
-  .ma-screen:not(.player)
-    .ma-table[data-auction-active='true']
-    .ma-auction__paintings:has(> :nth-child(2))
-    > .ma-card {
-    width: min(48%, clamp(112px, 10vw, 250px));
-  }
-  .ma-screen:not(.player) .ma-table[data-auction-active='true'] .ma-theme {
-    align-self: start;
-  }
-  .ma-screen:not(.player)
-    .ma-table[data-auction-active='true']
-    :is(.ma-theme__envelopes, .ma-theme__lead, .ma-theme__identity) {
-    min-width: 0;
-    max-width: 100%;
-    flex-wrap: wrap;
-    justify-content: center;
-  }
-  .ma-screen:not(.player)
-    .ma-table[data-auction-active='true']
-    .ma-theme__identity
-    > span {
-    white-space: normal;
-    overflow-wrap: anywhere;
-  }
-}
-@media (min-width: 701px) and (max-height: 600px) {
-  .ma-screen:not(.player) .ma-table[data-auction-active='true'] .ma-auction {
-    row-gap: 16px;
-  }
-  .ma-screen:not(.player)
-    .ma-table[data-auction-active='true']
-    .ma-auction__paintings
-    > .ma-card {
-    width: min(100%, 116px);
-  }
-  .ma-screen:not(.player)
-    .ma-table[data-auction-active='true']
-    .ma-auction__paintings:has(> :nth-child(2))
-    > .ma-card {
-    width: min(48%, 104px);
-  }
 }

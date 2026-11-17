@@ -81,12 +81,119 @@ export function MarketBoard({
   view,
   showHistory,
   compact = false,
+  management = false,
 }: {
   view: ModernArtView;
   showHistory(): void;
   compact?: boolean;
+  management?: boolean;
 }) {
   const settled = view.phase === 'round-result' || view.phase === 'ended';
+  if (management) {
+    const values = view.artists.map((artist) =>
+      marketValueParts(artist, view.round),
+    );
+    const amount = settled ? '兑现' : '估值';
+    return (
+      <section
+        className="ma-market ma-market--exhibit"
+        aria-label="艺术家估值板"
+      >
+        <div className="ma-section-heading">
+          <h2>艺术市场</h2>
+          <span>千元／幅</span>
+        </div>
+        <table className="ma-exhibit-prices" aria-label="画家行情">
+          <thead>
+            <tr>
+              <td />
+              {view.artists.map(({ id, name }) => (
+                <th
+                  key={id}
+                  scope="col"
+                  title={name}
+                  style={
+                    {
+                      '--ma-artist': artistPresentation[id].color,
+                    } as CSSProperties
+                  }
+                >
+                  <span className="ma-artist__swatch">
+                    <ArtistMark artistId={id} />
+                  </span>
+                  {artistPresentation[id].shortName}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <th scope="row">上拍</th>
+              {view.artists.map(({ id, playedCount }) => (
+                <td
+                  key={id}
+                  style={
+                    {
+                      '--ma-artist': artistPresentation[id].color,
+                    } as CSSProperties
+                  }
+                >
+                  <span>{playedCount}/5</span>
+                  <span className="ma-exhibit-prices__pips" aria-hidden="true">
+                    {Array.from({ length: 5 }, (_, index) => (
+                      <i key={index} data-filled={index < playedCount} />
+                    ))}
+                  </span>
+                </td>
+              ))}
+            </tr>
+            <tr className="ma-exhibit-prices__amount">
+              <th scope="row">{amount}</th>
+              {view.artists.map(({ id, currentValue }) => (
+                <td key={id}>{currentValue}</td>
+              ))}
+            </tr>
+            <tr>
+              <th scope="row">历史</th>
+              {values.map(({ historical }, index) => (
+                <td key={view.artists[index]!.id}>{historical}</td>
+              ))}
+            </tr>
+            <tr>
+              <th scope="row">本轮</th>
+              {values.map(({ eligible, increment }, index) => (
+                <td key={view.artists[index]!.id}>
+                  {eligible ? (
+                    `+${increment}`
+                  ) : (
+                    <abbr title="未入前三" aria-label="未入前三">
+                      —
+                    </abbr>
+                  )}
+                </td>
+              ))}
+            </tr>
+          </tbody>
+        </table>
+        <div className="ma-exhibit-supply">
+          <span>
+            牌库 <b>{view.deckCount}</b>
+          </span>
+          <span>
+            弃牌 <b>{view.discardCount}</b>
+          </span>
+          {values.some(({ eligible }) => !eligible) && <span>— 未入前三</span>}
+          <button
+            type="button"
+            className="secondary ma-market-history-control"
+            onClick={showHistory}
+          >
+            历轮行情
+          </button>
+        </div>
+      </section>
+    );
+  }
   if (compact)
     return (
       <section
@@ -438,29 +545,36 @@ export function Museums({
   portraits,
   selfId,
   sort = 'artist',
+  management = false,
+  inactive = false,
 }: {
   view: ModernArtView;
   names: Record<string, string>;
   portraits: Record<string, string>;
   selfId: string | null;
   sort?: PaintingSort;
+  management?: boolean;
+  inactive?: boolean;
 }) {
   return (
     <section
       className="ma-museums"
       aria-label="各位玩家的博物馆"
+      tabIndex={management ? 0 : undefined}
       style={{ '--ma-seats': view.seatOrder.length } as CSSProperties}
     >
       {view.seatOrder.map((seat, index) => {
         const player = view.players[seat];
         if (!player) return null;
         const active =
-          view.auction?.actingSeats.includes(seat) || view.turnSeat === seat;
+          !inactive &&
+          (view.auction?.actingSeats.includes(seat) || view.turnSeat === seat);
         const seatNumber = publicSeatNumber(view, seat);
         return (
           <article
             key={seat}
             data-seat-id={seat}
+            data-gallery-theme={management ? index + 1 : undefined}
             className={`ma-museum ${active ? 'ma-museum--active' : ''} ${view.winners.includes(seat) ? 'ma-museum--winner' : ''}`}
           >
             <div className="ma-museum__screen">
