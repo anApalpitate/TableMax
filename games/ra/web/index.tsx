@@ -27,8 +27,8 @@ const causes = {
   invokeOpen: '呼唤拉',
 };
 const simple = {
-  draw: '抽取石板',
-  invokeRa: '立即拍卖',
+  draw: '抽取',
+  invokeRa: '拍卖',
   pass: '跳过',
   finishGod: '结束神迹行动',
 };
@@ -102,7 +102,7 @@ function Controls({
               disabled={!slotActions.length || session.locked}
               onClick={toggleGod}
             >
-              使用神迹
+              神迹替换
             </button>
           </div>
           <p className="ra-action-hint">
@@ -239,6 +239,7 @@ function RaScreen({ session }: { session: GameHost }) {
     : '';
   const [showRules, setShowRules] = useState(false);
   const [showRecord, setShowRecord] = useState(false);
+  const [showOpponents, setShowOpponents] = useState(false);
   const [showScores, setShowScores] = useState<string>();
   const [exchange, setExchange] = useState<{
     key: string;
@@ -558,6 +559,7 @@ function RaScreen({ session }: { session: GameHost }) {
                   name={name(player.seat)}
                   active={player.seat === game.actor}
                   auction={auctionStatus(player.seat)}
+                  table
                   score={
                     game.publicScoring
                       ? game.publicScores?.find(
@@ -574,8 +576,24 @@ function RaScreen({ session }: { session: GameHost }) {
           {(ownBoard || game.lastAuction) && (
             <div className="ra-auxiliary">
               {ownBoard && (
-                <details className="ra-opponents">
-                  <summary>其他玩家</summary>
+                <button
+                  type="button"
+                  className="ra-aux-button"
+                  aria-haspopup="dialog"
+                  onClick={() => setShowOpponents(true)}
+                >
+                  <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <circle cx="9" cy="8" r="3" />
+                    <path d="M3 19v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2M16 5a3 3 0 0 1 0 6m2 2a4 4 0 0 1 3 4v2" />
+                  </svg>
+                  其他玩家
+                </button>
+              )}
+              {ownBoard && showOpponents && (
+                <OverlayPanel
+                  title="其他玩家"
+                  close={() => setShowOpponents(false)}
+                >
                   <div className="ra-seats">
                     {game.players
                       .filter((player) => player.seat !== ownBoard.seat)
@@ -588,7 +606,7 @@ function RaScreen({ session }: { session: GameHost }) {
                         />
                       ))}
                   </div>
-                </details>
+                </OverlayPanel>
               )}
               {lastAuction && (
                 <button
@@ -597,7 +615,18 @@ function RaScreen({ session }: { session: GameHost }) {
                   aria-haspopup="dialog"
                   onClick={() => setShowRecord(true)}
                 >
-                  上一场拍卖 <span>{record}</span>
+                  {ownBoard ? (
+                    <>
+                      <svg viewBox="0 0 24 24" aria-hidden="true">
+                        <path d="M6 4h12v16H6zM9 8h6m-6 4h6m-6 4h4" />
+                      </svg>
+                      拍卖记录
+                    </>
+                  ) : (
+                    <>
+                      上一场拍卖 <span>{record}</span>
+                    </>
+                  )}
                 </button>
               )}
             </div>

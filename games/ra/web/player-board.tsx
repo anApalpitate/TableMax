@@ -2,7 +2,7 @@ import { useEffect, useId, useRef, useState, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import { OverlayPanel } from '@tablemax/web-host';
 import type { RaView } from '../rules';
-import { tile, tileIds, tileNames, type Tile } from '../rules/data';
+import { persists, tile, tileIds, tileNames, type Tile } from '../rules/data';
 import type { Breakdown } from '../rules/state';
 import { SunDisk, TableArt, TileFace } from './art';
 import './player-board.css';
@@ -261,13 +261,37 @@ function groupTiles(tiles: Tile[]) {
   return [...groups.values()];
 }
 
+const smallerPreviewFaces = new Set([
+  'agriculture',
+  'shrine',
+  'step-pyramid',
+  'war',
+  'funeral',
+  'ra',
+]);
+
 function PreviewTile({ tile, count }: { tile: Tile; count: number }) {
-  const [preview, setPreview] = useState<{ left: number; top: number }>();
+  const [preview, setPreview] = useState<{
+    left: number;
+    top: number;
+    width: number;
+    height: number;
+  }>();
   const show = (target: HTMLButtonElement) => {
     const rect = target.getBoundingClientRect();
-    const width = Math.min(174, window.innerWidth - 16);
-    const height = 205;
+    const maxHeight = smallerPreviewFaces.has(tile.face)
+      ? 388 / window.devicePixelRatio
+      : 288;
+    const height = Math.min(
+      288,
+      maxHeight,
+      window.innerHeight - 16,
+      (window.innerWidth - 16) / 0.87,
+    );
+    const width = Math.round(height * 0.87);
     setPreview({
+      width,
+      height,
       left: Math.min(
         window.innerWidth - width - 8,
         Math.max(8, rect.left + (rect.width - width) / 2),
@@ -314,7 +338,7 @@ function PreviewTile({ tile, count }: { tile: Tile; count: number }) {
       {preview &&
         createPortal(
           <div className="ra-tile-popover" style={preview} aria-hidden="true">
-            <TileFace tile={tile} decorative />
+            <TileFace tile={tile} decorative preview />
           </div>,
           document.body,
         )}
@@ -498,6 +522,7 @@ export function PlayerSummary({
   result,
   score,
   showScores,
+  table = false,
 }: {
   player: PublicPlayer;
   name: string;
@@ -507,6 +532,7 @@ export function PlayerSummary({
     { rank: number; total: number; tied: boolean; highest: number } | undefined;
   score?: number | undefined;
   showScores?: () => void;
+  table?: boolean;
 }) {
   const [expanded, setExpanded] = useState(false);
   const limit = 8;
@@ -557,8 +583,30 @@ export function PlayerSummary({
           </span>
         )}
       </div>
-      <Tokens tiles={player.held} limit={limit} />
-      {overflow > 0 && (
+      {table ? (
+        <div className="ra-seat-holdings">
+          {[
+            {
+              name: '跨时代',
+              tiles: player.held.filter(({ id }) => persists(id)),
+            },
+            {
+              name: '本时代',
+              tiles: player.held.filter(({ id }) => !persists(id)),
+            },
+          ]
+            .filter(({ tiles }) => tiles.length)
+            .map(({ name, tiles }) => (
+              <section className="ra-holding-band" aria-label={name} key={name}>
+                <span className="ra-holding-label">{name}</span>
+                <Tokens tiles={tiles} />
+              </section>
+            ))}
+        </div>
+      ) : (
+        <Tokens tiles={player.held} limit={limit} />
+      )}
+      {!table && overflow > 0 && (
         <button
           type="button"
           className="ra-more-tiles"

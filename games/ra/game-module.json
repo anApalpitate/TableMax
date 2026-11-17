@@ -24,12 +24,12 @@
   },
   "cover": "assets/games/ra/cover-v1.webp",
   "budgets": {
-    "payloadBytes": 1048576,
+    "payloadBytes": 8388608,
     "serviceHeapBytes": 67108864,
     "desktopHeapBytes": 33554432,
     "phoneHeapBytes": 33554432,
     "privateIncrementBytes": 536870912,
     "workerOldGenerationMiB": 32,
-    "basis": "Initial allocation for code-rendered tile placeholders, bounded bag and choices; warning only."
+    "basis": "Includes independent lossless hover faces, bounded bag and choices; warning only."
   }
 }
