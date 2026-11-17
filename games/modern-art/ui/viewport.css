@@ -7,12 +7,12 @@
   padding-left: max(
     16px,
     var(--ma-safe-left),
-    calc((var(--ma-net-width) - 1920px) / 2)
+    calc((var(--ma-net-width) - var(--ma-management-width, 1920px)) / 2)
   );
   padding-right: max(
     16px,
     var(--ma-safe-right),
-    calc((var(--ma-net-width) - 1920px) / 2)
+    calc((var(--ma-net-width) - var(--ma-management-width, 1920px)) / 2)
   );
 }
 @media (min-width: 960px) {

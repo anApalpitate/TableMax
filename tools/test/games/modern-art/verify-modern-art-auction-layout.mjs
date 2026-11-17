@@ -18,6 +18,9 @@ const option = (name) =>
 const extraOnly = process.argv.includes('--extra-only');
 const inactiveOnly = process.argv.includes('--inactive-only');
 const fixedComparisonOnly = process.argv.includes('--fixed-comparison-only');
+const galleryOnly = process.argv.includes('--gallery-only');
+const suppliedScenes =
+  extraOnly || inactiveOnly || fixedComparisonOnly || galleryOnly;
 assert.ok(!(extraOnly && inactiveOnly), 'Choose one independent subset');
 const afterOnly = process.argv.includes('--after-only');
 const task = resolve(
@@ -38,13 +41,15 @@ const { launchTestBrowser } = await import('../../support/browser-test.mjs');
 const hash = (value) => createHash('sha256').update(value).digest('hex');
 const report = {
   arguments: process.argv.slice(2),
-  scope: fixedComparisonOnly
-    ? 'The identical legally prepared four-player fixed-price single/paired lots after an authorized set-price 30 command, rendered by frozen before and current after production management components at 1280x720. Baseline geometry is recorded, not judged against the current layout contract. Source viewport evidence, not physical DPI, network, or installer proof.'
-    : inactiveOnly
-      ? 'Production management components with legally paused three/four-player RoomCoordinator auctions and separately controlled disconnected transport. Only inactive layout hooks and acting indicators are checked. Frozen-clock component evidence does not certify real network disconnect or recovery.'
-      : extraOnly
-        ? 'Production management components with separately initialized and legally played three/four-player RoomCoordinator projections. Single/paired lots and empty galleries with frozen clocks. Source rendering evidence, not live network, physical DPI, natural full match, or installer proof. No state splicing or CSS mutation.'
-        : 'Production management components in the already-built before/after fixture. Five-player legal RoomCoordinator projections, frozen clocks, empty and occupied galleries, single and paired lots, and double collection without a progress bar. Source rendering evidence, not live network, physical DPI, natural full match, or installer proof. No state or CSS mutation.',
+  scope: galleryOnly
+    ? 'Management gallery capacity across real RoomCoordinator collection sizes for 3–5 seats.'
+    : fixedComparisonOnly
+      ? 'The identical legally prepared four-player fixed-price single/paired lots after an authorized set-price 30 command, rendered by frozen before and current after production management components at 1280x720. Baseline geometry is recorded, not judged against the current layout contract. Source viewport evidence, not physical DPI, network, or installer proof.'
+      : inactiveOnly
+        ? 'Production management components with legally paused three/four-player RoomCoordinator auctions and separately controlled disconnected transport. Only inactive layout hooks and acting indicators are checked. Frozen-clock component evidence does not certify real network disconnect or recovery.'
+        : extraOnly
+          ? 'Production management components with separately initialized and legally played three/four-player RoomCoordinator projections. Single/paired lots and empty galleries with frozen clocks. Source rendering evidence, not live network, physical DPI, natural full match, or installer proof. No state splicing or CSS mutation.'
+          : 'Production management components in the already-built before/after fixture. Five-player legal RoomCoordinator projections, frozen clocks, empty and occupied galleries, single and paired lots, and double collection without a progress bar. Source rendering evidence, not live network, physical DPI, natural full match, or installer proof. No state or CSS mutation.',
   result: 'running',
   inputs: [],
   layouts: [],
@@ -70,39 +75,47 @@ const contains = (outer, inner) =>
 const overlaps = (a, b) =>
   Math.min(a.right, b.right) - Math.max(a.x, b.x) > 1 &&
   Math.min(a.bottom, b.bottom) - Math.max(a.y, b.y) > 1;
-const scenes = fixedComparisonOnly
-  ? ['4-fixed-single', '4-pair']
-  : inactiveOnly
-    ? [
-        '3-pair-paused',
-        '4-pair-paused',
-        '3-pair-disconnected',
-        '4-pair-disconnected',
-      ]
-    : extraOnly
+const scenes = galleryOnly
+  ? [3, 4, 5].flatMap((seats) =>
+      Array.from(
+        { length: seats === 3 ? 6 : 4 },
+        (_, index) => `${seats}-gallery-${index + 2}`,
+      ),
+    )
+  : fixedComparisonOnly
+    ? ['4-fixed-single', '4-pair']
+    : inactiveOnly
       ? [
-          '3-single',
-          '3-pair',
-          '3-fixed-single',
-          '4-single',
-          '4-pair',
-          '4-fixed-single',
+          '3-pair-paused',
+          '4-pair-paused',
+          '3-pair-disconnected',
+          '4-pair-disconnected',
         ]
-      : [
-          'offer',
-          'auction-sealed',
-          'auction-open',
-          'auction-once',
-          'auction-pair',
-          'auction-double',
-          'auction-fixed',
-        ];
+      : extraOnly
+        ? [
+            '3-single',
+            '3-pair',
+            '3-fixed-single',
+            '4-single',
+            '4-pair',
+            '4-fixed-single',
+          ]
+        : [
+            'offer',
+            'auction-sealed',
+            'auction-open',
+            'auction-once',
+            'auction-pair',
+            'auction-double',
+            'auction-fixed',
+          ];
 const supportedSizes =
-  inactiveOnly || fixedComparisonOnly
+  inactiveOnly || fixedComparisonOnly || galleryOnly
     ? [[1280, 720]]
     : [
         [1280, 720],
         [1920, 1080],
+        [2560, 1600],
         [960, 540],
         ...(!extraOnly ? [[3840, 2160]] : []),
       ];
@@ -140,8 +153,11 @@ try {
     };
   }
   let extraSnapshots;
-  if (extraOnly || inactiveOnly || fixedComparisonOnly) {
-    const extraWork = join(task, 'server-extra-fixtures');
+  if (suppliedScenes) {
+    const extraWork = join(
+      task,
+      galleryOnly ? 'server-gallery-fixtures' : 'server-extra-fixtures',
+    );
     await mkdir(extraWork, { recursive: true });
     if (option('prepared-snapshots')) {
       assert.ok(
@@ -164,9 +180,12 @@ try {
         format: 'cjs',
         logLevel: 'silent',
       });
-      extraSnapshots = await createRequire(import.meta.url)(
-        compiled,
-      ).prepareAuctionLayout(extraWork);
+      const prepare = createRequire(import.meta.url)(compiled);
+      extraSnapshots = await (
+        galleryOnly
+          ? prepare.prepareGalleryLayout
+          : prepare.prepareAuctionLayout
+      )(extraWork);
     }
     for (const name of ['snapshots.json', 'preparation-proof.json']) {
       const reused = option(
@@ -229,7 +248,7 @@ try {
         for (const scene of scenes)
           for (const [width, height] of sizes) {
             if (
-              width === 3840 &&
+              width >= 2560 &&
               !['auction-open', 'auction-pair'].includes(scene)
             )
               continue;
@@ -244,12 +263,10 @@ try {
               url.searchParams.set('role', role);
               url.searchParams.set(
                 'scene',
-                extraOnly || inactiveOnly || fixedComparisonOnly
-                  ? 'auction-open'
-                  : scene,
+                suppliedScenes ? 'auction-open' : scene,
               );
               await page.goto(url.href);
-              if (extraOnly || inactiveOnly || fixedComparisonOnly)
+              if (suppliedScenes)
                 await page.evaluate(
                   ({ view, role, connected }) =>
                     window.renderModernArt({
@@ -329,12 +346,21 @@ try {
                   tableRows: getComputedStyle(table).gridTemplateRows,
                   auctionRows: getComputedStyle(auction).gridTemplateRows,
                   market: rect(find('.ma-market')),
+                  marketFont: parseFloat(
+                    getComputedStyle(find('.ma-market h2')).fontSize,
+                  ),
                   marketContent: ['.ma-exhibit-prices', '.ma-exhibit-supply']
                     .map((selector) => rect(find(selector)))
                     .filter(Boolean),
                   center: rect(find('.ma-center')),
                   auction: rect(auction),
                   museums: rect(find('.ma-museums')),
+                  galleryCards: [
+                    ...document.querySelectorAll('.ma-museum'),
+                  ].map((museum) => ({
+                    tight: museum.dataset.galleryDensity === 'tight',
+                    cards: [...museum.querySelectorAll('.ma-card')].map(rect),
+                  })),
                   footer: rect(find('.ma-table-footer')),
                   label,
                   paintings: rect(find('.ma-auction__paintings')),
@@ -375,7 +401,7 @@ try {
                 height,
                 ...geometry,
               });
-              if (width === 960 || width === 1280 || width === 3840) {
+              if (width === 960 || width === 1280 || width >= 2560) {
                 await captureBrowserScreenshot(page, {
                   path: join(output, `${id}.png`),
                   fullPage: false,
@@ -403,6 +429,24 @@ try {
                 });
               }
               if (phase === 'after') {
+                assert.ok(
+                  geometry.footer.y - geometry.museums.bottom <= 35,
+                  `${id}: footer follows gallery`,
+                );
+                if (width >= 2560) {
+                  assert.ok(
+                    geometry.museums.width >= width * 0.85,
+                    `${id}: wide table fills display`,
+                  );
+                  assert.ok(
+                    geometry.marketFont >= 32,
+                    `${id}: wide headings are enlarged`,
+                  );
+                  assert.ok(
+                    geometry.cards[0].width >= 240,
+                    `${id}: wide paintings are enlarged`,
+                  );
+                }
                 assert.equal(
                   geometry.sortControl,
                   false,
@@ -434,7 +478,12 @@ try {
                   );
                 }
                 for (const collection of geometry.collections) {
-                  const minimum = height <= 600 ? 78 : 96;
+                  const minimum =
+                    width >= 2200
+                      ? Math.min(196, Math.max(115, width * 0.051))
+                      : height <= 600
+                        ? 78
+                        : 96;
                   const count = Math.floor(
                     (collection.width + 6.5) / (minimum + 6),
                   );
@@ -483,7 +532,7 @@ try {
                 }
                 assert.equal(
                   geometry.active,
-                  scene === 'offer' ? undefined : 'true',
+                  scene === 'offer' || galleryOnly ? undefined : 'true',
                   `${id}: active auction hook`,
                 );
                 assert.ok(
@@ -566,6 +615,7 @@ try {
                 assert.equal(
                   Boolean(geometry.countdown),
                   scene !== 'offer' &&
+                    !galleryOnly &&
                     (extraOnly ||
                       fixedComparisonOnly ||
                       scene !== 'auction-double'),
@@ -588,6 +638,69 @@ try {
                     ),
                     `${id}: history returns keyboard focus`,
                   );
+                }
+                if (galleryOnly) {
+                  const [seats, , count] = scene.split('-');
+                  const museum = geometry.galleryCards[0];
+                  assert.equal(museum.cards.length, Number(count));
+                  const normalCapacity = seats === '3' ? 3 : 2;
+                  const visibleCapacity = normalCapacity * 2;
+                  assert.equal(
+                    museum.tight,
+                    Number(count) > normalCapacity,
+                    `${id}: local density mode`,
+                  );
+                  assert.equal(
+                    geometry.galleryCards.slice(1).some((entry) => entry.tight),
+                    false,
+                    `${id}: neighboring galleries are not compacted`,
+                  );
+                  const baseline = report.layouts.find(
+                    (entry) =>
+                      entry.phase === 'before' && entry.scene === scene,
+                  );
+                  assert.ok(
+                    geometry.galleryCards[1].cards.length,
+                    `${id}: adjacent museum has a real collection`,
+                  );
+                  if (baseline)
+                    for (const [
+                      index,
+                      neighbor,
+                    ] of geometry.galleryCards.entries()) {
+                      if (!index) continue;
+                      for (const [position, card] of neighbor.cards.entries()) {
+                        const before =
+                          baseline.galleryCards[index].cards[position];
+                        assert.ok(
+                          Math.abs(card.width - before.width) <= 1 &&
+                            Math.abs(card.height - before.height) <= 1,
+                          `${id}: neighbor painting retains its proportions`,
+                        );
+                      }
+                    }
+                  assert.equal(
+                    museum.cards.filter(
+                      (card) => card.bottom <= geometry.museums.bottom + 1,
+                    ).length,
+                    Math.min(Number(count), visibleCapacity),
+                    `${id}: complete initial rows`,
+                  );
+                  const reached = await page
+                    .locator('.ma-museums')
+                    .evaluate((gallery) => {
+                      gallery.scrollTop = gallery.scrollHeight;
+                      const last = gallery.querySelector(
+                        '.ma-museum:first-child .ma-card:last-child',
+                      );
+                      const rect = last.getBoundingClientRect();
+                      const viewport = gallery.getBoundingClientRect();
+                      return (
+                        rect.top >= viewport.top - 1 &&
+                        rect.bottom <= viewport.bottom + 1
+                      );
+                    });
+                  assert.ok(reached, `${id}: last painting reachable`);
                 }
               }
             } catch (error) {

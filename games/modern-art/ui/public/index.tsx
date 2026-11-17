@@ -1,4 +1,9 @@
-import type { CSSProperties, ReactNode } from 'react';
+import {
+  useLayoutEffect,
+  useRef,
+  type CSSProperties,
+  type ReactNode,
+} from 'react';
 import type { ModernArtLog, ModernArtView } from '../view';
 import { ArtCard } from '../ArtCard';
 import { auctionNames, money } from './labels';
@@ -556,8 +561,84 @@ export function Museums({
   management?: boolean;
   inactive?: boolean;
 }) {
+  const galleryRef = useRef<HTMLElement>(null);
+  useLayoutEffect(() => {
+    const gallery = galleryRef.current;
+    const table = gallery?.parentElement;
+    const market = table?.querySelector(':scope > .ma-market');
+    const footer = table?.querySelector(':scope > .ma-table-footer');
+    if (
+      !management ||
+      !gallery ||
+      !table ||
+      !market ||
+      !footer ||
+      !table.querySelector('.ma-auction')
+    )
+      return;
+
+    const fitCollections = () => {
+      const museums = [
+        ...gallery.querySelectorAll<HTMLElement>(':scope > .ma-museum'),
+      ];
+      // Measure the regular cards before deciding which galleries need to compact.
+      for (const museum of museums) {
+        delete museum.dataset.galleryDensity;
+        museum.style.removeProperty('--ma-tight-art-size');
+      }
+      const style = getComputedStyle(gallery);
+      if (style.overflowY !== 'auto') return;
+      const gap = parseFloat(getComputedStyle(table).rowGap);
+      const budget =
+        table.clientHeight -
+        market.getBoundingClientRect().height -
+        footer.getBoundingClientRect().height -
+        2 * gap;
+      const top = gallery.getBoundingClientRect().top;
+      const crowded = museums.filter((museum) => {
+        const last = museum.querySelector(
+          '.ma-museum__collection > .ma-card:last-child',
+        );
+        return (
+          last &&
+          last.getBoundingClientRect().bottom - top + gallery.scrollTop >
+            budget - 1
+        );
+      });
+      for (const museum of crowded) museum.dataset.galleryDensity = 'tight';
+      const limits = crowded.map((museum) => {
+        const collection = museum.querySelector('.ma-museum__collection')!;
+        const grid = getComputedStyle(collection);
+        const columns = grid.gridTemplateColumns.split(' ').length;
+        const rows = Math.min(
+          2,
+          Math.ceil(collection.childElementCount / columns),
+        );
+        const track =
+          (budget -
+            (collection.getBoundingClientRect().top - top + gallery.scrollTop) -
+            (rows - 1) * parseFloat(grid.rowGap) -
+            2) /
+          rows;
+        const card = collection.firstElementChild!;
+        const art = card.querySelector('.ma-card__art')!;
+        const chrome =
+          card.getBoundingClientRect().height -
+          art.getBoundingClientRect().height;
+        return Math.max(64, Math.floor(track - chrome));
+      });
+      crowded.forEach((museum, index) => {
+        museum.style.setProperty('--ma-tight-art-size', `${limits[index]}px`);
+      });
+    };
+    fitCollections();
+    const observer = new ResizeObserver(fitCollections);
+    for (const region of [table, market, footer]) observer.observe(region);
+    return () => observer.disconnect();
+  }, [management, view.players, view.phase]);
   return (
     <section
+      ref={galleryRef}
       className="ma-museums"
       aria-label="各位玩家的博物馆"
       tabIndex={management ? 0 : undefined}
