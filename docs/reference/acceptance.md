@@ -5,17 +5,27 @@
 | 对象             | 状态与证据                                                                                                                                                                                                                                                                                                                                                                                                                          |
 | ---------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | 工作区源码       | 新局目录为 **8 款游戏、9 个玩法**。《太阳神》已通过[2–5 人完整对局验收](../games/ra/README.md#25-人完整对局验收)。《德国小强》已移除，旧局继续按原发行恢复。见[游戏索引](../games/README.md)与[退役清单](../../assets/retired-cockroach-poker-20261116.json)。 |
-| 本地已验收安装器 | 2026-11-17 推广 **1.0.8.13**，预装 **8 款游戏、9 个玩法**。以[本地 current 指针](../../artifacts/package-payloads/v1.0.8/current.json)为准。见[本版交付详情](#当前安装交付2026-11-17)。 |
-| 待验候选         | 本轮 1.0.8.13 已验收并推广。其他候选以所属任务的明确记录为准，推广前保持候选身份。 |
+| 本地已验收安装器 | 2026-11-18 推广 **1.0.8.14**，预装 **8 款游戏、9 个玩法**。以[本地 current 指针](../../artifacts/package-payloads/v1.0.8/current.json)为准。见[本版交付详情](#当前安装交付2026-11-18)。 |
+| 待验候选         | 本轮 1.0.8.14 已验收并推广；同号旧候选及失败尝试保留原证据，不算独立交付。其他候选以所属任务的明确记录为准。 |
 | 公开发行         | 2026-11-16 核对 [GitHub 最新发行](https://github.com/anApalpitate/TableMax/releases/latest)为 **v1.0.8**。[公开附件页](https://github.com/anApalpitate/TableMax/releases/expanded_assets/v1.0.8)列出的 installer EXE 和 source ZIP 的 SHA-256 均与 [2026-10-21 原发布核查](../archive/acceptance-before-consolidation-2026-10-23.md#v108附件替换2026-10-21)相同，Windows 附件对应 **1.0.8.7**。本次核对线上公布的摘要，未下载重算。 |
 
 设备和证据的适用范围见[源码与设备状态](#源码与设备状态)。
 
 本页只维护当前状态及进入原证明的索引，不维护验证政策或可复制操作命令。政策与复用条件见[验证范围与证据](validation.md)，安装必须证明什么见[安装验收要求](installation-validation.md)，具体CLI见[测试工具](../../tools/test/README.md)。历史原文、失败、候选与旧SHA见[整理前记录](../archive/acceptance-before-consolidation-2026-10-23.md)，24处历史地址的可用性见[逐项核查](../archive/historical-evidence-audit-2026-10-23.md)。
 
+## 当前安装交付（2026-11-18）
+
+本地完整安装器 **1.0.8.14** 预装 8 款游戏、9 个玩法，包含统一设置、牌桌管理与竖屏布局、确认弹窗精简等当前工作区改动。公开版本仍为 1.0.8。冻结快照为 `84c44f876c9b5a4998d7d15103dfa1daebe428718b85e9f50a87967b3ac2578c`，来源是提交 `7694373dc8603dacf6d958015c067bd7cc8c38ae` 加工作区改动，47 个构建单元及 26 项安装配方输入已逐项核对。[安装器](../../artifacts/releases/v1.0.8/1.0.8.14/TableMax-1.0.8.14-installer-win-x64.exe) · [冻结输入核对](../../artifacts/maintenance/installer-20261118-confirmations/frozen-input-audit.json)
+
+最终 EXE 为 **49,970,273 字节**，距 50,000,000 字节上限剩 29,727 字节；内部 ZIP 为 59,206,890 字节，实际解包为 111,711,063 字节。本次首轮 EXE 为 51,286,100 字节，改用 `lzma2/ultra64` 后达标，未改变素材字节。首次启动占用为 120,091,559 字节，同包复装为 120,980,228 字节，卸载后重装为 120,280,952 字节。首次采样含程序／框架／元数据 117,792,893 字节及已物化游戏 2,298,666 字节；这是安装器健康启动完成后的同次采样，不是启动前体积或连续峰值。
+
+干净 Windows 标准账户通过原 EXE 原路径 Medium 启动、中文向导、三条各 8/8 的更新／长路径外置数据／失败恢复链，以及正式产品首装、同包复装、保存后默认卸载、同根重装读回和再次卸载。账户与 profile 均已清理，原件 SHA-256 为 `8dff0a802913b05c71c24d0c25e8fcff9350970a1df4e0f25ac2cada2eca943f`。[正式封存证明](../../artifacts/maintenance/installer-20261118-confirmations/system-r2/sealed-proof.json)
+
+安装夹具补齐了冻结 Brotli 网页的归属与原始 SHA 核验，4 项定向回归及修复后的完整系统链通过；[首轮夹具不兼容失败](../../artifacts/maintenance/installer-20261118-confirmations/system-r1/application-handoff/report.json)保留，不改写为产品通过。源码构建仍有《太阳神》模块 payload 预算预警（11,084,618／8,388,608 字节），未调整预算。推广后旧 1.0.8.13 EXE 按保留策略退役，原清单、哈希和验收记录保留。
+
 ## 当前安装交付（2026-11-17）
 
-本地安装器 **1.0.8.13** 预装 8 款游戏、9 个玩法。冻结快照为 `eec02391a26d01ac868cc07367effd4bffb27137af6abb1af896ba05c17de150`，对应源码提交 `8373fb62e5cf857ef994ac8bb555ec951c676a1c` 和工作区已有的一处宝可梦原版布局 CSS 调整。此包包含宝可梦扩展卡面角标调整、《太阳神》签名资源和跨游戏工具栏图标及保存回执一致性修复。公开版本为 1.0.8，本次为本地交付。[安装器](../../artifacts/releases/v1.0.8/1.0.8.13/TableMax-1.0.8.13-installer-win-x64.exe) · [安装后目录核对](../../artifacts/maintenance/installer-export-20261117-unified/installed-catalog-audit.json) · [冻结输入核对](../../artifacts/maintenance/installer-export-20261117-unified/frozen-input-audit.json)
+本地安装器 **1.0.8.13** 预装 8 款游戏、9 个玩法。冻结快照为 `eec02391a26d01ac868cc07367effd4bffb27137af6abb1af896ba05c17de150`，对应源码提交 `8373fb62e5cf857ef994ac8bb555ec951c676a1c` 和工作区已有的一处宝可梦原版布局 CSS 调整。此包包含宝可梦扩展卡面角标调整、《太阳神》签名资源和跨游戏工具栏图标及保存回执一致性修复。公开版本为 1.0.8，本次为本地交付。[交付清单](../../artifacts/releases/v1.0.8/1.0.8.13/TableMax-1.0.8.13-installer-win-x64-manifest.json) · [安装后目录核对](../../artifacts/maintenance/installer-export-20261117-unified/installed-catalog-audit.json) · [冻结输入核对](../../artifacts/maintenance/installer-export-20261117-unified/frozen-input-audit.json)
 
 EXE 为 41,149,541 字节，内部 ZIP 为 49,102,488 字节，实际解包为 102,094,781 字节。干净 Windows 标准账户通过原路径 Medium 启动、安装向导、首装、更新与失败恢复、快捷方式、默认卸载和同根重装读回存档。隔离测试账户与配置文件已清理。首次启动 110,424,929 字节，同包复装 111,313,598 字节，卸载后重装 110,609,933 字节。各项均低于 120,000,000 字节硬限。首次启动、同包复装、卸载后重装达到 110,000,000 字节工程预警。[Windows 正式封存证明](../../artifacts/maintenance/installer-export-20261117-unified/system-r1/sealed-proof.json)
 

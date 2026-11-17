@@ -107,6 +107,9 @@ export function DeviceTransferRequests({ session }: { session: RoomSession }) {
   const selected = requests.find(
     (request) => request.requestId === confirmation,
   );
+  const selectedSeat = session.view?.seats.find(
+    (seat) => seat.id === selected?.seatId,
+  );
   const verificationCopy = feedbackText('transfer.confirmVerifyCode').split(
     '{code}',
   );
@@ -171,8 +174,7 @@ export function DeviceTransferRequests({ session }: { session: RoomSession }) {
       })}
       {selected && (
         <ConfirmationDialog
-          title="批准换机"
-          confirmLabel="批准并退出旧设备"
+          title={`批准换机：${selectedSeat?.name ?? '玩家'}`}
           cancel={() => setConfirmation(null)}
           disabled={session.locked}
           confirm={() => {

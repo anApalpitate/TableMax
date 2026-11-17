@@ -75,7 +75,6 @@ export function useSeatRemoval(session: RoomSession) {
       target && valid ? (
         <ConfirmationDialog
           title="移除座位"
-          confirmLabel="确认移除"
           cancel={() => setTarget(null)}
           disabled={session.locked || session.view?.status === 'playing'}
           confirm={() => {

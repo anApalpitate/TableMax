@@ -128,7 +128,6 @@ export function RollbackHistory({ session }: { session: RoomSession }) {
           {selectedStep && (
             <ConfirmationDialog
               title="确认回退"
-              confirmLabel="确认回退"
               cancel={() => setSelected(null)}
               disabled={locked}
               confirm={() => {

@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
+import { brotliDecompressSync } from 'node:zlib';
 import {
   copyFile,
   mkdir,
@@ -26,6 +27,43 @@ import {
   assertWorkspaceRoot,
   isDirectExecution,
 } from '../shared/workspace-root.mjs';
+
+/** Resolve physical box ownership without treating unrelated packed runtime as box files. */
+export async function frozenBoxMembers(box, files, readMember) {
+  const members = [];
+  for (const file of box) {
+    assert.ok(
+      file.path === 'index.html' ||
+        (file.path.startsWith('assets/') &&
+          !file.path.split('/').some((part) => part === '..' || part === '.')),
+      'Box unit must not claim catalog, runtime or game files',
+    );
+    const path = 'web/' + file.path;
+    const plain = files.find((record) => record.path === path);
+    const packed = files.find((record) => record.path === path + '.br');
+    assert.ok(plain || packed, 'Frozen box member missing: ' + path);
+    assert.ok(!(plain && packed), 'Ambiguous frozen box member: ' + path);
+    const member = plain ?? packed;
+    if (packed) {
+      assert.match(path, /^web\/assets\/[\w-]+\.(?:js|css)$/);
+      assert.ok(file.bytes >= 1024 && file.bytes <= 4 * 1024 * 1024);
+      const bytes = await readMember(packed.path);
+      assert.equal(bytes.length, packed.bytes);
+      assert.equal(hash(bytes), packed.sha256);
+      const decoded = brotliDecompressSync(bytes, {
+        maxOutputLength: file.bytes,
+      });
+      assert.equal(decoded.length, file.bytes);
+      assert.equal(hash(decoded), file.sha256);
+    } else if (file.path !== 'index.html') {
+      // The assembler adds the separately owned runtime CSS to index.html.
+      assert.equal(file.bytes, plain.bytes);
+      assert.equal(file.sha256, plain.sha256);
+    }
+    members.push(member);
+  }
+  return members;
+}
 
 async function sourcePath(path) {
   assert.equal(typeof path, 'string', 'Explicit frozen source path required');
@@ -338,23 +376,12 @@ export async function createInstallationFixturePackage({
     hash(Buffer.from(JSON.stringify(oldBox.inputs))),
     oldBox.fingerprint,
   );
-  for (const file of oldBox.files) {
-    assert.ok(
-      file.path === 'index.html' ||
-        (file.path.startsWith('assets/') &&
-          !file.path.split('/').some((part) => part === '..' || part === '.')),
-      'Box unit must not claim catalog, runtime or game files',
-    );
-    const frozen = previous.files.find(
-      (record) => record.path === 'web/' + file.path,
-    );
-    assert.ok(frozen);
-    if (file.path !== 'index.html') {
-      assert.equal(file.bytes, frozen.bytes);
-      assert.equal(file.sha256, frozen.sha256);
-    }
-  }
-  const boxClaims = new Set(oldBox.files.map((file) => 'web/' + file.path));
+  const oldBoxMembers = await frozenBoxMembers(
+    oldBox.files,
+    previous.files,
+    (path) => readFile(join(payload, path)),
+  );
+  const boxClaims = new Set(oldBoxMembers.map((file) => file.path));
   const retainedWeb = previous.files.filter(
     (file) => file.path.startsWith('web/') && !boxClaims.has(file.path),
   );
@@ -362,11 +389,11 @@ export async function createInstallationFixturePackage({
   assert.ok(
     retainedWeb.some((file) => file.path.startsWith('web/runtime/v1/')),
   );
-  for (const file of oldBox.files) {
-    const target = resolve(payload, 'web', file.path);
+  for (const file of oldBoxMembers) {
+    const target = resolve(payload, file.path);
     assert.ok(target.startsWith(resolve(payload, 'web') + sep));
     assert.ok(
-      previous.files.some((record) => record.path === 'web/' + file.path),
+      previous.files.some((record) => record.path === file.path),
       'Cannot remove a file outside the frozen original box claims',
     );
     await unlink(target);
@@ -396,10 +423,16 @@ export async function createInstallationFixturePackage({
   // Match assemble.mjs: the box unit index needs the separately frozen runtime CSS.
   const runtimeCss = retainedWeb.filter(
     (file) =>
-      file.path.startsWith('web/runtime/v1/') && file.path.endsWith('.css'),
+      file.path.startsWith('web/runtime/v1/') &&
+      /\.css(?:\.br)?$/.test(file.path),
   );
   const cssLinks = runtimeCss
-    .map((file) => '<link rel="stylesheet" href="/' + file.path.slice(4) + '">')
+    .map(
+      (file) =>
+        '<link rel="stylesheet" href="/' +
+        file.path.slice(4).replace(/\.br$/, '') +
+        '">',
+    )
     .join('');
   const indexPath = join(payload, 'web/index.html');
   await writeFile(
@@ -420,9 +453,18 @@ export async function createInstallationFixturePackage({
     );
   }
   const index = await readFile(indexPath, 'utf8');
+  const webMembers = new Set(
+    (await installationInventory(join(payload, 'web'))).map(
+      (file) => file.path,
+    ),
+  );
   for (const match of index.matchAll(/(?:src|href)="(\/[^"?#]+)"/g))
     assert.ok(
-      (await stat(join(payload, 'web', match[1].slice(1)))).isFile(),
+      webMembers.has(match[1].slice(1)) ||
+        (/^\/(?:assets|runtime\/v1(?:\/assets)?)\/[\w-]+\.(?:js|css)$/.test(
+          match[1],
+        ) &&
+          webMembers.has(match[1].slice(1) + '.br')),
       'Index asset closure missing: ' + match[1],
     );
   const records = await installationInventory(payload);

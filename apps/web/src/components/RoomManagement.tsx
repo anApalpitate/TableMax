@@ -180,9 +180,6 @@ export function RoomManagement({
       {confirmation && isHost && (
         <ConfirmationDialog
           title={confirmation === 'end' ? '结束游戏' : '清空牌桌'}
-          confirmLabel={
-            confirmation === 'end' ? '确认结束游戏' : '确认清空牌桌'
-          }
           cancel={() => setConfirmation(null)}
           disabled={
             locked ||
@@ -201,16 +198,7 @@ export function RoomManagement({
             setConfirmation(null);
           }}
         >
-          {confirmation === 'end' ? (
-            <>
-              <p>{feedbackText('management.confirmEnd')}</p>
-              <p>
-                {returnToLobby
-                  ? '返回准备大厅，恢复开局前的加入设置。真人玩家需重新准备。'
-                  : feedbackText('management.endEffect')}
-              </p>
-            </>
-          ) : (
+          {confirmation === 'clear' && (
             <p>{feedbackText('management.confirmClear')}</p>
           )}
         </ConfirmationDialog>

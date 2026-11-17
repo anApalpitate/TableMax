@@ -4,6 +4,8 @@
 
 本页维护打包、签名和推广的精确操作参数；当前已验交付及线上边界统一见[验收](../../docs/reference/acceptance.md#当前源码与本地交付)，产品发布规则见[Release流程](../../docs/reference/release.md)。
 
+完整 installer 使用 `lzma2/ultra64` 固实压缩，保留载荷原始字节；最终 EXE 仍执行 50,000,000 字节门禁。
+
 任务封包设置 `TABLEMAX_PACKAGE_TASK_ROOT=tmp/<安全任务名>`，将安装器临时展开与编译文件集中在该任务目录；安全任务名仅含小写字母、数字和连字符，目录不得为链接。未设置时保留旧工具默认路径。此变量不改变正式 EXE、冻结载荷与清单的交付位置。
 
 新安装器先用 `--candidate` 封包并保留已有 `current.json`。新交付须在当前进程设置唯一`TABLEMAX_DELIVERY_SESSION`；同会话预留同一第四位，修复及重试不再次递增，正式验收推广后确认，详见[版本规则与实现边界](../../docs/reference/release.md#三位公开版本与四位本地构建2026-10-12)。stdout 返回 `candidatePath`；该记录冻结候选交付和原 current 的原始 SHA，同目录 `full/installer-delivery.json` 供描述生成及实际安装验收。`--platform-from` 按原快照身份及游戏缓存逐成员 SHA 保留正式游戏，只刷新当前平台和组装器并生成新快照，本地修订按上述规则归属本次更新；可跨公开版本，但新快照必须记录目标版本与 `retainedGameVersion`，保留原游戏来源证明。`--snapshot` 则恢复原冻结快照，不分配新修订。
@@ -15,6 +17,8 @@ node tools/release/package.mjs --candidate "--platform-from=<已核验冻结快�
 ```
 
 跨公开版本时，目标内部目录使用新tag的catalog和build-record，不把旧tag目录直接当作新目录；原游戏单元、受信任历史玩法正文及blob ZIP逐项核验。正文除目标平台releaseTag外完全相同才复用原完整玩法记录及其releaseId／releaseTag，未变游戏不重新编译、改名或重压。玩法或可信来源不匹配即拒绝，不降级为未核验复用。
+
+安装夹具兼容冻结网页的原文件和 Brotli 文件：压缩成员同时核验归档字节与解压后的单元 SHA，仅替换盒子自身成员，保留独立 runtime／游戏。定向回归入口为 `tools/release/installation-fixture.test.mjs`，通过范围运行器的 tooling 计划执行。
 
 新公开版本尚无current时，双fixture准备显式指定旧正式current原件，或本次真实冻结的candidate.json；候选读取会核验包装类型、schema及原current摘要形状，再沿用完整EXE、payload、安装清单和快照的原字节验证。候选仅作为夹具材料，不创建current或替代正式推广证明；不能临时改版本、假推广或在执行模式寻找来源回退。先完成目标版本源码和配方，提供目标Native依赖模板、server／web单元及全新证据目录：
 

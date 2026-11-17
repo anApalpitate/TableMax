@@ -311,8 +311,7 @@ export function GameLibrary({
       {submitted && !target && <p role="status">{session.message}</p>}
       {target && view && (
         <ConfirmationDialog
-          title="结束并切换游戏"
-          confirmLabel={view.status === 'playing' ? '结束并切换' : '切换游戏'}
+          title={view.status === 'playing' ? '结束并切换游戏' : '切换游戏'}
           cancel={() => setTargetId(null)}
           disabled={
             moduleFor(target.id)?.development ||
@@ -337,7 +336,6 @@ export function GameLibrary({
               { game: target.name },
             )}
           </p>
-          <p>{feedbackText('library.switchPreservesSeats')}</p>
           {submitted && <p role="status">{session.message}</p>}
         </ConfirmationDialog>
       )}

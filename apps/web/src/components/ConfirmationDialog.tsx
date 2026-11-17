@@ -4,14 +4,12 @@ import { useRef, type ReactNode } from 'react';
 export function ConfirmationDialog({
   title,
   children,
-  confirmLabel,
   cancel,
   confirm,
   disabled = false,
 }: {
   title: string;
-  children: ReactNode;
-  confirmLabel: string;
+  children?: ReactNode;
   cancel(): void;
   confirm(): void;
   disabled?: boolean;
@@ -19,7 +17,7 @@ export function ConfirmationDialog({
   const cancelButton = useRef<HTMLButtonElement>(null);
   return (
     <OverlayPanel title={title} close={cancel} initialFocus={cancelButton}>
-      <div className="confirmation-message">{children}</div>
+      {children && <div className="confirmation-message">{children}</div>}
       <div className="dialog-actions">
         <button
           ref={cancelButton}
@@ -35,7 +33,7 @@ export function ConfirmationDialog({
           disabled={disabled}
           onClick={confirm}
         >
-          {confirmLabel}
+          确定
         </button>
       </div>
     </OverlayPanel>
