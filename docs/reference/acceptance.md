@@ -25,13 +25,13 @@
 
 ## 当前安装交付（2026-11-17）
 
-本地安装器 **1.0.8.13** 预装 8 款游戏、9 个玩法。冻结快照为 `eec02391a26d01ac868cc07367effd4bffb27137af6abb1af896ba05c17de150`，对应源码提交 `8373fb62e5cf857ef994ac8bb555ec951c676a1c` 和工作区已有的一处宝可梦原版布局 CSS 调整。此包包含宝可梦扩展卡面角标调整、《太阳神》签名资源和跨游戏工具栏图标及保存回执一致性修复。公开版本为 1.0.8，本次为本地交付。[交付清单](../../artifacts/releases/v1.0.8/1.0.8.13/TableMax-1.0.8.13-installer-win-x64-manifest.json) · [安装后目录核对](../../artifacts/maintenance/installer-export-20261117-unified/installed-catalog-audit.json) · [冻结输入核对](../../artifacts/maintenance/installer-export-20261117-unified/frozen-input-audit.json)
+本地安装器 **1.0.8.13** 预装 8 款游戏、9 个玩法。冻结快照为 `eec02391a26d01ac868cc07367effd4bffb27137af6abb1af896ba05c17de150`，对应源码提交 `8373fb62e5cf857ef994ac8bb555ec951c676a1c` 和工作区已有的一处宝可梦原版布局 CSS 调整。此包包含宝可梦扩展卡面角标调整、《太阳神》签名资源和跨游戏工具栏图标及保存回执一致性修复。公开版本为 1.0.8，本次为本地交付。[交付清单](../../artifacts/maintenance/installer-retention/retired-manifests/v1.0.8/TableMax-1.0.8.13-installer-win-x64-manifest.json) · [安装后目录核对](../../artifacts/maintenance/installer-export-20261117-unified/installed-catalog-audit.json) · [冻结输入核对](../../artifacts/maintenance/installer-export-20261117-unified/frozen-input-audit.json)
 
 EXE 为 41,149,541 字节，内部 ZIP 为 49,102,488 字节，实际解包为 102,094,781 字节。干净 Windows 标准账户通过原路径 Medium 启动、安装向导、首装、更新与失败恢复、快捷方式、默认卸载和同根重装读回存档。隔离测试账户与配置文件已清理。首次启动 110,424,929 字节，同包复装 111,313,598 字节，卸载后重装 110,609,933 字节。各项均低于 120,000,000 字节硬限。首次启动、同包复装、卸载后重装达到 110,000,000 字节工程预警。[Windows 正式封存证明](../../artifacts/maintenance/installer-export-20261117-unified/system-r1/sealed-proof.json)
 
 ## 1.0.8.12 安装交付（2026-11-17）
 
-当时的本地安装器 **1.0.8.12** 预装 8 款游戏、9 个玩法。《太阳神》采用 `25cg-retail3-base-v1`，支持 2–5 人，47 项运行素材均进入签名资源映射。冻结快照为 `37117bad37c36dd1d92c042bf5d92c4c8c4224f06f757bcac49c364d3604f41e`，对应源码提交 `c839751ca06130749a181b78375a22f530a3028a` 及当时工作区一处未提交的宝可梦布局 CSS 调整。公开版本为 1.0.8，本次仅本地交付。EXE 随 1.0.8.13 推广按本地保留规则退役。[交付清单](../../artifacts/releases/v1.0.8/1.0.8.12/TableMax-1.0.8.12-installer-win-x64-manifest.json) · [安装后目录及素材核对](../../artifacts/maintenance/ra-installer-20261117/installed-catalog-audit.json) · [源码边界](../../artifacts/maintenance/ra-installer-20261117/source-boundary-r3.json)
+当时的本地安装器 **1.0.8.12** 预装 8 款游戏、9 个玩法。《太阳神》采用 `25cg-retail3-base-v1`，支持 2–5 人，47 项运行素材均进入签名资源映射。冻结快照为 `37117bad37c36dd1d92c042bf5d92c4c8c4224f06f757bcac49c364d3604f41e`，对应源码提交 `c839751ca06130749a181b78375a22f530a3028a` 及当时工作区一处未提交的宝可梦布局 CSS 调整。公开版本为 1.0.8，本次仅本地交付。EXE 随 1.0.8.13 推广按本地保留规则退役。[交付清单](../../artifacts/maintenance/installer-retention/retired-manifests/v1.0.8/TableMax-1.0.8.12-installer-win-x64-manifest.json) · [安装后目录及素材核对](../../artifacts/maintenance/ra-installer-20261117/installed-catalog-audit.json) · [源码边界](../../artifacts/maintenance/ra-installer-20261117/source-boundary-r3.json)
 
 原始 EXE 实测 41,151,247 字节，内部 ZIP 49,102,553 字节，实际解包 102,094,850 字节。干净 Windows 标准账户通过原路径 Medium 启动、首装、快捷方式、同包复装、默认卸载、同根重装读回存档及最后卸载，三条更新与失败恢复链均为 8/8，临时账户和 profile 已清理。首次启动占用 110,425,926 字节，同包重装 111,314,595 字节，卸载后重装 110,610,930 字节。各项在 120,000,000 字节硬限内，这三项触发 110,000,000 字节工程预警。[Windows 正式封存证明](../../artifacts/maintenance/ra-installer-20261117/system-r1/sealed-proof.json)
 
@@ -39,7 +39,7 @@ EXE 为 41,149,541 字节，内部 ZIP 为 49,102,488 字节，实际解包为 1
 
 ## 当前安装交付（2026-11-16）
 
-当时本地交付 **1.0.8.11** 预装 7 款游戏、8 个玩法。盒子目录、签名目录和实际预装映射一致。公开基线为 1.0.8，冻结快照 `bd9d6ba02a959e2fac5000bbcec6b749008cce19782b30b2eb8a92088870ff92` 包含当时一处未提交的宝可梦布局 CSS 调整。EXE 随 1.0.8.12 推广按本地保留规则退役，交付哈希与正式证据保留。[交付清单](../../artifacts/releases/v1.0.8/1.0.8.11/TableMax-1.0.8.11-installer-win-x64-manifest.json) · [冻结产物核对](../../artifacts/maintenance/installer-export-20261116/frozen-output-audit.json)
+当时本地交付 **1.0.8.11** 预装 7 款游戏、8 个玩法。盒子目录、签名目录和实际预装映射一致。公开基线为 1.0.8，冻结快照 `bd9d6ba02a959e2fac5000bbcec6b749008cce19782b30b2eb8a92088870ff92` 包含当时一处未提交的宝可梦布局 CSS 调整。EXE 随 1.0.8.12 推广按本地保留规则退役，交付哈希与正式证据保留。[交付清单](../../artifacts/maintenance/installer-retention/retired-manifests/v1.0.8/TableMax-1.0.8.11-installer-win-x64-manifest.json) · [冻结产物核对](../../artifacts/maintenance/installer-export-20261116/frozen-output-audit.json)
 
 实际 EXE 为 40,018,764 字节，内部 ZIP 为 48,261,209 字节，实际解包为 101,228,399 字节。干净标准账户通过原路径原件 Medium 启动、向导、首装、快捷方式、同包重装、默认卸载、同根重装读回存档及最后卸载；三条更新与失败恢复链均为 8/8，验收账户和 profile 已清理。首次健康启动为 109,324,763 字节，同包重装为 110,188,438 字节，卸载后重装为 109,489,086 字节。均低于 120,000,000 字节硬限，同包重装触发 110,000,000 字节预警。[正式封存证明](../../artifacts/maintenance/installer-export-20261116/system-r2/sealed-proof.json)
 
