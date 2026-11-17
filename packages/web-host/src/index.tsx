@@ -83,14 +83,17 @@ export function PlayModeControl(_props: { session?: GameHost }) {
 }
 export function CountdownSettings({
   children,
+  localGamePreferences,
   iconOnly,
 }: {
   session?: GameHost;
   children?: ReactNode;
+  localGamePreferences?: ReactNode;
   iconOnly?: boolean;
 }) {
   return useSlots().countdown({
     ...(children === undefined ? {} : { children }),
+    ...(localGamePreferences === undefined ? {} : { localGamePreferences }),
     ...(iconOnly ? { iconOnly } : {}),
   });
 }

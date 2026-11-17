@@ -370,40 +370,44 @@ function RaScreen({ session }: { session: GameHost }) {
             <RulebookIcon />
           </button>
           {session.role !== 'public' && (
-            <Settings session={session} iconOnly>
-              <div className="display-settings-choice ra-push-setting">
-                <SettingHelp
-                  id={boatSettingId}
-                  label="玩家拍卖推船"
-                  hint="主动开拍时，太阳船短暂前探后归位。此项仅适用于当前设备。"
-                />
-                <button
-                  type="button"
-                  className="secondary"
-                  role="switch"
-                  aria-checked={pushBoat}
-                  aria-labelledby={boatSettingId}
-                  onClick={() => {
-                    setIgnoredPush(pushKey);
-                    setPushBoat(!pushBoat);
-                    try {
-                      localStorage.setItem(
-                        pushBoatPreference,
-                        pushBoat ? '0' : '1',
-                      );
-                    } catch {
-                      // The setting still works for this page without storage.
-                    }
-                  }}
-                >
-                  <span
-                    className={`settings-switch${pushBoat ? ' settings-switch--on' : ''}`}
-                    aria-hidden="true"
+            <Settings
+              session={session}
+              iconOnly
+              localGamePreferences={
+                <div className="display-settings-choice ra-push-setting">
+                  <SettingHelp
+                    id={boatSettingId}
+                    label="玩家拍卖推船"
+                    hint="主动开拍时，太阳船短暂前探后归位。此项仅适用于当前设备。"
                   />
-                  {pushBoat ? '已开启' : '已关闭'}
-                </button>
-              </div>
-            </Settings>
+                  <button
+                    type="button"
+                    className="secondary"
+                    role="switch"
+                    aria-checked={pushBoat}
+                    aria-labelledby={boatSettingId}
+                    onClick={() => {
+                      setIgnoredPush(pushKey);
+                      setPushBoat(!pushBoat);
+                      try {
+                        localStorage.setItem(
+                          pushBoatPreference,
+                          pushBoat ? '0' : '1',
+                        );
+                      } catch {
+                        // The setting still works for this page without storage.
+                      }
+                    }}
+                  >
+                    <span
+                      className={`settings-switch${pushBoat ? ' settings-switch--on' : ''}`}
+                      aria-hidden="true"
+                    />
+                    {pushBoat ? '已开启' : '已关闭'}
+                  </button>
+                </div>
+              }
+            />
           )}
           {session.canControl && (
             <button

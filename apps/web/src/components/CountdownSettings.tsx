@@ -29,11 +29,13 @@ const inGameSettingsHint = '对局进行中游戏设置暂时无法调整';
 export function Settings({
   session,
   children,
+  localGamePreferences,
   iconOnly = false,
   gameClient,
 }: {
   session: RoomSession;
   children?: ReactNode;
+  localGamePreferences?: ReactNode;
   iconOnly?: boolean;
   gameClient?: GameClient;
 }) {
@@ -103,7 +105,8 @@ export function Settings({
               )}
               {hasTimer && <CountdownPreference session={session} />}
             </SettingLockHelp.Provider>
-            {!hasGameSetup && !hasTimer && (
+            {localGamePreferences}
+            {!hasGameSetup && !hasTimer && !localGamePreferences && (
               <p>当前玩法没有可配置的游戏选项。</p>
             )}
           </section>

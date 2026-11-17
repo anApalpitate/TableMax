@@ -32,7 +32,11 @@ export interface GameHostSlots {
     mode?: 'all' | 'saved' | 'messages' | 'toolbar-save';
   }): ReactNode;
   playMode(): ReactNode;
-  countdown(props: { children?: ReactNode; iconOnly?: boolean }): ReactNode;
+  countdown(props: {
+    children?: ReactNode;
+    localGamePreferences?: ReactNode;
+    iconOnly?: boolean;
+  }): ReactNode;
 }
 /** Presentation capabilities only; installed by the private platform adapter. */
 export interface HostPresentationServices {
