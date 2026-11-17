@@ -109,6 +109,46 @@ describe('Ra retail third printing', () => {
     expect(s.players[winner]!.down).toEqual([1]);
   });
 
+  it('draws from an empty lot unless the default bot can make a clear disk upgrade', async () => {
+    const ctx = context(3);
+    const state = rules.initialize(ctx);
+    const decision = rules.decisions(state)[0]!;
+    const view = rules.project(state, {
+      role: 'player',
+      seatId: decision.seatId,
+    });
+    const own = view.players.find(({ seat }) => seat === decision.seatId)!;
+    const decide = async (center: number, disks: number[], auction = false) =>
+      bot.decide({
+        view: {
+          ...view,
+          center,
+          auction: auction
+            ? { caller: own.seat, cause: 'invokeOpen', bids: [] }
+            : null,
+          players: view.players.map((player) =>
+            player === own ? { ...own, disks } : player,
+          ),
+        },
+        decision,
+        actions: auction
+          ? disks.map((disk) => ({ type: 'bid', disk }))
+          : [{ type: 'draw' }, { type: 'invokeRa' }],
+        memory: null,
+        random: { next: () => 0.99 },
+        difficulty: 'default',
+        signal: new AbortController().signal,
+      });
+    expect((await decide(1, [2, 7])).action).toEqual({ type: 'draw' });
+    expect((await decide(6, [2, 7])).action).toEqual({ type: 'draw' });
+    expect((await decide(7, [2, 8])).action).toEqual({ type: 'invokeRa' });
+    expect((await decide(12, [2])).action).toEqual({ type: 'draw' });
+    expect((await decide(7, [2, 8], true)).action).toEqual({
+      type: 'bid',
+      disk: 2,
+    });
+  });
+
   it('resolves won famine targets before scoring, and scores all categories with third-epoch bonuses', () => {
     const base = rules.initialize(context(2));
     const caller = base.actor!;

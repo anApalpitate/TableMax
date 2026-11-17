@@ -25,6 +25,7 @@ export const bot: BotStrategy = {
   },
   async decide({ view, actions, decision, random, difficulty = 'default' }) {
     const v = view as RaView;
+    const choices = actions as readonly Action[];
     const own = v.players.find((p) => p.seat === decision.seatId)!;
     const weight = (act: Action) => {
       const lotValue = v.lot.reduce(
@@ -61,16 +62,39 @@ export const bot: BotStrategy = {
       }
     };
     if (actions.length === 0) throw new Error('没有合法动作');
-    if (difficulty === 'default')
+    if (difficulty === 'default') {
+      if (v.lot.every((slot) => slot === null)) {
+        const draw = choices.find((action) => action.type === 'draw');
+        const invoke = choices.find((action) => action.type === 'invokeRa');
+        if (draw && invoke)
+          return {
+            action:
+              own.disks.length > 1 && v.center - Math.min(...own.disks) >= 5
+                ? invoke
+                : draw,
+            memory: null,
+          };
+        if (
+          v.auction?.caller === own.seat &&
+          v.auction.cause === 'invokeOpen'
+        ) {
+          const cheapest = choices.find(
+            (action) =>
+              action.type === 'bid' && action.disk === Math.min(...own.disks),
+          );
+          if (cheapest && !choices.some((action) => action.type === 'pass'))
+            return { action: cheapest, memory: null };
+        }
+      }
       return {
         action: actions[Math.floor(random.next() * actions.length)]!,
         memory: null,
       };
-    const ranked = actions.map((action) => ({
+    }
+    const ranked = choices.map((action) => ({
       action,
       value:
-        weight(action as Action) +
-        random.next() * (difficulty === 'doubao' ? 1.8 : 0.25),
+        weight(action) + random.next() * (difficulty === 'doubao' ? 1.8 : 0.25),
     }));
     return {
       action: ranked.reduce((best, next) =>
