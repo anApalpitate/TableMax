@@ -34,6 +34,8 @@
 | 马尼拉         |      1,897,292 |      1,893,303 |        3,989 |
 | **合计**       | **10,612,252** | **10,579,999** |   **32,253** |
 
+按十进制换算（1 MB = 1,000,000 字节），两轮运行素材由 **17.836 MB** 降至 **10.580 MB**，累计减少 **7.256 MB**（7,255,768 字节）。本轮 FLAC 复压贡献 **0.032 MB**。迁出的原件仍保存在外部素材库，这里统计运行素材的逻辑大小。
+
 源素材无字节、解码像素或 FLAC PCM 重复组。冻结载荷发现 20 组同字节副本。电力公司和马尼拉的封面保留目录入口，移除游戏客户端未用的导入，两份资源 ZIP 实测少 **291,839 字节**，对应代码 ZIP 少 **26 字节**。15 张生产前端多带的导览图共 **14,888 字节**，装配构建改从已签名的游戏资源加载，开发环境继续由 Vite 提供。宝可梦扩展三份副本保留，两张相似宝可梦封面逐像素有别。17 个预装 blob 仍覆盖 8 款游戏、9 个玩法，已有签名 blob 和历史发行记录原样保留。[冻结载荷重复清单](../../artifacts/maintenance/material-installer-20261118-followup/duplicates-baseline.json) · [去重载荷核验](../../artifacts/maintenance/material-installer-20261118-followup/payload-dedup.json)
 
 用锁定 Inno Setup 6.7.3 隔离封包。EXE 值为实际字节，增量对照表中上一行。耗时为本机逐次编译和用 `innounp` 提取，内存为两阶段进程树峰值私有字节的 MiB 取整。基线重封 SHA 与当前 1.0.8.14 完全一致，四个新组合的 EXE 均通过 114 项提取成员 SHA 核验。
@@ -46,11 +48,13 @@
 | 再加本轮 FLAC，基线参数                        |     49,899,971 |      32,402 |     22.45 / 2.19 |         704 / 71 |
 | 合并载荷，按扩展名及文件名排序、Fast Bytes 128 | **49,746,568** | **153,403** | **25.04 / 2.26** |     **704 / 71** |
 
-仅去重后完整提取体积少 312,429 字节，外层固实压缩已吸收大部分重复。上一轮移出的多数素材原本已被生产资源闭包排除，31,783 字节的增量含拉密 WAV 转 FLAC。合并载荷的内部实验 ZIP 为 58,846,829 字节，完整提取为 112,127,818 字节，含安装清单。最小实验 EXE 比冻结基线少 **223,705 字节**，距 50,000,000 字节上限剩 **253,432 字节**。[去重 EXE](../../artifacts/maintenance/material-installer-20261118-followup/installer-dedup.json) · [上轮素材对照](../../artifacts/maintenance/material-installer-20261118-followup/installer-prior.json) · [合并 EXE](../../artifacts/maintenance/material-installer-20261118-followup/installer-updated.json)
+仅去重后完整提取体积少 312,429 字节，外层固实压缩已吸收大部分重复。上一轮移出的多数素材原本已被生产资源闭包排除，31,783 字节的增量含拉密 WAV 转 FLAC。合并载荷的内部实验 ZIP 为 58,846,829 字节，完整提取为 112,127,818 字节，含安装清单。最小实验 EXE 从冻结基线的 **49.970 MB** 降至 **49.747 MB**，实测少 **0.224 MB**（223,705 字节），距 50 MB 上限剩 **0.253 MB**（253,432 字节）。EXE 与运行素材的节省量分别统计。[去重 EXE](../../artifacts/maintenance/material-installer-20261118-followup/installer-dedup.json) · [上轮素材对照](../../artifacts/maintenance/material-installer-20261118-followup/installer-prior.json) · [合并 EXE](../../artifacts/maintenance/material-installer-20261118-followup/installer-updated.json)
 
 冻结载荷上，按扩展名及文件名排序、96 MiB、128 MiB、Fast Bytes 128 分别节省 95,421、106,255、110,596、45,181 字节，LZMA1 使 EXE 超限。64 MiB 字典配合排序及 Fast Bytes 128 在两种载荷上均为实测最小，建议下次正式封包时优先复测。96／128 MiB 较基线把提取峰值从约 71 MiB 提高到约 103／135 MiB。完整安装和首次启动占用未测，实验 EXE 未走正式验收。正式配方、版本号、冻结产物及 `current` 保持原样。[七组同载荷对照](../../artifacts/maintenance/material-installer-20261118-followup/installer-frozen.json)
 
 定向生产构建覆盖盒子、6 个资源单元及电力公司、马尼拉、拉密的网页单元。Edge 静音复验 46 个源码音效和 43 个签名载荷音效，浏览器解码结果逐样本一致。另 3 个是生产闭包外的 UNO 旧音效。开发和签名载荷分别成功加载 15 张导览图，同源图像复核通过，两张目录封面保持原字节并成功解码。签名载荷服务从最小实验 EXE 的提取件启动并正常退出，复核了 52 个宝可梦原版和 291 个排除媒体的 SHA。未复跑上一轮全量媒体检查或 Windows WebKit，实体设备未测。[构建单元](../../artifacts/maintenance/material-installer-20261118-followup/units.json) · [Edge 复验](../../artifacts/maintenance/material-installer-20261118-followup/browser-r4-passed.json) · [合并载荷重复复核](../../artifacts/maintenance/material-installer-20261118-followup/duplicates-updated.json)
+
+2026-11-18 已将素材与去重源码提交 `34c0be01` 推送至 `origin/master`。此次推送仅更新源码分支，正式交付继续使用原已验收安装器。[GitHub 提交](https://github.com/anApalpitate/TableMax/commit/34c0be01c215405a7511a952ea9bdcf7944c2e27) · [正式配方与载荷复核](../../artifacts/maintenance/material-installer-20261118-followup/final-verification.json)
 
 ## 旧安装器副本与项目瘦身（2026-11-17）
 
