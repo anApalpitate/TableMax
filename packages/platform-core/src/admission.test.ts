@@ -159,7 +159,7 @@ it('replays with the same ordered seats and identities, fresh readiness and isol
     revision: before.revision,
     command: { type: 'replay' as const },
   };
-  expect(await room.command(a.token, request)).toEqual({
+  expect(await room.command(b.token, request)).toEqual({
     ok: false,
     reason: 'unauthorized',
   });
@@ -174,6 +174,7 @@ it('replays with the same ordered seats and identities, fresh readiness and isol
     true,
   );
   expect(after.self).toEqual(before.self);
+  expect(after.ownerSeatId).toBe(before.self.seatId);
   expect(room.view(room.hostToken).history).toEqual([]);
   expect(await room.command(a.token, obsolete)).toEqual({
     ok: false,
@@ -192,6 +193,8 @@ it('replays with the same ordered seats and identities, fresh readiness and isol
   await run(room, { type: 'new-room' });
   expect(room.view().seats).toEqual([]);
   expect(() => room.identity(a.token)).toThrow('invalid-identity');
+  const first = await room.join('新房首位');
+  expect(room.view().ownerSeatId).toBe(room.view(first.token).self.seatId);
 });
 it('keeps the finished match intact when replay storage fails', async () => {
   const repository = new Repository();

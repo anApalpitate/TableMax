@@ -117,11 +117,11 @@ describe('real room invariants', () => {
     ]);
     expect(
       await room.command(
-        a.token,
+        b.token,
         envelope(
           room,
           { type: 'lifecycle', action: { type: 'next-round' } },
-          a.token,
+          b.token,
         ),
       ),
     ).toEqual({ ok: false, reason: 'unauthorized' });

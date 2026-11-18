@@ -377,13 +377,47 @@ it('does not consume an independent choice or publish feedback when saving fails
   }
 });
 
+it('defaults ownership to the first human and saves it with admission', async () => {
+  const repository = new Repository();
+  const room = new RoomCoordinator(templateRules, templateBot, repository);
+  expect((await send(room, { type: 'add-bot', name: '电脑玩家' })).ok).toBe(
+    true,
+  );
+  expect(room.view().ownerSeatId).toBeNull();
+
+  repository.fail = true;
+  await expect(room.join('入座失败')).rejects.toThrow('disk full');
+  expect(room.view().seats).toHaveLength(1);
+  expect(room.view().ownerSeatId).toBeNull();
+  repository.fail = false;
+
+  const requestKey = token();
+  const [first, second] = await Promise.all([
+    room.join('首位真人', requestKey),
+    room.join('第二位真人'),
+  ]);
+  const owner = room.view(first.token).self.seatId;
+  expect(room.view().ownerSeatId).toBe(owner);
+  expect(room.view(second.token).capabilities.control).toBe(false);
+  expect(
+    new RoomCoordinator(templateRules, templateBot, repository).view(
+      first.token,
+    ).capabilities.control,
+  ).toBe(true);
+  expect(await room.join('首位真人', requestKey)).toEqual(first);
+
+  expect((await send(room, { type: 'set-owner', seatId: null })).ok).toBe(true);
+  await room.join('后来入座');
+  expect(room.view().ownerSeatId).toBeNull();
+});
+
 it('delegates only common match controls, persists ownership and never exposes another player secrets', async () => {
   const repository = new Repository();
   let room = new RoomCoordinator(templateRules, templateBot, repository);
   const a = await room.join('房主'),
     b = await room.join('朋友');
   const seat = room.view(a.token).self.seatId!;
-  await send(room, { type: 'set-owner', seatId: seat });
+  expect(room.view().ownerSeatId).toBe(seat);
   expect(room.view(a.token).capabilities).toEqual({
     manage: false,
     manageSeats: true,
@@ -595,18 +629,18 @@ it('does not grant unsaved ownership and never selects a bot or legacy hostSeat 
     ok: false,
     reason: 'invalid-seat',
   });
-  const human = room.view(players[0]!.token).self.seatId!;
+  const human = room.view(players[1]!.token).self.seatId!;
   repository.fail = true;
   expect(await send(room, { type: 'set-owner', seatId: human })).toEqual({
     ok: false,
     reason: 'save-or-action-failed',
   });
-  expect(room.view(players[0]!.token).capabilities.control).toBe(false);
+  expect(room.view(players[1]!.token).capabilities.control).toBe(false);
   repository.fail = false;
   delete repository.value!.ownerSeatId;
   repository.value!.hostSeat = human;
   const legacy = new RoomCoordinator(rules, bot, repository);
-  expect(legacy.view(players[0]!.token).capabilities.control).toBe(false);
+  expect(legacy.view(players[1]!.token).capabilities.control).toBe(false);
   expect(legacy.view().ownerSeatId).toBeNull();
 });
 it('loads only the chosen game, retains ordered identities on switching and restores by saved manifest', async () => {

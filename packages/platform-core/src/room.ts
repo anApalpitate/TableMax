@@ -614,6 +614,11 @@ export class RoomCoordinator {
       const duplicateName = next.seats.some((s) => s.name === normalizedName);
       const seatId = randomUUID();
       const selectedAvatar = this.availableAvatar(avatarId, undefined, image);
+      if (
+        next.ownerSeatId == null &&
+        !next.seats.some((seat) => seat.controller === 'human')
+      )
+        next.ownerSeatId = seatId;
       next.seats.push({
         id: seatId,
         name: normalizedName,

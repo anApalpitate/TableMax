@@ -374,7 +374,8 @@ it('validates actual socket identities, personalized wire messages, duplicate AC
     const other = await connect(origin, b.token);
     clients.push(player, other);
     expect((await sync(publicClient)).seats.every((s) => s.online)).toBe(true);
-    expect(await command(player, { type: 'start' })).toEqual({
+    expect((await sync(player)).capabilities.control).toBe(true);
+    expect(await command(other, { type: 'start' })).toEqual({
       ok: false,
       reason: 'unauthorized',
     });
@@ -383,7 +384,7 @@ it('validates actual socket identities, personalized wire messages, duplicate AC
     ).toEqual({ ok: false, reason: 'unauthorized' });
     await command(player, { type: 'ready', ready: true });
     await command(other, { type: 'ready', ready: true });
-    await command(host, { type: 'start' });
+    expect((await command(player, { type: 'start' })).ok).toBe(true);
     const p = await sync(player);
     const pub = await sync(publicClient);
     const h = await sync(host);

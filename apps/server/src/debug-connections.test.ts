@@ -366,7 +366,8 @@ it('keeps root and legacy player links reloadable while protecting saved identit
     ownSecret: expect.any(Number),
     results: null,
   });
-  expect(original.capabilities.control).toBe(false);
+  expect(original.capabilities.control).toBe(true);
+  expect((await sync(friend)).capabilities.control).toBe(false);
   expect(publicView.gameView).toMatchObject({ ownSecret: null, results: null });
   expect((await sync(host)).gameView).toMatchObject({
     ownSecret: null,
@@ -392,7 +393,7 @@ it('keeps root and legacy player links reloadable while protecting saved identit
     const reloaded = RoomViewSchema.parse(view);
     expect(reloaded.self).toEqual(original.self);
     expect(reloaded.gameView).toEqual(original.gameView);
-    expect(reloaded.capabilities.control).toBe(false);
+    expect(reloaded.capabilities.control).toBe(true);
     const unauthenticated = await post(origin, '/api/session/view', {});
     const anonymousView = RoomViewSchema.parse(
       ((await unauthenticated.json()) as { view: unknown }).view,
@@ -434,7 +435,7 @@ it('keeps root and legacy player links reloadable while protecting saved identit
     seatId: original.self.seatId,
   });
   expect(denied.ok).toBe(false);
-  expect((await sync(player)).capabilities.control).toBe(false);
+  expect((await sync(player)).capabilities.control).toBe(true);
   player.disconnect();
   const reconnected = await connect(origin, playerToken, 'polling');
   expect((await sync(reconnected)).self).toEqual(original.self);

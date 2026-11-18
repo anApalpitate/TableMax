@@ -146,7 +146,7 @@ it('bounds rejected results to 256 entries and expires them after 60 seconds wit
   const before = repository.writes;
   const inputs: Command[] = [];
   for (let index = 0; index < 257; index++) {
-    const input = envelope(room, a.token, { type: 'pause' });
+    const input = envelope(room, a.token, { type: 'set-owner', seatId: null });
     inputs.push(input);
     expect(await room.command(a.token, input)).toEqual({
       ok: false,
