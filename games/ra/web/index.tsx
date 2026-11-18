@@ -25,6 +25,7 @@ import { AuctionRecap, AuctionRecordPanel } from './auction-recap';
 import { DecisionControls, type Exchange } from './decision-controls';
 import './ra.css';
 import './table-details.css';
+import './player-wide.css';
 
 const causes = {
   drawRa: '抽到拉',
@@ -246,194 +247,243 @@ function RaScreen({ session }: { session: GameHost }) {
       <RaEffects session={session} game={game} audioEnabled={audioEnabled} />
       {game && (
         <>
-          <section className="ra-board" aria-label="公共牌桌">
-            <div className="ra-status">
-              <h2>
-                {game.epoch < 3 && (
-                  <TableArt
-                    piece={game.epoch === 1 ? 'epoch-first' : 'epoch-second'}
-                    className="ra-epoch-art"
-                  />
-                )}
-                第 {game.epoch} 时代
-              </h2>
-              <strong>
-                {game.winner
-                  ? `${name(game.winner)}获胜`
-                  : game.actor
-                    ? `${name(game.actor)}行动`
-                    : '对局结束'}
-              </strong>
-              <span className="ra-central-disk">
-                <span className="ra-center-label">中央盘</span>{' '}
-                <SunDisk value={game.center} />
-              </span>
-            </div>
-            <RaTrack
-              key={game.epoch}
-              drawn={game.raDrawn}
-              limit={game.limit}
-              pushKey={pushBoat && pushKey !== ignoredPush ? pushKey : ''}
-            />
-            <ol className="ra-lot" aria-label="拍卖行">
-              {game.lot.map((tile, index) => {
-                const target = godMode
-                  ? exchangeOptions.find((action) => action.slot === index)
-                  : undefined;
-                return (
-                  <li
-                    key={index}
-                    data-occupied={tile !== null}
-                    aria-label={`第 ${index + 1} 格 ${tile ? tileNames[tile.face] : '空'}`}
-                  >
-                    {tile &&
-                      (target ? (
-                        <button
-                          type="button"
-                          className="ra-lot-target"
-                          aria-label={`换取第 ${index + 1} 格 ${tileNames[tile.face]}`}
-                          aria-pressed={exchangeTarget?.tileId === tile.id}
-                          disabled={session.locked}
-                          onClick={() =>
-                            setExchange(
-                              exchangeTarget?.tileId === tile.id
-                                ? { key: decisionKey }
-                                : { key: decisionKey, target },
-                            )
-                          }
-                        >
-                          <TileFace tile={tile} decorative />
-                        </button>
-                      ) : (
-                        <TileFace tile={tile} decorative />
-                      ))}
-                  </li>
-                );
-              })}
-            </ol>
-            <TableArt piece="auction-board" className="ra-board-ornament" />
-            <div className="ra-board-note" role="status">
-              {game.pending ? (
-                <strong className="ra-pending">
-                  <TileFace tile={game.pending.tile} />
-                  {name(game.pending.owner)}处理灾难
-                </strong>
-              ) : game.phase === 'ended' ? (
-                game.lot.some(Boolean) ? (
-                  '剩余拍品不计分'
-                ) : (
-                  '第三时代已结算'
-                )
-              ) : game.epoch > 1 ? (
-                `第 ${game.epoch - 1} 时代已结算`
-              ) : null}
-            </div>
-          </section>
-          {ownBoard && auction && (
-            <section
-              className="ra-compact-auction"
-              aria-label="各席竞拍状态"
-              style={{
-                gridTemplateColumns: `repeat(${game.players.length}, minmax(0, 1fr))`,
-              }}
-            >
-              {game.players.map((player) => (
-                <article
-                  key={player.seat}
-                  data-active={player.seat === game.actor}
-                >
-                  <span
-                    className="ra-auction-seat-name"
-                    title={name(player.seat)}
-                  >
-                    {name(player.seat)}
+          <div className="ra-player-layout">
+            <div className="ra-player-table">
+              <section className="ra-board" aria-label="公共牌桌">
+                <div className="ra-status">
+                  <h2>
+                    {game.epoch < 3 && (
+                      <TableArt
+                        piece={
+                          game.epoch === 1 ? 'epoch-first' : 'epoch-second'
+                        }
+                        className="ra-epoch-art"
+                      />
+                    )}
+                    第 {game.epoch} 时代
+                  </h2>
+                  <strong>
+                    {game.winner
+                      ? `${name(game.winner)}获胜`
+                      : game.actor
+                        ? `${name(game.actor)}行动`
+                        : '对局结束'}
+                  </strong>
+                  <span className="ra-central-disk">
+                    <span className="ra-center-label">中央盘</span>{' '}
+                    <SunDisk value={game.center} />
                   </span>
-                  <AuctionBadge status={auctionStatus(player.seat)} />
-                </article>
-              ))}
-            </section>
-          )}
-          {ownBoard && ranks.length > 0 && (
-            <section className="ra-phone-ranking" aria-label="终局排名">
-              <ol>
-                {ranks.map(({ seat, rank, total }) => (
-                  <li key={seat}>
-                    <span>
-                      第 {rank} 名 {name(seat)}
-                    </span>
-                    <b>{total} 分</b>
-                  </li>
-                ))}
-              </ol>
-            </section>
-          )}
-          {ownBoard && (
-            <DecisionControls
-              decisionKey={decisionKey}
-              session={session}
-              game={game}
-              player={ownBoard}
-              exchange={exchangeTarget}
-              godMode={godMode}
-              enterGod={() => setExchange({ key: decisionKey })}
-              exitGod={() => setExchange(undefined)}
-              clearTarget={() => setExchange({ key: decisionKey })}
-              savedFeedback={Boolean(feedback)}
-            />
-          )}
-          {ownBoard ? (
-            <PlayerBoard
-              player={ownBoard}
-              name={name(ownBoard.seat)}
-              active={ownBoard.seat === game.actor}
-              ended={game.phase === 'ended'}
-              epoch={game.epoch}
-              projection={projection}
-              primary
-              footer={
-                <nav className="ra-player-board-nav" aria-label="牌桌明细">
-                  <button
-                    type="button"
-                    aria-haspopup="dialog"
-                    onClick={() => setDetailPanel('opponents')}
-                  >
-                    <svg viewBox="0 0 24 24" aria-hidden="true">
-                      <circle cx="9" cy="8" r="3" />
-                      <path d="M3 19v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2M16 5a3 3 0 0 1 0 6m2 2a4 4 0 0 1 3 4v2" />
-                    </svg>
-                    其他玩家
-                  </button>
-                  <button
-                    type="button"
-                    aria-haspopup="dialog"
-                    onClick={() => setDetailPanel('record')}
-                  >
-                    <svg viewBox="0 0 24 24" aria-hidden="true">
-                      <path d="M6 4h12v16H6zM9 8h6m-6 4h6m-6 4h4" />
-                    </svg>
-                    拍卖记录
-                  </button>
-                </nav>
-              }
-            />
-          ) : session.role === 'host' ? (
-            <RaPresentation
-              key={[
-                session.view?.instanceId,
-                session.view?.branch,
-                session.view?.paused,
-                session.view?.playMode,
-                session.connected,
-              ].join(':')}
-              session={session}
-              game={game}
-              audioEnabled={audioEnabled}
-            >
-              {seatCards}
-            </RaPresentation>
-          ) : (
-            seatCards()
-          )}
+                </div>
+                <RaTrack
+                  key={game.epoch}
+                  drawn={game.raDrawn}
+                  limit={game.limit}
+                  pushKey={pushBoat && pushKey !== ignoredPush ? pushKey : ''}
+                />
+                <ol className="ra-lot" aria-label="拍卖行">
+                  {game.lot.map((tile, index) => {
+                    const target = godMode
+                      ? exchangeOptions.find((action) => action.slot === index)
+                      : undefined;
+                    return (
+                      <li
+                        key={index}
+                        data-occupied={tile !== null}
+                        data-god-blocked={
+                          Boolean(godMode && tile && !target) || undefined
+                        }
+                        aria-label={`第 ${index + 1} 格 ${tile ? tileNames[tile.face] : '空'}`}
+                      >
+                        {tile &&
+                          (target ? (
+                            <button
+                              type="button"
+                              className="ra-lot-target"
+                              aria-label={`换取第 ${index + 1} 格 ${tileNames[tile.face]}`}
+                              aria-pressed={exchangeTarget?.tileId === tile.id}
+                              disabled={session.locked}
+                              onClick={() =>
+                                setExchange(
+                                  exchangeTarget?.tileId === tile.id
+                                    ? { key: decisionKey }
+                                    : { key: decisionKey, target },
+                                )
+                              }
+                            >
+                              <TileFace tile={tile} decorative />
+                            </button>
+                          ) : (
+                            <TileFace tile={tile} decorative />
+                          ))}
+                      </li>
+                    );
+                  })}
+                </ol>
+                <TableArt piece="auction-board" className="ra-board-ornament" />
+                <div className="ra-board-note" role="status">
+                  {game.pending ? (
+                    <strong className="ra-pending">
+                      <TileFace tile={game.pending.tile} />
+                      {name(game.pending.owner)}处理灾难
+                    </strong>
+                  ) : game.phase === 'ended' ? (
+                    game.lot.some(Boolean) ? (
+                      '剩余拍品不计分'
+                    ) : (
+                      '第三时代已结算'
+                    )
+                  ) : game.epoch > 1 ? (
+                    `第 ${game.epoch - 1} 时代已结算`
+                  ) : null}
+                </div>
+              </section>
+              {ownBoard && (
+                <section
+                  className="ra-compact-auction"
+                  data-auction={Boolean(auction)}
+                  aria-label={auction ? '各席竞拍状态' : '同桌玩家'}
+                  style={{
+                    gridTemplateColumns: `repeat(${game.players.length}, minmax(0, 1fr))`,
+                  }}
+                >
+                  <h2 className="ra-wide-seats-title">
+                    {auction ? '竞价席位' : '同桌玩家'}
+                  </h2>
+                  {game.players.map((player) => {
+                    const status = auctionStatus(player.seat);
+                    const label =
+                      status?.bid === null
+                        ? '跳过'
+                        : status?.highest
+                          ? '最高'
+                          : status?.bid !== undefined
+                            ? '出价'
+                            : status?.caller
+                              ? '发起'
+                              : undefined;
+                    return (
+                      <article
+                        key={player.seat}
+                        data-active={player.seat === game.actor}
+                      >
+                        <span
+                          className="ra-auction-seat-name"
+                          title={name(player.seat)}
+                        >
+                          {name(player.seat)}
+                        </span>
+                        <div className="ra-player-seat-status">
+                          <AuctionBadge status={status} />
+                          {label && (
+                            <span
+                              className="ra-wide-seat-label"
+                              aria-hidden="true"
+                            >
+                              {label}
+                            </span>
+                          )}
+                        </div>
+                      </article>
+                    );
+                  })}
+                </section>
+              )}
+              {ownBoard && lastAuction && (
+                <div className="ra-wide-recap">
+                  <AuctionRecap
+                    record={lastAuction}
+                    name={name}
+                    open={() => setDetailPanel('record')}
+                  />
+                </div>
+              )}
+              {ownBoard && ranks.length > 0 && (
+                <section className="ra-phone-ranking" aria-label="终局排名">
+                  <ol>
+                    {ranks.map(({ seat, rank, total }) => (
+                      <li key={seat}>
+                        <span>
+                          第 {rank} 名 {name(seat)}
+                        </span>
+                        <b>{total} 分</b>
+                      </li>
+                    ))}
+                  </ol>
+                </section>
+              )}
+            </div>
+            <div className="ra-player-self">
+              {ownBoard && (
+                <DecisionControls
+                  decisionKey={decisionKey}
+                  session={session}
+                  game={game}
+                  player={ownBoard}
+                  exchange={exchangeTarget}
+                  godMode={godMode}
+                  enterGod={() => setExchange({ key: decisionKey })}
+                  exitGod={() => setExchange(undefined)}
+                  clearTarget={() => setExchange({ key: decisionKey })}
+                  savedFeedback={Boolean(feedback)}
+                />
+              )}
+              {ownBoard && (
+                <PlayerBoard
+                  player={ownBoard}
+                  name={name(ownBoard.seat)}
+                  active={ownBoard.seat === game.actor}
+                  ended={game.phase === 'ended'}
+                  epoch={game.epoch}
+                  projection={projection}
+                  primary
+                  footer={
+                    <nav className="ra-player-board-nav" aria-label="牌桌明细">
+                      <button
+                        type="button"
+                        aria-haspopup="dialog"
+                        onClick={() => setDetailPanel('opponents')}
+                      >
+                        <svg viewBox="0 0 24 24" aria-hidden="true">
+                          <circle cx="9" cy="8" r="3" />
+                          <path d="M3 19v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2M16 5a3 3 0 0 1 0 6m2 2a4 4 0 0 1 3 4v2" />
+                        </svg>
+                        其他玩家
+                      </button>
+                      <button
+                        type="button"
+                        aria-haspopup="dialog"
+                        onClick={() => setDetailPanel('record')}
+                      >
+                        <svg viewBox="0 0 24 24" aria-hidden="true">
+                          <path d="M6 4h12v16H6zM9 8h6m-6 4h6m-6 4h4" />
+                        </svg>
+                        拍卖记录
+                      </button>
+                    </nav>
+                  }
+                />
+              )}
+            </div>
+          </div>
+          {!ownBoard &&
+            (session.role === 'host' ? (
+              <RaPresentation
+                key={[
+                  session.view?.instanceId,
+                  session.view?.branch,
+                  session.view?.paused,
+                  session.view?.playMode,
+                  session.connected,
+                ].join(':')}
+                session={session}
+                game={game}
+                audioEnabled={audioEnabled}
+              >
+                {seatCards}
+              </RaPresentation>
+            ) : (
+              seatCards()
+            ))}
           {!ownBoard && lastAuction && (
             <AuctionRecap
               record={lastAuction}

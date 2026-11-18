@@ -379,6 +379,7 @@ export function InteractionLayer({ session }: { session: RoomSession }) {
               title={wheel ? '取消互动' : '拖动移动，按住并滑动选择互动'}
               data-dragging={dragging}
               data-open={Boolean(wheel)}
+              data-default-position={orb.defaultPosition || undefined}
               style={{ left: displayed.x, top: displayed.y }}
               onPointerDown={(event) => {
                 if (event.button !== 0 || pointer.current) return;
@@ -503,16 +504,18 @@ export function InteractionLayer({ session }: { session: RoomSession }) {
               onKeyDown={(event) => {
                 if (event.key === ' ' || event.key === 'Enter') {
                   event.preventDefault();
-                  if (!wheel)
+                  if (!wheel) {
+                    const rect = event.currentTarget.getBoundingClientRect();
                     setWheel(
                       clampInteractionOrb(
-                        resting.x,
-                        resting.y,
+                        rect.left + rect.width / 2,
+                        rect.top + rect.height / 2,
                         viewport.width,
                         viewport.height,
                         138,
                       ),
                     );
+                  }
                 } else if (
                   wheel &&
                   ['ArrowRight', 'ArrowDown', 'ArrowLeft', 'ArrowUp'].includes(

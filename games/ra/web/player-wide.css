@@ -1,0 +1,275 @@
+.ra-player-layout,
+.ra-player-table,
+.ra-player-self,
+.ra-player-seat-status {
+  display: contents;
+}
+
+.ra-compact-auction[data-auction='false'],
+.ra-wide-seats-title,
+.ra-wide-seat-label,
+.ra-wide-recap {
+  display: none;
+}
+
+@media (min-width: 1000px) and (min-height: 580px) {
+  :root[data-player-display='wide']:has(.ra-table[data-role='player']) {
+    --interaction-orb-initial-y: 0;
+    --interaction-orb-scroll-with-page: 0;
+  }
+
+  :root[data-player-display='wide']:has(.ra-table[data-role='player'])
+    .interaction-orb[data-default-position='true'][data-open='false'] {
+    top: 30px !important;
+  }
+
+  :root[data-player-display='wide'] .ra-table[data-role='player'] {
+    display: flex;
+    flex-direction: column;
+    block-size: 100dvh;
+    min-block-size: 0;
+    padding: 16px 20px;
+  }
+
+  [data-player-display='wide'] .ra-table[data-role='player'] .ra-header {
+    padding-inline-end: 51px;
+  }
+
+  [data-player-display='wide'] .ra-player-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1.86fr) minmax(350px, 1fr);
+    align-items: start;
+    gap: 12px;
+    flex: 1 1 0;
+    min-block-size: 0;
+  }
+
+  [data-player-display='wide'] .ra-player-table,
+  [data-player-display='wide'] .ra-player-self {
+    display: flex;
+    flex-direction: column;
+    gap: 9px;
+    min-inline-size: 0;
+    min-block-size: 0;
+    max-block-size: 100%;
+  }
+
+  [data-player-display='wide'] .ra-player-table {
+    overflow: auto;
+    padding: 2px;
+  }
+
+  [data-player-display='wide'] .ra-player-self {
+    --ra-text: #283a34;
+    --ra-surface: #eee5d1;
+    --ra-slot: #e6dac1;
+    --ra-edge: #a3916c;
+    --ra-accent: #2b685e;
+    --ra-selection: #285f56;
+    --ra-selection-text: #fff5de;
+    color: var(--ra-text);
+    padding: 2px;
+  }
+
+  [data-player-display='wide'] .ra-player-table .ra-board {
+    flex: none;
+    padding: 10px 12px;
+  }
+
+  [data-player-display='wide'] .ra-player-table .ra-status {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    column-gap: 8px;
+  }
+
+  [data-player-display='wide'] .ra-player-table .ra-status strong {
+    min-inline-size: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    text-align: center;
+  }
+
+  [data-player-display='wide'] .ra-player-table .ra-central-disk .ra-sun {
+    width: 54px;
+  }
+
+  [data-player-display='wide'] .ra-player-table .ra-lot {
+    grid-template-columns: repeat(8, minmax(0, 1fr));
+    gap: 5px;
+  }
+
+  [data-player-display='wide']
+    .ra-player-table
+    .ra-lot
+    [data-god-blocked]
+    .ra-tile {
+    opacity: 0.58;
+  }
+
+  [data-player-display='wide'] .ra-player-table .ra-board-ornament {
+    display: none;
+  }
+
+  [data-player-display='wide'] .ra-player-table .ra-board-note {
+    min-block-size: 24px;
+  }
+
+  [data-player-display='wide'] .ra-player-table .ra-compact-auction {
+    display: grid;
+    gap: 5px;
+    flex: none;
+    padding: 8px;
+    border: 1px solid var(--ra-edge);
+    border-radius: 6px;
+    background: #34362e;
+  }
+
+  [data-player-display='wide'] .ra-wide-seats-title {
+    display: block;
+    grid-column: 1 / -1;
+    font-size: 19px;
+  }
+
+  [data-player-display='wide'] .ra-player-table .ra-compact-auction article {
+    display: grid;
+    grid-template-rows: auto 25px;
+    min-inline-size: 0;
+    gap: 3px;
+    padding: 5px;
+    background: #403e33;
+  }
+
+  [data-player-display='wide']
+    .ra-player-table
+    .ra-compact-auction
+    article[data-active='true'] {
+    background: #3c5045;
+    border-width: 1px;
+  }
+
+  [data-player-display='wide'] .ra-player-table .ra-auction-seat-name {
+    min-inline-size: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  [data-player-display='wide'] .ra-player-seat-status {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  [data-player-display='wide'] .ra-player-seat-status .ra-seat-badges {
+    min-block-size: 0;
+  }
+
+  [data-player-display='wide']
+    .ra-player-seat-status
+    :is(.ra-auction-statue, .ra-sun, svg) {
+    inline-size: 21px;
+    block-size: 21px;
+    object-fit: contain;
+  }
+
+  [data-player-display='wide'] .ra-wide-seat-label,
+  [data-player-display='wide'] .ra-wide-recap {
+    display: block;
+    white-space: nowrap;
+  }
+
+  [data-player-display='wide'] .ra-wide-recap {
+    flex: none;
+    white-space: normal;
+  }
+
+  [data-player-display='wide'] .ra-wide-recap .ra-recap-wide {
+    display: grid;
+    grid-template-columns: minmax(128px, 1fr) minmax(0, 1.5fr) auto;
+    padding: 8px;
+  }
+
+  [data-player-display='wide'] .ra-wide-recap .ra-recap-compact {
+    display: none;
+  }
+
+  [data-player-display='wide'] .ra-wide-recap .ra-recap-result strong {
+    display: inline-block;
+    max-inline-size: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    vertical-align: middle;
+  }
+
+  [data-player-display='wide'] .ra-player-self .ra-decision-panel {
+    flex: 0 0 auto;
+    position: relative;
+    z-index: 2147483001;
+    border-block-start: 3px solid #b89c66;
+    background: #f4ecd9;
+    padding: 9px 10px;
+  }
+
+  [data-player-display='wide'] .ra-player-self .ra-bid-facts > div {
+    padding-inline: 6px;
+  }
+
+  [data-player-display='wide'] .ra-player-self .ra-bid-options .ra-bid {
+    border: 1px solid #b09864;
+    background: #fff0c8;
+  }
+
+  [data-player-display='wide'] .ra-player-self .ra-god-preview {
+    background: #e3e7d1;
+  }
+
+  [data-player-display='wide'] .ra-player-self .ra-decision-warning {
+    color: #8a3b2f;
+  }
+
+  [data-player-display='wide'] .ra-player-self .ra-discard-confirm:enabled {
+    color: #fff6df;
+    background: #8a3b2f;
+  }
+
+  [data-player-display='wide'] .ra-player-self .ra-discard-options {
+    grid-template-columns: repeat(auto-fit, minmax(69px, 1fr));
+  }
+
+  [data-player-display='wide'] .ra-player-self .ra-choice {
+    border: 1px solid #b39f78;
+  }
+
+  [data-player-display='wide'] .ra-player-self .ra-decision-note > span,
+  [data-player-display='wide'] .ra-player-self .ra-bid-facts dt,
+  [data-player-display='wide'] .ra-player-self .ra-god-preview strong > span {
+    white-space: nowrap;
+  }
+
+  [data-player-display='wide'] .ra-player-self > .ra-personal {
+    display: flex;
+    flex-direction: column;
+    flex: 0 1 auto;
+    min-block-size: 0;
+    overflow: hidden;
+  }
+
+  [data-player-display='wide']
+    .ra-player-self
+    :is(.ra-personal-heading, .ra-player-board-nav) {
+    flex: none;
+  }
+
+  [data-player-display='wide'] .ra-player-self .ra-forecast {
+    min-block-size: 0;
+    overflow: auto;
+    scrollbar-width: thin;
+  }
+
+  [data-player-display='wide'] .ra-player-self .ra-personal-score[open] {
+    max-block-size: min(132px, 30vh);
+    overflow: auto;
+  }
+}
