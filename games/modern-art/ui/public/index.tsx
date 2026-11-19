@@ -29,6 +29,59 @@ function publicSeatNumber(view: ModernArtView, seat: string | null) {
   return index < 0 ? null : index + 1;
 }
 
+function MuseumCount({
+  kind,
+  count,
+}: {
+  kind: 'hand' | 'collection';
+  count: number;
+}) {
+  const label = `${kind === 'hand' ? '手牌' : '收藏'} ${count} 张`;
+  return (
+    <span
+      className="ma-museum__count"
+      role="img"
+      aria-label={label}
+      title={label}
+    >
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        {kind === 'hand' ? (
+          <g stroke="#513b2e" strokeWidth="1.4">
+            <rect
+              x="4"
+              y="4"
+              width="10"
+              height="15"
+              rx="2"
+              fill="#57a59e"
+              transform="rotate(-16 9 12)"
+            />
+            <rect
+              x="10"
+              y="4"
+              width="10"
+              height="15"
+              rx="2"
+              fill="#bf5758"
+              transform="rotate(12 15 12)"
+            />
+            <path d="m13 13 2.5-2.5 2 3.5Z" fill="#ffefc0" stroke="none" />
+          </g>
+        ) : (
+          <path
+            d="m12 3 2.7 5.5 6.1.9-4.4 4.3 1 6.1-5.4-2.9-5.4 2.9 1-6.1-4.4-4.3 6.1-.9Z"
+            fill="#e4ad3e"
+            stroke="#765327"
+            strokeWidth="1.4"
+            strokeLinejoin="round"
+          />
+        )}
+      </svg>
+      {count}
+    </span>
+  );
+}
+
 export function SavedAction({
   view,
   names,
@@ -692,8 +745,11 @@ export function Museums({
                   )}
                 </h3>
                 <p>
-                  <span>手牌 {player.handCount}</span>
-                  <span>收藏 {player.collection.length}</span>
+                  <MuseumCount kind="hand" count={player.handCount} />
+                  <MuseumCount
+                    kind="collection"
+                    count={player.collection.length}
+                  />
                 </p>
               </div>
             </div>

@@ -639,6 +639,18 @@
   font-size: 16px;
   color: #624a2d;
 }
+.ma-screen .ma-museum__count {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  line-height: 22px;
+  font-variant-numeric: tabular-nums;
+}
+.ma-screen .ma-museum__count svg {
+  flex: none;
+  width: 22px;
+  height: 22px;
+}
 .ma-screen .ma-museum__number {
   margin-left: auto;
   color: #896640;

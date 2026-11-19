@@ -500,7 +500,15 @@ function PowerGridScreen({ session }: { session: RoomSession }) {
                 {notice && <span role="status">{notice}</span>}
               </div>
               {game.self && !ended && (
-                <strong className="pg-cash">现金 {game.self.cash} E</strong>
+                <strong
+                  className="pg-cash"
+                  role="img"
+                  aria-label={`现金 ${game.self.cash} 电币`}
+                  title={`现金 ${game.self.cash} 电币`}
+                >
+                  <BoardIcon name="cash" />
+                  {game.self.cash} E
+                </strong>
               )}
               {role === 'player' && (
                 <DecisionCountdown view={view} connected={connected} compact />

@@ -30,10 +30,9 @@
 }
 
 .ra-bid-facts > div {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  gap: 0 6px;
+  display: grid;
+  align-content: start;
+  gap: 2px;
   padding: 4px 7px;
   border: 1px solid var(--ra-edge);
   border-radius: 5px;
@@ -41,21 +40,36 @@
 }
 
 .ra-bid-facts dd {
+  display: flex;
+  align-items: center;
+  min-block-size: 40px;
   margin: 0;
   font-weight: 750;
   font-size: 18px;
   white-space: nowrap;
 }
 
-.ra-bid-facts dd:has(.ra-disk-status) {
-  flex-basis: 100%;
+.ra-disk-fact {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 2px 5px;
+}
+
+:is(.ra-bid-facts, .ra-won-receipt) .ra-sun {
+  flex: none;
+  inline-size: 40px;
 }
 
 .ra-disk-status {
-  display: block;
+  padding: 1px 4px;
+  border-radius: 4px;
+  background: #f9f0dc;
+  color: #6e4029;
   font-size: 16px;
   font-weight: 600;
   line-height: 1.3;
+  white-space: nowrap;
 }
 
 .ra-disaster-heading {
@@ -180,12 +194,19 @@
   text-wrap: pretty;
 }
 
-.ra-won-receipt > div {
-  white-space: nowrap;
+.ra-won-receipt {
+  align-items: center;
+  gap: 4px 8px;
 }
 
-.ra-won-receipt b {
-  font-size: 18px;
+.ra-won-receipt > div {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.ra-won-receipt > div > span:first-child {
+  white-space: nowrap;
 }
 
 .ra-decision-receipt + .ra-decision-receipt {

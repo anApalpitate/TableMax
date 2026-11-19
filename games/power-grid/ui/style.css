@@ -220,9 +220,17 @@
   font-weight: 700;
 }
 .pg-screen .pg-status-bar .pg-cash {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
   white-space: nowrap;
   font-size: 22px;
   color: #574318;
+}
+.pg-screen .pg-status-bar .pg-cash .pg-board-icon {
+  flex: none;
+  width: 22px;
+  height: 22px;
 }
 .pg-screen.pg-screen--host {
   height: 100dvh;

@@ -1,6 +1,10 @@
 export type BoardIconName =
   | 'market'
   | 'income'
+  | 'cash'
+  | 'city'
+  | 'seat'
+  | 'supply'
   | 'wide'
   | 'narrow'
   | 'search'
@@ -29,6 +33,25 @@ export function BoardIcon({ name }: { name: BoardIconName }) {
           />
           <path d="M7 16h2m3 0h2m3 0h2" stroke="currentColor" strokeWidth="2" />
         </>
+      ) : name === 'cash' ? (
+        <g stroke="currentColor" strokeWidth="1.5">
+          <path d="M5 7V4h17v12h-3" fill="none" strokeLinejoin="round" />
+          <rect x="2" y="8" width="17" height="12" rx="2" fill="#eed282" />
+          <circle cx="10.5" cy="14" r="2.5" fill="none" />
+        </g>
+      ) : name === 'city' ? (
+        <path d="M2 11 12 2l10 9-2 2-2-2v11H6V11l-2 2Z" fill="currentColor" />
+      ) : name === 'seat' ? (
+        <path
+          d="M7 13V5a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v8M5 13h14v4H5Zm2 4v4m10-4v4"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      ) : name === 'supply' ? (
+        <path d="m13 2-9 12h7l-1 8 10-12h-7Z" fill="currentColor" />
       ) : name === 'income' ? (
         <g transform="translate(-1.5 -.5)">
           <circle

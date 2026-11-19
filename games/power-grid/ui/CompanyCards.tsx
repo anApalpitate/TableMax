@@ -136,22 +136,54 @@ export function CompanyCards({
                 <span>{rank + 1}</span>
                 <strong>{names[seatId] ?? `公司${index + 1}`}</strong>
               </button>
-              <div>
-                {player.cities.length} 城 ·{' '}
-                {active && view.actor === seatId
-                  ? '行动中'
-                  : `座位 ${index + 1}`}
+              <div className="pg-company-overview-network">
+                <span
+                  className="pg-overview-metric"
+                  role="img"
+                  aria-label={`已接入 ${player.cities.length} 城`}
+                  title={`已接入 ${player.cities.length} 城`}
+                >
+                  <BoardIcon name="city" />
+                  {player.cities.length}
+                </span>
+                {active && view.actor === seatId ? (
+                  <b>行动中</b>
+                ) : (
+                  <span
+                    className="pg-overview-metric"
+                    role="img"
+                    aria-label={`座位 ${index + 1}`}
+                    title={`座位 ${index + 1}`}
+                  >
+                    <BoardIcon name="seat" />
+                    {index + 1}
+                  </span>
+                )}
               </div>
               <div className="pg-company-overview-plants">
                 {player.plants.length
-                  ? player.plants.map((plant) => (
-                      <span
-                        className="pg-company-overview-plant"
-                        key={plant.id}
-                      >
-                        {plant.id}号/{getPlant(plant.id).output}城
-                      </span>
-                    ))
+                  ? player.plants.map(({ id }) => {
+                      const output = getPlant(id).output;
+                      const label = `${id} 号电厂，供电 ${output} 城`;
+                      return (
+                        <span
+                          className="pg-company-overview-plant"
+                          key={id}
+                          role="img"
+                          aria-label={label}
+                          title={label}
+                        >
+                          <span className="pg-overview-metric">
+                            <BoardIcon name="market" />
+                            {id}
+                          </span>
+                          <span className="pg-overview-metric">
+                            <BoardIcon name="supply" />
+                            {output}
+                          </span>
+                        </span>
+                      );
+                    })
                   : '暂无电厂'}
               </div>
               <div className="pg-company-overview-stock">

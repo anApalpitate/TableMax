@@ -22,6 +22,15 @@ type Receipt = Extract<
   { kind: 'won' | 'god' | 'disaster' }
 >;
 
+function ReturnedDisk({ value }: { value: number }) {
+  return (
+    <span className="ra-disk-fact">
+      <SunDisk value={value} />
+      <span className="ra-disk-status">本时代停用</span>
+    </span>
+  );
+}
+
 function DecisionReceipt({
   game,
   scenes,
@@ -44,12 +53,13 @@ function DecisionReceipt({
               <strong>赢标</strong>
               {paid != null && (
                 <div>
-                  付出 <b>{paid}</b>
+                  <span>付出</span>
+                  <SunDisk value={paid} />
                 </div>
               )}
               <div>
-                换回 <b>{scene.disk}</b>
-                <span className="ra-disk-status">本时代停用</span>
+                <span>换回</span>
+                <ReturnedDisk value={scene.disk} />
               </div>
             </div>
           );
@@ -104,13 +114,12 @@ function AuctionControls({
       <dl className="ra-bid-facts">
         <div>
           <dt>当前最高</dt>
-          <dd>{highest ?? '无人出价'}</dd>
+          <dd>{highest == null ? '无人出价' : <SunDisk value={highest} />}</dd>
         </div>
         <div>
           <dt>赢标换回</dt>
           <dd>
-            <strong>{game.center}</strong>
-            <span className="ra-disk-status">本时代停用</span>
+            <ReturnedDisk value={game.center} />
           </dd>
         </div>
       </dl>

@@ -1543,6 +1543,7 @@
   flex: 0 0 auto;
   grid-template-rows: auto auto auto;
   padding: 8px;
+  padding-block-end: 16px;
 }
 .pokemon-screen:not(.player) .decision-dashboard > .held-zone {
   grid-row: 2;
@@ -1818,6 +1819,26 @@
   width: 100%;
   height: auto;
   min-height: 4px;
+}
+.pokemon-screen.player[data-layout='L'] .decision-status .progress-segment {
+  height: 6px;
+  border: 0;
+  border-radius: 3px;
+  background: repeating-linear-gradient(
+    90deg,
+    #a0b9ae 0 4px,
+    transparent 4px 8px
+  );
+}
+.pokemon-screen.player[data-layout='L']
+  .decision-status
+  .progress-segment.complete {
+  background: #a3edba;
+}
+.pokemon-screen.player[data-layout='L']
+  .decision-status
+  .progress-segment.current {
+  background: #ffd477;
 }
 .pokemon-screen.player[data-layout='L'] .decision-status .coin-result {
   order: 3;

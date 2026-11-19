@@ -35,16 +35,53 @@
   min-width: 0;
   overflow-wrap: anywhere;
 }
+.pg-screen .pg-company-overview-network {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 2px 10px;
+  margin-top: 3px;
+}
+.pg-screen .pg-company-overview-network b {
+  font-size: 18px;
+  white-space: nowrap;
+}
+.pg-screen .pg-overview-metric {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+.pg-screen .pg-overview-metric .pg-board-icon {
+  flex: none;
+  width: 16px;
+  height: 16px;
+  color: #544a34;
+}
 .pg-screen .pg-company-overview-plants {
   display: flex;
   flex-wrap: wrap;
   align-content: start;
-  gap: 1px 8px;
+  gap: 3px 4px;
   min-height: 44px;
   margin-top: 4px;
 }
 .pg-screen .pg-company-overview-plant {
-  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding-inline: 3px;
+  border: 1px solid #d8c8a7;
+  border-radius: 4px;
+  background: #f7efd9;
+}
+.pg-screen
+  .pg-company-overview-plant
+  .pg-overview-metric
+  + .pg-overview-metric
+  .pg-board-icon {
+  color: #8a560b;
 }
 .pg-screen .pg-company-overview-stock {
   display: grid;
