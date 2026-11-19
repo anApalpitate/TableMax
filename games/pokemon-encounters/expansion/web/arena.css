@@ -194,6 +194,9 @@ main.expansion-screen
   border-color: #547b90;
   border-radius: 8px;
 }
+main.expansion-screen .ex-source-rule {
+  color: var(--ex-gold);
+}
 main.expansion-screen .ex-last-action {
   border-left: 3px solid #e9c66d;
 }

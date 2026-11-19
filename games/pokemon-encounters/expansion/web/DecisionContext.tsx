@@ -45,18 +45,9 @@ export function DecisionContext(props: PlayerDecisionProps) {
               <strong>{game.held.name}</strong>
               {game.drawSource !== 'deck' && (
                 <span className="ex-source-rule">
-                  <span className="ex-source-label-full">
-                    {game.drawSource === 'buffer'
-                      ? '来自本人缓冲'
-                      : '来自弃牌堆'}
-                    ，必须使用
-                  </span>
-                  <span className="ex-source-label-compact">
-                    <span>
-                      {game.drawSource === 'buffer' ? '本人缓冲' : '弃牌堆'}
-                    </span>
-                    <span>必须换入</span>
-                  </span>
+                  {game.drawSource === 'buffer'
+                    ? '本人缓冲必须换入'
+                    : '弃牌堆取牌必须换入'}
                 </span>
               )}
               <p

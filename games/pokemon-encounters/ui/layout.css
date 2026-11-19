@@ -121,6 +121,15 @@
 .pokemon-screen .seat-heading > div {
   min-width: 0;
 }
+.pokemon-screen .seat-identity,
+.pokemon-screen .seat-heading-details {
+  display: flex;
+  align-items: center;
+  gap: 2px 6px;
+}
+.pokemon-screen .seat-identity {
+  flex-wrap: wrap;
+}
 .pokemon-screen .seat-heading h3 {
   overflow: visible;
   -webkit-line-clamp: unset;
@@ -136,6 +145,31 @@
   white-space: normal;
   text-overflow: clip;
   overflow-wrap: anywhere;
+}
+.pokemon-screen:not(.player)
+  .game-table:is([data-seats='4'], [data-seats='5'], [data-seats='6'])
+  .seat-identity {
+  flex: 1;
+  display: grid;
+  grid-template: 20px 18px / minmax(0, 1fr);
+}
+.pokemon-screen:not(.player)
+  .game-table:is([data-seats='4'], [data-seats='5'], [data-seats='6'])
+  .seat-heading
+  .seat-title {
+  align-self: stretch;
+  display: block;
+  -webkit-line-clamp: unset;
+  font-size: 16px;
+  line-height: 20px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.pokemon-screen:not(.player)
+  .game-table:is([data-seats='4'], [data-seats='5'], [data-seats='6'])
+  .seat-name {
+  white-space: inherit;
 }
 .pokemon-screen .pokemon-board {
   grid-row: 2;

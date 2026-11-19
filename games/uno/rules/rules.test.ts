@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { CARD_IDS, CARDS, getCard } from '../data/catalog';
+import { CARD_IDS, CARDS, cardLabel, getCard } from '../data/catalog';
 import type { Action } from '../types';
 import { context, fixture } from './test-fixtures';
 import {
@@ -382,6 +382,16 @@ describe('UNO宣告窗口、洗牌、开局与读档', () => {
       if (top.kind === 'reverse') {
         expect(s.turnSeat).toBe(s.dealer);
         expect(s.direction).toBe(-1);
+        expect(s.latest?.text).toBe(
+          `第 1 小局开始，开局牌 ${cardLabel(top.id)}，发牌者先行动。`,
+        );
+        const saved = structuredClone(s);
+        const savedText = `第 1 小局开始，开局牌 ${cardLabel(top.id)}，开局反转，发牌者先行动。`;
+        saved.latest!.text = savedText;
+        expect(
+          project(validateState(saved, saved.seats), { role: 'public' }).latest
+            ?.text,
+        ).toBe(savedText);
       }
       if (top.kind === 'wild') {
         expect(s.stage).toBe('choose-color');

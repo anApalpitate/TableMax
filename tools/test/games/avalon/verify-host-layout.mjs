@@ -56,6 +56,7 @@ const inputPaths = [
   'games/avalon/ui/layout.css',
   'games/avalon/web/index.tsx',
   'games/avalon/ui/Board.tsx',
+  'games/avalon/ui/RoleCard.tsx',
   'games/avalon/rules/test-fixtures.ts',
   'tools/test/games/avalon/verify-host-layout.mjs',
 ];
@@ -102,7 +103,10 @@ window.renderAvalon=({count=10,phase='discussion',role='host',long=false,paused=
  if(phase!=='reveal') state=reveal(state);
  if(['discussion','vote'].includes(phase)) {
   state=apply(state,rulesByVariant.configured.legalActions(state,state.leader)[0],state.leader);
-  if(phase==='vote') state=discuss(state);
+  if(phase==='vote') {
+   state=discuss(state);
+   state=apply(state,{type:'vote-team',vote:'reject'},state.seats[1]);
+  }
  }
  if(['quest','assassinate','ended'].includes(phase)) {
   state=approve(state,rulesByVariant.configured.legalActions(state,state.leader)[0].team);
@@ -122,7 +126,8 @@ window.renderAvalon=({count=10,phase='discussion',role='host',long=false,paused=
  window.commands=[];
  window.expectedActions=rules.legalActions(state,self);
  const game=rules.project(state,{role:role==='player'?'player':'public',seatId:role==='player'?self:undefined});
- const session={role,connected:true,locked:false,canControl:role==='host',message:'',messageKind:'saved',admissionPending:false,awaitingConfirmation:false,feedback:null,errorId:'',motion:[],command:c=>{if(c.type==='game')window.appliedState=apply(state,c.action,self);window.commands.push(c);},view:{instanceId:'host-layout',branch:0,revision:1,status:state.phase==='ended'?'ended':'playing',paused,playMode:'play',gameView:game,decisionId:rules.decisions(state)[0]?.id??null,countdownSeconds:30,decisionClock:null,actions:role==='player'?window.expectedActions:[],lifecycleActions:role==='host'&&state.phase==='discussion'?[{type:'skip-discussion',target:game.discussion.current}]:[],seats,history:[]}};
+ window.projectedGame=game;
+ const session={role,connected:true,locked:false,canControl:role==='host'||phase==='ended',message:'',messageKind:'saved',admissionPending:false,awaitingConfirmation:false,feedback:null,errorId:'',motion:[],command:c=>{if(c.type==='game')window.appliedState=apply(state,c.action,self);window.commands.push(c);},view:{instanceId:'host-layout',branch:0,revision:1,status:state.phase==='ended'?'ended':'playing',paused,playMode:'play',gameView:game,decisionId:rules.decisions(state)[0]?.id??null,countdownSeconds:30,decisionClock:null,actions:role==='player'?window.expectedActions:[],lifecycleActions:role==='host'&&state.phase==='discussion'?[{type:'skip-discussion',target:game.discussion.current}]:[],seats,history:[]}};
  flushSync(()=>root.render(<HostedGame key={count+phase+role+long+paused} session={session} client={client} presentation={{management:()=>null,feedback:()=>null,playMode:()=>null,countdown:()=>null}}/>));
 };
 window.renderAvalon();
@@ -262,6 +267,96 @@ try {
             };
           }, role);
 
+          if (phase === 'vote') {
+            const projection = await page.evaluate(() => window.projectedGame);
+            assert.equal(projection.submittedSeats.length, 1);
+            assert.equal(projection.revealedRoles, null);
+            assert.deepEqual(projection.history, []);
+            assert.equal(await page.locator('.av-ballot-badge').count(), 0);
+            if (role === 'host') assert.equal(projection.self, null);
+            else assert.equal(projection.self.vote, null);
+          }
+          if (phase === 'ended') {
+            const captions = await page
+              .locator(
+                '.av-revealed-roles .av-role-card[data-role="servant"] .av-role-caption > strong',
+              )
+              .evaluateAll((nodes) =>
+                nodes.map((name) => {
+                  const card = name
+                    .closest('.av-role-card')
+                    .getBoundingClientRect();
+                  const groups = [...name.querySelectorAll('span')].map(
+                    (part) => ({
+                      text: part.textContent,
+                      rects: [...part.getClientRects()].map(
+                        ({ top, left, right, bottom }) => ({
+                          top,
+                          left,
+                          right,
+                          bottom,
+                        }),
+                      ),
+                    }),
+                  );
+                  return {
+                    text: name.textContent,
+                    font: parseFloat(getComputedStyle(name).fontSize),
+                    groups,
+                    fits: groups.every((group) =>
+                      group.rects.every(
+                        (rect) =>
+                          rect.top >= card.top &&
+                          rect.left >= card.left &&
+                          rect.right <= card.right &&
+                          rect.bottom <= card.bottom,
+                      ),
+                    ),
+                  };
+                }),
+              );
+            assert(captions.length > 0);
+            for (const caption of captions) {
+              assert.equal(caption.text, '亚瑟的忠臣');
+              assert.deepEqual(
+                caption.groups.map((group) => group.text),
+                ['亚瑟的', '忠臣'],
+              );
+              assert(
+                caption.groups.every((group) => group.rects.length === 1),
+                'Phrases do not break internally',
+              );
+              assert(
+                caption.font >= (width > 720 ? 20 : 18) && caption.fits,
+                'Full role title fits at its existing font size',
+              );
+            }
+            geometry.servantCaptions = captions;
+            assert.equal(
+              await page
+                .locator('.av-status-bar > div > strong')
+                .first()
+                .textContent(),
+              '终局',
+            );
+            assert.equal(
+              await page.locator('.av-revealed-roles > article').count(),
+              count,
+            );
+            const projection = await page.evaluate(() => window.projectedGame);
+            assert.equal(
+              await page.locator('.av-final-heading h1').textContent(),
+              projection.winner === 'good' ? '忠诚阵营获胜' : '邪恶阵营获胜',
+            );
+            assert.match(
+              await page.locator('.av-final-heading p').textContent(),
+              /梅林被刺客识破|梅林躲过了最后一剑/,
+            );
+            assert.equal(
+              await page.locator('.av-final-heading > div > span').count(),
+              0,
+            );
+          }
           if (interactions && role === 'player') {
             assert.equal(
               await page.locator('[data-av-secret="true"]').count(),
@@ -273,6 +368,19 @@ try {
               assert.equal(
                 await page.locator('[data-av-secret="true"]').count(),
                 1,
+              );
+              const self = await page.evaluate(() => window.projectedGame.self);
+              assert.equal(
+                await page
+                  .locator('[data-av-secret="true"] [data-role]')
+                  .count(),
+                1,
+              );
+              assert.equal(
+                await page
+                  .locator('[data-av-secret="true"] [data-role]')
+                  .getAttribute('data-role'),
+                self.role,
               );
               await page.evaluate(() =>
                 window.dispatchEvent(new Event('blur')),
@@ -374,6 +482,25 @@ try {
               fullPage: role === 'player',
             });
             report.screenshots.push(path);
+          }
+          if (phase === 'ended') {
+            const replay = page.getByRole('button', {
+              name: '原班人马再玩一局',
+            });
+            await replay.scrollIntoViewIfNeeded();
+            assert(
+              await replay.evaluate((button) => {
+                const r = button.getBoundingClientRect();
+                return r.top >= 0 && r.bottom <= innerHeight;
+              }),
+              'Authorized replay is reachable',
+            );
+            if (interactions) {
+              await replay.click();
+              assert.deepEqual(await page.evaluate(() => window.commands), [
+                { type: 'replay' },
+              ]);
+            }
           }
         }
   }

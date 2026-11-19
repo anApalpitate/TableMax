@@ -133,6 +133,29 @@
   overscroll-behavior-y: contain;
   padding: 3px 1px 8px;
 }
+@media (max-width: 959px) and (orientation: portrait) {
+  .pg-screen--player[data-phase='building'] .pg-phone-table {
+    min-height: 100%;
+  }
+  .pg-screen--player[data-phase='building'] .pg-phone-table > .pg-phone-map {
+    display: flex;
+    flex: 1 0 0;
+    min-height: 180px;
+  }
+  .pg-screen--player[data-phase='building']
+    .pg-phone-table
+    > .pg-phone-map
+    > .pg-map-panel {
+    width: 100%;
+  }
+  .pg-screen--player[data-phase='building']
+    .pg-phone-table
+    > .pg-phone-map
+    .pg-map-frame {
+    flex: 1 0 130px;
+    aspect-ratio: auto;
+  }
+}
 .pg-screen .pg-page-nav {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));

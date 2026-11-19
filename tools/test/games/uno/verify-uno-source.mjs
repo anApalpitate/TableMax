@@ -32,8 +32,12 @@ const groups = [
   'penalty',
   'evidence',
   'baseline',
+  'opening',
 ];
-const selected = option('only', groups.join(',')).split(',');
+const selected = option(
+  'only',
+  groups.filter((group) => group !== 'opening').join(','),
+).split(',');
 assert(
   selected.every((value) => groups.includes(value)),
   'Unknown verification group',
@@ -61,6 +65,12 @@ assert(
 );
 const task = option('task');
 if (task) assert.match(task, /^tmp\/[a-z0-9-]+$/);
+const openingFixturePath = option('opening-fixture');
+if (selected.includes('opening'))
+  assert.match(
+    openingFixturePath ?? '',
+    /^tmp\/[a-z0-9-]+\/legal-fixtures\.json$/,
+  );
 const output = task
   ? resolve('artifacts/maintenance', task.slice(4), 'uno', evidence)
   : resolve('artifacts/maintenance/uno-source-20261020', evidence);
@@ -193,11 +203,13 @@ function scenario(name,setup){
   state=rules.initialize({...context(1257,name==='normal-two'?ids.slice(0,2):ids),setup});
   if(state.stage==='choose-color')state=step(state,{type:'choose-color',color:'red'}).state;
   actor=state.turnSeat;
- }else if(name==='dense'){
+ }else if(name==='dense'||name==='dense-uno'){
   const playable=CARD_IDS.filter(id=>id!=='red-5-a'&&(getCard(id).color==='red'||getCard(id).kind==='number'&&getCard(id).value===5)).slice(0,28);
   const chosen=new Set([...playable,'red-5-a']),available=CARD_IDS.filter(id=>!chosen.has(id)),hands={a:playable};
-  for(const id of ids.slice(1))hands[id]=available.splice(0,7);
-  state=configured(fixture(hands),setup);
+  for(const id of ids.slice(1))hands[id]=available.splice(0,name==='dense-uno'&&id==='f'?1:7);
+  state=fixture(hands);
+  if(name==='dense-uno')state.unoDeclared.f=true;
+  state=configured(state,setup);
  }else if(name==='draft'){
   state=configured(fixture({a:['wild-1','red-1-a'],b:['blue-1-a'],c:['green-1-a']}),setup);
  }else if(name==='catch'){
@@ -214,7 +226,7 @@ function scenario(name,setup){
  rules.validateState(state,state.seats);
  return {state,actor,before,result};
 }
-function displayNames(mode,seats){return seats.map((id,i)=>({id,name:mode==='chinese'?'长'.repeat(8):mode==='latin'?'LongNicknameWithoutSpaces'.slice(0,16):'玩家'+(i+1),avatarId:'avatar-'+(i+1),controller:'human',ready:true,online:true,botDifficulty:null}));}
+function displayNames(mode,seats){return seats.map((id,i)=>({id,name:mode==='chinese'?'长'.repeat(8):mode==='latin'?'LongNicknameWithoutSpaces'.slice(0,16):mode==='wide-latin'?'W'.repeat(16):'玩家'+(i+1),avatarId:'avatar-'+(i+1),controller:'human',ready:true,online:true,botDifficulty:null}));}
 function sessionFor(options){
  const setup=validateUnoSetup(options.setup??{drawPenaltyStacking:false,catchUnoDelayMs:500});
  const made=scenario(options.scenario??'normal',setup),role=options.role??'player',actor=options.actor??made.actor;
@@ -250,6 +262,29 @@ function commit(result){const before=rules.project(current.made.state,{role:'pla
  current.session.motion=client.savedChanges(before,after);paint();
 }
 window.renderUno=options=>{catchObserver?.disconnect();window.catchObservation=null;history.replaceState(null,'','/'+(options.role??'player')+(options.box?'':'/game'));window.commands=[];window.cardClicks=[];sessionFor(options);paint();const catchButton=document.querySelector('.uno-catch-control');if(catchButton){const observation={receivedAt:current.openedAt,initialDisabled:catchButton.disabled,enabledAt:catchButton.disabled?null:performance.now()};window.catchObservation=observation;catchObserver=new MutationObserver(()=>{if(!catchButton.disabled&&observation.enabledAt===null)observation.enabledAt=performance.now();});catchObserver.observe(catchButton,{attributes:true,attributeFilter:['disabled']});}window.fixtureFacts.push({scenario:options.scenario??'normal',origin:options.scenario==='normal'?'natural-initial-deal':'controlled-validated-108-card-state',role:current.session.role,actor:current.actor,handCount:current.session.view.gameView?.self?.hand.length,setup:current.session.view.game.setup});};
+window.renderFrozenOpening=({view,refreshReceipt})=>{
+ const frozen=view.gameView;
+ let proof=null;
+ if(refreshReceipt){
+  for(let seed=1;seed<=10000;seed++){
+   const deal=rules.initialize({...context(seed,frozen.seatOrder),setup:view.game.setup});
+   if(deal.discard.at(-1)!==frozen.topCard.id||deal.turnSeat!==frozen.turnSeat)continue;
+   const valid=rules.validateState(deal,deal.seats);
+   const projected=rules.project(valid,{role:'player',seatId:view.self.seatId});
+   proof={seed,projected};
+   view.gameView={...frozen,latest:projected.latest};
+   break;
+  }
+  if(!proof)throw new Error('No validated current opening matched the frozen first actor and reverse card');
+ }
+ history.replaceState(null,'','/player/game');
+ document.documentElement.dataset.playerDisplay='portrait';
+ window.commands=[];
+ const session=sessionFor({role:'player'});
+ current.session={...session,view,self:view.seats.find(seat=>seat.id===view.self.seatId),canControl:view.capabilities.control,canManageSeats:view.capabilities.manageSeats,command:command=>window.commands.push(command)};
+ paint();
+ return proof;
+};
 window.saveStatus=enabled=>{current.session={...current.session,message:enabled?'已保存':'',messageKind:enabled?'saved':'none'};paint();};
 window.commitEvidence=()=>{if(!current.made.result)throw new Error('Evidence scenario required');commit(current.made.result);};
 window.restore=()=>{current.key='restored-'+(++serial);current.session={...current.session,feedback:null,motion:[]};paint();};
@@ -331,15 +366,22 @@ async function compile(name, clientPath, baselineFiles = {}) {
 let browser, currentServer, baselineServer;
 const currentMetrics = new Map();
 const enabled = (group) => selected.includes(group);
+const layoutCases = (width, height) => [
+  ['normal', 'short'],
+  ['dense', 'chinese'],
+  ['dense', 'latin'],
+  ...(width === 390 && height === 844 ? [['dense-uno', 'wide-latin']] : []),
+];
 const planned = [];
 for (const [w, h] of sizes) {
   if (enabled('layout'))
-    for (const [scenario, names] of [
-      ['normal', 'short'],
-      ['dense', 'chinese'],
-      ['dense', 'latin'],
-    ])
+    for (const [scenario, names] of layoutCases(w, h))
       planned.push(`layout:${w}x${h}:${scenario}:${names}`);
+  if (enabled('host')) {
+    for (const count of [2, 6])
+      planned.push(`host:${w}x${h}:${count}:long-names`);
+    if (w === 390 && h === 844) planned.push('host:390x660:6:pending');
+  }
   if (enabled('dialogs')) planned.push(`dialogs:${w}x${h}`);
   if (enabled('baseline'))
     for (const [scenario, names] of [
@@ -364,6 +406,7 @@ if (enabled('penalty'))
     planned.push('penalty:' + scenario);
 if (enabled('evidence'))
   planned.push('evidence:authorized-new-result-and-restore');
+if (enabled('opening')) planned.push('opening:390x844:yellow-reverse');
 async function capture(page, name) {
   const path = join(output, name + '.png');
   await captureBrowserScreenshot(page, { path, fullPage: true });
@@ -806,6 +849,71 @@ async function assertHandUnclipped(page, state) {
   );
 }
 
+async function assertPortraitSeats(page, names) {
+  const seats = await page
+    .locator('.uno-seats--compact .uno-seat')
+    .evaluateAll((nodes) =>
+      nodes.map((seat) => {
+        const name = seat.querySelector('.uno-seat-info > strong');
+        const avatar = seat.querySelector('.uno-seat-avatar');
+        const count = seat.querySelector('.uno-seat-info > span');
+        const badge = seat.querySelector('.uno-seat-uno');
+        const range = document.createRange();
+        const lines = new Map();
+        const text = name.firstChild;
+        for (let i = 0; i < text.length; i++) {
+          range.setStart(text, i);
+          range.setEnd(text, i + 1);
+          const { top } = range.getBoundingClientRect();
+          lines.set(top, (lines.get(top) ?? '') + text.data[i]);
+        }
+        const bounds = seat.getBoundingClientRect();
+        const nameBounds = name.getBoundingClientRect();
+        const avatarBounds = avatar.getBoundingClientRect();
+        const countBounds = count.getBoundingClientRect();
+        const badgeBounds = badge?.getBoundingClientRect();
+        return {
+          name: name.textContent,
+          font: parseFloat(getComputedStyle(name).fontSize),
+          lines: [...lines.values()],
+          fillsRow:
+            Math.abs(
+              bounds.right - nameBounds.right - (nameBounds.left - bounds.left),
+            ) < 1,
+          ownRow:
+            nameBounds.bottom <= Math.min(avatarBounds.top, countBounds.top),
+          badge: badge?.textContent,
+          badgeFits:
+            !badgeBounds ||
+            (badgeBounds.left >= avatarBounds.right &&
+              badgeBounds.right <= countBounds.left &&
+              badgeBounds.top >= nameBounds.bottom &&
+              badgeBounds.bottom <= bounds.bottom),
+        };
+      }),
+    );
+  assert.equal(seats.length, 6);
+  const expected = {
+    chinese: '长'.repeat(8),
+    latin: 'LongNicknameWith',
+    'wide-latin': 'W'.repeat(16),
+  }[names];
+  for (const seat of seats) {
+    assert.equal(seat.name, expected);
+    assert(
+      seat.font >= 16 && seat.fillsRow && seat.ownRow && seat.badgeFits,
+      JSON.stringify(seat),
+    );
+    assert(
+      seat.lines.at(-1)?.length > 1,
+      `孤字末行 ${JSON.stringify(seat.lines)}`,
+    );
+  }
+  if (names === 'wide-latin')
+    assert(seats.some((seat) => seat.badge === 'UNO!'));
+  return seats;
+}
+
 async function layout(page, width, height, scenario, names) {
   await page.setViewportSize({ width, height });
   await ready(page, { scenario, names, role: 'player' });
@@ -815,6 +923,8 @@ async function layout(page, width, height, scenario, names) {
     metrics,
   );
   assertGeometry(metrics);
+  if (width === 390 && height === 844 && scenario.startsWith('dense'))
+    metrics.portraitSeats = await assertPortraitSeats(page, names);
   await assertHandUnclipped(page, 'rest');
   const raisedCard = page.locator('.uno-hand-card').first();
   await raisedCard.hover();
@@ -864,7 +974,7 @@ async function layout(page, width, height, scenario, names) {
     positions,
     'Saved acknowledgement does not move the layout',
   );
-  if (scenario === 'dense') {
+  if (scenario.startsWith('dense')) {
     const count = await page.locator('.uno-hand-card').count();
     assert(count >= 28);
     const first = page.locator('.uno-hand-card').first(),
@@ -894,6 +1004,112 @@ async function layout(page, width, height, scenario, names) {
     'current-' + width + 'x' + height + '-' + scenario + '-' + names,
   );
   return metrics;
+}
+
+async function assertHostTable(page, count, pending = false) {
+  const sample = await page.locator('.uno-screen').evaluate((screen) => {
+    const bounds = (node) => {
+      const { left, right, top, bottom } = node.getBoundingClientRect();
+      return { left, right, top, bottom };
+    };
+    const collect = (selector) =>
+      [...screen.querySelectorAll(selector)].map(bounds);
+    return {
+      narrow: screen.hasAttribute('data-uno-narrow-table'),
+      netWidth: parseFloat(
+        getComputedStyle(screen).getPropertyValue('--uno-net-width'),
+      ),
+      screen: {
+        width: screen.clientWidth,
+        scrollWidth: screen.scrollWidth,
+        height: screen.clientHeight,
+        scrollHeight: screen.scrollHeight,
+      },
+      grid: getComputedStyle(screen.querySelector('.uno-seats'))
+        .gridTemplateColumns,
+      seats: collect('.uno-table .uno-seat'),
+      tableObjects: collect(
+        '.uno-piles .uno-card,.uno-pile-label,.uno-active-color,.uno-table-pending',
+      ),
+      statusBlocks: collect('.uno-piles,.uno-active-color,.uno-table-pending'),
+      pending: screen.querySelector('.uno-table-pending')?.textContent,
+    };
+  });
+  const overlap = (a, b) =>
+    Math.min(a.right, b.right) > Math.max(a.left, b.left) + 1 &&
+    Math.min(a.bottom, b.bottom) > Math.max(a.top, b.top) + 1;
+  assert.equal(sample.seats.length, count);
+  assert.equal(sample.narrow, sample.netWidth < 640);
+  for (const [index, seat] of sample.seats.entries()) {
+    assert(
+      sample.seats.slice(index + 1).every((other) => !overlap(seat, other)),
+      'Seat cards do not overlap',
+    );
+    assert(
+      sample.tableObjects.every((object) => !overlap(seat, object)),
+      'Seat cards do not overlap the central table',
+    );
+  }
+  if (sample.narrow) {
+    assert.equal(
+      sample.grid.split(' ').length,
+      2,
+      'Narrow management uses a two-column seat grid',
+    );
+    assert(
+      sample.screen.scrollWidth <= sample.screen.width + 1,
+      'Narrow management has no horizontal clipping',
+    );
+    if (pending) {
+      assert.equal(sample.pending, '+4 待回应');
+      assert(
+        sample.screen.scrollHeight > sample.screen.height,
+        'Short management actively uses vertical scrolling',
+      );
+    }
+    for (const [index, block] of sample.statusBlocks.entries()) {
+      assert(
+        sample.statusBlocks
+          .slice(index + 1)
+          .every((other) => !overlap(block, other)),
+        'Piles, color and pending response occupy separate blocks',
+      );
+      assert(
+        sample.seats.every((seat) => seat.top > block.bottom),
+        'Central table precedes all seats',
+      );
+    }
+    const seats = await page.locator('.uno-table .uno-seat').all();
+    for (const seat of seats) {
+      const visible = await seat.evaluate((node) => {
+        node.scrollIntoView({ block: 'center', behavior: 'instant' });
+        const r = node.getBoundingClientRect();
+        return (
+          r.top >= 0 &&
+          r.bottom <= innerHeight &&
+          r.left >= 0 &&
+          r.right <= innerWidth
+        );
+      });
+      assert(
+        visible,
+        `Narrow management can scroll to seat ${await seat.getAttribute('data-seat-id')}`,
+      );
+    }
+    sample.lastSeatScroll = await page
+      .locator('.uno-screen')
+      .evaluate((screen) => {
+        const top = screen.scrollTop;
+        screen.scrollTop = 0;
+        return top;
+      });
+    if (pending)
+      assert(
+        sample.lastSeatScroll > 0,
+        'Scrolling is required to reach the final seat',
+      );
+  }
+  return sample;
 }
 
 try {
@@ -938,20 +1154,106 @@ try {
   page.on('pageerror', (error) => report.errors.push(error.stack));
   await page.goto(currentServer.url);
   await page.waitForFunction(() => typeof window.renderUno === 'function');
+  if (enabled('opening'))
+    await check(
+      'opening:390x844:yellow-reverse',
+      async () => {
+        await page.setViewportSize({ width: 390, height: 844 });
+        await bind(openingFixturePath);
+        const { games } = JSON.parse(
+          await readFile(openingFixturePath, 'utf8'),
+        );
+        const {
+          stateSha256,
+          playing: { player: view },
+        } = games.uno;
+        const frozen = view.gameView;
+        assert.equal(frozen.latest.card.kind, 'reverse');
+        assert.equal(frozen.latest.card.color, 'yellow');
+        assert.equal(frozen.direction, -1);
+        assert.equal(frozen.turnSeat, frozen.dealer);
+        const receipt = page.locator('.uno-latest > span');
+        await page.evaluate(
+          (view) => window.renderFrozenOpening({ view, refreshReceipt: false }),
+          view,
+        );
+        assert.equal(
+          await receipt.textContent(),
+          frozen.latest.text,
+          'Loaded save keeps its original opening record',
+        );
+        const { seed, projected } = await page.evaluate(
+          (view) => window.renderFrozenOpening({ view, refreshReceipt: true }),
+          view,
+        );
+        assert.deepEqual(
+          { ...projected.latest, text: frozen.latest.text },
+          frozen.latest,
+          'Current rules author the only changed field of the opening event',
+        );
+        assert.deepEqual(
+          { ...projected, self: frozen.self, latest: frozen.latest },
+          frozen,
+          'Current deal matches the audited public opening projection',
+        );
+        const now = await page.evaluate(() => window.snapshot());
+        assert.deepEqual(
+          now.view,
+          { ...view, gameView: { ...frozen, latest: projected.latest } },
+          'The screenshot holds all cards, names, rules and the viewpoint fixed',
+        );
+        assert.deepEqual(now.commands, []);
+        const text = await receipt.textContent();
+        assert.equal(text, '第 1 小局开始，开局牌 黄反转，发牌者先行动。');
+        const visible = await receipt.evaluate((node) => {
+          const screen = node.closest('.uno-screen').getBoundingClientRect();
+          const range = document.createRange();
+          range.selectNodeContents(node);
+          const textLines = [...range.getClientRects()].map(
+            ({ left, right, top, bottom }) => ({ left, right, top, bottom }),
+          );
+          return {
+            bounds: {
+              left: screen.left,
+              right: screen.right,
+              top: screen.top,
+              bottom: screen.bottom,
+            },
+            textLines,
+          };
+        });
+        assert(visible.textLines.length > 0);
+        assert(
+          visible.textLines.every(
+            (rect) =>
+              rect.left >= visible.bounds.left &&
+              rect.right <= visible.bounds.right &&
+              rect.top >= visible.bounds.top &&
+              rect.bottom <= visible.bounds.bottom,
+          ),
+          `Initial opening receipt is visible without scrolling: ${JSON.stringify(visible)}`,
+        );
+        await capture(page, 'opening-390x844-yellow-reverse');
+        return {
+          stateSha256,
+          verifiedOpeningSeed: seed,
+          historicalText: frozen.latest.text,
+          openingText: text,
+          ...visible,
+        };
+      },
+      page,
+    );
   if (enabled('layout'))
     for (const [width, height] of sizes)
-      for (const [scenario, names] of [
-        ['normal', 'short'],
-        ['dense', 'chinese'],
-        ['dense', 'latin'],
-      ])
+      for (const [scenario, names] of layoutCases(width, height))
         await check(
           'layout:' + width + 'x' + height + ':' + scenario + ':' + names,
           () => layout(page, width, height, scenario, names),
           page,
         );
-  if (enabled('host'))
-    for (const [width, height] of sizes)
+  if (enabled('host')) {
+    for (const [width, height] of sizes) {
       for (const count of [2, 6])
         await check(
           `host:${width}x${height}:${count}:long-names`,
@@ -963,6 +1265,7 @@ try {
               names: 'latin',
             });
             await page.waitForTimeout(150);
+            const table = await assertHostTable(page, count);
             const names = await page
               .locator('.uno-table .uno-seat-info > strong')
               .evaluateAll((nodes) =>
@@ -991,40 +1294,34 @@ try {
                   n.whiteSpace === 'normal' &&
                   n.scroll <= n.client + 1 &&
                   n.x >= 0 &&
-                  n.y >= 0 &&
                   n.right <= width &&
-                  n.bottom <= height,
+                  (table.narrow || (n.y >= 0 && n.bottom <= height)),
               ),
-              'Every full nickname is visible',
+              'Every full nickname fits; the regular window shows all names in its first screen',
             );
-            const seats = await page
-              .locator('.uno-table .uno-seat')
-              .evaluateAll((nodes) =>
-                nodes.map((n) => {
-                  const r = n.getBoundingClientRect();
-                  return {
-                    left: r.left,
-                    right: r.right,
-                    top: r.top,
-                    bottom: r.bottom,
-                  };
-                }),
-              );
-            for (let i = 0; i < seats.length; i++)
-              for (let j = i + 1; j < seats.length; j++)
-                assert(
-                  !(
-                    Math.min(seats[i].right, seats[j].right) >
-                      Math.max(seats[i].left, seats[j].left) + 1 &&
-                    Math.min(seats[i].bottom, seats[j].bottom) >
-                      Math.max(seats[i].top, seats[j].top) + 1
-                  ),
-                  'Seat cards do not overlap',
-                );
             await capture(page, `host-${width}x${height}-${count}-long-names`);
+            return { ...table, names };
           },
           page,
         );
+      if (width === 390 && height === 844)
+        await check(
+          'host:390x660:6:pending',
+          async () => {
+            await page.setViewportSize({ width: 390, height: 660 });
+            await ready(page, {
+              scenario: 'four',
+              role: 'host',
+              names: 'wide-latin',
+            });
+            const table = await assertHostTable(page, 6, true);
+            await capture(page, 'host-390x660-6-pending');
+            return table;
+          },
+          page,
+        );
+    }
+  }
   if (enabled('viewport'))
     await check(
       'viewport:draft-and-bounded-workspace',

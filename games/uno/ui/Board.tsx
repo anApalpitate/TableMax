@@ -9,15 +9,17 @@ export function Seats({
   game,
   seats,
   compact = false,
+  flow = false,
 }: {
   game: UnoView;
   seats: NonNullable<GameHost['view']>['seats'];
   compact?: boolean;
+  flow?: boolean;
 }) {
   const container = useRef<HTMLDivElement>(null);
   const seatIdentity = game.seatOrder.join('|');
   useLayoutEffect(() => {
-    if (compact || !container.current) return;
+    if (compact || flow || !container.current) return;
     const root = container.current;
     const place = () => {
       const bounds = root.getBoundingClientRect();
@@ -93,7 +95,7 @@ export function Seats({
       .forEach((seat) => observer.observe(seat));
     place();
     return () => observer.disconnect();
-  }, [compact, seatIdentity, game.stage]);
+  }, [compact, flow, seatIdentity, game.stage]);
   const seatsById = new Map(seats.map((seat) => [seat.id, seat]));
   return (
     <div
@@ -210,17 +212,18 @@ export function Board({
   game,
   seats,
   player,
+  narrowTable,
 }: {
   game: UnoView;
   seats: NonNullable<GameHost['view']>['seats'];
   player: boolean;
+  narrowTable: boolean;
 }) {
   return (
     <section
       className={`uno-table${player ? ' uno-table--player' : ''}`}
       aria-label="公开牌桌"
     >
-      {!player && <Seats game={game} seats={seats} />}
       <div
         className={`uno-play-direction uno-play-direction--${game.direction === 1 ? 'clockwise' : 'counterclockwise'}`}
         aria-label={game.direction === 1 ? '顺时针行牌' : '逆时针行牌'}
@@ -271,6 +274,7 @@ export function Board({
         {game.activeColor ? `跟${colorNames[game.activeColor]}` : '等待选色'}
       </div>
       {game.drawFour && <div className="uno-table-pending">+4 待回应</div>}
+      {!player && <Seats game={game} seats={seats} flow={narrowTable} />}
     </section>
   );
 }

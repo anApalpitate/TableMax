@@ -144,12 +144,14 @@ export function CompanyCards({
               </div>
               <div className="pg-company-overview-plants">
                 {player.plants.length
-                  ? player.plants
-                      .map(
-                        (plant) =>
-                          `${plant.id}号/${getPlant(plant.id).output}城`,
-                      )
-                      .join(' · ')
+                  ? player.plants.map((plant) => (
+                      <span
+                        className="pg-company-overview-plant"
+                        key={plant.id}
+                      >
+                        {plant.id}号/{getPlant(plant.id).output}城
+                      </span>
+                    ))
                   : '暂无电厂'}
               </div>
               <div className="pg-company-overview-stock">

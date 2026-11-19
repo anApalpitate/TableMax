@@ -8,14 +8,21 @@ export function DecisionHint({
   pending,
   showRules,
   expanded = false,
+  hideAbilitySummary = false,
 }: {
   guidance: ReturnType<typeof decisionGuidance>;
   pending: boolean;
   showRules?: ((chapter: string) => void) | undefined;
   expanded?: boolean;
+  hideAbilitySummary?: boolean;
 }) {
   const [open, setOpen] = useState(false);
-  if (!expanded && !guidance.ability && !pending) return null;
+  if (
+    !expanded &&
+    !pending &&
+    (!guidance.ability || (hideAbilitySummary && !showRules))
+  )
+    return null;
   const summaries = [guidance.ability, guidance.target].filter(
     (item) => item !== null,
   );
@@ -28,7 +35,7 @@ export function DecisionHint({
         <p className="guidance-instruction" role="status">
           正在提交，等保存确认后继续。
         </p>
-      ) : guidance.ability ? (
+      ) : hideAbilitySummary ? null : guidance.ability ? (
         <p className="ability-copy">
           <strong>{guidance.ability.name}：</strong>
           {guidance.ability.summary}

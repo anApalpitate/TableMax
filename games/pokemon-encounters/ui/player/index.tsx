@@ -297,6 +297,9 @@ export function PlayerControls({
                       pending={locked}
                       showRules={showRules}
                       expanded={guidanceEnabled}
+                      hideAbilitySummary={
+                        landscape && view.phase === 'charizard-choice'
+                      }
                     />
                   )}
                   {ownSlots.length > 0 || view.phase === 'mew-other' ? (

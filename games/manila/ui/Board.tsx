@@ -995,7 +995,11 @@ export function MerchantRack({
                       />
                       <strong>{name}</strong>
                       {master && <span>港务长</span>}
-                      {active && <span>行动中</span>}
+                      {active && (
+                        <span className="mn-merchant-detail-active">
+                          行动中
+                        </span>
+                      )}
                       {self && <span>你</span>}
                     </header>
                     <dl>

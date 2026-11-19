@@ -88,6 +88,7 @@ function UnoScreen({ session }: { session: GameHost }) {
   const [announcedEvidence, setAnnouncedEvidence] = useState('');
   const canPlay = useAudioOutput();
   const player = role === 'player';
+  const narrowTable = role === 'host' && viewport.available.width < 640;
   const currentFeedback =
     session.feedback?.instanceId === view?.instanceId &&
     session.feedback?.branch === view?.branch &&
@@ -178,6 +179,7 @@ function UnoScreen({ session }: { session: GameHost }) {
       data-uno-layout={
         player ? (viewport.available.width >= 960 ? 'L' : 'P') : 'H'
       }
+      data-uno-narrow-table={narrowTable || undefined}
       style={
         {
           '--uno-viewport-height': `${viewport.viewport.height}px`,
@@ -301,7 +303,12 @@ function UnoScreen({ session }: { session: GameHost }) {
             <div
               className={`uno-workspace${player ? ' uno-workspace--player' : ''}`}
             >
-              <Board game={game} seats={view.seats} player={player} />
+              <Board
+                game={game}
+                seats={view.seats}
+                player={player}
+                narrowTable={narrowTable}
+              />
               {player && game.self && (
                 <div className="uno-player-workspace">
                   {(declare || catchUno) && (

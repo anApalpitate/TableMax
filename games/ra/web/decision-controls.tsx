@@ -17,32 +17,64 @@ const disasterTargets: Record<string, string> = {
   drought: '河流',
 };
 
-function decisionReceipt(game: RaView, seat: string) {
-  return game.scenes.flatMap((scene) => {
-    if (!('seat' in scene) || scene.seat !== seat) return [];
-    if (scene.kind === 'won' && game.lastAuction?.winner === seat) {
-      const paid = game.lastAuction.bids.find((bid) => bid.seat === seat)?.disk;
-      return [`赢标 · 付出 ${paid}`, `换回 ${scene.disk} · 本时代停用`];
-    }
-    if (scene.kind === 'god')
-      return [`已换取${tileNames[tile(scene.id).face]}`];
-    if (scene.kind === 'disaster')
-      return [
-        `${tileNames[tile(scene.id).face]}已处理`,
-        scene.discarded.length
-          ? `弃置${scene.discarded.map((id) => tileNames[tile(id).face]).join('、')}`
-          : '无石板可弃',
-      ];
-    return [];
-  });
-}
+type Receipt = Extract<
+  RaView['scenes'][number],
+  { kind: 'won' | 'god' | 'disaster' }
+>;
 
-function DecisionReceipt({ parts }: { parts: string[] }) {
+function DecisionReceipt({
+  game,
+  scenes,
+}: {
+  game: RaView;
+  scenes: Receipt[];
+}) {
   return (
-    <div className="ra-decision-receipt" role="status">
-      {parts.map((part, index) => (
-        <span key={`${index}-${part}`}>{part}</span>
-      ))}
+    <div role="status">
+      {scenes.map((scene) => {
+        if (scene.kind === 'won') {
+          const paid = game.lastAuction?.bids.find(
+            (bid) => bid.seat === scene.seat,
+          )?.disk;
+          return (
+            <div
+              className="ra-decision-receipt ra-won-receipt"
+              key={`won-${scene.disk}`}
+            >
+              <strong>赢标</strong>
+              {paid != null && (
+                <div>
+                  付出 <b>{paid}</b>
+                </div>
+              )}
+              <div>
+                换回 <b>{scene.disk}</b>
+                <span className="ra-disk-status">本时代停用</span>
+              </div>
+            </div>
+          );
+        }
+        const name = tileNames[tile(scene.id).face];
+        return (
+          <div
+            className="ra-decision-receipt"
+            key={`${scene.kind}-${scene.id}`}
+          >
+            {scene.kind === 'god' ? (
+              <strong>已换取{name}</strong>
+            ) : (
+              <>
+                <strong>{name}已处理</strong>
+                <span>
+                  {scene.discarded.length
+                    ? `弃置${scene.discarded.map((id) => tileNames[tile(id).face]).join('、')}`
+                    : '无石板可弃'}
+                </span>
+              </>
+            )}
+          </div>
+        );
+      })}
     </div>
   );
 }
@@ -76,22 +108,21 @@ function AuctionControls({
         </div>
         <div>
           <dt>赢标换回</dt>
-          <dd>{game.center}</dd>
+          <dd>
+            <strong>{game.center}</strong>
+            <span className="ra-disk-status">本时代停用</span>
+          </dd>
         </div>
       </dl>
-      <p className="ra-decision-note">
-        {forced ? (
-          <>
-            <span>你主动开拍且拍卖行未满。</span>
-            <span>其他席均已跳过。</span>
-          </>
-        ) : (
-          <>
-            {highest != null && <span>须高于 {highest}。</span>}
-            <span>换回的盘本时代停用。</span>
-          </>
-        )}
-      </p>
+      {forced && (
+        <p className="ra-decision-note">
+          <span>你主动开拍且拍卖行未满。</span>
+          <span>其他席均已跳过。</span>
+        </p>
+      )}
+      {highest != null && (
+        <p className="ra-decision-note">须高于 {highest}。</p>
+      )}
       <div className="ra-bid-options">
         {player.disks.map((disk) => {
           const bid = bids.find((action) => action.disk === disk);
@@ -151,17 +182,16 @@ function DisasterControls({
   );
   return (
     <>
-      <h2 className="ra-decision-warning">
-        {tileNames[danger.face]}
+      <div className="ra-disaster-heading">
+        <h2 className="ra-decision-warning">{tileNames[danger.face]}</h2>
         {progress?.step !== undefined &&
           progress.total !== undefined &&
           progress.total > 1 && (
-            <span>
-              {' '}
-              · {progress.step}／{progress.total}
+            <span className="ra-disaster-progress">
+              处理进度 {progress.step}／{progress.total}
             </span>
           )}
-      </h2>
+      </div>
       <fieldset>
         <legend>
           <span>弃置{disasterTargets[danger.face]}</span>{' '}
@@ -249,7 +279,16 @@ export function DecisionControls({
   decisionKey: string;
 }) {
   const actions = (session.view?.actions ?? []) as Action[];
-  const receipt = savedFeedback ? decisionReceipt(game, player.seat) : [];
+  const receipt = savedFeedback
+    ? game.scenes.filter(
+        (scene): scene is Receipt =>
+          'seat' in scene &&
+          scene.seat === player.seat &&
+          (scene.kind === 'god' ||
+            scene.kind === 'disaster' ||
+            (scene.kind === 'won' && game.lastAuction?.winner === player.seat)),
+      )
+    : [];
   const decisionId = session.view?.decisionId;
   const branch = session.view?.branch;
   const panel = useRef<HTMLElement>(null);
@@ -312,7 +351,7 @@ export function DecisionControls({
     }
     return receipt.length ? (
       <section ref={panel} tabIndex={-1} aria-label="本席操作结果">
-        <DecisionReceipt parts={receipt} />
+        <DecisionReceipt game={game} scenes={receipt} />
       </section>
     ) : null;
   }
@@ -335,7 +374,7 @@ export function DecisionControls({
       className="ra-actions ra-decision-panel"
       data-kind={kind}
     >
-      {receipt.length > 0 && <DecisionReceipt parts={receipt} />}
+      {receipt.length > 0 && <DecisionReceipt game={game} scenes={receipt} />}
       {kind === 'auction' ? (
         <AuctionControls
           {...{ game, player, actions, send }}

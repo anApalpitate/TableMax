@@ -234,7 +234,7 @@ export function GameTable({
                     width={44}
                     height={44}
                   />
-                  <div>
+                  <div className="seat-identity">
                     <h3 className="seat-title">
                       <span className="seat-name" title={seat.name}>
                         {seat.name}
@@ -242,6 +242,8 @@ export function GameTable({
                       {seat.id === selfId && (
                         <span className="self-tag">你</span>
                       )}
+                    </h3>
+                    <div className="seat-heading-details">
                       <WinTrack
                         wins={game.winsBySeat[seat.id] ?? 0}
                         winner={
@@ -252,7 +254,16 @@ export function GameTable({
                               : undefined
                         }
                       />
-                    </h3>
+                      {playing &&
+                        !paused &&
+                        seat.controller === 'bot' &&
+                        seat.id === thinkingSeat && (
+                          <span className="bot-thinking" role="status">
+                            {playMode === 'test' ? '快速决策' : '正在思考'}
+                            <span aria-hidden="true">···</span>
+                          </span>
+                        )}
+                    </div>
                     <p>
                       <span className="seat-presence">
                         {seat.controller === 'bot'
@@ -273,15 +284,6 @@ export function GameTable({
                             : ''}
                       </span>
                     </p>
-                    {playing &&
-                      !paused &&
-                      seat.controller === 'bot' &&
-                      seat.id === thinkingSeat && (
-                        <span className="bot-thinking" role="status">
-                          {playMode === 'test' ? '快速决策' : '正在思考'}
-                          <span aria-hidden="true">···</span>
-                        </span>
-                      )}
                   </div>
                 </div>
                 {seat.id === selfId &&

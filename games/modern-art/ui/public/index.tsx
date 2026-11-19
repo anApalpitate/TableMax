@@ -181,13 +181,21 @@ export function MarketBoard({
           </tbody>
         </table>
         <div className="ma-exhibit-supply">
-          <span>
-            牌库 <b>{view.deckCount}</b>
-          </span>
-          <span>
-            弃牌 <b>{view.discardCount}</b>
-          </span>
-          {values.some(({ eligible }) => !eligible) && <span>— 未入前三</span>}
+          <div className="ma-exhibit-piles">
+            <span className="ma-exhibit-pile" data-pile="deck">
+              <span className="ma-exhibit-pile__cards" aria-hidden="true" />
+              <span>牌库</span>
+              <b>{view.deckCount}</b>
+            </span>
+            <span className="ma-exhibit-pile" data-pile="discard">
+              <span className="ma-exhibit-pile__cards" aria-hidden="true" />
+              <span>弃牌</span>
+              <b>{view.discardCount}</b>
+            </span>
+          </div>
+          {values.some(({ eligible }) => !eligible) && (
+            <p className="ma-exhibit-legend">— 未入前三</p>
+          )}
           <button
             type="button"
             className="secondary ma-market-history-control"

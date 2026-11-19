@@ -5,6 +5,7 @@ import {
   Settings,
   OverlayPanel,
   RoomManagement,
+  RulesGuide,
   ScreenLink,
   SessionFeedback,
   SettingHelp,
@@ -23,6 +24,7 @@ import { liveRaFeedback } from './feedback';
 import { PlayerBoard, PlayerSummary, AuctionBadge } from './player-board';
 import { AuctionRecap, AuctionRecordPanel } from './auction-recap';
 import { DecisionControls, type Exchange } from './decision-controls';
+import { raRulebook } from './rules-guide';
 import './ra.css';
 import './table-details.css';
 import './player-wide.css';
@@ -228,17 +230,7 @@ function RaScreen({ session }: { session: GameHost }) {
           className="ra-rules-panel"
           close={() => setTopPanel(undefined)}
         >
-          <TableArt piece="rulebook-illustration" className="ra-rules-art" />
-          <p>
-            轮到你时，抽一枚板块、呼唤拉，或使用神明取走拍卖行的一枚非神明板块。
-          </p>
-          <p>
-            从呼唤者下一席顺时针依次出价。最高出价者赢整行，并用出价盘换中央盘。换回的盘本时代停用。
-          </p>
-          <p>
-            主动呼唤且拍卖行未满时，其他人都跳过则呼唤者必须出价。拉轨到终点或所有圆盘用尽即结算。
-          </p>
-          <p>法老、尼罗河和纪念物跨时代保留。纪念物与圆盘只在第三时代结算。</p>
+          <RulesGuide {...raRulebook} />
         </OverlayPanel>
       )}
       <div className="ra-feedback-slot">

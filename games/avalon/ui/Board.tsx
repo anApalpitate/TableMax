@@ -286,7 +286,6 @@ export function FinalResult({
       <div className="av-final-heading">
         <Relic kind={game.winner === 'good' ? 'grail' : 'raven'} />
         <div>
-          <span>圆桌传奇落幕</span>
           <h1>{game.winner === 'good' ? '忠诚阵营获胜' : '邪恶阵营获胜'}</h1>
           <p>{game.winReason && reasons[game.winReason]}</p>
         </div>

@@ -137,7 +137,7 @@ function dealRound(s: State, context: RuleContext): State {
   if (card.kind === 'reverse') {
     s.direction = -1;
     s.turnSeat = s.dealer;
-    note = '，开局反转，发牌者先行动';
+    note = '，发牌者先行动';
   } else if (card.kind === 'skip') {
     targets = [s.turnSeat];
     s.turnSeat = nextSeat(s, s.turnSeat);

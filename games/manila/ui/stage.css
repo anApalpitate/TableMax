@@ -517,6 +517,7 @@
 } /* Merchant detail card. */
 .mn-merchant-detail header {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 6px;
   margin-bottom: 6px;
@@ -526,29 +527,40 @@
   height: 30px;
   border-radius: 50%;
 }
+.mn-merchant-detail header strong {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
 .mn-merchant-detail header > span {
   padding: 1px 6px;
   border-radius: 6px;
   background: #efe2c2;
-  font-size: 14px;
+  font-size: 16px;
+  white-space: nowrap;
+}
+.mn-merchant-detail header > .mn-merchant-detail-active {
+  font-size: 18px;
 }
 .mn-merchant-detail dl {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  display: flex;
+  flex-wrap: wrap;
   gap: 4px 10px;
   margin: 0 0 8px;
 }
 .mn-merchant-detail dl > div {
   display: flex;
+  flex: 1 1 140px;
+  min-width: max-content;
   align-items: baseline;
   justify-content: space-between;
   gap: 6px;
   padding: 2px 0;
   border-bottom: 1px dotted #c9b183;
+  white-space: nowrap;
 }
 .mn-merchant-detail dt {
   color: #5f716b;
-  font-size: 14px;
+  font-size: 16px;
 }
 .mn-merchant-detail dd {
   margin: 0;
@@ -1305,9 +1317,6 @@
   text-shadow:
     0 1px 2px rgba(6, 26, 24, 0.92),
     0 0 3px rgba(6, 26, 24, 0.6);
-}
-.mn-screen .mn-manifest-kicker b {
-  color: #fff;
 }
 .mn-screen .mn-track-cells span {
   color: #fffdf4;

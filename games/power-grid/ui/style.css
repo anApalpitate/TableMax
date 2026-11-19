@@ -309,6 +309,8 @@
   gap: 4px;
 }
 .pg-screen .pg-map-zoom button {
+  min-width: 44px;
+  min-height: 44px;
   padding: 4px 9px;
   background: #faf3d8ed;
   font-weight: 700;

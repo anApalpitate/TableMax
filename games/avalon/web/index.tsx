@@ -210,7 +210,7 @@ function AvalonScreen({ session }: { session: GameHost }) {
               ? '远征任务进行中'
               : game?.phase === 'assassinate'
                 ? '最后刺杀'
-                : '圆桌传奇落幕';
+                : '终局';
   const expected =
     game?.phase === 'quest'
       ? game.team.length

@@ -22,6 +22,7 @@ export function RoleCard({
   role: Role;
   compact?: boolean;
 }) {
+  const name = ROLE_NAMES[role];
   return (
     <div
       className={`av-role-card av-role-card--${alignmentFor(role)}${compact ? ' av-role-card--compact' : ''}`}
@@ -33,7 +34,17 @@ export function RoleCard({
       />
       <div className="av-role-caption">
         <span>{alignmentFor(role) === 'good' ? '忠诚阵营' : '邪恶阵营'}</span>
-        <strong>{ROLE_NAMES[role]}</strong>
+        <strong>
+          {compact && role === 'servant' ? (
+            <>
+              <span>{name.slice(0, 3)}</span>
+              <wbr />
+              <span>{name.slice(3)}</span>
+            </>
+          ) : (
+            name
+          )}
+        </strong>
       </div>
     </div>
   );

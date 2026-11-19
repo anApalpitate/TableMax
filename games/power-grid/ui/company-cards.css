@@ -36,8 +36,15 @@
   overflow-wrap: anywhere;
 }
 .pg-screen .pg-company-overview-plants {
+  display: flex;
+  flex-wrap: wrap;
+  align-content: start;
+  gap: 1px 8px;
   min-height: 44px;
   margin-top: 4px;
+}
+.pg-screen .pg-company-overview-plant {
+  white-space: nowrap;
 }
 .pg-screen .pg-company-overview-stock {
   display: grid;

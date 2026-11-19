@@ -203,11 +203,11 @@ main.expansion-screen.player {
   font-size: 16px;
   line-height: 20px;
 }
-.expansion-screen.player .ex-held .ex-source-label-compact {
-  display: inline;
-}
-.expansion-screen.player .ex-held .ex-source-label-full {
-  display: none;
+.expansion-screen.player .ex-held .ex-source-rule {
+  display: block;
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1.2;
 }
 .expansion-screen.player .ex-held details {
   position: absolute;
