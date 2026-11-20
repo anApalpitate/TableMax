@@ -414,7 +414,7 @@
   > .mn-main
   .mn-board-scroll
   > .mn-harbor {
-  grid-template-rows: minmax(260px, 1fr) 140px;
+  grid-template-rows: minmax(260px, 1fr) minmax(max-content, 140px);
   min-height: 444px;
 }
 .mn-screen:is(.mn-screen--host)
@@ -434,7 +434,7 @@
   .mn-market
   .mn-market-row {
   grid-template-columns: minmax(135px, 1fr) minmax(0, 1.2fr);
-  grid-template-rows: minmax(24px, 1fr);
+  grid-template-rows: minmax(min-content, 1fr);
   gap: 4px;
 }
 .mn-screen:is(.mn-screen--host) .mn-result-body {

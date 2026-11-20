@@ -362,11 +362,32 @@
   gap: 8px;
   padding: 8px 10px;
 }
-.ma-screen.player[data-player-layout-contract='three-v1']
-  .ma-hand-toggle
-  > .ma-hand-toggle__icon {
-  font-size: 22px;
-  line-height: 1;
+.ma-screen .ma-hand-toggle__icon {
+  width: 8px;
+  height: 8px;
+  flex: none;
+  border: solid currentColor;
+  border-width: 0 2px 2px 0;
+  transform: translateY(-2px) rotate(45deg);
+}
+.ma-screen .ma-hand-toggle[aria-expanded='true'] .ma-hand-toggle__icon {
+  transform: translateY(2px) rotate(225deg);
+}
+@media (max-width: 639px) {
+  .ma-screen.player[data-player-layout-contract='three-v1'] .ma-hand-toggle {
+    background: #efdfc4;
+    border-color: #cfb18b;
+    border-radius: 999px;
+    color: #61442d;
+    font-size: 16px;
+    font-weight: 650;
+    padding-inline: 14px;
+    white-space: nowrap;
+  }
+  .ma-screen.player[data-player-layout-contract='three-v1']
+    .ma-hand-toggle:is([aria-expanded='true'], :hover, :active) {
+    background: #e7d1ae;
+  }
 }
 .ma-screen .ma-hand-toggle__landscape,
 .ma-screen .ma-hand-navigation,

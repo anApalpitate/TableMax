@@ -41,7 +41,10 @@
   > .mn-main
   .mn-board-scroll
   > .mn-harbor:not(:where(.mn-screen--player, .mn-screen--player *)) {
-  grid-template-rows: minmax(0, 1fr) clamp(180px, 24dvh, 280px);
+  grid-template-rows: minmax(0, 1fr) minmax(
+      max-content,
+      clamp(180px, 24dvh, 280px)
+    );
   height: 100%;
   min-height: 0;
   overflow: hidden;
@@ -107,6 +110,7 @@
   > .mn-main
   .mn-harbor
   > .mn-board-market:not(:where(.mn-screen--player, .mn-screen--player *)) {
+  display: grid;
   min-height: 0;
 }
 :is(.mn-screen--host, .mn-screen--player.mn-wide)
@@ -131,8 +135,8 @@
   .mn-harbor
   > .mn-board-market
   .mn-market-panel:not(:where(.mn-screen--player, .mn-screen--player *)) {
-  grid-template-rows: auto minmax(0, 1fr);
-  height: 100%;
+  grid-template-rows: auto minmax(min-content, 1fr);
+  row-gap: 3px;
   min-height: 0;
 }
 :is(.mn-screen--host, .mn-screen--player.mn-wide)
@@ -172,8 +176,8 @@
   .mn-harbor
   > .mn-board-market
   .mn-market:not(:where(.mn-screen--player, .mn-screen--player *)) {
-  grid-template-rows: repeat(4, minmax(0, 1fr));
-  height: 100%;
+  grid-template-rows: repeat(4, minmax(min-content, 1fr));
+  height: auto;
   min-height: 0;
 }
 :is(.mn-screen--host, .mn-screen--player.mn-wide)
@@ -196,10 +200,11 @@
   .mn-harbor
   > .mn-board-market
   .mn-market-row:not(:where(.mn-screen--player, .mn-screen--player *)) {
-  grid-template-rows: auto minmax(0, 1fr);
+  grid-template-rows: auto minmax(min-content, 1fr);
   min-height: 0;
   align-content: center;
-  gap: 0;
+  row-gap: 2px;
+  padding-block: 1px;
 }
 :is(.mn-screen--host, .mn-screen--player.mn-wide)
   .mn-layout
@@ -280,10 +285,25 @@
   .mn-harbor
   > .mn-board-market
   .mn-market-track:not(:where(.mn-screen--player, .mn-screen--player *)) {
-  overflow: hidden;
-  min-height: 0;
-  line-height: 18px;
-} /* Lanes stretch to fill the whole board height so the sea has no dead slab. */
+  line-height: 20px;
+}
+.mn-screen--host .mn-board-market .mn-current-price {
+  font-size: 18px;
+}
+@media (max-height: 680px) {
+  .mn-screen--host
+    .mn-layout
+    > .mn-main
+    .mn-harbor
+    > .mn-board-market
+    .mn-market-panel
+    .mn-market-row {
+    grid-template-columns: minmax(max-content, 1fr) minmax(0, 1.5fr);
+    grid-template-rows: minmax(min-content, 1fr);
+    gap: 4px;
+  }
+}
+/* Lanes stretch to fill the whole board height so the sea has no dead slab. */
 :is(.mn-screen--host, .mn-screen--player.mn-wide)
   .mn-layout
   > .mn-main

@@ -353,9 +353,7 @@ export function PlayerControls({
               <span className="ma-hand-toggle__landscape">
                 {handExpanded ? '返回拍卖' : `手牌 ${self.hand.length} 张`}
               </span>
-              <span className="ma-hand-toggle__icon" aria-hidden="true">
-                {handExpanded ? '⌃' : '⌄'}
-              </span>
+              <span className="ma-hand-toggle__icon" aria-hidden="true" />
             </button>
           )}
         </div>
