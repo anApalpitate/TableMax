@@ -4,6 +4,14 @@
   align-content: start;
   min-inline-size: 0;
 }
+.ra-table[data-role='player'] .ra-header .toolbar-save-feedback {
+  color: #275c50;
+  background: #e3ebdf;
+  border-radius: 4px;
+  padding-inline: 6px;
+  line-height: 20px;
+  font-weight: 650;
+}
 
 .ra-decision-panel > h2,
 .ra-disaster-heading h2 {

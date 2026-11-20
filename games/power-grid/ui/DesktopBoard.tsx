@@ -33,6 +33,7 @@ export function DesktopBoard({
   savedKey,
   animate,
   onDetails,
+  onOverview,
 }: {
   view: PowerGridView;
   names: Record<string, string>;
@@ -44,6 +45,7 @@ export function DesktopBoard({
   savedKey: string | null;
   animate: boolean;
   onDetails(seatId: string): void;
+  onOverview(): void;
 }) {
   const board = useRef<HTMLDivElement>(null);
   const [boardWidth, setBoardWidth] = useState(1280);
@@ -280,6 +282,15 @@ export function DesktopBoard({
       >
         <header>
           <h2>玩家公司</h2>
+          <button
+            type="button"
+            className="pg-company-inspect-entry"
+            aria-label="查看各家公司"
+            title="查看各家公司"
+            onClick={onOverview}
+          >
+            <BoardIcon name="search" />
+          </button>
           <button
             aria-controls="pg-board-companies-list"
             aria-expanded={companies}

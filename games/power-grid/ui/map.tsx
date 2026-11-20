@@ -375,6 +375,7 @@ export function GermanyMap({
   avoidDrawers = false,
   selectionRequest = 0,
   selectionColor = '#167b85',
+  zoomInFooter = false,
   onFocusOccluded,
 }: {
   regions: readonly string[];
@@ -388,6 +389,7 @@ export function GermanyMap({
   actor?: string | null;
   role?: MapRole;
   previewRegions?: boolean;
+  zoomInFooter?: boolean;
   viewport?: MapCamera;
   onViewportChange?(value: MapCamera): void;
   focus?: {
@@ -863,6 +865,49 @@ export function GermanyMap({
       </div>
     </div>
   );
+  const zoomControls = (
+    <div className="pg-map-zoom" aria-label="地图缩放">
+      <button
+        type="button"
+        aria-label="放大地图"
+        onClick={() => zoom(scale + 0.4)}
+      >
+        ＋
+      </button>
+      <button
+        type="button"
+        aria-label="缩小地图"
+        disabled={scale <= MIN_MAP_ZOOM}
+        onClick={() => zoom(scale - 0.4)}
+      >
+        −
+      </button>
+      <button
+        type="button"
+        onClick={() => {
+          if (wheelFrame.current !== null) {
+            cancelAnimationFrame(wheelFrame.current);
+            wheelFrame.current = null;
+          }
+          setMoving(false);
+          setCamera(
+            clampCamera({ ...initialCamera(), follow: false }, surface),
+          );
+        }}
+      >
+        复位
+      </button>
+      {!camera.follow && (
+        <button
+          type="button"
+          aria-label="恢复跟随"
+          onClick={() => setCamera({ ...camera, follow: true })}
+        >
+          跟随
+        </button>
+      )}
+    </div>
+  );
   return (
     <section
       className="pg-map-panel pg-map-polished"
@@ -1309,48 +1354,9 @@ export function GermanyMap({
             清晰
           </button>
         </div>
-        <div className="pg-map-zoom" aria-label="地图缩放">
-          <button
-            type="button"
-            aria-label="放大地图"
-            onClick={() => zoom(scale + 0.4)}
-          >
-            ＋
-          </button>
-          <button
-            type="button"
-            aria-label="缩小地图"
-            disabled={scale <= MIN_MAP_ZOOM}
-            onClick={() => zoom(scale - 0.4)}
-          >
-            −
-          </button>
-          <button
-            type="button"
-            onClick={() => {
-              if (wheelFrame.current !== null) {
-                cancelAnimationFrame(wheelFrame.current);
-                wheelFrame.current = null;
-              }
-              setMoving(false);
-              setCamera(
-                clampCamera({ ...initialCamera(), follow: false }, surface),
-              );
-            }}
-          >
-            复位
-          </button>
-          {!camera.follow && (
-            <button
-              type="button"
-              aria-label="恢复跟随"
-              onClick={() => setCamera({ ...camera, follow: true })}
-            >
-              跟随
-            </button>
-          )}
-        </div>
+        {!zoomInFooter && zoomControls}
       </div>
+      {zoomInFooter && zoomControls}
       {previewRegions && (
         <p className="pg-region-preview" data-region-preview>
           <strong>候选区域</strong>

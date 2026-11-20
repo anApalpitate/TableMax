@@ -402,14 +402,16 @@ function ManilaScreen({ session }: { session: GameHost }) {
           >
             <RulebookIcon />
           </button>
-          <button
-            className="mn-copper-button mn-toolbar-icon"
-            aria-label="账本"
-            title="账本"
-            onClick={() => setPanel('ledger')}
-          >
-            <CopperMark kind="ledger" />
-          </button>
+          {role === 'player' && (
+            <button
+              className="mn-copper-button mn-toolbar-icon"
+              aria-label="账本"
+              title="账本"
+              onClick={() => setPanel('ledger')}
+            >
+              <CopperMark kind="ledger" />
+            </button>
+          )}
           <button
             className="mn-copper-button mn-toolbar-icon"
             aria-label="菜单"
@@ -551,7 +553,24 @@ function ManilaScreen({ session }: { session: GameHost }) {
                     draft={draft}
                     select={select}
                     locked={locked || !active}
-                    market={<Market game={game} />}
+                    market={
+                      <Market
+                        game={game}
+                        headingAction={
+                          role !== 'player' && (
+                            <button
+                              type="button"
+                              className="mn-copper-button mn-market-ledger"
+                              aria-label="账本"
+                              title="账本"
+                              onClick={() => setPanel('ledger')}
+                            >
+                              <CopperMark kind="receipt" />
+                            </button>
+                          )
+                        }
+                      />
+                    }
                   >
                     {role === 'player' &&
                       game.self &&

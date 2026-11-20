@@ -17,9 +17,7 @@
   flex-direction: column;
   gap: 10px;
   padding: 12px;
-  background:
-    repeating-linear-gradient(100deg, #ffffff08 0 2px, #31482c04 2px 5px),
-    #eee6d5;
+  background: radial-gradient(ellipse at 50% 0%, #fcf5e4, #e5d8bd 90%);
   overflow: hidden;
 }
 .rk-screen *,
@@ -261,9 +259,7 @@
   padding: 14px;
   border: 10px solid #bf966c;
   border-radius: 22px;
-  background:
-    repeating-linear-gradient(20deg, #ffffff08 0 2px, #22432f03 2px 4px),
-    #bdd7c5;
+  background: radial-gradient(ellipse at top, #c1dbcb, #a3c4ae);
   box-shadow:
     inset 0 0 0 2px #957347,
     inset 0 4px 18px #396a4520;
@@ -655,6 +651,14 @@
   padding: 8px;
   border-width: 6px;
 }
+.rk-screen--host .rk-table--public > .rk-empty-table {
+  flex: 1 1 100%;
+  align-self: stretch;
+  margin: auto;
+}
+.rk-screen--host .rk-table--public:has(> .rk-empty-table) {
+  align-content: stretch;
+}
 .rk-screen--host .rk-table--public .rk-meld {
   flex: 0 0 auto;
   max-width: 100%;
@@ -686,11 +690,16 @@
   padding-block: 6px;
 }
 .rk-screen--host .rk-seat {
+  display: grid;
+  grid-template-columns: auto 28px minmax(0, 1fr) auto;
+  align-items: center;
   gap: 6px;
   padding: 6px;
 }
 .rk-screen--host .rk-seat > img {
-  display: none;
+  display: block;
+  width: 28px;
+  height: 28px;
 }
 .rk-saved-workspace--player .rk-rack-section {
   margin-top: 16px;
@@ -1066,6 +1075,18 @@
   }
 }
 @media (min-width: 960px) {
+  [data-player-display='wide'] .rk-screen--player .rk-workshop {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) clamp(310px, 31vw, 430px);
+    grid-template-rows: auto minmax(0, 1fr) auto;
+    column-gap: 18px;
+  }
+  [data-player-display='wide']
+    .rk-screen--player
+    .rk-workshop
+    > :is(.rk-workspace-scroll, .rk-action-dock) {
+    grid-column: 1 / -1;
+  }
   [data-player-display='wide'] .rk-screen--player .rk-workspace-scroll {
     display: grid;
     grid-template-columns: minmax(0, 1fr) clamp(310px, 31vw, 430px);
@@ -1077,7 +1098,10 @@
     .rk-workspace-scroll
     > .rk-table-section {
     overflow-y: auto;
-    padding: 4px;
+    padding: 10px;
+    border: 1px solid #c8b795;
+    border-radius: 14px;
+    background: #fff8ea;
   }
   [data-player-display='wide']
     .rk-screen--player
@@ -1085,7 +1109,7 @@
     > .rk-rack-section {
     margin-top: 0;
     overflow-y: auto;
-    align-self: start;
+    align-self: stretch;
     max-height: 100%;
   }
   [data-player-display='wide'] .rk-screen--player .rk-saved-workspace--player {
@@ -1110,10 +1134,23 @@
     max-width: 600px;
   }
   [data-player-display='wide'] .rk-screen--player .rk-selection-bar {
-    justify-content: flex-start;
+    justify-content: flex-end;
   }
   [data-player-display='wide'] .rk-screen--player .rk-selection-bar > strong {
-    flex: 0 0 180px;
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+}
+@media (orientation: portrait) {
+  .rk-screen--player[data-rk-layout='P'] .rk-table:has(> .rk-empty-table),
+  .rk-screen--player[data-rk-layout='P'] .rk-table > .rk-empty-table {
+    min-height: 85px;
+  }
+  .rk-screen--player[data-rk-layout='P']
+    .rk-workspace-scroll
+    > section
+    + section {
+    margin-top: 8px;
   }
 }
 @media (max-width: 1000px) {

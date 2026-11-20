@@ -7,10 +7,12 @@ import { money } from './public/labels';
 export function AuctionTheme({
   view,
   names,
+  portraits,
   activityMessage,
 }: {
   view: ModernArtView;
   names: Record<string, string>;
+  portraits?: Record<string, string> | undefined;
   activityMessage?: string | undefined;
 }) {
   const auction = view.auction;
@@ -21,7 +23,17 @@ export function AuctionTheme({
       <b className="ma-seat-number" data-seat-id={seat}>
         {view.seatOrder.indexOf(seat) + 1}
       </b>
-      <span>{names[seat] ?? '玩家'}</span>
+      {portraits ? (
+        portraits[seat] && (
+          <img
+            className="ma-auction__portrait"
+            src={portraits[seat]}
+            alt={names[seat] ?? '玩家'}
+          />
+        )
+      ) : (
+        <span>{names[seat] ?? '玩家'}</span>
+      )}
     </span>
   );
   const acting = auction.actingSeats[0];

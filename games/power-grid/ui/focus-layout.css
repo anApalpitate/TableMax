@@ -315,6 +315,14 @@
 .pg-screen .pg-phone-map--browse .pg-map-frame {
   aspect-ratio: 3 / 4;
 }
+.pg-screen .pg-map-panel > .pg-map-zoom {
+  position: static;
+  flex: none;
+  justify-content: flex-end;
+  padding: 2px 4px;
+  border-top: 1px solid #b8a37d;
+  background: #f2e7cb;
+}
 
 @media (max-height: 900px) {
   .pg-screen .pg-primary-stage .pg-fuel-market .pg-price-lane {

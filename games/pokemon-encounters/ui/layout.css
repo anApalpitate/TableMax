@@ -1345,6 +1345,32 @@
   display: flex;
   flex-wrap: wrap;
 }
+.pokemon-screen.player[data-layout='P']
+  .choice-actions:has(> .discard-held-action) {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+.pokemon-screen.player[data-layout='P']
+  .choice-actions:has(> .discard-held-action)
+  > button {
+  min-height: 44px;
+  min-width: 0;
+  padding-inline: 4px;
+  margin-inline: 0;
+}
+.pokemon-screen.player button.secondary.decline-ability:enabled {
+  background: #fff6dd;
+  color: #684623;
+  border: 1px solid #ac8d54;
+}
+.pokemon-screen.player .waiting-turn[data-phase='initial-flip'] {
+  padding: 8px 12px;
+  font-size: 16px;
+  text-align: center;
+  color: #3d594a;
+  background: #f9f2de;
+  border-radius: 9px;
+}
 .pokemon-screen.player[data-layout] .choice-actions .confirm-action {
   flex: 1 1 110px;
 }

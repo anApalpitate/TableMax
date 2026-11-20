@@ -15,6 +15,7 @@ import type {
   Save,
   SaveRepository,
 } from '../../../packages/platform-core/src/model';
+import { playerNameError } from '../../../packages/protocol/src/names';
 
 type Entry = { key: string; rules: GameRules; bot: BotStrategy };
 type Room = {
@@ -82,13 +83,12 @@ export async function preparePublicScreenRetirement(
       commands++;
     };
     for (let index = 0; index < entry.rules.manifest.players.max; index++) {
-      const joined = await room.join(
-        index === 0
-          ? '一起开心玩桌游呀'
-          : index === 1
-            ? 'WWWWWWWWWWWWWWWW'
-            : `朋友${index + 1}`,
-      );
+      const edgeNames = ['一起开心玩桌游呀', 'WWWWWWWWWWWWWWWW'];
+      const name =
+        (riskTargets.length ? edgeNames[index] : undefined) ??
+        `朋友${index + 1}`;
+      assert.equal(playerNameError(name), null);
+      const joined = await room.join(name);
       players.push(joined);
       await act(joined.token, { type: 'ready', ready: true });
     }

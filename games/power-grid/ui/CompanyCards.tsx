@@ -134,6 +134,7 @@ export function CompanyCards({
                 aria-label={`查看${names[seatId]}的公司详情`}
               >
                 <span>{rank + 1}</span>
+                {portraits[seatId] && <img src={portraits[seatId]} alt="" />}
                 <strong>{names[seatId] ?? `公司${index + 1}`}</strong>
               </button>
               <div className="pg-company-overview-network">

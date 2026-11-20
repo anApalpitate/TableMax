@@ -120,8 +120,8 @@ export function ScreenBody({
     !game.roundResult &&
     (research || game.currentEvent || game.bondPlaceholders?.length) ? (
       <div className="ex-round-context">
-        <EventStatus game={game} />
         {research}
+        <EventStatus game={game} />
       </div>
     ) : null;
   const renderSeat = (s: (typeof seats)[number]) => (

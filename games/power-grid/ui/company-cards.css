@@ -17,7 +17,7 @@
   border: 1px solid #9b8963;
   border-top: 4px solid var(--pg-player-color);
   border-radius: 9px;
-  background: #fff9e8;
+  background: #fff9e8e8;
   font-size: 16px;
   line-height: 1.35;
 }
@@ -34,6 +34,13 @@
 .pg-screen .pg-company-overview-card strong {
   min-width: 0;
   overflow-wrap: anywhere;
+}
+.pg-screen .pg-company-overview-card > button > img {
+  width: 24px;
+  height: 24px;
+  flex: none;
+  object-fit: cover;
+  border-radius: 50%;
 }
 .pg-screen .pg-company-overview-network {
   display: flex;

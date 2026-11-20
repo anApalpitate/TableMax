@@ -458,6 +458,7 @@ export function AuctionStage({
   countdown,
   activityMessage,
   waitingNotice,
+  management = false,
 }: {
   view: ModernArtView;
   names: Record<string, string>;
@@ -465,6 +466,7 @@ export function AuctionStage({
   countdown?: ReactNode;
   activityMessage?: string | undefined;
   waitingNotice?: ReactNode;
+  management?: boolean;
 }) {
   const auction = view.auction;
   const actor = view.turnSeat ? (names[view.turnSeat] ?? '玩家') : '';
@@ -486,7 +488,19 @@ export function AuctionStage({
                 alt=""
               />
             )}
-            <h2 className="ma-offer-name">{actor}</h2>
+            <h2
+              className="ma-offer-name"
+              aria-label={management ? actor : undefined}
+              title={actor}
+            >
+              {management ? (
+                <span className="ma-seat-number">
+                  {publicSeatNumber(view, view.turnSeat)}
+                </span>
+              ) : (
+                actor
+              )}
+            </h2>
           </div>
         ) : (
           <span className="ma-gavel" aria-hidden="true">
@@ -538,7 +552,15 @@ export function AuctionStage({
                 </b>{' '}
               </>
             )}
-            {names[auction.seller] ?? '玩家'}
+            {management
+              ? portraits?.[auction.seller] && (
+                  <img
+                    className="ma-auction__portrait"
+                    src={portraits[auction.seller]}
+                    alt={names[auction.seller] ?? '玩家'}
+                  />
+                )
+              : (names[auction.seller] ?? '玩家')}
           </p>
         </div>
       </div>
@@ -554,6 +576,7 @@ export function AuctionStage({
       <AuctionTheme
         view={view}
         names={names}
+        portraits={management ? portraits : undefined}
         activityMessage={activityMessage}
       />
       <div
@@ -574,7 +597,17 @@ export function AuctionStage({
             <b className="ma-seat-number ma-auction__seat-number">
               {index + 1}
             </b>
-            <strong>{names[seat] ?? '玩家'}</strong>
+            {management ? (
+              portraits?.[seat] && (
+                <img
+                  className="ma-auction__portrait"
+                  src={portraits[seat]}
+                  alt={names[seat] ?? '玩家'}
+                />
+              )
+            ) : (
+              <strong>{names[seat] ?? '玩家'}</strong>
+            )}
             <span
               className="ma-auction__seat-status"
               role="img"

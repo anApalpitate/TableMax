@@ -140,6 +140,7 @@ function ModernArtScreen({ session }: { session: RoomSession }) {
             view={game}
             names={names}
             portraits={portraits}
+            management={role === 'host'}
             activityMessage={activityMessage}
             waitingNotice={mergedPausedOffer ? notice : undefined}
             countdown={

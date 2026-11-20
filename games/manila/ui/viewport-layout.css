@@ -30,3 +30,26 @@
   --mn-work-width: 1440px;
   --mn-work-height: 900px;
 }
+:root:has(.mn-screen[data-mn-layout='P']),
+:root:has(.mn-screen[data-mn-layout='P']) body {
+  overflow: hidden;
+  background: #eee0c2;
+}
+.mn-screen--host .mn-market-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+}
+.mn-screen--host .mn-market-ledger {
+  width: 44px;
+  min-height: 44px;
+  padding: 4px;
+}
+.mn-screen--player[data-mn-layout='L'] .mn-board-actions {
+  position: sticky;
+  inset-block-end: 0;
+  z-index: 4;
+  background: #fff7e4;
+  border-radius: 8px;
+}

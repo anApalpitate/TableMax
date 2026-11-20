@@ -9,6 +9,22 @@ import { cardArt } from '../../../../assets/games/pokemon-encounters/catalog';
 import { CircularBadge } from './CircularBadge';
 import { faceEffectText, eventLabels } from './event-presentation';
 
+export function EmptyBufferSlot() {
+  return (
+    <span className="ex-buffer-empty" aria-hidden="true">
+      <svg
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.6"
+      >
+        <rect x="6" y="3" width="12" height="18" rx="2" />
+        <path d="M9 12h6" strokeLinecap="round" />
+      </svg>
+    </span>
+  );
+}
+
 export function BufferCard({
   game,
   seat,
@@ -38,9 +54,7 @@ export function BufferCard({
           <b>{face.value ?? (face.copy === 'vertical' ? '↕' : '↔')}</b>
         </span>
       ) : (
-        <span className="ex-buffer-empty" aria-hidden="true">
-          ＋
-        </span>
+        <EmptyBufferSlot />
       )}
       <div>
         <span

@@ -143,7 +143,7 @@
   padding: 4px 8px 0;
   border: 1px solid #9a8159;
   border-radius: 11px;
-  background: linear-gradient(145deg, #faf3e1f5, #e6d7baf5);
+  background: linear-gradient(145deg, #faf3e1d6, #e6d7bad6);
   box-shadow: 0 -3px 18px #372e2530;
   transform: translateY(0);
   opacity: 1;
@@ -156,6 +156,9 @@
 }
 .pg-screen .pg-board-companies > header > button {
   margin-left: auto;
+}
+.pg-screen .pg-board-companies > header > button + button {
+  margin-left: 4px;
 }
 .pg-screen .pg-board-edge {
   position: absolute;
@@ -202,7 +205,8 @@
   gap: 3px 8px;
   padding: 6px 10px;
   border-radius: 8px;
-  background: #fffbedee;
+  background: #fffbedc7;
+  color: #27241b;
   pointer-events: none;
   font-size: 16px;
   box-shadow: 0 2px 7px #3f422529;

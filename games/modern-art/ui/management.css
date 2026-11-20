@@ -55,6 +55,15 @@
   overflow-wrap: anywhere;
   max-width: none;
 }
+.ma-screen .ma-table--management .ma-auction__portrait {
+  display: inline-block;
+  inline-size: 28px;
+  block-size: 28px;
+  flex: none;
+  border-radius: 50%;
+  object-fit: cover;
+  vertical-align: middle;
+}
 
 .ma-screen .ma-table--management .ma-auction__paintings {
   grid-column: 1;
@@ -344,6 +353,7 @@
 }
 
 .ma-screen .ma-table--management .ma-museum {
+  min-block-size: var(--ma-gallery-card-min, 96px);
   background: var(--ma-gallery-wall);
 }
 
@@ -503,12 +513,21 @@
   }
 
   .ma-screen .ma-table--management {
-    --ma-exhibit-height: clamp(480px, 38dvh, 760px);
+    --ma-exhibit-height: clamp(480px, 61dvh, 1320px);
     --ma-gallery-card-min: clamp(115px, 5.1vw, 196px);
     --ma-exhibit-type: clamp(20px, 0.79vw, 30px);
     --ma-exhibit-heading: clamp(32px, 1.3vw, 48px);
     max-width: var(--ma-management-width);
     column-gap: clamp(20px, 0.9vw, 34px);
+  }
+  .ma-screen .ma-table--management:has(.ma-auction) {
+    grid-template-rows:
+      minmax(var(--ma-exhibit-height), 1fr) minmax(0, max-content)
+      auto;
+  }
+  .ma-screen .ma-table--management .ma-auction__portrait {
+    inline-size: clamp(34px, 2vw, 50px);
+    block-size: clamp(34px, 2vw, 50px);
   }
 
   .ma-screen .ma-table--management :is(.ma-section-heading h2, .ma-auction h2) {
@@ -562,7 +581,7 @@
     .ma-table--management
     .ma-auction__paintings:has(> :nth-child(2))
     > .ma-card {
-    width: min(calc((100cqw - 16px) / 2), calc(100cqh - 94px), 385px);
+    width: min(calc((100cqw - 16px) / 2), calc(100cqh - 94px), 560px);
   }
 
   .ma-screen

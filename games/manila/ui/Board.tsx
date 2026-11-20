@@ -844,10 +844,23 @@ export function HarborBoard({
   );
 }
 
-export function Market({ game }: { game: ManilaView }) {
+export function Market({
+  game,
+  headingAction,
+}: {
+  game: ManilaView;
+  headingAction?: ReactNode;
+}) {
   return (
     <section className="mn-panel mn-market-panel">
-      <h2>股价 · ₱/股</h2>
+      {headingAction ? (
+        <header className="mn-market-heading">
+          <h2>股价 · ₱/股</h2>
+          {headingAction}
+        </header>
+      ) : (
+        <h2>股价 · ₱/股</h2>
+      )}
       <div className="mn-market">
         {game.cargos.map((cargo) => (
           <div

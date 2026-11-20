@@ -189,6 +189,7 @@
   min-height: 0;
   overflow: auto;
   align-self: stretch;
+  margin-inline-end: max(0px, calc(4vw - 18px));
 }
 .uno-screen--player[data-uno-layout='L'] .uno-seats--compact .uno-seat {
   display: grid;

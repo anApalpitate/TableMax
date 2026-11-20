@@ -766,10 +766,14 @@ ${frameSmoke ? `const selectedGame=new URLSearchParams(location.search).get('fra
             60,
             'Legal fixture has 60 public tiles',
           );
+          const projectedGroups = await page.evaluate(
+            () => window.fixtureSession.view.gameView.table.length,
+          );
+          assert(projectedGroups >= 15, 'Legal fixture remains a dense table');
           assert.equal(
             evidence.density.groups.length,
-            15,
-            'Legal fixture has 15 public groups',
+            projectedGroups,
+            'Every group from the legal projection is displayed',
           );
           assert(
             evidence.density.tiles.every((item) => item.inside),
@@ -777,7 +781,7 @@ ${frameSmoke ? `const selectedGame=new URLSearchParams(location.search).get('fra
           );
           assert(
             evidence.density.groups.every((item) => item.inside),
-            'All 15 groups fit public workspace',
+            'All projected groups fit public workspace',
           );
           assert(
             evidence.density.rows.every((item) => !item.overflow),
@@ -1005,7 +1009,12 @@ ${frameSmoke ? `const selectedGame=new URLSearchParams(location.search).get('fra
         });
         await page.screenshot({
           path: screenshot,
-          fullPage: true,
+          fullPage: !(
+            layoutBaseline &&
+            item.key === 'manila' &&
+            item.role === 'player' &&
+            item.width < 640
+          ),
           animations: 'disabled',
         });
         report.screenshots.push({

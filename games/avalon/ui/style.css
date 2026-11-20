@@ -2233,6 +2233,7 @@
 
 .av-discussion {
   display: flex;
+  justify-content: center;
   align-items: center;
   flex-wrap: wrap;
   gap: 12px;
@@ -2255,7 +2256,11 @@
   gap: 8px;
 }
 .av-discussion-progress {
-  justify-content: space-between;
+  justify-content: center;
+}
+.av-discussion-next {
+  justify-content: center;
+  text-align: center;
 }
 .av-discussion-progress > strong {
   color: var(--av-green);
@@ -2277,6 +2282,9 @@
 .av-discussion button {
   min-height: 44px;
   font-size: 18px;
+}
+.av-screen--host .av-discussion > button {
+  margin-inline: auto;
 }
 .avalon-screen .av-council-center > strong,
 .avalon-screen .av-council-center > span {

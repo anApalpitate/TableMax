@@ -3310,6 +3310,15 @@
   width: 44px;
   height: 56px;
 }
+.expansion-screen .ex-buffer-empty svg {
+  width: 78%;
+  height: 78%;
+}
+@media (min-height: 760px) and (orientation: portrait) {
+  .expansion-screen.player[data-layout='P'] > .ex-round-context {
+    margin-block: 4px;
+  }
+}
 .expansion-screen .ex-buffer-portrait img {
   width: 100%;
   height: 100%;

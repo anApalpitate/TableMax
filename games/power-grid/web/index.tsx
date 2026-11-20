@@ -320,7 +320,7 @@ function PowerGridScreen({ session }: { session: RoomSession }) {
         animateFocus: !feedbackDisabled,
       }
     : null;
-  const map = mapProps && <GermanyMap {...mapProps} />;
+  const map = mapProps && <GermanyMap {...mapProps} zoomInFooter />;
   const actor = active && game?.actor ? names[game.actor] : undefined;
   const ownTurn = actor && game?.actor === game?.self?.seatId;
   const shownMarket =
@@ -441,16 +441,6 @@ function PowerGridScreen({ session }: { session: RoomSession }) {
               disabled={feedbackDisabled}
               canPlay={canPlay}
             />
-          )}
-          {role !== 'player' && (
-            <button
-              className="pg-company-inspect-entry"
-              aria-label="查看各家公司"
-              title="查看各家公司"
-              onClick={() => showCompany()}
-            >
-              <BoardIcon name="search" />
-            </button>
           )}
           <button
             className="game-rulebook-entry pg-toolbar-icon"
@@ -660,6 +650,7 @@ function PowerGridScreen({ session }: { session: RoomSession }) {
               savedKey={savedKey}
               animate={!feedbackDisabled}
               onDetails={showCompany}
+              onOverview={() => showCompany()}
             />
           )}
         </>

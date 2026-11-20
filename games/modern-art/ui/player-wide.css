@@ -540,8 +540,13 @@
     .ma-screen.player[data-player-layout-contract='three-v1']
     .ma-auction__paintings:has(> :nth-child(2))
     > .ma-card {
-    flex-basis: 200px;
-    width: min(48%, 200px);
+    --ma-paired-painting-width: clamp(
+      64px,
+      min(calc((100cqw - 8px) / 2), calc(100cqh - 88px)),
+      200px
+    );
+    flex: 0 0 var(--ma-paired-painting-width);
+    width: var(--ma-paired-painting-width);
     max-width: 48%;
   }
   [data-player-layout='wide']
@@ -811,7 +816,7 @@
 @media (min-width: 640px) and (max-height: 850px) {
   [data-player-layout='wide']
     .ma-screen.player[data-player-layout-contract='three-v1']
-    .ma-auction__paintings
+    .ma-auction__paintings:not(:has(> :nth-child(2)))
     > .ma-card {
     display: grid;
     grid-template-columns: minmax(0, 1fr) minmax(65px, 0.8fr);
@@ -821,7 +826,7 @@
   }
   [data-player-layout='wide']
     .ma-screen.player[data-player-layout-contract='three-v1']
-    .ma-auction__paintings
+    .ma-auction__paintings:not(:has(> :nth-child(2)))
     .ma-card__art {
     grid-column: 1;
     grid-row: 1 / -1;
@@ -830,7 +835,7 @@
   }
   [data-player-layout='wide']
     .ma-screen.player[data-player-layout-contract='three-v1']
-    .ma-auction__paintings
+    .ma-auction__paintings:not(:has(> :nth-child(2)))
     .ma-card__head {
     grid-column: 2;
     grid-row: 1;
@@ -842,14 +847,14 @@
   }
   [data-player-layout='wide']
     .ma-screen.player[data-player-layout-contract='three-v1']
-    .ma-auction__paintings
+    .ma-auction__paintings:not(:has(> :nth-child(2)))
     .ma-card__artist-name {
     display: block;
     font-size: 16px;
   }
   [data-player-layout='wide']
     .ma-screen.player[data-player-layout-contract='three-v1']
-    .ma-auction__paintings
+    .ma-auction__paintings:not(:has(> :nth-child(2)))
     :is(.ma-card__artist-mark, .ma-card__auction-mark) {
     width: 22px;
     min-width: 22px;
@@ -857,7 +862,7 @@
   }
   [data-player-layout='wide']
     .ma-screen.player[data-player-layout-contract='three-v1']
-    .ma-auction__paintings
+    .ma-auction__paintings:not(:has(> :nth-child(2)))
     .ma-card__foot {
     grid-column: 2;
     grid-row: 2;
@@ -1247,6 +1252,11 @@
   }
   [data-player-layout='wide']
     .ma-screen.player[data-player-layout-contract='three-v1']
+    .ma-table:has(.ma-auction__paintings > :nth-child(2)) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  [data-player-layout='wide']
+    .ma-screen.player[data-player-layout-contract='three-v1']
     .ma-player__workspace {
     grid-column: 1;
     display: flex;
@@ -1475,6 +1485,14 @@
   .ma-screen.player[data-player-layout-contract='three-v1']
     .ma-market.ma-market--summary {
     padding: 6px;
+  }
+}
+@media (max-width: 639px) and (min-height: 760px) {
+  .ma-screen.player[data-player-layout-contract='three-v1']
+    .ma-player__workspace:has(.ma-auction:not(.ma-auction--waiting))
+    .ma-player__operations {
+    min-block-size: clamp(164px, 22dvh, 194px);
+    align-content: start;
   }
 }
 

@@ -116,7 +116,9 @@ export function PlayerControls({
       className={
         a.type === 'discard-held'
           ? 'intent-action discard-held-action'
-          : 'intent-action secondary'
+          : a.type === 'decline-ability'
+            ? 'intent-action secondary decline-ability'
+            : 'intent-action secondary'
       }
       key={a.type}
       aria-label={short(a)}

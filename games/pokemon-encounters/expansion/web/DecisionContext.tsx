@@ -1,6 +1,6 @@
 import { coinArt } from '../../../../assets/games/pokemon-encounters/catalog';
 import { categoryPresentation } from '../cards';
-import { Board, BufferCard, Card } from './Cards';
+import { Board, BufferCard, Card, EmptyBufferSlot } from './Cards';
 import {
   landscapeDecisionContent,
   portraitDecisionContent,
@@ -192,9 +192,7 @@ export function DecisionContext(props: PlayerDecisionProps) {
                         compact
                       />
                     ) : (
-                      <span className="ex-buffer-empty" aria-hidden="true">
-                        ＋
-                      </span>
+                      <EmptyBufferSlot />
                     )}
                   </>,
                   game.buffersBySeat[self] ? (

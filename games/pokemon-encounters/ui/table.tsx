@@ -319,9 +319,13 @@ export function GameTable({
                   !paused &&
                   playing &&
                   !game.roundResult && (
-                    <p className="waiting-turn">
+                    <p
+                      className="waiting-turn"
+                      data-phase={game.phase}
+                      role="status"
+                    >
                       {game.phase === 'initial-flip'
-                        ? '你已翻牌，等朋友们选好。'
+                        ? '已翻牌，等待其他玩家'
                         : `轮到 ${names[game.actorSeat ?? game.turnSeat] ?? '朋友'}，看看桌上的变化。`}
                     </p>
                   )}
