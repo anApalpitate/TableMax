@@ -1,5 +1,11 @@
 # 项目瘦身与最近结果
 
+## 两周期大项净回收排序与保护下界（2026-11-22）
+
+v1.0.9、v1.0.8 为本轮比较窗口。工作区从 10,865,054,297 降至 10,801,617,562 字节，净减 63,436,735 字节。预览后一次退役 678 个文件，共 65,242,103 字节。按目录核实的回收量前四项为安装夹具 0CS3GE 的展开件 26.11 MB、太阳神入场验证的重复着色器缓存 13.07 MB、马尼拉窗口外验收明细 7.24 MB、太阳神结算验证的重复着色器缓存 6.61 MB。窗口外 134 项、12,318,460 字节只保留历史结论和哈希；窗口内 544 项、52,923,643 字节在退役后均由保留副本或 ZIP 成员逐字节复核。[完整排序与大项目录](../../artifacts/maintenance/window-net-review-20261122/ranking.json) · [历史结论](../../artifacts/maintenance/window-net-review-20261122/historical-conclusions.json) · [退役台账](../../artifacts/maintenance/reviewed-retirements/window-net-review-20261122.json)
+
+本轮仅清理 artifacts 和 tmp。清理前，范围外计 2,906,925,166 字节；范围内按原路径去重计入现行交付与发行备份、恢复文件、受保护链接目标和嵌套仓库，合计 3,670,460,967 字节。当前范围及保护清单对应的容量下界为 6,577,386,133 字节，超过 6 GB。其余未分类字节仍须逐项核实。12 份 v1.0.8 历史载荷的实际 SHA 复核一致；旧 Electron 迁移原档及旧局签名模块继续保留。清理后 2,409 项保护绑定、1,788 个链接、625 个审阅依赖及 265 条截图映射复核通过。剩余 artifacts 4.784 GB、tmp 3.111 GB。[下界口径](../../artifacts/maintenance/window-net-review-20261122/protected-floor.json) · [窗口内恢复验证](../../artifacts/maintenance/window-net-review-20261122/comparison-after.json) · [容量复核](../../artifacts/maintenance/window-net-review-20261122/verify-after.json)
+
 ## 两个公开版本周期之外的比较证据退役（2026-11-21）
 
 按 v1.0.9、v1.0.8 的滚动窗口复审，仅因旧版比较保留的验收明细、模拟数据库和隔离源码副本经一次清理退役 519 项，共 46,333,546 字节。工作区从 10,909,124,993 降至 10,864,418,991 字节，净减 44,706,002 字节。历史验收以实际包版本和哈希确认归属；仍由新代码使用的旧名目录，另以测试生成的时间戳、对应生成器、模拟席位和实例核对。原结论、失败原因、路径及 SHA 已登记。窗口外独有的原始比较明细和模拟库不再承诺逐字节恢复。[比较窗口](workspace-maintenance.md#历史可比性的两个公开版本周期2026-11-21) · [退役清单](../../artifacts/maintenance/two-public-cycles-20261121/retired-paths.json) · [历史结论](../../artifacts/maintenance/two-public-cycles-20261121/historical-conclusions.json)
