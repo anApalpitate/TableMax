@@ -1,5 +1,11 @@
 # 项目瘦身与最近结果
 
+## 审阅稿、快照与历史验收续清（2026-11-21）
+
+从 14,132,015,914 降至 12,612,263,473 字节，净减 1,519,752,441 字节。单次 Apply 退役 39 组、10,274 个文件，共 1,523,024,028 字节。核验覆盖任务本地浏览器、带身份标记的开发会话缓存、编译夹具、可由保留 TAR 逐成员恢复的快照，以及与保留原件同字节的渲染和安装副本。旧验收展开件逐项匹配报告和实际 ZIP 成员。[候选预算](../../artifacts/maintenance/review-slim-20261121/selection.json) · [执行台账](../../artifacts/maintenance/reviewed-retirements/review-slim-20261121.json)
+
+审阅依赖复查从候选中排除 10,845,915 字节。执行后 625 个审阅页及静态本地依赖、335 项保护文件哈希和 1,788 个链接路径及目标复核通过。剩余主要为 artifacts 5.167 GB、tmp 4.538 GB、.cache 1.957 GB。距严格低于 6 GB 仍需净减 6,612,263,474 字节。正式存档、当前交付、独有历史载荷、审阅依赖和未确认可退役的内容继续保留。[保护及容量复核](../../artifacts/maintenance/review-slim-20261121/verify-after.json) · [审阅依赖清单](../../artifacts/maintenance/review-slim-20261121/review-dependencies.json) · [后续工作流](deep-slimming-methodology.md#项目-agent-工作流)
+
 ## 工作区生成副本深度清理（2026-11-21）
 
 逐文件预览后执行一次清理，共退役 21,293 个文件、2,259,148,118 字节。其中设置与存档验收的编译夹具占 585,360,705 字节，太阳神三项测试的缓存和中间帧占 1,500,662,383 字节，两份安装夹具的展开文件占 173,125,030 字节。[逐文件清单](../../artifacts/maintenance/deep-workspace-20261121/reviewed-final.json) · [执行记录](../../artifacts/maintenance/reviewed-retirements/deep-workspace-20261121.json)
