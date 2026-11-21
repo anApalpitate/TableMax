@@ -1,5 +1,11 @@
 # 项目瘦身与最近结果
 
+## 按可回收字节复审未知大项（2026-11-21）
+
+工作区从 12,047,946,580 降至 11,364,906,247 字节，净减 683,040,333 字节。逐文件预览后一次退役 3,598 个文件，共 685,437,258 字节。按收益排列，旧太阳神测试网页的素材副本占 263.00 MB，旧封包的签名模块暂存件占 118.21 MB，已核实的模拟对局数据库占 102.34 MB，旧公屏源码 TAR 占 95.15 MB。其余来自可重建的网页夹具、已迁移工具的下载件及受最终执行清单覆盖的中间记录。[回收排序与保留项](../../artifacts/maintenance/ranked-retirement-20261121/ranking.json) · [执行台账](../../artifacts/maintenance/reviewed-retirements/ranked-retirement-20261121.json)
+
+退役后从固定提交的可达历史验证了 2,881 个素材路径；85 份暂存模块分别核对独立原件及八份保留载荷内的对应成员；旧公屏 TAR 通过原提交和路径参数完整重建，SHA 一致。120.46 MB 的太阳神 TAR 继续保留，其 7 个文件内容未出现在当前 Git 引用可达的历史中。1,023 项保护绑定、625 个审阅页及依赖、265 条截图映射和 1,788 个链接复核通过。剩余 artifacts 4.888 GB、tmp 3.571 GB，距严格低于 6 GB 仍需净减 5,364,906,248 字节。[恢复验证](../../artifacts/maintenance/ranked-retirement-20261121/recovery-verification.json) · [源码 TAR 重建参数](../../artifacts/maintenance/ranked-retirement-20261121/restore-source-tar.json) · [容量复核](../../artifacts/maintenance/ranked-retirement-20261121/verify-after.json)
+
 ## 按实际消费者复审历史生成文件（2026-11-21）
 
 从 12,612,388,673 降至 12,047,718,526 字节，净减 564,670,147 字节。单次清理覆盖 24 组、1,928 个文件，共 566,129,623 字节。竖屏验收脚本会在任务目录生成网页夹具；旧审阅轮次以交付 HTML、报告和截图索引核对；隔离库以生成器、实例与修订或录制记录核对。旧轮次的报告和原 SHA 可结合映射查回同字节副本或对应的最终画面。[候选预算](../../artifacts/maintenance/consumer-audit-20261121/selection.json) · [截图退役映射](../../artifacts/maintenance/consumer-audit-20261121/historical-mapping.json) · [执行台账](../../artifacts/maintenance/reviewed-retirements/consumer-audit-20261121.json)
