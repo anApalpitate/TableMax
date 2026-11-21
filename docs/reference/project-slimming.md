@@ -1,5 +1,11 @@
 # 项目瘦身与最近结果
 
+## 两个公开版本周期之外的比较证据退役（2026-11-21）
+
+按 v1.0.9、v1.0.8 的滚动窗口复审，仅因旧版比较保留的验收明细、模拟数据库和隔离源码副本经一次清理退役 519 项，共 46,333,546 字节。工作区从 10,909,124,993 降至 10,864,418,991 字节，净减 44,706,002 字节。历史验收以实际包版本和哈希确认归属；仍由新代码使用的旧名目录，另以测试生成的时间戳、对应生成器、模拟席位和实例核对。原结论、失败原因、路径及 SHA 已登记。窗口外独有的原始比较明细和模拟库不再承诺逐字节恢复。[比较窗口](workspace-maintenance.md#历史可比性的两个公开版本周期2026-11-21) · [退役清单](../../artifacts/maintenance/two-public-cycles-20261121/retired-paths.json) · [历史结论](../../artifacts/maintenance/two-public-cycles-20261121/historical-conclusions.json)
+
+清单剩余为零。2,393 项保护绑定、1,788 个链接、625 个审阅依赖和 265 条截图映射均通过复核，206 个隔离源码文件仍可从 Git 逐字节恢复。旧 Electron 迁移原档、旧局签名模块、发行备份和窗口内的恢复输入继续保留。剩余 artifacts 4.794 GB、tmp 3.164 GB；距离严格低于 6 GB 仍需净减 4,864,418,992 字节。[执行台账](../../artifacts/maintenance/reviewed-retirements/two-public-cycles-20261121.json) · [容量与保护复核](../../artifacts/maintenance/two-public-cycles-20261121/verify-after.json)
+
 ## 历史载荷、验收展开件与冻结副本复审（2026-11-21）
 
 工作区从 11,127,019,072 降至 10,908,514,222 字节，净减 218,504,850 字节。一次退役 1,771 个文件，共 233,728,863 字节。验收夹具展开件占 50.30 MB，历史测试安装中的模块及资源副本占 57.32 MB。已结束的机器台账和冻结容量清单由 95.70 MB 无损归档为 12.75 MB。太阳神最终补丁和现代艺术基线 ZIP 合计 30.41 MB，分别从固定 Git 对象和原提交精确重建。[净收益排序](../../artifacts/maintenance/frozen-payload-review-20261121/ranking.json) · [执行台账](../../artifacts/maintenance/reviewed-retirements/frozen-payload-review-20261121.json)
