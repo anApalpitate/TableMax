@@ -1,5 +1,13 @@
 # 项目瘦身与最近结果
 
+## 历史载荷、验收展开件与冻结副本复审（2026-11-21）
+
+工作区从 11,127,019,072 降至 10,908,514,222 字节，净减 218,504,850 字节。一次退役 1,771 个文件，共 233,728,863 字节。验收夹具展开件占 50.30 MB，历史测试安装中的模块及资源副本占 57.32 MB。已结束的机器台账和冻结容量清单由 95.70 MB 无损归档为 12.75 MB。太阳神最终补丁和现代艺术基线 ZIP 合计 30.41 MB，分别从固定 Git 对象和原提交精确重建。[净收益排序](../../artifacts/maintenance/frozen-payload-review-20261121/ranking.json) · [执行台账](../../artifacts/maintenance/reviewed-retirements/frozen-payload-review-20261121.json)
+
+12 份 1.0.8 历史载荷共 626,312,352 字节，仍有原路径读者或承担先前清理的恢复职责，均保留。其中两份 1.0.8.14 的 123 个解码成员逐一相同，两个 ZIP 原字节 SHA 不同。当前验收的 EXE、载荷、指针和候选目录继续原位保留。清理后全量重建并比对了 1,771 个文件，六类样本实际写回，已有输出均受到覆盖保护。2,390 项保护绑定、1,788 个链接、625 个审阅依赖和 265 条截图映射均复核通过。剩余 artifacts 4.835 GB、tmp 3.167 GB，距离严格低于 6 GB 仍需净减 4,908,514,223 字节。[载荷读者](../../artifacts/maintenance/frozen-payload-review-20261121/payload-readers.json) · [恢复验证](../../artifacts/maintenance/frozen-payload-review-20261121/recovery-after.json) · [容量复核](../../artifacts/maintenance/frozen-payload-review-20261121/verify-after.json)
+
+从仓库根目录运行本轮恢复工具，传入 `--verify` 可验证全部恢复来源，传入 `--original <清单中的仓库相对路径> --output <未占用的目标文件>` 可恢复单个文件。台账归档、映射和已验证的历史载荷保存在本地维护工作区。太阳神补丁的附加恢复对象及独立恢复工具已纳入 Git。[本轮逐文件恢复工具](../../artifacts/maintenance/frozen-payload-review-20261121/restore-member.py) · [补丁恢复工具](../../artifacts/maintenance/frozen-payload-review-20261121/recover-patch.py)
+
 ## 太阳神源码 TAR 独立恢复及重复件退役（2026-11-21）
 
 从 11,365,160,492 降至 11,126,418,078 字节，净减 238,742,414 字节。一次清理退役 2,009 个文件，共 241,183,222 字节，涵盖太阳神源码 TAR、同字节测试数据库和截图、冻结源码副本及重复的构建下载件。清单剩余为零。2,343 项保护绑定和 1,788 个链接复核通过。剩余 artifacts 4.858 GB、tmp 3.361 GB；距离严格低于 6 GB 仍需净减 5,126,418,079 字节。[执行台账](../../artifacts/maintenance/reviewed-retirements/ra-recovery-retirement-20261121.json) · [容量复核](../../artifacts/maintenance/ra-recovery-retirement-20261121/verify-after.json)
