@@ -21,7 +21,7 @@ GitHub v1.0.9 已发布，标签和发布分支对应提交 **39634b2b**，冻�
 
 ## 当前安装交付（2026-11-20）
 
-本地完整安装器 **1.0.8.15** 预装 8 款游戏、9 个玩法。冻结快照为 `a55b76bd9e4312e22703ef022b0c7783e9592926468ff9e43d7dd8ba8ce6291d`，来源为 `91f09cf1` 加用户确认纳入的 21 个工作区文件。核对了 47 个单元、1008 个输入路径和 26 项安装配方输入。[安装器](../../artifacts/releases/v1.0.8/1.0.8.15/TableMax-1.0.8.15-installer-win-x64.exe) · [冻结输入](../../artifacts/maintenance/installer-export-20261120/workspace-frozen-input-audit.json) · [1.0.8 累计更新](../../artifacts/maintenance/installer-export-20261120/changes-v1.0.8.md)
+本地完整安装器 **1.0.8.15** 预装 8 款游戏、9 个玩法。冻结快照为 `a55b76bd9e4312e22703ef022b0c7783e9592926468ff9e43d7dd8ba8ce6291d`，来源为 `91f09cf1` 加用户确认纳入的 21 个工作区文件。核对了 47 个单元、1008 个输入路径和 26 项安装配方输入。2026-11-21 已退役本地 EXE。 [原交付清单](../../artifacts/releases/v1.0.8/1.0.8.15/TableMax-1.0.8.15-installer-win-x64-manifest.json) · [冻结输入](../../artifacts/maintenance/installer-export-20261120/workspace-frozen-input-audit.json) · [1.0.8 累计更新](../../artifacts/maintenance/installer-export-20261120/changes-v1.0.8.md)
 
 最终 EXE 为 **49,911,451 字节**，距 50,000,000 字节上限剩 88,549 字节。内部 ZIP 为 58,846,551 字节，实际解包为 111,344,348 字节，首次健康启动占用 119,772,421 字节。太阳神模块仍报 11,112,296／8,388,608 字节工程预警。原 EXE SHA-256 为 `f7de0e11bcfcaeff888dcf7015514065f7545fb8d2e8d9e7f5c975f6c53d867e`。
 
