@@ -1,0 +1,69 @@
+{
+  "pinnedCommit": "3c4fef0b2f61ab829bcd52802e0da8b9c250fcc6",
+  "tree": "ac0ec5ea859be0dc3e5228c5187bf53887e7c00b",
+  "mtime": 1794924818,
+  "packSha256": "83adc10b2d025c407d64f7ac39f57d2746dfe99cc0dd6552ba4b23cf4c7a5fd6",
+  "objects": [
+    "0cd48798b82fdbbacf828a9ef97964f184b3d5e8",
+    "3031161c8e64b98150be798850790e007e4c0552",
+    "3e306b80b3bfb6e3aa7445f077bf7352b83c8385",
+    "56d7adc55e956bfd190dac5f835d3cc018db6a3a",
+    "5b206df8b1929adbafa84ab6ddae99c8101c4917",
+    "6d1d02aaa0a69fa53b12d6406e5c5dd9526347db",
+    "734ba01e95d728be955aed1789cdd8ef2211ca58",
+    "ac0ec5ea859be0dc3e5228c5187bf53887e7c00b",
+    "ac6e22db93b38874da209e4ef7e43f085e455404",
+    "b111b324717d542f8e4330fea14fe703511601dc",
+    "b87e1bd04a6acdf67634a7d0d7fed33f65877374",
+    "cd7d8aa2218c52d9ca3f3a5413fd38c2086dceb3",
+    "e99b661468d315c93f054f7780aca3cca71f1c1a",
+    "f037f34197168eed156da7451a7a421bd1bcac9f"
+  ],
+  "blobs": [
+    {
+      "oid": "f037f34197168eed156da7451a7a421bd1bcac9f",
+      "size": 4564,
+      "sha256": "fe80d77630fb6ca1fa86a5734022d742d12a83e90e1f764d9f030f7b3d1988fe",
+      "matchingFiles": []
+    },
+    {
+      "oid": "734ba01e95d728be955aed1789cdd8ef2211ca58",
+      "size": 4599,
+      "sha256": "3e9fca00473e3a055d7409464c8336c4653a10097253093fb54e85440f4dfcb1",
+      "matchingFiles": []
+    },
+    {
+      "oid": "3e306b80b3bfb6e3aa7445f077bf7352b83c8385",
+      "size": 2920,
+      "sha256": "d6f3e77866d64b4d1c6f2f90de7112e2638c334a7c56bba4c07b5854a75fa2db",
+      "matchingFiles": []
+    },
+    {
+      "oid": "b111b324717d542f8e4330fea14fe703511601dc",
+      "size": 12222,
+      "sha256": "bdc3c3c3b4341fe0760f7d01770d127f7e3c9e7ca16a3cd03c813901d12dfb43",
+      "matchingFiles": []
+    },
+    {
+      "oid": "6d1d02aaa0a69fa53b12d6406e5c5dd9526347db",
+      "size": 8646,
+      "sha256": "4b1e6d23e7d87bd7208264a430ad05c177729bcd9236bb3550b0bce427274093",
+      "matchingFiles": []
+    },
+    {
+      "oid": "0cd48798b82fdbbacf828a9ef97964f184b3d5e8",
+      "size": 1428,
+      "sha256": "4f6141e24406f1b8852e391130fc1dc2cdacd59ce4adef047e155eb1702c9e75",
+      "matchingFiles": []
+    },
+    {
+      "oid": "5b206df8b1929adbafa84ab6ddae99c8101c4917",
+      "size": 26381,
+      "sha256": "35ae2eb8f974cfbbc5e13af8fad27a5cf77f8fef6710f2a09ac00380df41991e",
+      "matchingFiles": []
+    }
+  ],
+  "original": "tmp/ra-final-settlement-20261117/owned-source.tar",
+  "tarBytes": 120463360,
+  "tarSha256": "6bb00b7094e8a4729b7b21118835aa8a7e900e707cef384986f3b190932e982b"
+}
