@@ -1,0 +1,19 @@
+{
+  "base": "58a046199a69977bbd1b1f2bab1ece23647d78f2",
+  "tree": "dfb19ab3cd56e011ad30bd362789f801da85cf28",
+  "head": "3c4fef0b2f61ab829bcd52802e0da8b9c250fcc6",
+  "priorPack": "artifacts/maintenance/ra-recovery-retirement-20261121/ra-source-objects.pack",
+  "priorSha256": "83adc10b2d025c407d64f7ac39f57d2746dfe99cc0dd6552ba4b23cf4c7a5fd6",
+  "extraObjects": [
+    "1dd266f491929536e4ab5f2aef64ba1d94e47f94",
+    "76c0434da0d28e18eba4b363becfd0c4ace6d415",
+    "bfe931ccb6c128faa9bb53b6949ceab735398898",
+    "dfb19ab3cd56e011ad30bd362789f801da85cf28",
+    "ec379fb8e199dcdb540f734281e2967e6d7d4469",
+    "f3a03d8c4fb446976088c8b5dcc08e2dd36f0991"
+  ],
+  "extraPackSha256": "36066310623b641cbef9065fcbe9334f337f35970040ec7f45ebf3570cc4c962",
+  "sha256": "b40dbf5cd2b03d27825a44543572c95869b044b44971313edf123ca31c42b382",
+  "bytes": 18655512,
+  "original": "tmp/ra-final-settlement-20261117/verified-changes.patch"
+}
