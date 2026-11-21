@@ -1,5 +1,17 @@
 # 项目瘦身与最近结果
 
+## 太阳神源码 TAR 独立恢复及重复件退役（2026-11-21）
+
+从 11,365,160,492 降至 11,126,418,078 字节，净减 238,742,414 字节。一次清理退役 2,009 个文件，共 241,183,222 字节，涵盖太阳神源码 TAR、同字节测试数据库和截图、冻结源码副本及重复的构建下载件。清单剩余为零。2,343 项保护绑定和 1,788 个链接复核通过。剩余 artifacts 4.858 GB、tmp 3.361 GB；距离严格低于 6 GB 仍需净减 5,126,418,079 字节。[执行台账](../../artifacts/maintenance/reviewed-retirements/ra-recovery-retirement-20261121.json) · [容量复核](../../artifacts/maintenance/ra-recovery-retirement-20261121/verify-after.json)
+
+太阳神 7 个文件在工作区与外部素材库中没有找到同字节普通文件，原 TAR 之外的本地 Git 对象库保存了全部 7 个 blob 和原始目录树。提交 f47550a 持久保存了恢复所缺的 7 个 blob、7 个 tree 对象、恢复配方和工具。恢复包为 23,857 字节。隔离对象库只装入固定提交可达的历史，先证实 14 个对象均不可读，再导入恢复包。删除原件后实际恢复出的 TAR 为 120,463,360 字节，SHA-256 为 `6bb00b7094e8a4729b7b21118835aa8a7e900e707cef384986f3b190932e982b`。工具也通过了拒绝覆盖已有文件的复验。[恢复配方](../../artifacts/maintenance/ra-recovery-retirement-20261121/ra-source-recipe.json) · [实物恢复验证](../../artifacts/maintenance/ra-recovery-retirement-20261121/restore-verification.json)
+
+从含有配方所指定提交及历史的仓库根目录运行以下命令，可恢复到原位置。省略 `--output` 时仅验证重建结果。[恢复工具](../../artifacts/maintenance/ra-recovery-retirement-20261121/recover-ra-tar.py)
+
+```powershell
+python artifacts/maintenance/ra-recovery-retirement-20261121/recover-ra-tar.py --output tmp/ra-final-settlement-20261117/owned-source.tar
+```
+
 ## 按可回收字节复审未知大项（2026-11-21）
 
 工作区从 12,047,946,580 降至 11,364,906,247 字节，净减 683,040,333 字节。逐文件预览后一次退役 3,598 个文件，共 685,437,258 字节。按收益排列，旧太阳神测试网页的素材副本占 263.00 MB，旧封包的签名模块暂存件占 118.21 MB，已核实的模拟对局数据库占 102.34 MB，旧公屏源码 TAR 占 95.15 MB。其余来自可重建的网页夹具、已迁移工具的下载件及受最终执行清单覆盖的中间记录。[回收排序与保留项](../../artifacts/maintenance/ranked-retirement-20261121/ranking.json) · [执行台账](../../artifacts/maintenance/reviewed-retirements/ranked-retirement-20261121.json)
