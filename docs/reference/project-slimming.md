@@ -1,5 +1,11 @@
 # 项目瘦身与最近结果
 
+## 按实际消费者复审历史生成文件（2026-11-21）
+
+从 12,612,388,673 降至 12,047,718,526 字节，净减 564,670,147 字节。单次清理覆盖 24 组、1,928 个文件，共 566,129,623 字节。竖屏验收脚本会在任务目录生成网页夹具；旧审阅轮次以交付 HTML、报告和截图索引核对；隔离库以生成器、实例与修订或录制记录核对。旧轮次的报告和原 SHA 可结合映射查回同字节副本或对应的最终画面。[候选预算](../../artifacts/maintenance/consumer-audit-20261121/selection.json) · [截图退役映射](../../artifacts/maintenance/consumer-audit-20261121/historical-mapping.json) · [执行台账](../../artifacts/maintenance/reviewed-retirements/consumer-audit-20261121.json)
+
+v1.0.9 验收仍引用两份高修订号安装夹具及封包暂存目录，另一旧安装候选是测试链接的目标。保留这些路径、现用载荷、旧局依赖及用途尚未确认的内容。执行后清单剩余为零，905 项保护文件、625 个审阅页及依赖、265 条截图映射的保留端哈希及 1,788 个链接复核通过。剩余 artifacts 5.023 GB、tmp 4.118 GB；距严格低于 6 GB 仍需净减 6,047,718,527 字节。[现用消费者](../../artifacts/maintenance/consumer-audit-20261121/current-consumers.json) · [容量与保护复核](../../artifacts/maintenance/consumer-audit-20261121/verify-after.json)
+
 ## 审阅稿、快照与历史验收续清（2026-11-21）
 
 从 14,132,015,914 降至 12,612,263,473 字节，净减 1,519,752,441 字节。单次 Apply 退役 39 组、10,274 个文件，共 1,523,024,028 字节。核验覆盖任务本地浏览器、带身份标记的开发会话缓存、编译夹具、可由保留 TAR 逐成员恢复的快照，以及与保留原件同字节的渲染和安装副本。旧验收展开件逐项匹配报告和实际 ZIP 成员。[候选预算](../../artifacts/maintenance/review-slim-20261121/selection.json) · [执行台账](../../artifacts/maintenance/reviewed-retirements/review-slim-20261121.json)
