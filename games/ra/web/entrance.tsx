@@ -51,7 +51,7 @@ export function RaEntrance({
           })
           .catch(() => {});
       },
-      reducedMotion ? 0 : 460,
+      reducedMotion ? 0 : 383,
     );
     return () => {
       untrackVolume();

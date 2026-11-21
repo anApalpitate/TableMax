@@ -2,6 +2,7 @@ import ts from 'typescript';
 import { createRequire } from 'node:module';
 import { resolve, dirname, relative } from 'node:path';
 import { lstat, readdir, realpath } from 'node:fs/promises';
+import { statSync } from 'node:fs';
 const require = createRequire(import.meta.url);
 const { globSync } = createRequire(require.resolve('vite/package.json'))(
   'tinyglobby',
@@ -115,17 +116,43 @@ export function mediaGlobs(source, file) {
   return calls;
 }
 export function gameResourcesPlugin(root) {
+  const cssResources = new Set();
   return {
     name: 'tablemax-logical-resources',
     enforce: 'pre',
-    config() {
-      return { css: { postcss: { plugins: [gameResourcesCssPlugin(root)] } } };
+    config(config) {
+      const options = ((config.build ??= {}).rolldownOptions ??= {});
+      const external = options.external;
+      // Set the predicate directly so Vite cannot merge it into an external array.
+      options.external = (source, importer, isResolved) => {
+        if (cssResources.has(source)) return true;
+        if (typeof external === 'function')
+          return external(source, importer, isResolved);
+        const entries = Array.isArray(external) ? external : [external];
+        return entries.some((entry) =>
+          typeof entry === 'string'
+            ? entry === source
+            : entry instanceof RegExp && entry.test(source),
+        );
+      };
+      return {
+        css: {
+          postcss: {
+            plugins: [gameResourcesCssPlugin(root, cssResources)],
+          },
+        },
+      };
+    },
+    buildStart() {
+      cssResources.clear();
     },
     resolveId(source, importer) {
       if (!importer || !mediaFile(source) || !source.startsWith('.')) return;
       const file = resolve(dirname(importer), source.split('?')[0]);
-      if (posix(file).includes('/assets/games/'))
-        return '\0tablemax-resource:' + logicalResource(file, root);
+      if (posix(file).includes('/assets/games/')) {
+        const resource = checkedResource(file, root, importer);
+        return '\0tablemax-resource:' + resource;
+      }
     },
     load(id) {
       if (!id.startsWith('\0tablemax-resource:')) return;
@@ -155,9 +182,22 @@ export function gameResourcesPlugin(root) {
   };
 }
 
+function checkedResource(file, root, importer) {
+  const resource = logicalResource(file, root);
+  try {
+    if (!statSync(file).isFile()) throw new Error('Expected a regular file');
+  } catch (cause) {
+    throw new Error(
+      `Missing or invalid game resource: ${file} (referenced from ${importer})`,
+      { cause },
+    );
+  }
+  return resource;
+}
+
 // Vite inlines CSS @imports after its transform hooks. PostCSS retains each
 // declaration's original source, including imports nested inside cascade layers.
-export function gameResourcesCssPlugin(root) {
+export function gameResourcesCssPlugin(root, resources = new Set()) {
   return {
     postcssPlugin: 'tablemax-logical-css-resources',
     OnceExit(sheet) {
@@ -168,7 +208,17 @@ export function gameResourcesCssPlugin(root) {
           /url\(\s*(['"]?)([^)'"\s]+)\1\s*\)/g,
           (token, quote, path) => {
             if (!path.startsWith('.') || !mediaFile(path)) return token;
-            return `url("../resources/${logicalResource(resolve(dirname(file), path), root)}")`;
+            const resource = checkedResource(
+              resolve(dirname(file), path.split('?')[0]),
+              root,
+              file,
+            );
+            const query = path.includes('?')
+              ? path.slice(path.indexOf('?'))
+              : '';
+            const url = `../resources/${resource}${query}`;
+            resources.add(url);
+            return `url("${url}")`;
           },
         );
       });

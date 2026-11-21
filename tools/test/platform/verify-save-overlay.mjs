@@ -22,6 +22,11 @@ const selected = process.argv
 const selectedWidth = Number(
   process.argv.find((arg) => arg.startsWith('--width='))?.slice(8) ?? 0,
 );
+assert.notEqual(
+  selectedWidth,
+  320,
+  '320px is boundary-only: use verify-settings-and-save-layout.mjs --only=portrait-boundary; receipt workflows run at the primary viewport.',
+);
 const feedbackOnly = process.argv.includes('--feedback-only');
 const receiptOnly = process.argv.includes('--receipt-only');
 const task = process.argv.find((arg) => arg.startsWith('--task='))?.slice(7);
@@ -149,7 +154,6 @@ try {
     headless: true,
   });
   const viewports = [
-    [320, 568, 1],
     [390, 844, 1],
     [430, 932, 1],
     [844, 390, 1],
@@ -182,6 +186,7 @@ try {
   for (const [width, height, dpr] of viewports) {
     if (
       (selectedWidth && width !== selectedWidth) ||
+      (width === 430 && !selectedWidth) ||
       (feedbackOnly && width !== 390)
     )
       continue;

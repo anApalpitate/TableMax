@@ -59,7 +59,7 @@ type Frame = {
   reducedMotion: boolean;
 };
 type Flight = { id?: string; disk?: number; from: DOMRect; to: DOMRect };
-const entranceDuration = 1600;
+const entranceDuration = 1333;
 const reducedEntranceDuration = 500;
 
 function buildFrames(
@@ -87,9 +87,9 @@ function buildFrames(
     return [
       intro,
       ...Array.from({ length: scene.epoch === 3 ? 7 : 5 }, (_, step) =>
-        frame(step, 700),
+        frame(step, 583),
       ),
-      frame(totalStep, 1000),
+      frame(totalStep, 833),
     ];
   });
 }
@@ -241,7 +241,7 @@ export function RaPresentation({
                 '--dy':
                   to.top + to.height / 2 - from.top - from.height / 2 + 'px',
                 '--flight-size': Math.min(101, from.width) + 'px',
-                '--flight-delay': Math.min(i, 8) * 20 + 'ms',
+                '--flight-delay': Math.min(i, 8) * 17 + 'ms',
               } as React.CSSProperties
             }
           >

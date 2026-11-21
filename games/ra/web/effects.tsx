@@ -119,10 +119,10 @@ export function RaEffects({
             {
               '--ra-effect-time':
                 cue === 'final'
-                  ? '1300ms'
+                  ? '1083ms'
                   : cue === 'epoch'
-                    ? '900ms'
-                    : '500ms',
+                    ? '750ms'
+                    : '417ms',
             } as CSSProperties
           }
           aria-hidden="true"

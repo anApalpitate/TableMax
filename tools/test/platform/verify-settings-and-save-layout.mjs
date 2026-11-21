@@ -40,6 +40,9 @@ assert(
       'mobile',
       'icons',
       'effects',
+      'portrait-boundary',
+      'portrait-short',
+      'portrait-wide',
     ].includes(group),
   ),
 );
@@ -51,8 +54,12 @@ await mkdir(resolve('artifacts/maintenance/settings-and-save-20261020'), {
   recursive: true,
 });
 await mkdir(output, { recursive: false });
-const work = join(output, 'fixture');
-await mkdir(work);
+const task =
+  process.argv.find((arg) => arg.startsWith('--task='))?.slice(7) ??
+  'tmp/portrait-acceptance-20261118';
+assert.match(task, /^tmp\/[a-z0-9][a-z0-9-]{1,80}$/);
+const work = resolve(task, evidence, 'fixture');
+await mkdir(work, { recursive: true });
 const file = (path) => JSON.stringify(resolve(path));
 const games = [
   'pokemon-encounters',
@@ -202,6 +209,15 @@ window.renderGame('box','host');
 const report = {
   scope:
     'Current source UI fixtures with legal rule projections; no installed-runtime, physical-device or network proof.',
+  portraitPolicy: {
+    primary: [390, 844],
+    short: [390, 660],
+    boundary: [320, 568],
+    optionalWide: [412, 915],
+    representatives: ['box:host', 'uno:player'],
+    boundaryOnly: true,
+    fullGameMatrixAdded: false,
+  },
   parameters: process.argv.slice(2),
   result: 'running',
   checks: [],
@@ -413,6 +429,15 @@ try {
   await page.goto(server.url);
   await page.waitForFunction(() => typeof window.renderGame === 'function');
   const check = async (id, action) => {
+    // Legacy 320px business cases remain identifiable but no longer run full
+    // workflows. The fixed boundary probes below replace that cross-product.
+    if (
+      (id.split(':').includes('320') && !id.includes(':portrait-boundary')) ||
+      (id.includes(':portrait-wide') && !only.includes('portrait-wide'))
+    ) {
+      report.excluded.push(id);
+      return;
+    }
     const target = id.startsWith('effects:')
       ? id.split(':')[1]
       : id.split(':')[0];
@@ -991,7 +1016,7 @@ try {
             .getByRole('button', { name: '批准换机', exact: true })
             .click();
           const confirmation = managementPage.getByRole('dialog', {
-            name: '批准换机',
+            name: `批准换机：${'长'.repeat(8)}`,
             exact: true,
           });
           await confirmation.waitFor({ state: 'visible' });
@@ -1016,8 +1041,8 @@ try {
             .nth(0)
             .getByRole('button', { name: '批准换机', exact: true })
             .click();
-          await managementPage
-            .getByRole('button', { name: '批准并退出旧设备', exact: true })
+          await confirmation
+            .getByRole('button', { name: '确定', exact: true })
             .click();
           assert.deepEqual(
             await managementPage.evaluate(
@@ -1067,7 +1092,7 @@ try {
             .getByRole('button', { name: destructive, exact: true })
             .click();
           await actionDialog
-            .getByRole('button', { name: '确认' + destructive, exact: true })
+            .getByRole('button', { name: '确定', exact: true })
             .click();
           assert.deepEqual(
             await managementPage.evaluate(() =>
@@ -2228,6 +2253,89 @@ try {
     }
     return panel;
   }
+  // Two shared-shell representatives only: never multiply these viewports by
+  // every game's roles, phases, permissions or save/retry business scenarios.
+  for (const [group, width, height] of [
+    ['portrait-boundary', 320, 568],
+    ['portrait-short', 390, 660],
+    ['portrait-wide', 412, 915],
+  ])
+    for (const [key, role] of [
+      ['box', 'host'],
+      ['uno', 'player'],
+    ]) {
+      await check(`${key}:${role}:${width}:${group}`, async () => {
+        await page.setViewportSize({ width, height });
+        await page.evaluate(
+          ({ key, role }) => {
+            window.configureNativeSettings(false);
+            window.renderGame(key, role);
+          },
+          { key, role },
+        );
+        const reachable = async (scope) => {
+          const buttons = scope.locator('button:visible:not(:disabled)');
+          for (const button of await buttons.all()) {
+            await button.scrollIntoViewIfNeeded({ timeout: 3000 });
+            assert(
+              await button.evaluate((node) => {
+                const r = node.getBoundingClientRect();
+                const x = (r.left + r.right) / 2;
+                const y = (r.top + r.bottom) / 2;
+                const hit = document.elementFromPoint(x, y);
+                return (
+                  r.width > 0 &&
+                  r.height > 0 &&
+                  r.left >= -1 &&
+                  r.right <= innerWidth + 1 &&
+                  y >= 0 &&
+                  y < innerHeight &&
+                  !!hit &&
+                  node.contains(hit)
+                );
+              }),
+              'Enabled control remains reachable without clipping or overlap',
+            );
+          }
+        };
+        assert(
+          await page.evaluate(
+            () => document.documentElement.scrollWidth <= innerWidth + 1,
+          ),
+          'No document horizontal overflow',
+        );
+        if (key === 'box') await reachable(page.locator('main').first());
+        // Open only; do not submit settings, seat operations or game actions.
+        const panel = await openSettings(key);
+        for (const name of ['基本', '游戏', '视频']) {
+          await panel.getByRole('button', { name, exact: true }).click();
+          assert(
+            await panel.evaluate((node) => {
+              const r = node.getBoundingClientRect();
+              return (
+                r.left >= -1 &&
+                r.right <= innerWidth + 1 &&
+                r.top >= -1 &&
+                r.bottom <= innerHeight + 1 &&
+                node.scrollWidth <= node.clientWidth + 1
+              );
+            }),
+            'Settings frame fits the viewport; vertical content may scroll',
+          );
+          await reachable(panel);
+        }
+        await captureBrowserScreenshot(page, {
+          path: join(output, `${group}-${key}-${role}-${width}x${height}.png`),
+        });
+        await panel
+          .getByRole('button', {
+            name: key === 'box' ? '关闭面板' : '返回',
+            exact: true,
+          })
+          .click({ timeout: 3000 });
+        await panel.waitFor({ state: 'hidden', timeout: 3000 });
+      });
+    }
   for (const key of ['box', ...games])
     for (const role of ['host', 'player']) {
       await check(`${key}:${role}:settings`, async () => {

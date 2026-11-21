@@ -4,10 +4,144 @@ import { mkdir, mkdtemp, writeFile, rm, readFile } from 'node:fs/promises';
 import { resolve, join } from 'node:path';
 import { createHash } from 'node:crypto';
 import { validateResourcePolicies } from './resource-policy.mjs';
-import { build } from 'vite';
+import { build, createLogger } from 'vite';
 import { createServer } from 'node:http';
 import { gameResourcesPlugin, mediaFile } from './game-resources.mjs';
 import { launchTestBrowser } from '../test/support/browser-test.mjs';
+
+test('UNO and Avalon CSS retain runtime URLs without unresolved resource warnings', async () => {
+  const warnings = [];
+  const logger = createLogger('warn');
+  logger.warn = (message) => warnings.push(message);
+  logger.warnOnce = logger.warn;
+  const result = await build({
+    configFile: false,
+    plugins: [gameResourcesPlugin(resolve('.'))],
+    customLogger: logger,
+    logLevel: 'warn',
+    base: './',
+    build: {
+      write: false,
+      rolldownOptions: {
+        input: {
+          uno: resolve('games/uno/ui/style.css'),
+          avalon: resolve('games/avalon/ui/style.css'),
+        },
+        output: { assetFileNames: '[name]-[hash][extname]' },
+      },
+    },
+  });
+  const css = result.output
+    .filter((item) => item.fileName.endsWith('.css'))
+    .map((item) => String(item.source))
+    .join('\n');
+  for (const resource of [
+    'uno/table-v1.webp',
+    'avalon/council.webp',
+    'avalon/effect-relics.webp',
+    'avalon/oberon.webp',
+    'avalon/roles.webp',
+    'avalon/mordred.webp',
+  ])
+    assert.ok(css.includes('../resources/' + resource), resource);
+  assert.deepEqual(
+    result.output.filter((item) => mediaFile(item.fileName)),
+    [],
+  );
+  assert.deepEqual(warnings, []);
+});
+
+test('runtime resource validation rejects missing CSS and JS files and preserves external rules', async () => {
+  const taskRoot = resolve(process.env.TABLEMAX_TEST_TMP ?? 'tmp');
+  await mkdir(taskRoot, { recursive: true });
+  const folder = await mkdtemp(join(taskRoot, 'resource-reference-'));
+  try {
+    const asset = join(folder, 'assets/games/probe');
+    await mkdir(asset, { recursive: true });
+    await writeFile(join(asset, 'known.webp'), Buffer.from([1, 2, 3]));
+    const css = join(folder, 'style.css');
+    const entry = join(folder, 'entry.js');
+    const warnings = [];
+    const logger = createLogger('warn');
+    logger.warn = (message) => warnings.push(message);
+    logger.warnOnce = logger.warn;
+    const compile = (input, external) =>
+      build({
+        configFile: false,
+        plugins: [gameResourcesPlugin(folder)],
+        customLogger: logger,
+        logLevel: 'warn',
+        base: './',
+        build: {
+          write: false,
+          rolldownOptions: {
+            input,
+            external,
+            output: { assetFileNames: '[name]-[hash][extname]' },
+          },
+        },
+      });
+    await writeFile(
+      css,
+      '.tile{background:url("./assets/games/probe/missing.webp")}',
+    );
+    await assert.rejects(
+      compile(css),
+      /Missing or invalid game resource:.*missing\.webp/,
+    );
+    await writeFile(
+      entry,
+      'import tile from "./assets/games/probe/missing.webp"; export {tile};',
+    );
+    await assert.rejects(
+      compile(entry),
+      /Missing or invalid game resource:.*missing\.webp/,
+    );
+
+    await writeFile(
+      css,
+      '.tile{background:url("./assets/games/probe/known.webp?v=1")}',
+    );
+    await writeFile(
+      entry,
+      'import "./style.css"; export {value} from "external-probe";',
+    );
+    for (const external of [
+      'external-probe',
+      ['external-probe'],
+      /^external-probe$/,
+      (source) => source === 'external-probe',
+    ]) {
+      const result = await compile(entry, external);
+      assert.ok(
+        result.output.some(
+          (item) =>
+            item.type === 'chunk' && item.code.includes('external-probe'),
+        ),
+      );
+      assert.ok(
+        result.output.some(
+          (item) =>
+            item.fileName.endsWith('.css') &&
+            String(item.source).includes('../resources/probe/known.webp?v=1'),
+        ),
+      );
+    }
+    assert.deepEqual(warnings, []);
+
+    await writeFile(css, '.tile{background:url("/unrelated-missing.webp")}');
+    await compile(css);
+    assert.ok(
+      warnings.some(
+        (warning) =>
+          warning.includes('/unrelated-missing.webp') &&
+          warning.includes("didn't resolve at build time"),
+      ),
+    );
+  } finally {
+    await rm(folder, { recursive: true, force: true });
+  }
+});
 
 test('layered CSS imports keep game media in resource URLs and decode over HTTP', async () => {
   const result = await build({

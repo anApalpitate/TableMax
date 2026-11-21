@@ -11,7 +11,7 @@
   --ra-mark-light: #f3cb84;
   --ra-mark-glow: #d99f4b;
   position: relative;
-  animation: ra-score-tap 520ms cubic-bezier(0.22, 0.75, 0.25, 1) 180ms both;
+  animation: ra-score-tap 433ms cubic-bezier(0.22, 0.75, 0.25, 1) 150ms both;
 }
 
 .ra-seat-summary [data-ra-score-hit='disk']::after {
@@ -35,7 +35,7 @@
     0 0 10px 2px var(--ra-mark-glow),
     inset 0 0 8px var(--ra-mark-glow);
   pointer-events: none;
-  animation: ra-score-gild calc(700ms - var(--ra-prelight)) ease-out
+  animation: ra-score-gild calc(583ms - var(--ra-prelight)) ease-out
     var(--ra-prelight) both;
 }
 
@@ -57,7 +57,7 @@
   border: 1px solid #e8b35e;
   border-radius: 35% 35% 8% 8% / 20% 20% 8% 8%;
   pointer-events: none;
-  animation: ra-score-gild 535ms ease-out 165ms both;
+  animation: ra-score-gild 445ms ease-out 138ms both;
 }
 
 .ra-seat-summary [data-ra-score-discard] {
@@ -84,7 +84,7 @@
     0 0 13px #1a1108;
   -webkit-text-stroke: 1px #39291c;
   paint-order: stroke fill;
-  animation: ra-score-pop 520ms cubic-bezier(0.22, 0.7, 0.28, 1) 180ms both;
+  animation: ra-score-pop 433ms cubic-bezier(0.22, 0.7, 0.28, 1) 150ms both;
 }
 
 .ra-score-pop[data-disks] {
@@ -102,7 +102,7 @@
 .ra-score-pop[data-total] {
   text-align: center;
   animation-name: ra-total-pop;
-  animation-duration: 820ms;
+  animation-duration: 683ms;
 }
 
 .ra-score-pop small {
@@ -228,12 +228,12 @@
 
   .ra-score-pop {
     transform: translate(-50%, var(--ra-pop-y));
-    animation: ra-score-show 180ms steps(1, end) both;
+    animation: ra-score-show 150ms steps(1, end) both;
   }
 
   .ra-score-pop[data-total] {
     transform: translate(-50%, -50%);
-    animation: ra-score-show 180ms steps(1, end) both;
+    animation: ra-score-show 150ms steps(1, end) both;
   }
 }
 

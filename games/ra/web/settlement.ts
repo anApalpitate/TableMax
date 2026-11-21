@@ -14,7 +14,7 @@ export const scoreCategories = [
 
 export type ScoreCategory = keyof Breakdown;
 export type ScoreStep = ScoreCategory | 'total';
-export const scoreBeatMs = 180;
+export const scoreBeatMs = 150;
 export const totalStep = scoreCategories.length;
 
 type Settlement = Extract<Scene, { kind: 'settlement' }>;
@@ -67,10 +67,10 @@ export function seatSettlement(table: SettlementTable, seat: string) {
     if (!current(piece)) return undefined;
     const start =
       piece.kind === 'nile'
-        ? 68
+        ? 57
         : piece.kind === 'flood' || category === 'pharaoh'
           ? 0
-          : order.indexOf(piece.face) * 18;
+          : order.indexOf(piece.face) * 15;
     return {
       hit: piece.kind,
       start,

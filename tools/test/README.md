@@ -14,6 +14,8 @@
 
 同一入口支持 `--phase=layout-baseline`，直接绑定当前源码与合法投影，按八玩法的管理1280×720、玩家390×844及电脑玩家1280×720采集基础截图；不会将无水平溢出等基础断言等同完整视觉验收。`--risk-density`限定拉密60张桌面牌与电力公司30城的合法推进夹具，`--prepare-only`仅准备该密集夹具，不产生渲染通过项。仍可用`--only`定向选取真实case-id。该模式保留正式截图，各轮独立绑定输入，历史失败或无效夹具不覆盖。
 
+手机采用[精简竖屏验收](../../docs/reference/visual-design.md#精简竖屏验收2026-11-18)。主尺寸保持390×844；新增短屏、320px边界只在下方设置入口运行固定的共享外壳代表，不给各游戏追加完整矩阵。旧专项视口清单保留为定向诊断参数，不能据此恢复全量尺寸组合。
+
 同入口的`--player-frame-smoke`仅与普通`--phase=layout-baseline`组合，八玩法使用实际PlayerFrame和游戏iframe执行390×844→844×390→390×844门禁检查，绑定同iframe／document／根DOM、键盘不可绕过及无规则动作；原版宝可梦额外合法摸牌后选位，拉密额外建立私有草稿并核对保留。其余玩法草稿须各自专项证据，不能从该冒烟推定全覆盖。夹具独立存为`legal-frame-fixtures.json`。密集管理4K可显式选择`rummikub-dense-host-3840`，表示3840×2160 CSS、DPR 1浏览器模拟，不代表物理电视。
 
 共享净区专项使用 [verify-viewport-measurement.mjs](platform/verify-viewport-measurement.mjs) 的 `--task=tmp/<安全任务名> --evidence=<新轮名>`，按`shared,tooling`显式计划执行。它验证实际React公开导出、后挂载根、env／显式安全区、DPR 2、iframe本地尺寸及resize／卸载；不证明真机安全区。
@@ -25,6 +27,8 @@
 相同入口的`--review-only --task=tmp/<安全任务名> --evidence=<新轮名>`精确归`tooling`，读取任务`review/review-source.json`绑定HTML与相对图片SHA，再检查离线解码、筛选、原始像素和窄屏页面。一次性HTML生成脚本留任务`work`，不登记为永久工具入口；审阅QA不另增产品场景统计。服务路由／权限、原生桥接、配置、声音和安装器均须各自证据。
 
 [保存回执源码验证](platform/verify-save-overlay.mjs)接受 `--task=tmp/<任务唯一ID> --evidence=<新轮名> --receipt-only`，按现有范围计划执行。检查回执前后布局、控件交叠、模态层、计时、宝可梦例外及错误／重试。可用 `--only` 和 `--width` 定向复验。`PLAYWRIGHT_BROWSERS_PATH` 指向已安装的 Playwright Chromium 时使用该浏览器，否则使用无头 Edge。
+
+该回执入口默认不再运行320px业务矩阵；`--width=320`会指向共享边界入口并拒绝执行。430px仅在显式`--width=430`时执行，避免对所有游戏自动增加额外竖屏档位。
 
 ### 规则与菜单的隔离源码复核
 
@@ -72,13 +76,15 @@
 
 `tools/test/platform/verify-settings-and-save-layout.mjs --evidence=<独立安全名称>`构建当前源码夹具，当前源码角色循环为管理与玩家的盒子／玩法设置入口、仅管理端顶栏牌桌图标与确认操作、基本／视频字段一致性和设置切换高度、同源页面／iframe声音同步、手机全屏成功／拒绝／不支持、保存前后几何不变、文字碰撞及18／20／22px矢量角标；本轮只执行统一源码UI矩阵及独立Web／原生专项，不声称重跑本脚本全部组。`effects`使用真实规则保存事件验证原版／扩展蓝绿色轨迹、减少动态静态落点及恢复不重播。`--only=box,box-header,box-layout,seat-controls,seat-names,settings,settings-layout,management-controls,management-layout,save-layout,sound,mobile,icons,effects`可按实际受影响组筛选，`--games=manila`等可限制游戏专属用例；不传时运行全部。通过现有批次计划执行，范围为`box,shared`及现有正式游戏，默认隐藏、静音、127.0.0.1。证据位于`artifacts/maintenance/settings-and-save-20261020/<名称>`，绑定实际源码与脚本哈希；属于合法规则投影的源码组件夹具，不证明服务端事务、原生系统窗口或实体手机。
 
-`--only=settings-layout --games=box,uno`定向检查320／390／1280px的紧凑游戏／视频设置、标签hover／聚焦／点按说明和成功截图。当前对盒子管理窗口注入显式原生桥接快照，核对适配方式、界面大小、三种窗口模式提交参数；只保留管理窗口的原生设置。UNO玩家检查浏览器不出现原生专属选项。桥接快照不证明原生窗口或持久化通过。
+`--only=settings-layout --games=box,uno`定向检查390／1280px的紧凑游戏／视频设置、标签hover／聚焦／点按说明和成功截图。当前对盒子管理窗口注入显式原生桥接快照，核对适配方式、界面大小、三种窗口模式提交参数；只保留管理窗口的原生设置。UNO玩家检查浏览器不出现原生专属选项。桥接快照不证明原生窗口或持久化通过。
 
-`--only=seat-names --games=box`使用真实会话hook及受控Socket transport，检查320／390／1280px管理员、玩家房主与普通玩家的大厅／进行中改名入口、确认时归一、pending锁与重复发送、失败／待确认反馈。服务端权限、实际HTTP／Socket／SQLite与旧档边界由`packages/platform-core/src/{admission,room-evolution}.test.ts`及`apps/server/src/platform.test.ts`覆盖，词表回归为`packages/protocol/src/names.test.ts`；浏览器夹具不能替代这些集成或实体设备证据。
+精简探针使用同一脚本的`--only=portrait-boundary,portrait-short --games=box,uno --task=tmp/<任务唯一ID> --evidence=<新轮名>`，经既有范围计划执行。固定盒子管理窄窗与UNO玩家两个共享外壳代表，共4项：320×568只查页面溢出、重叠和按钮／返回可达；390×660只查设置三分类及内部滚动后的操作可达，不提交配置或游戏动作。默认执行也只增加这4项，旧320px完整改名、管理、设置与保存流程列为excluded。`--only=portrait-wide`显式开启412×915快速渲染探针，默认不执行；截图仍须目检。`--games`筛选不增加其他游戏副本。浮窗、规则、权限及业务验证继续由主尺寸原专项承担。临时夹具归`--task`，未传时归`tmp/portrait-acceptance-20261118`，正式报告保留现有证据根。
 
-`--only=management-layout --games=box`检查320／390／1280px、大厅／进行中的紧凑管理设置与共享完整管理组件，覆盖房主选择、空／有换机申请、核对码与长昵称、说明hover／聚焦／触屏点按、换机与回退的取消／准确确认，并保存实际渲染截图。权限和持久化仍由平台集成测试承担，不把组件夹具写成实体设备或真实服务器验收。
+`--only=seat-names --games=box`使用真实会话hook及受控Socket transport，检查390／1280px管理员、玩家房主与普通玩家的大厅／进行中改名入口、确认时归一、pending锁与重复发送、失败／待确认反馈。服务端权限、实际HTTP／Socket／SQLite与旧档边界由`packages/platform-core/src/{admission,room-evolution}.test.ts`及`apps/server/src/platform.test.ts`覆盖，词表回归为`packages/protocol/src/names.test.ts`；浏览器夹具不能替代这些集成或实体设备证据。
 
-`--only=connection-layout --games=box`当前按管理员矩阵检查320／390／1280px连接帮助、前缀循环与HTTP(S)组合、完整网址粘贴、保存中锁定、成功回显、失败草稿、LAN重置、警告排查及合法长域名截图。前缀逻辑另见`apps/web/src/components/external-entry.test.ts`，实际网址校验／配置保存见`apps/server/src/network-settings.test.ts`；界面组用受控保存响应，不冒称真实网络或实体设备验收。
+`--only=management-layout --games=box`检查390／1280px、大厅／进行中的紧凑管理设置与共享完整管理组件，覆盖房主选择、空／有换机申请、核对码与长昵称、说明hover／聚焦／触屏点按、换机与回退的取消／准确确认，并保存实际渲染截图。权限和持久化仍由平台集成测试承担，不把组件夹具写成实体设备或真实服务器验收。
+
+`--only=connection-layout --games=box`当前按管理员矩阵检查390／1280px连接帮助、前缀循环与HTTP(S)组合、完整网址粘贴、保存中锁定、成功回显、失败草稿、LAN重置、警告排查及合法长域名截图。前缀逻辑另见`apps/web/src/components/external-entry.test.ts`，实际网址校验／配置保存见`apps/server/src/network-settings.test.ts`；界面组用受控保存响应，不冒称真实网络或实体设备验收。
 
 ## 电力公司当前布局与交互专项
 
