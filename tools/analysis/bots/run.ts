@@ -1,4 +1,7 @@
+import { createHash } from 'node:crypto';
+import { readFileSync } from 'node:fs';
 import { parseArgs } from 'node:util';
+import { createUnoSearchStrategy } from '../../../games/uno/bot/search-strategy';
 import { BotDifficultySchema } from '../../../packages/protocol/src/index';
 import { bot as unoBot, rules as unoRules } from '../../../games/uno';
 import {
@@ -14,6 +17,8 @@ const { values } = parseArgs({
     levels: { type: 'string' },
     'max-steps': { type: 'string' },
     setup: { type: 'string' },
+    'uno-calibration': { type: 'string' },
+    'uno-samples': { type: 'string' },
   },
 });
 const games = {
@@ -28,9 +33,25 @@ if (
   !values.levels
 )
   throw new Error(
-    'Usage: node --import tsx tools/analysis/bots/run.ts --game=uno|pokemon-encounters --seeds=41,42 --levels=default,doubao [--max-steps=15000] [--setup=<JSON>]',
+    'Usage: node --import tsx tools/analysis/bots/run.ts --game=uno|pokemon-encounters --seeds=41,42 --levels=default,doubao [--max-steps=15000] [--setup=<JSON>] [--uno-calibration=<JSON-path> --uno-samples=8|16]',
   );
-const { rules, strategy } = games[selected];
+const { rules } = games[selected];
+let strategy = games[selected].strategy;
+if (values['uno-calibration']) {
+  if (selected !== 'uno')
+    throw new Error('This calibration only applies to UNO');
+  const samples = Number(values['uno-samples'] ?? 16);
+  if (samples !== 8 && samples !== 16)
+    throw new Error('UNO search uses 8 or 16 samples');
+  const bytes = readFileSync(values['uno-calibration']);
+  strategy = createUnoSearchStrategy(
+    JSON.parse(bytes.toString('utf8')),
+    createHash('sha256').update(bytes).digest('hex'),
+    samples,
+  );
+} else if (values['uno-samples'] !== undefined) {
+  throw new Error('UNO search sample count requires a calibration file');
+}
 const seeds = values.seeds.split(',').map(Number);
 if (
   new Set(seeds).size !== seeds.length ||

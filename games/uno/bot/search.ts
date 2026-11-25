@@ -1,0 +1,317 @@
+import type { RuleContext } from '@tablemax/game-sdk';
+import { CARD_IDS, getCard } from '../data/catalog';
+import { rules, legalActions } from '../rules';
+import { shuffle } from '../rules/engine';
+import { project } from '../rules/project';
+import { validateState, type State } from '../rules/state';
+import type { Action, UnoView } from '../types';
+import { chooseAction, observe, type Memory } from './index';
+
+type Play = Extract<Action, { type: 'play' }>;
+
+interface SearchOptions {
+  samples: 8 | 16;
+  maxRuleSteps: number;
+}
+
+interface SearchCandidate {
+  action: Play;
+  winProbability: number;
+}
+
+export interface UnoSearchResult {
+  candidates: SearchCandidate[];
+  samples: number;
+  ruleSteps: number;
+}
+
+function rolloutRandom(seed: number): RuleContext['random'] {
+  return {
+    next() {
+      seed ^= seed << 13;
+      seed ^= seed >>> 17;
+      seed ^= seed << 5;
+      return (seed >>> 0) / 0x100000000;
+    },
+  };
+}
+
+function playCandidates(
+  view: UnoView,
+  actions: readonly Action[],
+  memory: Memory,
+  signal: AbortSignal,
+): Play[] {
+  const hand = view.self!.hand;
+  const hasActiveColor = hand.some((card) => card.color === view.activeColor);
+  const distinct = new Map<string, Play>();
+  for (const action of actions) {
+    if (action.type !== 'play') continue;
+    const card = getCard(action.cardId);
+    if (card.kind === 'wild-draw-four' && hasActiveColor) continue;
+    const key = JSON.stringify([
+      card.kind,
+      card.color,
+      card.value,
+      action.color,
+      action.uno,
+    ]);
+    if (!distinct.has(key)) distinct.set(key, action);
+  }
+  const remaining = [...distinct.values()];
+  const ordered: Play[] = [];
+  const represented = new Set<string>();
+  // Reserve one candidate per relevant card kind before filling the remaining slots.
+  while (remaining.length && ordered.length < 8) {
+    const newKinds = remaining.filter(
+      (action) => !represented.has(getCard(action.cardId).kind),
+    );
+    const choice = chooseAction(
+      view,
+      newKinds.length ? newKinds : remaining,
+      memory,
+      'juewu',
+      signal,
+    ) as Play;
+    ordered.push(choice);
+    represented.add(getCard(choice.cardId).kind);
+    remaining.splice(remaining.indexOf(choice), 1);
+  }
+  return ordered;
+}
+
+/** Build an isolated hypothesis solely from the active seat's authorized decision input. */
+function samplePosition(
+  view: UnoView,
+  memory: Memory,
+  random: RuleContext['random'],
+): State | null {
+  const self = view.self!;
+  const hands = Object.fromEntries(
+    view.seatOrder.map((seat) => [
+      seat,
+      seat === self.seatId
+        ? self.hand.map((card) => card.id)
+        : [...(memory.knownCards[seat] ?? [])],
+    ]),
+  );
+  if (
+    view.discardCount < 1 ||
+    view.seatOrder.some(
+      (seat) => hands[seat]!.length > view.players[seat]!.handCount,
+    )
+  )
+    return null;
+  const retainedCards = [view.topCard.id, ...Object.values(hands).flat()];
+  const fixed = new Set(retainedCards);
+  if (fixed.size !== retainedCards.length) return null;
+  const rest = shuffle(
+    CARD_IDS.filter((id) => !fixed.has(id)),
+    {
+      seats: view.seatOrder,
+      random,
+    },
+  );
+  let offset = 0;
+  for (const seat of view.seatOrder) {
+    const hand = hands[seat]!;
+    const missing = view.players[seat]!.handCount - hand.length;
+    hand.push(...rest.slice(offset, offset + missing));
+    offset += missing;
+  }
+  if (offset + view.drawCount + view.discardCount - 1 !== rest.length)
+    return null;
+  const deck = rest.slice(offset, offset + view.drawCount);
+  const discard = [...rest.slice(offset + view.drawCount), view.topCard.id];
+  const privateEvidence = self.challengeEvidence;
+  return validateState(
+    {
+      ...(view.setup === undefined ? {} : { setup: view.setup }),
+      ...(view.setup?.drawPenaltyStacking ? { drawPenalty: null } : {}),
+      rulesVersion: view.rulesVersion,
+      stateVersion: 1,
+      seats: view.seatOrder,
+      phase: view.phase,
+      stage: view.stage,
+      roundNumber: view.roundNumber,
+      turnNumber: view.turnNumber,
+      actionSerial: view.latest?.serial ?? 0,
+      dealer: view.dealer,
+      turnSeat: self.seatId,
+      direction: view.direction,
+      activeColor: view.activeColor,
+      deck,
+      discard,
+      hands,
+      scores: Object.fromEntries(
+        view.seatOrder.map((seat) => [seat, view.players[seat]!.score]),
+      ),
+      wins: Object.fromEntries(
+        view.seatOrder.map((seat) => [seat, view.players[seat]!.wins]),
+      ),
+      unoDeclared: Object.fromEntries(
+        view.seatOrder.map((seat) => [seat, view.players[seat]!.uno]),
+      ),
+      drawnCardId: null,
+      drawFour: null,
+      unoWindow: null,
+      evidence: privateEvidence
+        ? {
+            challenger: self.seatId,
+            offender: privateEvidence.offender,
+            previousColor: privateEvidence.previousColor,
+            guilty: privateEvidence.guilty,
+            cardIds: privateEvidence.cards.map((card) => card.id),
+          }
+        : null,
+      results: view.results,
+      winners: view.winners,
+      latest: view.latest,
+    },
+    view.seatOrder,
+  );
+}
+
+function evaluateBranch(
+  root: State,
+  action: Play,
+  memory: Memory,
+  seed: number,
+  scoreUnfinished: (view: UnoView) => number,
+  signal: AbortSignal,
+) {
+  const seat = root.turnSeat!;
+  const random = rolloutRandom(seed);
+  const context = { seats: root.seats, random };
+  const memories: Record<string, Memory | null> = Object.fromEntries(
+    root.seats.map((id) => [id, id === seat ? memory : null]),
+  );
+  let state = rules.apply(root, action, seat, context).state as State;
+  let steps = 1;
+  let turns = 0;
+  let ownTurns = 0;
+  while (state.phase === 'playing' && steps < 16) {
+    signal.throwIfAborted();
+    // Start projected observations after the root action. Contenders do not
+    // inherit the initiating seat's authorized information.
+    for (const id of state.seats) {
+      const view = project(state, { role: 'player', seatId: id });
+      memories[id] = observe(
+        view,
+        memories[id],
+        id === seat ? 'juewu' : 'doubao',
+      );
+    }
+    const decision = rules.decisions(state).find(
+      (pending) =>
+        // Fixed continuation policies prioritize the affected player declaring UNO.
+        pending.seatId === (state.unoWindow?.seatId ?? state.turnSeat),
+    );
+    if (!decision)
+      throw new Error('UNO search reached an unresolved rule phase');
+    const acting = decision.seatId;
+    const view = project(state, { role: 'player', seatId: acting });
+    const isNormal = state.stage === 'turn' || state.stage === 'drawn';
+    const next = chooseAction(
+      view,
+      legalActions(state, acting),
+      memories[acting]!,
+      acting === seat ? 'juewu' : 'doubao',
+      signal,
+      random,
+    );
+    const before = state;
+    state = rules.apply(before, next, acting, context).state as State;
+    steps++;
+    if (
+      isNormal &&
+      (state.turnNumber !== before.turnNumber || state.phase !== 'playing')
+    ) {
+      turns++;
+      if (acting === seat) ownTurns++;
+    }
+    if (
+      (turns >= 8 || ownTurns >= 2) &&
+      state.drawFour === null &&
+      !state.drawPenalty
+    )
+      break;
+  }
+  const score =
+    state.phase === 'ended'
+      ? Number(state.winners.includes(seat))
+      : scoreUnfinished(project(state, { role: 'player', seatId: seat }));
+  if (!Number.isFinite(score) || score < 0 || score > 1)
+    throw new Error('UNO leaf evaluation must be a probability');
+  return { score, steps };
+}
+
+/** Short shared-hypothesis search. Unfinished leaves require the caller's frozen evaluator. */
+export function searchUnoPlays(
+  view: UnoView,
+  actions: readonly Action[],
+  memory: Memory,
+  random: RuleContext['random'],
+  signal: AbortSignal,
+  scoreUnfinished: (view: UnoView) => number,
+  { samples, maxRuleSteps }: SearchOptions = {
+    samples: 16,
+    maxRuleSteps: 2048,
+  },
+): UnoSearchResult {
+  if (
+    ![8, 16].includes(samples) ||
+    !Number.isSafeInteger(maxRuleSteps) ||
+    maxRuleSteps < 1 ||
+    maxRuleSteps > 2048
+  )
+    throw new Error('Invalid UNO search budget');
+  if (
+    view.phase !== 'playing' ||
+    view.stage !== 'turn' ||
+    memory.roundNumber !== view.roundNumber ||
+    !view.self ||
+    view.turnSeat !== view.self.seatId ||
+    view.unoWindow ||
+    view.drawFour ||
+    view.drawPenalty ||
+    view.self.hand.length < 2
+  )
+    return { candidates: [], samples: 0, ruleSteps: 0 };
+  signal.throwIfAborted();
+  const roots = playCandidates(view, actions, memory, signal);
+  if (roots.length < 2) return { candidates: [], samples: 0, ruleSteps: 0 };
+  const totals = roots.map(() => 0);
+  let completed = 0;
+  let ruleSteps = 0;
+  for (let sample = 0; sample < samples; sample++) {
+    if (ruleSteps + roots.length * 16 > maxRuleSteps) break;
+    signal.throwIfAborted();
+    const hypothesis = samplePosition(view, memory, random);
+    if (!hypothesis) break;
+    const seed = Math.floor(random.next() * 0x100000000) || 1;
+    for (const [index, action] of roots.entries()) {
+      const branch = evaluateBranch(
+        hypothesis,
+        action,
+        memory,
+        seed,
+        scoreUnfinished,
+        signal,
+      );
+      totals[index]! += branch.score;
+      ruleSteps += branch.steps;
+    }
+    completed++;
+  }
+  return {
+    candidates: completed
+      ? roots.map((action, index) => ({
+          action,
+          winProbability: totals[index]! / completed,
+        }))
+      : [],
+    samples: completed,
+    ruleSteps,
+  };
+}
