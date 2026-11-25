@@ -254,6 +254,11 @@ const verificationScopes = {
   'tools/maintenance/current-delivery.test.mjs': ['tooling'],
   'tools/maintenance/current-delivery.test.ps1': ['tooling'],
   'tools/test/platform/verify-download-loopback.mjs': ['tooling', 'shared'],
+  'tools/test/platform/verify-uno-calibration-shards.mjs': [
+    'shared',
+    'tooling',
+    'game:uno',
+  ],
   'tools/test/platform/verify-uno-idle-training.mjs': [
     'tooling',
     'shared',

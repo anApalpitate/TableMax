@@ -1,13 +1,10 @@
+import { execFile } from 'node:child_process';
 import { createHash } from 'node:crypto';
-import { parseArgs } from 'node:util';
-import {
-  loadUnoLeafScorer,
-  unoLeafFeatureNames,
-  unoLeafFeatures,
-} from '../../../games/uno/bot/calibration';
-import { createUnoSearchStrategy } from '../../../games/uno/bot/search-strategy';
-import type { UnoView } from '../../../games/uno/types';
-import { RandomSource } from '../../../packages/platform-core/src/random';
+import { readFileSync, readdirSync } from 'node:fs';
+import { availableParallelism } from 'node:os';
+import { fileURLToPath } from 'node:url';
+import { parseArgs, promisify } from 'node:util';
+import { unoLeafFeatureNames } from '../../../games/uno/bot/calibration';
 import {
   fitModel,
   linearPrediction,
@@ -15,32 +12,17 @@ import {
   type WeightedExample,
 } from './fit';
 import {
-  collectUnoRoots,
-  independentSeed,
-  pairedUnoDifferences,
-  sampleUnoContinuations,
-  type UnoLeafLabel,
-  type UnoSampleOptions,
-} from './uno-samples';
-
+  average,
+  bootstrap,
+  collectCalibrationSeed,
+  scoreFeatures,
+  type CalibrationSeedEvidence,
+  type CalibrationSeedTask,
+  type EvaluatedLeaf,
+} from './uno-calibration-seed';
+import { openTrainingCheckpoint } from './training-checkpoint';
 import { unoPilotEvidence } from './uno-pilot';
-
-interface EvaluatedLeaf extends UnoLeafLabel {
-  seed: number;
-}
-
-function scoreFeatures(features: readonly number[]) {
-  return [
-    1,
-    3 * (features[1]! - features[2]!) - 3 * features[4]! + features[6]!,
-  ];
-}
-
-function average(values: readonly number[]) {
-  return values.length
-    ? values.reduce((sum, current) => sum + current, 0) / values.length
-    : null;
-}
+import type { UnoSampleOptions } from './uno-samples';
 
 function summary(
   rows: readonly EvaluatedLeaf[],
@@ -69,40 +51,6 @@ function summary(
   };
 }
 
-type Outcome = 0 | 1 | null;
-
-function outcomesByCandidate(outcomes: readonly (readonly Outcome[])[]) {
-  const complete = outcomes.filter((values) =>
-    values.every((value) => value !== null),
-  );
-  if (!complete.length) return [];
-  return complete[0]!.map((_, index) =>
-    average(complete.map((values) => values[index]! as number))!,
-  );
-}
-
-function bestCandidate(scores: readonly number[]) {
-  return scores.reduce(
-    (best, score, index) => (score > scores[best]! ? index : best),
-    0,
-  );
-}
-
-function bootstrap(groups: readonly number[], seed: number) {
-  if (groups.length < 8) return null;
-  const rng = new RandomSource(seed);
-  const replicates = Array.from({ length: 2048 }, () => {
-    let sum = 0;
-    for (let index = 0; index < groups.length; index++)
-      sum += groups[Math.floor(rng.next() * groups.length)]!;
-    return sum / groups.length;
-  }).sort((a, b) => a - b);
-  return {
-    lower: replicates[Math.floor(0.025 * (replicates.length - 1))]!,
-    upper: replicates[Math.ceil(0.975 * (replicates.length - 1))]!,
-  };
-}
-
 function aggregateBySeed(values: readonly { seed: number; value: number }[]) {
   const seeds = new Map<number, number[]>();
   for (const { seed, value } of values) {
@@ -122,6 +70,9 @@ const { values } = parseArgs({
     continuations: { type: 'string', default: '16' },
     'max-steps': { type: 'string', default: '15000' },
     'root-policy': { type: 'string', default: 'reference' },
+    jobs: { type: 'string', default: '1' },
+    checkpoint: { type: 'string' },
+    'steps-per-run': { type: 'string' },
   },
 });
 
@@ -160,242 +111,397 @@ if (
   )
 )
   throw new Error('Invalid calibration collection budget');
-const rootPolicy = values['root-policy'];
-if (rootPolicy !== 'reference' && rootPolicy !== 'search')
+const requestedPolicy = values['root-policy'];
+if (requestedPolicy !== 'reference' && requestedPolicy !== 'search')
   throw new Error('Choose reference or search root policy');
+const rootPolicy: 'reference' | 'search' = requestedPolicy;
 
-const training: EvaluatedLeaf[] = [];
-const bootstrapLeaf = (view: UnoView) =>
-  probability(-1 + scoreFeatures(unoLeafFeatures(view))[1]!);
-let trainUnfinished = 0;
-for (const seed of trainSeeds) {
-  const roots = await collectUnoRoots(seed, options);
-  for (const [index, root] of roots.entries()) {
-    const sample = sampleUnoContinuations(
-      root,
-      { ...options, seed: independentSeed(seed, 0x10000 + index) },
-      bootstrapLeaf,
-    );
-    trainUnfinished += sample.unfinished;
-    training.push(
-      ...sample.leaves
-        .filter(({ completed }) => completed > 0)
-        .map((leaf) => ({ ...leaf, seed })),
-    );
-  }
-  console.error(
-    JSON.stringify({
-      stage: 'fit-data',
-      seed,
-      roots: roots.length,
-      rows: training.length,
-    }),
-  );
-}
-const rowsPerSeed = new Map<number, number>();
-for (const row of training)
-  rowsPerSeed.set(row.seed, 1 + (rowsPerSeed.get(row.seed) ?? 0));
-const examples: WeightedExample[] = training.map((row) => ({
-  features: row.features,
-  target: row.wins / row.completed,
-  weight: 1 / rowsPerSeed.get(row.seed)!,
-}));
-const calibration = {
-  version: 1,
-  features: unoLeafFeatureNames,
-  coefficients: fitModel(examples, 'logistic'),
-};
-const reference = fitModel(
-  examples.map((example) => ({
-    ...example,
-    features: scoreFeatures(example.features),
-  })),
-  'logistic',
-);
-const evaluator = loadUnoLeafScorer(calibration);
-const evaluate = (row: EvaluatedLeaf) =>
-  probability(linearPrediction(row.features, calibration.coefficients));
-const calibrationDigest = createHash('sha256')
-  .update(JSON.stringify(calibration))
-  .digest('hex');
-const heldoutStrategy =
-  rootPolicy === 'search'
-    ? createUnoSearchStrategy(calibration, calibrationDigest, hypotheses)
-    : undefined;
-const heldout: EvaluatedLeaf[] = [];
-const regrets: { seed: number; value: number }[] = [];
-let rankingPairs = 0;
-let confirmedPairs = 0;
-let orderedPairs = 0;
-let holdoutUnfinished = 0;
-let rankingUnfinished = 0;
-for (const seed of holdoutSeeds) {
-  const roots = await collectUnoRoots(seed, options, heldoutStrategy);
-  for (const [index, root] of roots.entries()) {
-    const primary = sampleUnoContinuations(
-      root,
-      { ...options, seed: independentSeed(seed, 0x20000 + index) },
-      evaluator,
-    );
-    if (!primary.short.candidates.length) continue;
-    holdoutUnfinished += primary.unfinished;
-    heldout.push(
-      ...primary.leaves
-        .filter(({ completed }) => completed > 0)
-        .map((leaf) => ({ ...leaf, seed })),
-    );
-    const scores = primary.short.candidates.map(
-      ({ winProbability }) => winProbability,
-    );
-    const comparison = sampleUnoContinuations(
-      root,
-      { ...options, seed: independentSeed(seed, 0x30000 + index) },
-      evaluator,
-    );
-    rankingUnfinished += comparison.unfinished;
-    const referenceScores = outcomesByCandidate(comparison.outcomes);
-    if (!referenceScores.length) continue;
-    for (let a = 0; a < scores.length; a++) {
-      for (let b = a + 1; b < scores.length; b++) {
-        rankingPairs++;
-        const groups = pairedUnoDifferences(
-          comparison.outcomes,
-          options.continuations,
-          a,
-          b,
-        );
-        if (Math.abs(average(groups) ?? 0) < 0.05) continue;
-        const range = bootstrap(
-          groups,
-          independentSeed(seed, 0x42000 + index * 64 + a * 8 + b),
-        );
-        if (!range || (range.lower <= 0 && range.upper >= 0)) continue;
-        confirmedPairs++;
-        if (
-          (range.lower > 0 && scores[a]! > scores[b]!) ||
-          (range.upper < 0 && scores[b]! > scores[a]!)
+const maximumJobs = Math.min(8, Math.max(1, availableParallelism() - 2));
+const jobs = Number(values.jobs);
+const requestedUnits = Number(values['steps-per-run'] ?? Infinity);
+if (!Number.isSafeInteger(jobs) || jobs < 1 || jobs > maximumJobs)
+  throw new Error('Choose between 1 and ' + maximumJobs + ' calibration jobs');
+if (
+  values['steps-per-run'] !== undefined &&
+  (!values.checkpoint ||
+    !Number.isSafeInteger(requestedUnits) ||
+    requestedUnits < 1)
+)
+  throw new Error('A positive calibration step limit requires --checkpoint');
+
+function sourceDigest() {
+  const productDirectories = [
+    'games/uno/bot',
+    'games/uno/data',
+    'games/uno/rules',
+  ];
+  const files = [
+    ...productDirectories.flatMap((directory) =>
+      readdirSync(directory, { withFileTypes: true })
+        .filter(
+          (entry) =>
+            entry.isFile() &&
+            entry.name.endsWith('.ts') &&
+            !entry.name.endsWith('.test.ts') &&
+            entry.name !== 'test-fixtures.ts',
         )
-          orderedPairs++;
-      }
-    }
-    const final = sampleUnoContinuations(
-      root,
-      { ...options, seed: independentSeed(seed, 0x50000 + index) },
-      evaluator,
-    );
-    rankingUnfinished += final.unfinished;
-    const differences = pairedUnoDifferences(
-      final.outcomes,
-      options.continuations,
-      bestCandidate(referenceScores),
-      bestCandidate(scores),
-    );
-    const regret = average(differences);
-    if (regret !== null) regrets.push({ seed, value: regret });
+        .map(({ name }) => directory + '/' + name),
+    ),
+    ...['index', 'config', 'types'].map((name) => 'games/uno/' + name + '.ts'),
+    ...['bot-scheduler', 'game-actions', 'random'].map(
+      (name) => 'packages/platform-core/src/' + name + '.ts',
+    ),
+    ...[
+      'calibrate-uno',
+      'uno-calibration-seed',
+      'uno-calibration-worker',
+      'uno-samples',
+      'evaluate',
+      'fit',
+      'uno-pilot',
+      'training-checkpoint',
+    ].map((name) => 'tools/analysis/bots/' + name + '.ts'),
+  ].sort();
+  const hash = createHash('sha256');
+  for (const file of files) {
+    const digest = createHash('sha256')
+      .update(readFileSync(file))
+      .digest('hex');
+    hash.update(file + '\n' + digest + '\n');
   }
-  console.error(
-    JSON.stringify({
-      stage: 'holdout',
-      seed,
-      roots: roots.length,
-      rows: heldout.length,
-    }),
-  );
+  return hash.digest('hex');
 }
 
-const overall = summary(heldout, evaluate);
-const baseline = summary(heldout, (row) =>
-  probability(linearPrediction(scoreFeatures(row.features), reference)),
-);
-const bins = Array.from({ length: 10 }, (_, bin) =>
-  summary(
-    heldout.filter(
-      (row) => Math.min(9, Math.floor(evaluate(row) * 10)) === bin,
-    ),
-    evaluate,
-  ),
-);
-const stages = {
-  playing: summary(
-    heldout.filter(({ stage }) =>
-      ['turn', 'drawn', 'choose-color'].includes(stage),
-    ),
-    evaluate,
-  ),
-  pending: summary(
-    heldout.filter(
-      ({ stage }) => stage === 'draw-four' || stage === 'draw-penalty',
-    ),
-    evaluate,
-  ),
-  settled: summary(
-    heldout.filter(({ stage }) => stage === 'result'),
-    evaluate,
-  ),
+type Checkpoint = {
+  fit: Record<string, CalibrationSeedEvidence>;
+  holdout: Record<string, CalibrationSeedEvidence>;
+  fittedDigest?: string;
 };
-const regretSeeds = aggregateBySeed(regrets);
-const ranking = {
-  pairs: rankingPairs,
-  confirmedPairs,
-  orderedPairs,
-  accuracy: confirmedPairs ? orderedPairs / confirmedPairs : null,
-  averageRegret: average(regretSeeds),
-  regretInterval: bootstrap(regretSeeds, 0x6ac96),
-  rootsWithRegret: regrets.length,
-};
-const substantialBins = bins.filter(({ rows }) => rows >= overall.rows * 0.05);
-const enoughCoverage =
-  rootPolicy === 'search' &&
-  options.continuations >= 16 &&
-  overall.seeds >= 20 &&
-  substantialBins.every(({ seeds }) => seeds >= 8) &&
-  Object.values(stages).every(({ seeds }) => seeds >= 8) &&
-  confirmedPairs >= 30 &&
-  regretSeeds.length >= 20;
-const passesMetrics =
-  overall.gap !== null &&
-  overall.gap <= 0.02 &&
-  overall.brier !== null &&
-  baseline.brier !== null &&
-  overall.brier <= baseline.brier &&
-  [...substantialBins, ...Object.values(stages)].every(
-    ({ gap }) => gap !== null && gap <= 0.05,
-  ) &&
-  ranking.accuracy !== null &&
-  ranking.accuracy >= 0.7 &&
-  ranking.averageRegret !== null &&
-  ranking.averageRegret <= 0.02 &&
-  ranking.regretInterval !== null;
-console.log(
-  JSON.stringify(
-    {
-      type: 'uno-calibration-development',
-      revision: 1,
+const sourceSha256 = sourceDigest();
+const batchDigest = createHash('sha256')
+  .update(
+    JSON.stringify({
+      sourceSha256,
+      runtime: process.version,
       pilot: unoPilotEvidence,
-      setup: unoPilotEvidence.setup,
-      rootPolicy,
       trainSeeds,
       holdoutSeeds,
       options,
-      calibration,
-      calibrationDigest,
-      baselineCoefficients: reference,
-      fitRows: training.length,
-      trainUnfinished,
-      holdoutUnfinished,
-      rankingUnfinished,
-      overall,
-      baseline,
-      bins,
-      stages,
-      ranking,
-      evaluation: !enoughCoverage
-        ? 'insufficient'
-        : passesMetrics
-          ? 'meets-measured-gates'
-          : 'missed',
-    },
-    null,
-    2,
-  ),
+      rootPolicy,
+    }),
+  )
+  .digest('hex');
+const initial: Checkpoint = { fit: {}, holdout: {} };
+const checkpoint = values.checkpoint
+  ? openTrainingCheckpoint(values.checkpoint, batchDigest, initial)
+  : null;
+const state = checkpoint?.state ?? initial;
+for (const [name, seeds] of [
+  ['fit', trainSeeds],
+  ['holdout', holdoutSeeds],
+] as const) {
+  const records = state[name];
+  if (
+    !records ||
+    Array.isArray(records) ||
+    Object.entries(records).some(
+      ([key, row]) =>
+        key !== String(row.seed) ||
+        !seeds.includes(row.seed) ||
+        !Array.isArray(row.rows),
+    )
+  )
+    throw new Error('Invalid calibration checkpoint seed records');
+}
+if (
+  (state.fittedDigest !== undefined &&
+    Object.keys(state.fit).length !== trainSeeds.length) ||
+  (Object.keys(state.holdout).length && !state.fittedDigest)
+)
+  throw new Error('Invalid calibration checkpoint stage boundary');
+
+let remaining = requestedUnits;
+const stopped = new AbortController();
+const stop = () => stopped.abort(new Error('Calibration interrupted'));
+if (jobs > 1) {
+  process.once('SIGINT', stop);
+  process.once('SIGTERM', stop);
+}
+const worker = fileURLToPath(
+  new URL('./uno-calibration-worker.ts', import.meta.url),
 );
+const runChild = promisify(execFile);
+async function collectStage(
+  seeds: readonly number[],
+  records: Record<string, CalibrationSeedEvidence>,
+  taskFor: (seed: number) => CalibrationSeedTask,
+) {
+  const pending = seeds
+    .filter((seed) => !Object.hasOwn(records, seed))
+    .slice(0, remaining);
+  remaining -= pending.length;
+  let next = 0;
+  let failure: unknown;
+  const consume = async () => {
+    while (!stopped.signal.aborted && next < pending.length) {
+      const seed = pending[next++]!;
+      const task = taskFor(seed);
+      try {
+        const row =
+          jobs === 1
+            ? await collectCalibrationSeed(task)
+            : (JSON.parse(
+                (
+                  await runChild(
+                    process.execPath,
+                    ['--import', 'tsx', worker, JSON.stringify(task)],
+                    {
+                      windowsHide: true,
+                      encoding: 'utf8',
+                      maxBuffer: 4 * 1024 * 1024,
+                      signal: stopped.signal,
+                    },
+                  )
+                ).stdout,
+              ) as CalibrationSeedEvidence);
+        if (
+          row.seed !== seed ||
+          !Array.isArray(row.rows) ||
+          row.rows.some((leaf) => leaf.seed !== seed)
+        )
+          throw new Error('Calibration worker returned a different seed');
+        if (checkpoint && sourceDigest() !== sourceSha256)
+          throw new Error('Calibration source changed during the batch');
+        records[seed] = row;
+        checkpoint?.save(state);
+        console.error(
+          JSON.stringify({
+            stage: task.stage,
+            seed,
+            roots: row.roots,
+            rows: row.rows.length,
+            completedSeeds: Object.keys(records).length,
+            totalSeeds: seeds.length,
+          }),
+        );
+      } catch (error) {
+        failure ??= error;
+        stopped.abort(error);
+      }
+    }
+  };
+  await Promise.all(
+    Array.from({ length: Math.min(jobs, pending.length) }, consume),
+  );
+  if (failure) throw failure;
+  stopped.signal.throwIfAborted();
+  return seeds.flatMap((seed) => (records[seed] ? [records[seed]] : []));
+}
+
+function pause() {
+  console.log(
+    JSON.stringify({
+      type: 'uno-calibration-progress',
+      batchDigest,
+      sourceSha256,
+      fittedSeeds: Object.keys(state.fit).length,
+      totalFitSeeds: trainSeeds.length,
+      holdoutSeeds: Object.keys(state.holdout).length,
+      totalHoldoutSeeds: holdoutSeeds.length,
+    }),
+  );
+}
+
+const fitRecords = await collectStage(trainSeeds, state.fit, (seed) => ({
+  stage: 'fit-data',
+  seed,
+  options,
+}));
+if (fitRecords.length === trainSeeds.length) {
+  await evaluateHoldout(fitRecords);
+} else {
+  pause();
+}
+if (jobs > 1) {
+  process.off('SIGINT', stop);
+  process.off('SIGTERM', stop);
+}
+
+async function evaluateHoldout(fitRecords: readonly CalibrationSeedEvidence[]) {
+  const training = fitRecords.flatMap(({ rows }) => rows);
+  const trainUnfinished = fitRecords.reduce(
+    (total, row) => total + row.unfinished,
+    0,
+  );
+  const rowsPerSeed = new Map<number, number>();
+  for (const row of training)
+    rowsPerSeed.set(row.seed, 1 + (rowsPerSeed.get(row.seed) ?? 0));
+  const examples: WeightedExample[] = training.map((row) => ({
+    features: row.features,
+    target: row.wins / row.completed,
+    weight: 1 / rowsPerSeed.get(row.seed)!,
+  }));
+  const calibration = {
+    version: 1,
+    features: unoLeafFeatureNames,
+    coefficients: fitModel(examples, 'logistic'),
+  };
+  const reference = fitModel(
+    examples.map((example) => ({
+      ...example,
+      features: scoreFeatures(example.features),
+    })),
+    'logistic',
+  );
+  const evaluate = (row: EvaluatedLeaf) =>
+    probability(linearPrediction(row.features, calibration.coefficients));
+  const calibrationDigest = createHash('sha256')
+    .update(JSON.stringify(calibration))
+    .digest('hex');
+  if (
+    state.fittedDigest !== undefined &&
+    state.fittedDigest !== calibrationDigest
+  )
+    throw new Error(
+      'Holdout checkpoint uses different frozen fitted coefficients',
+    );
+  if (!state.fittedDigest) {
+    state.fittedDigest = calibrationDigest;
+    checkpoint?.save(state);
+  }
+  const holdoutRecords = await collectStage(
+    holdoutSeeds,
+    state.holdout,
+    (seed) => ({
+      stage: 'holdout',
+      seed,
+      options,
+      calibration,
+      rootPolicy,
+    }),
+  );
+  if (holdoutRecords.length !== holdoutSeeds.length) {
+    pause();
+    return;
+  }
+  if (sourceDigest() !== sourceSha256)
+    throw new Error('Calibration source changed during the batch');
+  const heldout = holdoutRecords.flatMap(({ rows }) => rows);
+  const regrets = holdoutRecords.flatMap(({ seed, regrets }) =>
+    regrets.map((value) => ({ seed, value })),
+  );
+  const sum = (
+    field:
+      | 'rankingPairs'
+      | 'confirmedPairs'
+      | 'orderedPairs'
+      | 'unfinished'
+      | 'rankingUnfinished',
+  ) => holdoutRecords.reduce((total, row) => total + row[field], 0);
+  const rankingPairs = sum('rankingPairs');
+  const confirmedPairs = sum('confirmedPairs');
+  const orderedPairs = sum('orderedPairs');
+  const holdoutUnfinished = sum('unfinished');
+  const rankingUnfinished = sum('rankingUnfinished');
+  const overall = summary(heldout, evaluate);
+  const baseline = summary(heldout, (row) =>
+    probability(linearPrediction(scoreFeatures(row.features), reference)),
+  );
+  const bins = Array.from({ length: 10 }, (_, bin) =>
+    summary(
+      heldout.filter(
+        (row) => Math.min(9, Math.floor(evaluate(row) * 10)) === bin,
+      ),
+      evaluate,
+    ),
+  );
+  const stages = {
+    playing: summary(
+      heldout.filter(({ stage }) =>
+        ['turn', 'drawn', 'choose-color'].includes(stage),
+      ),
+      evaluate,
+    ),
+    pending: summary(
+      heldout.filter(
+        ({ stage }) => stage === 'draw-four' || stage === 'draw-penalty',
+      ),
+      evaluate,
+    ),
+    settled: summary(
+      heldout.filter(({ stage }) => stage === 'result'),
+      evaluate,
+    ),
+  };
+  const regretSeeds = aggregateBySeed(regrets);
+  const ranking = {
+    pairs: rankingPairs,
+    confirmedPairs,
+    orderedPairs,
+    accuracy: confirmedPairs ? orderedPairs / confirmedPairs : null,
+    averageRegret: average(regretSeeds),
+    regretInterval: bootstrap(regretSeeds, 0x6ac96),
+    rootsWithRegret: regrets.length,
+  };
+  const substantialBins = bins.filter(
+    ({ rows }) => rows >= overall.rows * 0.05,
+  );
+  const enoughCoverage =
+    rootPolicy === 'search' &&
+    options.continuations >= 16 &&
+    overall.seeds >= 20 &&
+    substantialBins.every(({ seeds }) => seeds >= 8) &&
+    Object.values(stages).every(({ seeds }) => seeds >= 8) &&
+    confirmedPairs >= 30 &&
+    regretSeeds.length >= 20;
+  const passesMetrics =
+    overall.gap !== null &&
+    overall.gap <= 0.02 &&
+    overall.brier !== null &&
+    baseline.brier !== null &&
+    overall.brier <= baseline.brier &&
+    [...substantialBins, ...Object.values(stages)].every(
+      ({ gap }) => gap !== null && gap <= 0.05,
+    ) &&
+    ranking.accuracy !== null &&
+    ranking.accuracy >= 0.7 &&
+    ranking.averageRegret !== null &&
+    ranking.averageRegret <= 0.02 &&
+    ranking.regretInterval !== null;
+  console.log(
+    JSON.stringify(
+      {
+        type: 'uno-calibration-development',
+        revision: 2,
+        batchDigest,
+        sourceSha256,
+        runtime: process.version,
+        pilot: unoPilotEvidence,
+        setup: unoPilotEvidence.setup,
+        rootPolicy,
+        trainSeeds,
+        holdoutSeeds,
+        options,
+        calibration,
+        calibrationDigest,
+        baselineCoefficients: reference,
+        fitRows: training.length,
+        trainUnfinished,
+        holdoutUnfinished,
+        rankingUnfinished,
+        overall,
+        baseline,
+        bins,
+        stages,
+        ranking,
+        evaluation: !enoughCoverage
+          ? 'insufficient'
+          : passesMetrics
+            ? 'meets-measured-gates'
+            : 'missed',
+      },
+      null,
+      2,
+    ),
+  );
+}

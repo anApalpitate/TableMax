@@ -140,6 +140,8 @@ R1／R2 可与[游戏开发接口](../reference/game-development.md#模块与契
 
 进展：有界搜索与概率评分入口已接入 UNO 离线评估，可加载绑定摘要的逻辑回归系数。隐藏输入等价、整组预算、决策范围和系数格式已做定向核验，23 项检查通过。已用合成续推训练开发系数并跑通独立留出验证。首批 184 个拟合样本、200 个留出样本的总体误差为 8.97 个百分点，Brier 0.19384，高于同批简单对照的 0.18616，证据不足以通过。扩样与真实 Worker 验收继续实施。[开发报告](../../artifacts/maintenance/bot-rise-calibration-20261126/development.json)[源码验收记录](../../artifacts/maintenance/test-history/runs/b551d961-b1a4-4412-bfbf-b7f30d0e07de/results.json)
 
+B 校准可按种子并行，并在拟合数据及留出阶段保存断点。断点绑定当前源码、运行时、配置和种子，最终按固定顺序合并。换进程数不会改变对照的抽样和评分口径。完整报告生成后才判断门槛。开发夹具验证了分片续跑与串行报告逐字节一致，以及更改种子后拒绝旧断点。[分片续跑验证](../../artifacts/maintenance/bot-rise-calibration-shards-20261126/serial-parallel-resume/report.json) · [校准入口](../../tools/analysis/README.md#uno-校准与配对试点)
+
 首轮主配置下，用现有启发式推进后续行动，只在当前决策比较合规候选。各模拟席按本席投影行动。以下为开发批次起步值，R0 根据实际 Worker 耗时和决策稳定性冻结正式配置。[学习评分节点](#uno-绝悟学习评分节点)
 
 #### 抽样、候选与推演深度
