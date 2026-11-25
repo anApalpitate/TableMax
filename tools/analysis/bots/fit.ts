@@ -45,11 +45,14 @@ export function fitModel(
   samples: readonly WeightedExample[],
   model: 'logistic' | 'linear',
   penalty = 0.001,
+  prior?: readonly number[],
 ): number[] {
   const width = samples[0]?.features.length;
   if (
     !width ||
     !(penalty > 0) ||
+    (prior !== undefined &&
+      (prior.length !== width || !prior.every(Number.isFinite))) ||
     samples.some(
       ({ features, target, weight }) =>
         features.length !== width ||
@@ -63,7 +66,7 @@ export function fitModel(
     throw new Error('Invalid weighted model samples');
 
   const totalWeight = samples.reduce((sum, item) => sum + item.weight, 0);
-  const coefficients: number[] = Array(width).fill(0);
+  const coefficients: number[] = prior ? [...prior] : Array(width).fill(0);
   for (
     let iteration = 0;
     iteration < (model === 'linear' ? 1 : 40);
@@ -74,7 +77,10 @@ export function fitModel(
         row === column ? penalty : 0,
       ),
     );
-    const gradient = coefficients.map((coefficient) => -penalty * coefficient);
+    const gradient = coefficients.map(
+      (coefficient, column) =>
+        -penalty * (coefficient - (prior?.[column] ?? 0)),
+    );
     for (const { features, weight, target } of samples) {
       const logit = linearPrediction(features, coefficients);
       const predicted = model === 'logistic' ? probability(logit) : logit;

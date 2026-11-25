@@ -46,7 +46,8 @@ export interface EvaluationOptions {
   maxSteps: number;
   checkpoint?: EvaluationCheckpoint;
   signal?: AbortSignal;
-  onStep?: (step: EvaluationStep) => void;
+  /** Snapshot access stays inside the synthetic evaluator and is copied only when requested. */
+  onStep?: (step: EvaluationStep, snapshot: () => Snapshot) => void;
 }
 
 function digest(value: unknown) {
@@ -300,7 +301,10 @@ export async function evaluateBotMatch(
     snapshot = { state: nextState, random: random.state, bots };
     const event = { number: ++steps, source, decision, action };
     traceDigest = digest([traceDigest, event]);
-    options.onStep?.(structuredClone(event));
+    if (options.onStep) {
+      const observed = snapshot;
+      options.onStep(structuredClone(event), () => structuredClone(observed));
+    }
   }
 
   return {

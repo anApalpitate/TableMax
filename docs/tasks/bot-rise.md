@@ -142,7 +142,9 @@ R1／R2 可与[游戏开发接口](../reference/game-development.md#模块与契
 
 旧策略扩样已跑完 20 个拟合种子和 20 个留出种子，得到 448 个拟合样本、533 个留出样本。总体误差为 0.32 个百分点，Brier 0.16457，简单对照为 0.16445。只有 19 个留出种子贡献截断样本，待处理罚牌阶段仅 2 个样本，8 个有明确差距的候选对命中 4 个。该批证据不足以通过。当前策略版本已另行冻结 24 个拟合种子和 36 个留出种子，沿用既定门槛。[历史扩样报告](../../artifacts/maintenance/bot-rise-calibration-20261126/qualification-01.json) · [当前批次参数](../../artifacts/maintenance/bot-rise-calibration-20261126/current-absolute-20261126-01/frozen-inputs.json)
 
-当前策略版已完成 24 个拟合种子和 36 个留出种子，取得 1062 个拟合样本和 1669 个留出样本。总体误差 2.56 个百分点，Brier 为 0.17931，简单对照为 0.17765。候选排序在 13 个方向明确的对中命中 9 个，命中率 69.23%。拟合集中无待处理罚牌样本，留出中该层只有 1 个种子的 2 个样本。该批不足以通过校准，正式 C 组训练继续等待。低频阶段定向样本和新的自然留出应分别核对，保留已查看的报告用于诊断。[本轮校准结果](../../artifacts/maintenance/bot-rise-calibration-20261126/current-absolute-20261126-01/report.json)
+当前策略版已完成 24 个拟合种子和 36 个留出种子，取得 1062 个拟合样本和 1669 个留出样本。总体误差 2.56 个百分点，Brier 为 0.17931，简单对照为 0.17765。候选排序在 13 个方向明确的对中命中 9 个，命中率 69.23%。拟合集中无待处理罚牌样本，留出中该层只有 1 个种子的 2 个样本。该批不足以通过校准，正式 C 组训练继续等待。该批已查看的留出结果只保留为诊断，后续不混入拟合或新留出。[本轮校准结果](../../artifacts/maintenance/bot-rise-calibration-20261126/current-absolute-20261126-01/report.json)
+
+两批独立合成数据已补齐待处理 +2、普通 +4 和末张 +4。拟合份额为 40、40、8 个开局，独立复核份额为 80、80、17 个开局。沿用原自然拟合样本，按五分之一权重加入补样，在拟合数据内分四折选择收缩强度；原留出结果未用于选择。下一批自然留出另用 36 个固定新种子，保留原预测、排序和覆盖门槛。排序复核把相同长推演预算分给更多未知牌世界，两组首选一致时不重跑相同动作。短批次核验了独立排序假设下串行和并行续跑报告逐字节一致。[排序分片复验](../../artifacts/maintenance/bot-rise-calibration-shards-20261126/independent-ranking-shards/report.json) · [独立补样](../../artifacts/maintenance/bot-rise-calibration-20261126/anchored-02/pending-data.json) · [拟合折验证](../../artifacts/maintenance/bot-rise-calibration-20261126/anchored-02/fit-selection-development.json)
 
 B 校准可按种子并行，并在拟合数据及留出阶段保存断点。断点绑定当前源码、运行时、配置和种子，最终按固定顺序合并。换进程数不会改变对照的抽样和评分口径。完整报告生成后才判断门槛。开发夹具验证了分片续跑与串行报告逐字节一致，以及更改种子后拒绝旧断点。[分片续跑验证](../../artifacts/maintenance/bot-rise-calibration-shards-20261126/serial-parallel-resume/report.json) · [校准入口](../../tools/analysis/README.md#uno-校准与配对试点)
 

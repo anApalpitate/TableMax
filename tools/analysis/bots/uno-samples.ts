@@ -34,6 +34,7 @@ interface RolloutOptions {
   continuations: number;
   maxSteps: number;
   seed: number;
+  onlyCandidates?: readonly number[];
 }
 
 export interface UnoLeafLabel {
@@ -129,6 +130,7 @@ export function sampleUnoContinuations(
   const signal = new AbortController().signal;
   const leaves: UnoLeafLabel[] = [];
   const outcomes: (0 | 1 | null)[][] = [];
+  const selected = options.onlyCandidates && new Set(options.onlyCandidates);
   let unfinished = 0;
   const short = searchUnoPlays(
     root.view,
@@ -148,6 +150,7 @@ export function sampleUnoContinuations(
             1 + trial + outcomes.length,
           );
           for (const [index, leaf] of branches.entries()) {
+            if (selected && !selected.has(index)) continue;
             const result = continueUnoHypothesis(
               leaf,
               seed,
@@ -160,7 +163,11 @@ export function sampleUnoContinuations(
           }
         }
         for (const [index, leaf] of branches.entries()) {
-          if (leaf.state.phase === 'ended') continue;
+          if (
+            leaf.state.phase === 'ended' ||
+            (selected && !selected.has(index))
+          )
+            continue;
           const completed = byCandidate[index]!.filter(
             (value) => value !== null,
           );
@@ -176,7 +183,9 @@ export function sampleUnoContinuations(
           });
         }
         for (let trial = 0; trial < options.continuations; trial++)
-          outcomes.push(byCandidate.map((candidate) => candidate[trial]!));
+          outcomes.push(
+            byCandidate.map((candidate) => candidate[trial] ?? null),
+          );
       },
     },
   );

@@ -3,14 +3,9 @@ import { createHash } from 'node:crypto';
 import { readFileSync, readdirSync } from 'node:fs';
 import { availableParallelism } from 'node:os';
 import { fileURLToPath } from 'node:url';
-import { parseArgs, promisify } from 'node:util';
+import { isDeepStrictEqual, parseArgs, promisify } from 'node:util';
 import { unoLeafFeatureNames } from '../../../games/uno/bot/calibration';
-import {
-  fitModel,
-  linearPrediction,
-  probability,
-  type WeightedExample,
-} from './fit';
+import { linearPrediction, probability } from './fit';
 import {
   average,
   bootstrap,
@@ -20,8 +15,11 @@ import {
   type CalibrationSeedTask,
   type EvaluatedLeaf,
 } from './uno-calibration-seed';
+import { fitUnoCalibration } from './uno-calibration-fit';
+import { naturalFitCorpus } from './uno-fit-corpus';
 import { openTrainingCheckpoint } from './training-checkpoint';
 import { unoPilotEvidence } from './uno-pilot';
+import { penaltyKinds, pendingCalibration } from './uno-pending';
 import type { UnoSampleOptions } from './uno-samples';
 
 function summary(
@@ -70,6 +68,11 @@ const { values } = parseArgs({
     continuations: { type: 'string', default: '16' },
     'max-steps': { type: 'string', default: '15000' },
     'root-policy': { type: 'string', default: 'reference' },
+    'pending-data': { type: 'string' },
+    'natural-fit-data': { type: 'string' },
+    'fit-policy': { type: 'string', default: 'standard' },
+    'ranking-world-batches': { type: 'string', default: '1' },
+    'ranking-continuations': { type: 'string' },
     jobs: { type: 'string', default: '1' },
     checkpoint: { type: 'string' },
     'steps-per-run': { type: 'string' },
@@ -94,8 +97,25 @@ function seeds(input: string | undefined) {
 
 const trainSeeds = seeds(values['train-seeds']);
 const holdoutSeeds = seeds(values['holdout-seeds']);
-if (holdoutSeeds.some((seed) => trainSeeds.includes(seed)))
-  throw new Error('Calibration fit and holdout seeds overlap');
+const pendingBytes = values['pending-data']
+  ? readFileSync(values['pending-data'])
+  : null;
+const pending = pendingBytes
+  ? pendingCalibration(JSON.parse(pendingBytes.toString('utf8')))
+  : null;
+const pendingDigest = pendingBytes
+  ? createHash('sha256').update(pendingBytes).digest('hex')
+  : null;
+const allSeeds = [
+  ...trainSeeds,
+  ...holdoutSeeds,
+  ...(pending?.fit.map(({ seed }) => seed) ?? []),
+  ...(pending?.review.map(({ seed }) => seed) ?? []),
+];
+if (new Set(allSeeds).size !== allSeeds.length)
+  throw new Error(
+    'Natural and pending calibration partitions must all use disjoint seeds',
+  );
 const hypotheses = Number(values.hypotheses);
 if (hypotheses !== 8 && hypotheses !== 16)
   throw new Error('Choose 8 or 16 hypotheses');
@@ -111,6 +131,38 @@ if (
   )
 )
   throw new Error('Invalid calibration collection budget');
+const corpusBytes = values['natural-fit-data']
+  ? readFileSync(values['natural-fit-data'])
+  : null;
+const corpus = corpusBytes
+  ? naturalFitCorpus(
+      JSON.parse(corpusBytes.toString('utf8')),
+      options,
+      trainSeeds,
+    )
+  : null;
+const fitCorpusDigest = corpusBytes
+  ? createHash('sha256').update(corpusBytes).digest('hex')
+  : null;
+const rankingBudget = {
+  worldBatches: Number(values['ranking-world-batches']),
+  continuations: Number(
+    values['ranking-continuations'] ?? options.continuations,
+  ),
+};
+if (
+  !Number.isInteger(rankingBudget.worldBatches) ||
+  rankingBudget.worldBatches < 1 ||
+  rankingBudget.worldBatches > 8 ||
+  !Number.isInteger(rankingBudget.continuations) ||
+  rankingBudget.continuations < 1 ||
+  rankingBudget.continuations > 64
+)
+  throw new Error('Invalid independent ranking budget');
+const requestedFit = values['fit-policy'];
+if (requestedFit !== 'standard' && requestedFit !== 'anchored')
+  throw new Error('Choose standard or anchored calibration fit');
+const fitPolicy: 'standard' | 'anchored' = requestedFit;
 const requestedPolicy = values['root-policy'];
 if (requestedPolicy !== 'reference' && requestedPolicy !== 'search')
   throw new Error('Choose reference or search root policy');
@@ -154,8 +206,12 @@ function sourceDigest() {
     ...[
       'calibrate-uno',
       'uno-calibration-seed',
+      'uno-calibration-fit',
+      'uno-fit-corpus',
       'uno-calibration-worker',
       'uno-samples',
+      'uno-pending',
+      'collect-uno-pending',
       'evaluate',
       'fit',
       'uno-pilot',
@@ -186,16 +242,29 @@ const batchDigest = createHash('sha256')
       pilot: unoPilotEvidence,
       trainSeeds,
       holdoutSeeds,
+      pendingDigest,
+      fitCorpusDigest,
+      fitPolicy,
       options,
+      rankingBudget,
       rootPolicy,
     }),
   )
   .digest('hex');
-const initial: Checkpoint = { fit: {}, holdout: {} };
+const initial: Checkpoint = {
+  fit: corpus
+    ? Object.fromEntries(corpus.fit.map((row) => [row.seed, row]))
+    : {},
+  holdout: {},
+};
 const checkpoint = values.checkpoint
   ? openTrainingCheckpoint(values.checkpoint, batchDigest, initial)
   : null;
 const state = checkpoint?.state ?? initial;
+if (corpus && !isDeepStrictEqual(state.fit, initial.fit))
+  throw new Error(
+    'Calibration checkpoint no longer matches its frozen natural fit corpus',
+  );
 for (const [name, seeds] of [
   ['fit', trainSeeds],
   ['holdout', holdoutSeeds],
@@ -328,7 +397,15 @@ if (jobs > 1) {
 }
 
 async function evaluateHoldout(fitRecords: readonly CalibrationSeedEvidence[]) {
-  const training = fitRecords.flatMap(({ rows }) => rows);
+  const naturalFit = fitRecords.flatMap(({ rows }) => rows);
+  const supplementalFit =
+    pending?.fit.flatMap(({ seed, rows }) =>
+      rows.map((row) => ({ ...row, seed })),
+    ) ?? [];
+  const supplementalSeeds = new Set(supplementalFit.map(({ seed }) => seed));
+  // One targeted original seed receives one fifth the weight of one natural fit seed.
+  const pendingFitWeight = 0.2;
+  const training = [...naturalFit, ...supplementalFit];
   const trainUnfinished = fitRecords.reduce(
     (total, row) => total + row.unfinished,
     0,
@@ -336,23 +413,22 @@ async function evaluateHoldout(fitRecords: readonly CalibrationSeedEvidence[]) {
   const rowsPerSeed = new Map<number, number>();
   for (const row of training)
     rowsPerSeed.set(row.seed, 1 + (rowsPerSeed.get(row.seed) ?? 0));
-  const examples: WeightedExample[] = training.map((row) => ({
+  const examples = training.map((row) => ({
+    seed: row.seed,
+    natural: !supplementalSeeds.has(row.seed),
     features: row.features,
     target: row.wins / row.completed,
-    weight: 1 / rowsPerSeed.get(row.seed)!,
+    weight:
+      (supplementalSeeds.has(row.seed) ? pendingFitWeight : 1) /
+      rowsPerSeed.get(row.seed)!,
   }));
+  const fit = fitUnoCalibration(examples, fitPolicy);
   const calibration = {
     version: 1,
     features: unoLeafFeatureNames,
-    coefficients: fitModel(examples, 'logistic'),
+    coefficients: fit.coefficients,
   };
-  const reference = fitModel(
-    examples.map((example) => ({
-      ...example,
-      features: scoreFeatures(example.features),
-    })),
-    'logistic',
-  );
+  const reference = fit.reference;
   const evaluate = (row: EvaluatedLeaf) =>
     probability(linearPrediction(row.features, calibration.coefficients));
   const calibrationDigest = createHash('sha256')
@@ -368,6 +444,16 @@ async function evaluateHoldout(fitRecords: readonly CalibrationSeedEvidence[]) {
   if (!state.fittedDigest) {
     state.fittedDigest = calibrationDigest;
     checkpoint?.save(state);
+    console.error(
+      JSON.stringify({
+        stage: 'fit-frozen',
+        fitPolicy,
+        selection: fit.selection?.penalty,
+        naturalRows: naturalFit.length,
+        pendingRows: supplementalFit.length,
+        calibrationDigest,
+      }),
+    );
   }
   const holdoutRecords = await collectStage(
     holdoutSeeds,
@@ -378,6 +464,7 @@ async function evaluateHoldout(fitRecords: readonly CalibrationSeedEvidence[]) {
       options,
       calibration,
       rootPolicy,
+      ranking: rankingBudget,
     }),
   );
   if (holdoutRecords.length !== holdoutSeeds.length) {
@@ -415,6 +502,23 @@ async function evaluateHoldout(fitRecords: readonly CalibrationSeedEvidence[]) {
       evaluate,
     ),
   );
+  const naturalPending = heldout.filter(
+    ({ stage }) => stage === 'draw-four' || stage === 'draw-penalty',
+  );
+  const supplementalReview = pending?.review.flatMap(({ seed, rows }) =>
+    rows.map((row) => ({ ...row, seed })),
+  );
+  const pendingBreakdown =
+    supplementalReview &&
+    Object.fromEntries(
+      penaltyKinds.map((kind) => [
+        kind,
+        summary(
+          supplementalReview.filter((row) => row.kind === kind),
+          evaluate,
+        ),
+      ]),
+    );
   const stages = {
     playing: summary(
       heldout.filter(({ stage }) =>
@@ -422,12 +526,7 @@ async function evaluateHoldout(fitRecords: readonly CalibrationSeedEvidence[]) {
       ),
       evaluate,
     ),
-    pending: summary(
-      heldout.filter(
-        ({ stage }) => stage === 'draw-four' || stage === 'draw-penalty',
-      ),
-      evaluate,
-    ),
+    pending: summary(supplementalReview ?? naturalPending, evaluate),
     settled: summary(
       heldout.filter(({ stage }) => stage === 'result'),
       evaluate,
@@ -449,9 +548,12 @@ async function evaluateHoldout(fitRecords: readonly CalibrationSeedEvidence[]) {
   const enoughCoverage =
     rootPolicy === 'search' &&
     options.continuations >= 16 &&
+    rankingBudget.worldBatches * rankingBudget.continuations >= 16 &&
     overall.seeds >= 20 &&
     substantialBins.every(({ seeds }) => seeds >= 8) &&
     Object.values(stages).every(({ seeds }) => seeds >= 8) &&
+    (!pendingBreakdown ||
+      Object.values(pendingBreakdown).every(({ seeds }) => seeds >= 8)) &&
     confirmedPairs >= 30 &&
     regretSeeds.length >= 20;
   const passesMetrics =
@@ -460,9 +562,11 @@ async function evaluateHoldout(fitRecords: readonly CalibrationSeedEvidence[]) {
     overall.brier !== null &&
     baseline.brier !== null &&
     overall.brier <= baseline.brier &&
-    [...substantialBins, ...Object.values(stages)].every(
-      ({ gap }) => gap !== null && gap <= 0.05,
-    ) &&
+    [
+      ...substantialBins,
+      ...Object.values(stages),
+      ...Object.values(pendingBreakdown ?? {}),
+    ].every(({ gap }) => gap !== null && gap <= 0.05) &&
     ranking.accuracy !== null &&
     ranking.accuracy >= 0.7 &&
     ranking.averageRegret !== null &&
@@ -472,7 +576,7 @@ async function evaluateHoldout(fitRecords: readonly CalibrationSeedEvidence[]) {
     JSON.stringify(
       {
         type: 'uno-calibration-development',
-        revision: 2,
+        revision: 3,
         batchDigest,
         sourceSha256,
         runtime: process.version,
@@ -482,10 +586,37 @@ async function evaluateHoldout(fitRecords: readonly CalibrationSeedEvidence[]) {
         trainSeeds,
         holdoutSeeds,
         options,
+        rankingBudget,
         calibration,
         calibrationDigest,
         baselineCoefficients: reference,
-        fitRows: training.length,
+        fitPolicy,
+        ...(fit.selection ? { fitSelection: fit.selection } : {}),
+        fitRows: naturalFit.length,
+        ...(corpus
+          ? {
+              naturalFit: {
+                corpusSha256: fitCorpusDigest,
+                sourceBatchDigest: corpus.sourceBatchDigest,
+                sourceReportSha256: corpus.sourceReportSha256,
+                sourceSha256: corpus.sourceSha256,
+              },
+            }
+          : {}),
+        ...(pending
+          ? {
+              pending: {
+                dataSha256: pendingDigest,
+                fitSeeds: pending.fit.map(({ seed }) => seed),
+                reviewSeeds: pending.review.map(({ seed }) => seed),
+                fitRows: supplementalFit.length,
+                fitWeightPerSeed: pendingFitWeight,
+                continuations: pending.options.continuations,
+                natural: summary(naturalPending, evaluate),
+                cases: pendingBreakdown,
+              },
+            }
+          : {}),
         trainUnfinished,
         holdoutUnfinished,
         rankingUnfinished,

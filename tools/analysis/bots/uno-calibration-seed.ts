@@ -14,6 +14,8 @@ import {
   pairedUnoDifferences,
   sampleUnoContinuations,
   type UnoLeafLabel,
+  type UnoRoot,
+  type UnoRootSamples,
   type UnoSampleOptions,
 } from './uno-samples';
 
@@ -74,6 +76,44 @@ export type Calibration = {
   coefficients: number[];
 };
 
+export type RankingBudget = { worldBatches: number; continuations: number };
+
+function rankingSamples(
+  root: UnoRoot,
+  options: UnoSampleOptions,
+  rating: (view: UnoView) => number,
+  reference: UnoRootSamples['short'],
+  seed: number,
+  budget: RankingBudget,
+  onlyCandidates?: readonly number[],
+) {
+  const outcomes: (readonly Outcome[])[] = [];
+  let unfinished = 0;
+  const actions = JSON.stringify(
+    reference.candidates.map(({ action }) => action),
+  );
+  for (let batch = 0; batch < budget.worldBatches; batch++) {
+    const sample = sampleUnoContinuations(
+      root,
+      {
+        ...options,
+        continuations: budget.continuations,
+        ...(onlyCandidates ? { onlyCandidates } : {}),
+        seed: batch === 0 ? seed : independentSeed(seed, 0x67000 + batch),
+      },
+      rating,
+    );
+    if (
+      JSON.stringify(sample.short.candidates.map(({ action }) => action)) !==
+      actions
+    )
+      throw new Error('Paired UNO reference changed the frozen candidates');
+    outcomes.push(...sample.outcomes);
+    unfinished += sample.unfinished;
+  }
+  return { outcomes, unfinished };
+}
+
 export type CalibrationSeedTask = {
   seed: number;
   options: UnoSampleOptions;
@@ -83,6 +123,7 @@ export type CalibrationSeedTask = {
       stage: 'holdout';
       calibration: Calibration;
       rootPolicy: 'reference' | 'search';
+      ranking: RankingBudget;
     }
 );
 
@@ -160,10 +201,13 @@ export async function collectCalibrationSeed(
       const scores = primary.short.candidates.map(
         ({ winProbability }) => winProbability,
       );
-      const comparison = sampleUnoContinuations(
+      const comparison = rankingSamples(
         root,
-        { ...options, seed: independentSeed(seed, 0x30000 + index) },
+        options,
         evaluator,
+        primary.short,
+        independentSeed(seed, 0x30000 + index),
+        task.ranking,
       );
       rankingUnfinished += comparison.unfinished;
       const referenceScores = outcomesByCandidate(comparison.outcomes);
@@ -173,7 +217,7 @@ export async function collectCalibrationSeed(
           rankingPairs++;
           const groups = pairedUnoDifferences(
             comparison.outcomes,
-            options.continuations,
+            task.ranking.continuations,
             a,
             b,
           );
@@ -191,17 +235,27 @@ export async function collectCalibrationSeed(
             orderedPairs++;
         }
       }
-      const final = sampleUnoContinuations(
+      const referenceBest = bestCandidate(referenceScores);
+      const shortBest = bestCandidate(scores);
+      if (referenceBest === shortBest) {
+        regrets.push(0);
+        continue;
+      }
+      const final = rankingSamples(
         root,
-        { ...options, seed: independentSeed(seed, 0x50000 + index) },
+        options,
         evaluator,
+        primary.short,
+        independentSeed(seed, 0x50000 + index),
+        task.ranking,
+        [referenceBest, shortBest],
       );
       rankingUnfinished += final.unfinished;
       const differences = pairedUnoDifferences(
         final.outcomes,
-        options.continuations,
-        bestCandidate(referenceScores),
-        bestCandidate(scores),
+        task.ranking.continuations,
+        referenceBest,
+        shortBest,
       );
       const regret = average(differences);
       if (regret !== null) regrets.push(regret);

@@ -25,6 +25,7 @@ import { fitModel, type WeightedExample } from './fit';
 import { collectUnoResidualExamples } from './uno-residual-labels';
 import { readUnoLearningCorpus } from './local-uno-corpus';
 import { isCurrentUnoPilot, unoPilotEvidence } from './uno-pilot';
+import { calibrationSeeds } from './uno-calibration-provenance';
 import { openTrainingCheckpoint } from './training-checkpoint';
 import { bot } from '../../../games/uno/bot/index';
 import {
@@ -105,10 +106,7 @@ if (report.calibrationDigest !== calibrationDigest)
 const scoreLeaf = loadUnoLeafScorer(report.calibration);
 const trainSeeds = seedList(values['train-seeds']);
 const tuneSeeds = seedList(values['tune-seeds']);
-const excluded = new Set<number>([
-  ...report.trainSeeds,
-  ...report.holdoutSeeds,
-]);
+const excluded = new Set(calibrationSeeds(report));
 if (
   trainSeeds.some((seed) => excluded.has(seed)) ||
   tuneSeeds.some((seed) => excluded.has(seed) || trainSeeds.includes(seed))

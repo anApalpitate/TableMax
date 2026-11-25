@@ -214,7 +214,7 @@ function playStep(
 
 /** Finish a synthetic branch using the same fixed policies as the short search. */
 export function continueUnoHypothesis(
-  leaf: UnoHypothesisLeaf,
+  leaf: Pick<UnoHypothesisLeaf, 'state' | 'memories' | 'seat'>,
   seed: number,
   maxSteps: number,
   signal: AbortSignal,

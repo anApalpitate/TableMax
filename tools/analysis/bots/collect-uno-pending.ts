@@ -1,0 +1,129 @@
+import { execFile } from 'node:child_process';
+import { availableParallelism } from 'node:os';
+import { fileURLToPath } from 'node:url';
+import { parseArgs, promisify } from 'node:util';
+import {
+  collectPendingSeed,
+  pendingCalibration,
+  type PendingSeedEvidence,
+} from './uno-pending';
+import { unoPilotEvidence } from './uno-pilot';
+
+const { values } = parseArgs({
+  options: {
+    'fit-seeds': { type: 'string' },
+    'review-seeds': { type: 'string' },
+    continuations: { type: 'string', default: '16' },
+    'max-steps': { type: 'string', default: '15000' },
+    jobs: { type: 'string', default: '1' },
+    worker: { type: 'string' },
+  },
+});
+const options = {
+  continuations: Number(values.continuations),
+  maxSteps: Number(values['max-steps']),
+};
+if (
+  !Number.isSafeInteger(options.continuations) ||
+  options.continuations < 16 ||
+  !Number.isSafeInteger(options.maxSteps) ||
+  options.maxSteps < 1
+)
+  throw new Error('Invalid UNO pending calibration rollout budget');
+
+if (values.worker !== undefined) {
+  console.log(
+    JSON.stringify(await collectPendingSeed(Number(values.worker), options)),
+  );
+} else {
+  const seeds = (input: string | undefined) => input?.split(',').map(Number);
+  const fitSeeds = seeds(values['fit-seeds']);
+  const reviewSeeds = seeds(values['review-seeds']);
+  if (!fitSeeds?.length || !reviewSeeds?.length)
+    throw new Error('Provide fit and review seeds');
+  const all = [...fitSeeds, ...reviewSeeds];
+  if (
+    new Set(all).size !== all.length ||
+    all.some((seed) => !Number.isInteger(seed) || seed < 1 || seed > 0xffffffff)
+  )
+    throw new Error('Use disjoint positive 32-bit pending calibration seeds');
+  const maximum = Math.min(8, Math.max(1, availableParallelism() - 2));
+  const jobs = Number(values.jobs);
+  if (!Number.isInteger(jobs) || jobs < 1 || jobs > maximum)
+    throw new Error('Invalid pending calibration job count');
+  const output = new Map<number, PendingSeedEvidence>();
+  const runChild = promisify(execFile);
+  let assigned = 0;
+  const stopped = new AbortController();
+  const stop = () =>
+    stopped.abort(new Error('Pending sample collection interrupted'));
+  if (jobs > 1) {
+    process.once('SIGINT', stop);
+    process.once('SIGTERM', stop);
+  }
+  const collect = async () => {
+    while (assigned < all.length && !stopped.signal.aborted) {
+      const seed = all[assigned++]!;
+      try {
+        const result: PendingSeedEvidence =
+          jobs === 1
+            ? await collectPendingSeed(seed, options)
+            : JSON.parse(
+                (
+                  await runChild(
+                    process.execPath,
+                    [
+                      '--import',
+                      'tsx',
+                      fileURLToPath(import.meta.url),
+                      '--worker=' + seed,
+                      '--continuations=' + options.continuations,
+                      '--max-steps=' + options.maxSteps,
+                    ],
+                    {
+                      windowsHide: true,
+                      encoding: 'utf8',
+                      signal: stopped.signal,
+                    },
+                  )
+                ).stdout,
+              );
+        if (result.seed !== seed)
+          throw new Error('Wrong pending sample assignment');
+        output.set(seed, result);
+        console.error(
+          JSON.stringify({
+            seed,
+            found: result.found,
+            completed: output.size,
+            total: all.length,
+          }),
+        );
+      } catch (error) {
+        stopped.abort(error);
+      }
+    }
+  };
+  await Promise.all(
+    Array.from({ length: Math.min(jobs, all.length) }, collect),
+  );
+  if (jobs > 1) {
+    process.off('SIGINT', stop);
+    process.off('SIGTERM', stop);
+  }
+  stopped.signal.throwIfAborted();
+  console.log(
+    JSON.stringify(
+      pendingCalibration({
+        type: 'uno-pending-calibration',
+        version: 1,
+        pilot: unoPilotEvidence,
+        options,
+        fit: fitSeeds.map((seed) => output.get(seed)!),
+        review: reviewSeeds.map((seed) => output.get(seed)!),
+      }),
+      null,
+      2,
+    ),
+  );
+}

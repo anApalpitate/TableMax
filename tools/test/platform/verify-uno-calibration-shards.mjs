@@ -28,6 +28,8 @@ const args = [
   '--roots=1',
   '--hypotheses=8',
   '--continuations=1',
+  '--ranking-world-batches=2',
+  '--ranking-continuations=1',
 ];
 const exec = promisify(execFile);
 const run = (extra = [], base = args) =>
@@ -77,6 +79,7 @@ assert.deepEqual(
 const final = JSON.parse(resumed.stdout);
 assert.equal(final.batchDigest, progress.batchDigest);
 assert.equal(final.evaluation, 'insufficient');
+assert.deepEqual(final.rankingBudget, { worldBatches: 2, continuations: 1 });
 assert.ok(final.fitRows > 0 && final.overall.rows > 0);
 writeFileSync(
   join(output, 'report.json'),

@@ -5,6 +5,7 @@ import type { BotStrategy } from '../../../packages/game-sdk/src/index';
 import { bot, rules } from '../../../games/uno';
 import { createUnoSearchStrategy } from '../../../games/uno/bot/search-strategy';
 import { isCurrentUnoPilot, unoPilotEvidence } from './uno-pilot';
+import { calibrationSeeds } from './uno-calibration-provenance';
 import { evaluateBotMatch } from './evaluate';
 import {
   completeUnoBlock,
@@ -96,8 +97,7 @@ const hypotheses = calibration.options?.hypotheses;
 if (hypotheses !== 8 && hypotheses !== 16)
   throw new Error('The search sample budget must come from the B report');
 const sourceSeeds = [
-  calibration.trainSeeds,
-  calibration.holdoutSeeds,
+  calibrationSeeds(calibration),
   candidate.trainSeeds,
   candidate.tuneSeeds,
   candidate.localCorpus?.seeds ?? [],
