@@ -1,4 +1,4 @@
-# 三档人机逐决策规格
+# 宝可梦奇遇人机逐决策规格
 
 本页首先维护当前扩展配置，下方原版规格及按日期记载的扩展测量保留各自源码边界。扩展策略采用独立入口 [expansion/bot/index.ts](../../../games/pokemon-encounters/expansion/bot/index.ts)、[记忆](../../../games/pokemon-encounters/expansion/bot/memory.ts)和[评估](../../../games/pokemon-encounters/expansion/bot/strategy.ts)；当前应用为 v1.0.6，本地四位构建与实际验收见[验收入口](../../reference/acceptance.md#当前源码与本地交付)。规则和策略身份仍按各玩法的精确发行恢复，历史结果不作为新配置的强度或同包证明。
 
@@ -9,6 +9,14 @@
 天气从公开当前事件读取，场地评价对有效角色的印刷值应用一次；持牌、弃牌和缓冲仍按各自公开牌面处理，换入场地后再计算天气。戏法空间后的有效角色与物理牌组类别分别记录：获准明牌或私看提供原类别时准确扣除该类别，公开换入只给有效角色而原类别无法确定时保留歧义，从剩余合法类别建立假设，不据有效角色数量超额扣牌，也不把采样的原类别写成已知暗牌。未知位置仍来自授权假设池。人机不读取实际随机标记、秘密牌序或服务端随机状态，不预知下一事件；Mega和羁绊占位不参与未定义的计分或能力评价。
 
 超梦只遍历服务器给出的单格目标与合法交换／放弃动作，依法私看后才纳入本人记忆。默认／豆包／绝悟仍采用1／8／32组假设、0／1／2层本人前瞻、120／400／750ms软预算；记忆容量、遗忘规则、真实Worker32MiB与单次两秒硬截止沿用下文契约。有效牌面接入复用现有能力与三胜评价，不表示完整展开所有未来能力或证明三级胜率顺序。
+
+### 扩展版捣蛋王
+
+源码扩展策略 `pokemon-encounters/expansion@1.1.0` 在事件研究 v3 中提供捣蛋王。只在公开胜局显示唯一一名对手已拿两胜时，对忍蛙盖回／交换和指定行交换增加干扰评分。评分来自相同已完成的授权假设，比较领先者在能力前后的场地得分和明牌数。暗牌仍是采样假设，未写入策略记忆。
+
+先以绝悟原评分选动作。改选的候选平均评分至多差 1.5，额外干扰加分最多 2，且每组假设都须保住绝悟原动作的整场胜负等级。研究票、普通换牌及其余能力继续使用绝悟的估值和记忆。原版策略 `1` 保持三档。
+
+固定局面验证了完整合法动作集合中的忍蛙改选、行交换、研究密投、未知信息等价和整场胜负约束。隔离真实 Worker 已验证回退与 SQLite 重开后复现忍蛙决策。历史签名的原版与扩展版分别通过原策略和原 Worker 的恢复。2～6 人固定种子三胜矩阵已通过。四人首轮一小局触到 700 动作门槛，诊断重放在 563 步结束，随后按原两秒与 700 动作断言复验通过。固定评价时钟的两人换座共 4 个配对，未观察到动作差异。原版 22 项接口回归通过。[扩展版首轮整局矩阵](../../../artifacts/maintenance/test-history/runs/dc6a2a5c-8957-44ed-a301-ad62c3a2e8d8/results.json) · [四人定向复验](../../../artifacts/maintenance/test-history/runs/55ce35ea-7463-4868-96b9-c3ad1da7fb0f/results.json) · [四人诊断](../../../artifacts/maintenance/pokemon-expansion-bot-rise-20261126/four-player-diagnostic.json) · [固定时钟换座](../../../artifacts/maintenance/pokemon-expansion-bot-rise-20261126/rotation-report.json) · [原版接口](../../../artifacts/maintenance/test-history/runs/f6dbcdb2-019a-4a0c-8d7d-f6ae2e2f2654/results.json) · [固定局面](../../../artifacts/maintenance/test-history/runs/cea7ba47-3036-4bb5-9d7b-3f3111b19355/results.json) · [真实 Worker 复验](../../../artifacts/maintenance/test-history/runs/113ff125-c7fc-4999-9dfb-21de1bddcfeb/results.json) · [历史签名恢复](../../../artifacts/maintenance/pokemon-expansion-bot-rise-20261126/old-signed-recovery.json)
 
 ### 已保存轨迹与记忆边界
 

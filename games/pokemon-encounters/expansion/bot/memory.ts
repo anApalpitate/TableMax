@@ -286,9 +286,7 @@ export function observeMemory(
           : 'private',
         turn: m.turn,
       };
-  if (difficulty === 'mischief')
-    throw new Error('Unsupported Pokémon expansion bot style');
-  const profile = profiles[difficulty];
+  const profile = profiles[difficulty === 'mischief' ? 'juewu' : difficulty];
   const privateEntries = Object.values(m.known)
     .flatMap((board) => board.map((k, i) => ({ board, k, i })))
     .filter((entry) => entry.k?.source === 'private')

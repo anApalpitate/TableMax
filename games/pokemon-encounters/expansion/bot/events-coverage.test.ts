@@ -11,11 +11,12 @@ import { resolve, join } from 'node:path';
 import { randomUUID } from 'node:crypto';
 
 const diagnosticDirectory = resolve(
-  'artifacts/maintenance/v1.0.6/pokemon-events-v3-verification/private-bot-diagnostics',
+  process.env.TABLEMAX_EXPANSION_DIAGNOSTICS ??
+    'artifacts/maintenance/v1.0.6/pokemon-events-v3-verification/private-bot-diagnostics',
 );
 
 for (const players of [2, 3, 4, 5, 6])
-  for (const difficulty of ['default', 'doubao', 'juewu'] as const)
+  for (const difficulty of bot.difficulties!)
     it(`v3 ${players} players ${difficulty}: completes a three-win match with legal actions and truthful authorized memory`, async () => {
       const seats = Array.from({ length: players }, (_, i) => `s${i}`);
       const context = { seats, random: new RandomSource(121200 + players) };

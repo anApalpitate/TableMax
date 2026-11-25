@@ -14,7 +14,7 @@
 | 声画、规则说明、操作及旧布局参数       | [交互](interaction.md)                                              |
 | 角色、牌面、声音及来源／制作缺口       | [资源](assets.md)                                                   |
 | 原版／扩展验证、历史证据与真人待测     | [验证场景](validation-scenarios.md)、[原版场景数据](scenarios.json) |
-| 两玩法三档策略与故障恢复               | [人机](bot.md)                                                      |
+| 原版三档、扩展版四种人机及恢复               | [人机](bot.md)                                                      |
 | 剩余验收和素材接续                     | [扩展任务](../../tasks/pokemon-encounters-expansion.md)             |
 | 当前完整EXE与真实设备边界              | [当前验收](../../reference/acceptance.md#当前源码与本地交付)        |
 

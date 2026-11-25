@@ -5,10 +5,10 @@ import { observeMemory, validateMemory } from './memory';
 import { choose } from './strategy';
 export const bot: BotStrategy = {
   id: 'pokemon-encounters/expansion',
-  version: '1',
+  version: '1.1.0',
   gameId: 'pokemon-encounters',
   rulesVersion: 'tablemax-cn-expansion-v1',
-  difficulties: ['default', 'doubao', 'juewu'],
+  difficulties: ['default', 'doubao', 'juewu', 'mischief'],
   validateMemory,
   observe: ({ view, memory, seatId, difficulty }) =>
     observeMemory(memory, view as View, seatId, difficulty),

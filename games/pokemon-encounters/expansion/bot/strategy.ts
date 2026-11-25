@@ -18,6 +18,11 @@ import {
   type TableFields,
 } from './table';
 import { createTactics, informationValue, nextActorRisk } from './tactics';
+import {
+  imminentRival,
+  pressureChoice,
+  type PressureEvidence,
+} from './mischief';
 type Random = { next(): number };
 type Model = TableFields &
   AbilityKnowledge & {
@@ -382,6 +387,14 @@ export function choose(
   const seat = memory.seat,
     tasks = view.activeResearch.map((t) => t.id);
   const profile = view.rulesProfile ?? 'legacy';
+  const rival =
+    difficulty === 'mischief' ? imminentRival(view, seat) : undefined;
+  if (difficulty === 'mischief') difficulty = 'juewu';
+  const pressure = rival
+    ? new Map<Action, PressureEvidence>(
+        actions.map((action) => [action, { disruption: 0, outcomes: [] }]),
+      )
+    : null;
   if (view.phase === 'initial-flip')
     return (
       actions.find((a) => a.type === 'initial-flip' && a.slot === 4) ??
@@ -406,8 +419,6 @@ export function choose(
           : -1;
       return rank(b) - rank(a);
     })[0]!;
-  if (difficulty === 'mischief')
-    throw new Error('Unsupported Pokémon expansion bot style');
   const started = performance.now(),
     deadline = started + { default: 120, doubao: 400, juewu: 750 }[difficulty];
   const count = { default: 1, doubao: 8, juewu: 32 }[difficulty];
@@ -800,6 +811,19 @@ export function choose(
         [up[i], model.up[a.seat]![i]] = [model.up[a.seat]![i]!, up[i]!];
       }
     }
+    if (
+      rival &&
+      (a.type === 'ninja-target' || a.type === 'row-target') &&
+      a.seat === rival
+    ) {
+      const before = score(original.boards[rival]!, original.up[rival]!);
+      const after = score(model.boards[rival]!, model.up[rival]!);
+      const turnedDown =
+        original.up[rival]!.filter(Boolean).length -
+        model.up[rival]!.filter(Boolean).length;
+      pressure!.get(a)!.disruption +=
+        after - before + Math.max(0, turnedDown) * 0.5;
+    }
     return utility(model) + (a.type === 'reposition' ? 0.6 : 0);
   };
   const sums = actions.map(() => 0);
@@ -889,7 +913,15 @@ export function choose(
         extraDrawValues(model).forEach((value, source) => {
           extraSums[source]! += value;
         });
-      else sums[i]! += evaluate(a, model);
+      else {
+        const value = evaluate(a, model);
+        sums[i]! += value;
+        // The events profile uses ±4096 for settled match results, well above
+        // ordinary score, urgency and next-actor adjustments.
+        pressure
+          ?.get(a)
+          ?.outcomes.push(value <= -2048 ? -1 : value >= 2048 ? 1 : 0);
+      }
     });
     samples++;
   }
@@ -905,6 +937,7 @@ export function choose(
           : 0),
     }))
     .sort((a, b) => a.value - b.value);
+  if (pressure) return pressureChoice(ordered, pressure, samples);
   // Bounded own-turn lookahead averages the same authorized hypotheses as immediate evaluation.
   if (
     difficulty !== 'default' &&

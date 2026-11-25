@@ -87,6 +87,7 @@ const unitScopes = {
   'apps/server/src/entry.test.ts': ['shared', 'game:pokemon-encounters'],
   'apps/server/src/desktop-update-pipe.test.ts': ['shared'],
   'apps/server/src/expansion-integration.test.ts': ['game:pokemon-encounters'],
+  'apps/server/src/expansion-mischief.test.ts': ['game:pokemon-encounters'],
   'apps/server/src/game-registry.test.ts': ['shared', ...gameScopes],
   'apps/server/src/interaction-service.test.ts': ['shared'],
   'apps/server/src/interactions.test.ts': ['shared'],
