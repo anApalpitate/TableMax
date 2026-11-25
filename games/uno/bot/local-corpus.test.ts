@@ -15,7 +15,10 @@ it('imports only the surviving recorded branch of a naturally finished UNO segme
     a: ['red-skip-a', 'red-9-a', 'blue-5-a'],
     b: ['yellow-1-a'],
     c: ['green-1-a'],
+    d: ['blue-1-a'],
   });
+  state.setup = { drawPenaltyStacking: true, catchUnoDelayMs: 500 };
+  state.drawPenalty = null;
   const base = {
     version: 1,
     segment: 'segment',
@@ -40,7 +43,19 @@ it('imports only the surviving recorded branch of a naturally finished UNO segme
     observation: project(state, { role: 'player', seatId: 'a' }),
     actions: legalActions(state, 'a'),
   });
+  const outside = fixture({
+    a: ['red-1-a', 'red-2-a'],
+    b: ['green-4-a'],
+  });
   const rows = [
+    {
+      ...decision(0, 2, 'outside-pilot'),
+      instanceId: 'outside-pilot',
+      firstForSessionMatch: true,
+      observation: project(outside, { role: 'player', seatId: 'a' }),
+      actions: legalActions(outside, 'a'),
+      result: { phase: 'ended' },
+    },
     { ...decision(0, 5, 'learn-retained'), firstForSessionMatch: true },
     decision(0, 6, 'learn-abandoned'),
     {
@@ -61,7 +76,7 @@ it('imports only the surviving recorded branch of a naturally finished UNO segme
   writeFileSync(path, rows.map((row) => JSON.stringify(row)).join('\n'));
   const corpus = readUnoLearningCorpus(path, 10);
   expect(corpus.invalidLines).toBe(0);
-  expect(corpus.matches).toBe(2);
+  expect(corpus.matches).toBe(3);
   expect(corpus.entries).toHaveLength(1);
   expect(corpus.entries[0]!.roots.map(({ id }) => id)).toEqual([
     'learn-retained',

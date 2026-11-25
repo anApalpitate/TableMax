@@ -4,6 +4,8 @@ import { dirname, join, resolve } from 'node:path';
 import { createHash } from 'node:crypto';
 import { build } from 'esbuild';
 import { GameRegistry, RoomCoordinator } from '@tablemax/platform-core';
+import { verifyUnoWorker } from '../../../tools/analysis/bots/uno-worker-verification';
+import { unoCorrectionFeatureNames } from '../../../games/uno/bot/correction';
 import { unoLeafFeatureNames } from '../../../games/uno/bot/calibration';
 import { LocalBotModels } from './local-bot-models';
 import { RandomSource } from '@tablemax/platform-core/random';
@@ -349,3 +351,48 @@ it('pins the validated local model through the real Worker, rollback, and recove
     ),
   ).toBe(true);
 });
+
+it('measures B and C in real Workers and verifies the candidate with SQLite recovery', async () => {
+  const calibrationDigest = 'a'.repeat(64);
+  const baseline = {
+    version: 1,
+    samples: 8,
+    calibrationDigest,
+    calibration: {
+      version: 1,
+      features: [...unoLeafFeatureNames],
+      coefficients: unoLeafFeatureNames.map(() => 0),
+    },
+  };
+  const evidence = await verifyUnoWorker({
+    game: { bot, rules, releaseRef: '6'.repeat(64) },
+    workerPath,
+    botEntry: join(dirname(workerPath), 'bots', 'uno.cjs'),
+    scratch: dirname(workerPath),
+    calibrationDigest,
+    comparisonDigest: 'b'.repeat(64),
+    baseline,
+    candidate: {
+      ...baseline,
+      correction: {
+        version: 1,
+        calibrationDigest,
+        features: [...unoCorrectionFeatureNames],
+        coefficients: unoCorrectionFeatureNames.map(() => 0),
+        weight: 0.5,
+        cap: 0.02,
+      },
+    },
+  });
+  expect(evidence).toMatchObject({
+    result: 'passed',
+    keyPositions: 'passed',
+    workerOldGenerationMiB: 32,
+    restart: 'passed',
+    rollback: 'passed',
+    persistence: 'passed',
+    cancellation: 'passed',
+    tamper: 'passed',
+    timing: { B: { decisions: 6 }, C: { decisions: 7 } },
+  });
+}, 15000);

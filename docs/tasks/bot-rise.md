@@ -464,6 +464,8 @@ B 校准、C 候选、A/B/C 配对与真实 Worker 报告须匹配当前试点�
 - **本机运行**：用启用／关闭采集与训练的组合验证设置持久化。模拟开始游玩、训练暂停、意外退出、配额耗尽与再次恢复，核对正常保存与 Worker 运行。清理先识别当前模型、旧局、检查点和活动训练的引用，优先回收可重建缓存。[本机学习存储](#安装包与本机学习存储)
 - **展示与交付**：沿用现有人机入座和准备阶段座位设置，按玩法显示已验收的等级或风格，捣蛋王标为独立风格。开局后沿用已保存选择。公开信息只描述强度、风格与适用范围。快速评估、真实 Worker 和真人体验分别列证据，完整安装交付按实际冻结范围复核。
 
+已补齐 Worker 验收入口。它核对冻结的程序文件清单、Worker 字节与签名游戏映射，在匹配的 UNO 发行中比较 B／C 的六个固定局面并记录启动和决策耗时、进程内存与模型大小。隔离 SQLite 验证保存失败、取消、回退、损坏修复和重开，还原后用同一模型、随机状态及记忆重做决定。源码夹具已通过。冻结历史载荷用于校验命令拒绝不匹配 Worker 和旧发行。[Worker 与 SQLite 回归](../../artifacts/maintenance/test-history/runs/941bb9b0-778f-4593-bbd9-ff2098849538/results.json) · [验收命令负向检查](../../artifacts/maintenance/bot-rise-worker-proof-20261126/cli-validation.json)
+
 预装回归默认引用的 1.0.6 Worker 证明文件缺失。改用已保留的 1.0.9 签名游戏载荷和同版冻结 Worker 后，5 项预装检查通过。该批证据对应历史发行。 [默认环境记录](../../artifacts/maintenance/test-history/runs/46f45fe5-1ef4-4657-bb71-38f82c067689/results.json) · [历史载荷定向复验](../../artifacts/maintenance/test-history/runs/b7a9452a-b5a1-4809-97b4-450619aca0ad/results.json)
 
 ### 本轮定案与待定项

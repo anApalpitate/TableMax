@@ -103,6 +103,9 @@ if (values.deactivate) {
     proof.result !== 'passed' ||
     proof.calibrationDigest !== leafDigest ||
     proof.candidateDigest !== candidateDigest ||
+    proof.comparisonDigest !== comparison.sha256 ||
+    !/^[a-f0-9]{64}$/.test(proof.workerSha256) ||
+    !/^[a-f0-9]{64}$/.test(proof.applicationManifestSha256) ||
     proof.workerOldGenerationMiB !== 32 ||
     !Number.isFinite(proof.maxDecisionMs) ||
     proof.maxDecisionMs <= 0 ||
@@ -110,6 +113,9 @@ if (values.deactivate) {
     proof.failures !== 0 ||
     proof.restart !== 'passed' ||
     proof.rollback !== 'passed' ||
+    proof.persistence !== 'passed' ||
+    proof.cancellation !== 'passed' ||
+    proof.tamper !== 'passed' ||
     proof.keyPositions !== 'passed' ||
     !/^[a-f0-9]{64}$/.test(proof.preinstalledMappingSha256)
   )

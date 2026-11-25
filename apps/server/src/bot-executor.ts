@@ -8,6 +8,8 @@ export interface WorkerDiagnostic {
   outcome: 'pending' | 'success' | 'cancelled' | 'failed' | 'exited';
 }
 
+export const workerOldGenerationMiB = 32;
+
 export class WorkerBotExecutor implements BotExecutor {
   constructor(
     private workerPath: string,
@@ -50,7 +52,7 @@ export class WorkerBotExecutor implements BotExecutor {
           botEntry: this.botEntry?.(task),
           model: this.resolveModel?.(task.data),
         },
-        resourceLimits: { maxOldGenerationSizeMb: 32 },
+        resourceLimits: { maxOldGenerationSizeMb: workerOldGenerationMiB },
       });
       if (this.diagnostic)
         worker.once('online', () => {
