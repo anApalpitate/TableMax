@@ -5,7 +5,7 @@
 | 游戏                                                       | 规格与状态                                                                                                                                                                    |
 | ---------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | [宝可梦奇遇：皮卡丘和朋友们](pokemon-encounters/README.md) | `pokemon-encounters`，原版 `tablemax-cn-s19-v1`、扩展 `tablemax-cn-expansion-v1`，2–6 人；两种玩法独立维护规则、授权投影、三档策略与界面                                      |
-| [现代艺术](modern-art/README.md)                           | `modern-art`，采用 `tablemax-modern-art-classic-v1`；经典 3–5 人、70 卡、五种拍卖、四轮与三档独立策略；出版规则与项目采用缺口见 [来源](modern-art/sources.md)                 |
+| [现代艺术](modern-art/README.md)                           | `modern-art`，采用 `tablemax-modern-art-classic-v1`；经典 3–5 人、70 卡、五种拍卖、四轮与四种独立人机；出版规则与项目采用缺口见 [来源](modern-art/sources.md)                 |
 | [电力公司](power-grid/README.md)                           | `power-grid`，采用 `classic-germany-2009-project-1`；经典德国修正版 42 城／六区／83 边、42 张电厂、2–6 人与三档独立策略；出版依据与项目采用项见 [来源](power-grid/sources.md) |
 | [UNO](uno/README.md)                                       | `uno`，采用 `classic-108-g7942-1`；经典 108 牌、2–6 人、+4 质疑、UNO 抓漏与 500 分；出版与数字适配见[来源](uno/sources.md)，实际验证见[验证场景](uno/validation-scenarios.md) |
 | [拉密](rummikub/README.md)                                 | `rummikub`，采用 `classic-2025-digital-v1`，经典 2–4 人／106 张牌；本地牌架整理与完整回合校验见[交互](rummikub/interaction.md)                                                |

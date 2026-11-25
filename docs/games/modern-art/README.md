@@ -7,7 +7,7 @@
 | 采用版次、原文与认证缺口             | [来源](sources.md)                                             |
 | 发牌、五种拍卖、计分、授权与恢复     | [采用规则与信息权限](rules.md)                                 |
 | 三端布局、规则说明、文字、提醒及声画 | [交互与视觉](interaction.md)                                   |
-| 三档策略、记忆及合法信息边界         | [人机](bot.md)                                                 |
+| 四种人机、记忆及合法信息边界         | [人机](bot.md)                                                 |
 | 状态不变量、验证场景及历史证明       | [验证场景](validation-scenarios.md)                            |
 | 图像、声音、提示词及资源核验         | [游戏资源清单](../../../assets/games/modern-art/manifest.json) |
 | 当前完整EXE及真实设备边界            | [当前验收](../../reference/acceptance.md#当前源码与本地交付)   |

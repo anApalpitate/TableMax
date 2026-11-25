@@ -1,7 +1,8 @@
 import { expect, it } from 'vitest';
-import { mkdtempSync, writeFileSync } from 'node:fs';
-import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import { mkdirSync, mkdtempSync, writeFileSync } from 'node:fs';
+import { join, resolve } from 'node:path';
+import { build } from 'esbuild';
+import { RoomCoordinator, type Save } from '@tablemax/platform-core';
 import { io, type Socket } from 'socket.io-client';
 import { RandomSource } from '@tablemax/platform-core/random';
 import type { JsonValue } from '@tablemax/game-sdk';
@@ -13,11 +14,19 @@ import {
 } from '@tablemax/protocol';
 import { rules, bot } from '../../../games/modern-art';
 import type { ModernArtView } from '../../../games/modern-art/ui/view';
+import { pressureOffer } from '../../../games/modern-art/bot/test-fixtures';
 import { createService } from './service';
+import { SqliteSaveRepository } from './save-repository';
+import { WorkerBotExecutor } from './bot-executor';
 
 it('keeps sealed bids private through real sockets, durable restart, independent submissions and rollback', async () => {
-  const dataDir = mkdtempSync(join(tmpdir(), 'tablemax-modern-art-'));
-  const webDir = mkdtempSync(join(tmpdir(), 'tablemax-modern-web-'));
+  const root = resolve(
+    'tmp',
+    process.env.TABLEMAX_TASK_ID ?? 'modern-art-bot-rise-20261126',
+  );
+  mkdirSync(root, { recursive: true });
+  const dataDir = mkdtempSync(join(root, 'modern-art-data-'));
+  const webDir = mkdtempSync(join(root, 'modern-art-web-'));
   writeFileSync(join(webDir, 'index.html'), '<html>local</html>');
   const config = { dataDir, webDir, host: '127.0.0.1', port: 0 };
   let service = await createService(config, {
@@ -229,3 +238,106 @@ it('keeps sealed bids private through real sockets, durable restart, independent
     await service.close();
   }
 }, 30000);
+
+it('runs the Modern Art Mischief counterbid in the real Worker and replays it after SQLite recovery', async () => {
+  const taskRoot = resolve(
+    'tmp',
+    process.env.TABLEMAX_TASK_ID ?? 'modern-art-bot-rise-20261126',
+  );
+  mkdirSync(taskRoot, { recursive: true });
+  const output = mkdtempSync(join(taskRoot, 'modern-art-worker-'));
+  const workerPath = join(output, 'bot-worker.cjs');
+  const strategyPath = join(output, 'modern-art.cjs');
+  await Promise.all([
+    build({
+      entryPoints: ['apps/server/src/bot-worker.ts'],
+      outfile: workerPath,
+      bundle: true,
+      platform: 'node',
+      format: 'cjs',
+      target: 'node22',
+    }),
+    build({
+      entryPoints: ['games/modern-art/bot/index.ts'],
+      outfile: strategyPath,
+      bundle: true,
+      platform: 'node',
+      format: 'cjs',
+      target: 'node22',
+    }),
+  ]);
+  const fixture = {
+    ...rules,
+    initialize(context: Parameters<typeof rules.initialize>[0]) {
+      return rules.apply(
+        pressureOffer(context, 'open'),
+        { type: 'bid', amount: 24 },
+        context.seats[1]!,
+        context,
+      ).state;
+    },
+  };
+  let repository = new SqliteSaveRepository(output);
+  let room = new RoomCoordinator(fixture, bot, repository);
+  const host = async (command: Command['command']) => {
+    const { instanceId, revision, branch } = room.view(room.hostToken);
+    expect(
+      (
+        await room.command(room.hostToken, {
+          actionId: crypto.randomUUID(),
+          instanceId,
+          revision,
+          branch,
+          command,
+        })
+      ).ok,
+    ).toBe(true);
+  };
+  try {
+    await host({ type: 'add-bot', name: '画廊甲', difficulty: 'juewu' });
+    await host({ type: 'add-bot', name: '画廊乙', difficulty: 'juewu' });
+    await host({ type: 'add-bot', name: '画廊丙', difficulty: 'mischief' });
+    await host({ type: 'start' });
+    const seat = room.view().seats[2]!.id;
+    const task = room.botTask(seat)!;
+    expect(task.data).toMatchObject({
+      version: '1.1.0',
+      difficulty: 'mischief',
+    });
+    expect(room.view().game?.botDifficulties).toContain('mischief');
+    const authorized = task.view as ModernArtView;
+    expect(authorized.self?.seatId).toBe(seat);
+    expect(
+      Object.values(authorized.players).every(({ cash }) => cash === null),
+    ).toBe(true);
+    const worker = new WorkerBotExecutor(workerPath, () => strategyPath);
+    const started = performance.now();
+    const result = await worker.execute(task, AbortSignal.timeout(2000));
+    expect(performance.now() - started).toBeLessThan(2000);
+    expect(result.action).toEqual({ type: 'bid', amount: 26 });
+    expect(
+      (await room.submitBot(task, result.action, result.memory, result.random))
+        .ok,
+    ).toBe(true);
+    expect((room.view().gameView as ModernArtView).auction?.currentBid).toBe(
+      26,
+    );
+    await host({
+      type: 'rollback',
+      checkpointId: room.view(room.hostToken).history[0]!.id,
+    });
+    repository.close();
+    repository = new SqliteSaveRepository(output);
+    room = new RoomCoordinator(fixture, bot, repository, room.hostToken);
+    expect(room.view()).toMatchObject({ restored: true, paused: true });
+    expect((repository.load() as Save).snapshot?.bots[seat]).toEqual(task.data);
+    await host({ type: 'resume' });
+    const replay = await worker.execute(
+      room.botTask(seat)!,
+      AbortSignal.timeout(2000),
+    );
+    expect(replay).toEqual(result);
+  } finally {
+    repository.close();
+  }
+}, 15000);

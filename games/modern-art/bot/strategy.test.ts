@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { bot } from './index';
 import { observeMemory, type ArtMemory } from './memory';
 import { RoundPlanner } from './planner';
+import { pressureOffer } from './test-fixtures';
 import type { JsonValue } from '../../../packages/game-sdk/src';
 import { rules, decisions } from '../rules';
 import type { State } from '../rules/state';
@@ -13,11 +14,11 @@ import { CARDS, getCard } from '../data/catalog';
 import { countCards } from '../rules/scoring';
 
 describe('Modern Art independent local strategies', () => {
-  it('plays seeded 3/4/5-player matches at all three levels with per-intent save validation', async () => {
+  it('plays seeded 3/4/5-player matches at all four styles with per-intent save validation', async () => {
     const timings: Record<string, { decisions: number; longestMs: number }> =
       {};
     for (const count of [3, 4, 5])
-      for (const difficulty of ['default', 'doubao', 'juewu'] as const)
+      for (const difficulty of bot.difficulties!)
         for (const seed of [11, 57, 173]) {
           const seats = Array.from({ length: count }, (_, i) => `S${i + 1}`);
           const random = new RandomSource(seed);
@@ -124,7 +125,7 @@ describe('Modern Art independent local strategies', () => {
     expect(rules.project(s, { role: 'player', seatId: 'S1' })).toEqual(
       rules.project(hidden, { role: 'player', seatId: 'S1' }),
     );
-    for (const difficulty of ['default', 'doubao', 'juewu'] as const) {
+    for (const difficulty of bot.difficulties!) {
       const choices = [];
       for (const state of [s, hidden])
         choices.push(
@@ -251,7 +252,7 @@ describe('Modern Art independent local strategies', () => {
   });
   it('uses larger open-auction jumps and reaches its ceiling within three own raises', async () => {
     const seats = ['S1', 'S2', 'S3'];
-    for (const difficulty of ['default', 'doubao', 'juewu'] as const) {
+    for (const difficulty of bot.difficulties!) {
       const random = new RandomSource(5);
       let state = rules.initialize({ seats, random }) as State;
       const cardId = state.hands.S1!.find(
@@ -379,5 +380,174 @@ describe('Modern Art independent local strategies', () => {
       { type: 'offer', cardId: 'ramon-13' },
       { type: 'offer', cardId: 'rafael-14' },
     ]);
+  });
+});
+
+describe('Modern Art Mischief', () => {
+  const ctx = () => ({
+    seats: ['S1', 'S2', 'S3'],
+    random: new RandomSource(5),
+  });
+  async function choose(
+    view: ModernArtView,
+    actions: readonly JsonValue[],
+    seatId: string,
+    difficulty: 'mischief' | 'juewu',
+    id = 'r1-a1',
+  ) {
+    return bot.decide({
+      view,
+      actions,
+      decision: { id, seatId },
+      memory: null,
+      difficulty,
+      random: new RandomSource(5),
+      signal: new AbortController().signal,
+    });
+  }
+  it.each([
+    ['open', 26],
+    ['once', 25],
+  ] as const)(
+    'denies the visible highest bidder in %s within its reserve and price limit',
+    async (kind, amount) => {
+      const context = ctx();
+      const state = pressureOffer(context, kind);
+      const high = rules.apply(
+        state,
+        { type: 'bid', amount: 24 },
+        'S2',
+        context,
+      ).state as State;
+      const seat = { role: 'player', seatId: 'S3' } as const;
+      const view = rules.project(high, seat) as ModernArtView;
+      const actions = rules.legalActions(high, 'S3');
+      const under = await choose(view, actions, 'S3', 'juewu');
+      const style = await choose(view, actions, 'S3', 'mischief');
+      expect(under.action).toEqual({ type: 'pass' });
+      expect(style.action).toEqual({ type: 'bid', amount });
+      expect(actions).toContainEqual(style.action);
+      const hidden = structuredClone(high);
+      hidden.cash.S2 = 29;
+      hidden.hands.S2!.reverse();
+      const hiddenView = rules.project(
+        rules.validateState(hidden, context.seats),
+        seat,
+      ) as ModernArtView;
+      expect(hiddenView).toEqual(view);
+      expect(
+        await choose(
+          hiddenView,
+          rules.legalActions(hidden, 'S3'),
+          'S3',
+          'mischief',
+        ),
+      ).toEqual(style);
+      const scarce = structuredClone(high);
+      scarce.cash.S3 = 25;
+      const scarceView = rules.project(
+        rules.validateState(scarce, context.seats),
+        seat,
+      ) as ModernArtView;
+      expect(
+        (
+          await choose(
+            scarceView,
+            rules.legalActions(scarce, 'S3'),
+            'S3',
+            'mischief',
+          )
+        ).action,
+      ).toEqual({ type: 'pass' });
+    },
+  );
+
+  it('uses the same sealed policy for indistinguishable submitted amounts', async () => {
+    const context = ctx();
+    const state = pressureOffer(context, 'sealed');
+    const one = rules.apply(
+      state,
+      { type: 'sealed-bid', amount: 3 },
+      'S2',
+      context,
+    ).state;
+    const two = rules.apply(
+      state,
+      { type: 'sealed-bid', amount: 75 },
+      'S2',
+      context,
+    ).state;
+    const seat = { role: 'player', seatId: 'S3' } as const;
+    const view = rules.project(one, seat) as ModernArtView;
+    const alternative = rules.project(two, seat) as ModernArtView;
+    expect(view).toEqual(alternative);
+    expect(view.auction?.submitted).toEqual(['S2']);
+    const actions = rules.legalActions(one, 'S3');
+    const style = await choose(view, actions, 'S3', 'mischief');
+    expect(style).toEqual(
+      await choose(
+        alternative,
+        rules.legalActions(two, 'S3'),
+        'S3',
+        'mischief',
+      ),
+    );
+    expect(style).toEqual(await choose(view, actions, 'S3', 'juewu'));
+  });
+
+  it('uses the fifth painting to reduce the visible leader settlement when own value is unchanged', async () => {
+    const context = ctx();
+    const state = rules.initialize(context) as State;
+    const available = [...CARDS];
+    const take = (artistId: string) =>
+      available.splice(
+        available.findIndex((card) => card.artistId === artistId),
+        1,
+      )[0]!.id;
+    state.collections = {
+      S1: [take('manuel'), take('sigrid')],
+      S2: [take('manuel'), take('manuel'), take('manuel')],
+      S3: [take('sigrid'), take('sigrid'), take('sigrid')],
+    };
+    const first = take('manuel');
+    const second = take('sigrid');
+    state.hands = {
+      S1: [first, second],
+      S2: [take('daniel')],
+      S3: [take('ramon')],
+    };
+    state.deck = available.map(({ id }) => id);
+    state.played = countCards(Object.values(state.collections).flat());
+    rules.validateState(state, context.seats);
+    const view = {
+      ...(rules.project(state, {
+        role: 'player',
+        seatId: 'S1',
+      }) as ModernArtView),
+      round: 4,
+    };
+    const actions = rules.legalActions(state, 'S1');
+    expect((await choose(view, actions, 'S1', 'juewu')).action).toEqual({
+      type: 'offer',
+      cardId: first,
+    });
+    expect((await choose(view, actions, 'S1', 'mischief')).action).toEqual({
+      type: 'offer',
+      cardId: second,
+    });
+    const ordinary = rules.apply(
+      state,
+      { type: 'offer', cardId: first },
+      'S1',
+      context,
+    ).state as State;
+    const pressure = rules.apply(
+      state,
+      { type: 'offer', cardId: second },
+      'S1',
+      context,
+    ).state as State;
+    expect(pressure.cash.S1).toEqual(ordinary.cash.S1);
+    expect(pressure.cash.S2).toBe(ordinary.cash.S2! - 30);
   });
 });

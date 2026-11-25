@@ -3,6 +3,7 @@ import type { Action, ArtistId, CardFace, ModernArtView } from '../ui/view';
 import { ARTISTS, RULES_VERSION } from '../data/catalog';
 import { observeMemory, validateMemory } from './memory';
 import { RoundPlanner } from './planner';
+import { marketLeader, pressureBid } from './mischief';
 
 // The strategy only evaluates its supplied projection. It never receives State.
 class ArtEvaluator {
@@ -10,6 +11,7 @@ class ArtEvaluator {
     private readonly view: ModernArtView,
     private readonly level: number,
     private readonly planner: RoundPlanner,
+    private readonly target?: string,
   ) {}
   price(id: ArtistId, extra = 0, offeredArtist = id, settled = false): number {
     const ranked = this.view.artists
@@ -54,15 +56,23 @@ class ArtEvaluator {
           );
     return present * confidence;
   }
-  budget(): number {
-    const auction = this.view.auction!;
-    const total = auction.cards.reduce(
+  lotValue(): number {
+    return this.view.auction!.cards.reduce(
       (sum, card) => sum + this.price(card.artistId),
       0,
     );
+  }
+
+  available(): number {
+    return this.view.self!.cash - this.planner.cashReserve();
+  }
+
+  budget(): number {
     const discount = [0.48, 0.69, 0.82][this.level]!;
-    const available = this.view.self!.cash - this.planner.cashReserve();
-    return Math.max(0, Math.floor(Math.min(total * discount, available)));
+    return Math.max(
+      0,
+      Math.floor(Math.min(this.lotValue() * discount, this.available())),
+    );
   }
   offered(card: CardFace, type: 'offer' | 'add-double'): number {
     const count = this.view.artists.find(
@@ -101,7 +111,25 @@ class ArtEvaluator {
           (own - others / (this.view.seatOrder.length - 1)) *
           this.price(artist.id, extra, card.artistId, true);
       }
-      return control + future;
+      const lostIncome = (seat: string) =>
+        this.view.players[seat]!.collection.reduce(
+          (sum, held) =>
+            sum +
+            this.price(held.artistId, 0, card.artistId, true) -
+            this.price(held.artistId, extra, card.artistId, true),
+          0,
+        );
+      const pressure = this.target
+        ? Math.min(
+            6,
+            Math.max(
+              0,
+              lostIncome(this.target) -
+                Math.max(0, lostIncome(this.view.self!.seatId)),
+            ) * 0.25,
+          )
+        : 0;
+      return control + future + pressure;
     }
     return (
       value +
@@ -115,14 +143,15 @@ class ArtEvaluator {
 }
 export const bot: BotStrategy = {
   id: 'modern-art-local',
-  version: '1.0.0',
+  version: '1.1.0',
   gameId: 'modern-art',
   rulesVersion: RULES_VERSION,
-  difficulties: ['default', 'doubao', 'juewu'],
+  difficulties: ['default', 'doubao', 'juewu', 'mischief'],
   validateMemory,
   async decide({
     view: inputView,
     actions: inputActions,
+    decision,
     difficulty = 'default',
     random,
     signal,
@@ -131,12 +160,18 @@ export const bot: BotStrategy = {
     if (signal.aborted) throw new Error('策略已取消。');
     const view = inputView as ModernArtView;
     const actions = inputActions as readonly Action[];
-    if (!view.self || !actions.length) throw new Error('缺少本人合法决策。');
-    const level = ['default', 'doubao', 'juewu'].indexOf(difficulty);
+    if (!view.self || view.self.seatId !== decision.seatId || !actions.length)
+      throw new Error('缺少本人合法决策。');
+    const level =
+      difficulty === 'mischief'
+        ? 2
+        : ['default', 'doubao', 'juewu'].indexOf(difficulty);
     if (level < 0) throw new Error('不支持的人机等级。');
     const observed = observeMemory(memory, view, level);
     const planner = new RoundPlanner(view, observed, level, signal);
-    const evaluator = new ArtEvaluator(view, level, planner);
+    const leadingRival =
+      difficulty === 'mischief' ? marketLeader(view) : undefined;
+    const evaluator = new ArtEvaluator(view, level, planner, leadingRival);
     let selected: Action | undefined;
     if (
       actions[0]!.type === 'offer' ||
@@ -207,6 +242,17 @@ export const bot: BotStrategy = {
       selected =
         bids.find((action) => action.amount === amount) ??
         actions.find((action) => action.type === 'pass');
+      if (leadingRival && selected?.type === 'pass')
+        selected =
+          pressureBid(
+            view.auction!,
+            leadingRival,
+            observed.raises,
+            bids,
+            budget,
+            evaluator.lotValue(),
+            evaluator.available(),
+          ) ?? selected;
     }
     selected ??= actions[0]!;
     if (view.auction?.kind === 'open' && selected.type === 'bid')
