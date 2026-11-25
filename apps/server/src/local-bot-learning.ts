@@ -45,6 +45,9 @@ export class LocalBotLearning implements BotLearningStore {
     private readonly dataDir: string,
     private readonly development: boolean,
     private readonly logByteLimit = defaultLogByteLimit,
+    private readonly trainingStatus?: () => NonNullable<
+      BotLearningStatus['trainingState']
+    >,
   ) {
     if (!Number.isSafeInteger(logByteLimit) || logByteLimit < 1)
       throw new Error('Invalid learning log quota');
@@ -93,11 +96,16 @@ export class LocalBotLearning implements BotLearningStore {
     return { path, stats };
   }
 
+  get trainingEnabled() {
+    return this.settings.options.training;
+  }
+
   status(): BotLearningStatus {
     const captureEnabled = this.settings.options.capture ?? this.development;
     return {
       ...this.settings.options,
       defaultCapture: this.development,
+      ...(this.trainingStatus ? { trainingState: this.trainingStatus() } : {}),
       captureEnabled,
       captureState: captureEnabled ? (this.error ?? 'ready') : 'off',
     };

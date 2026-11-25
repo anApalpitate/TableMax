@@ -33,6 +33,7 @@ const unitScopes = {
   'apps/server/src/events-integration.test.ts': ['game:pokemon-encounters'],
   'apps/server/src/game-packages/catalog.test.ts': ['box', 'shared', 'tooling'],
   'apps/server/src/registry-versions.test.ts': ['shared', 'tooling'],
+  'apps/server/src/idle-training-lease.test.ts': ['shared'],
   'apps/server/src/game-packages/public.test.ts': ['box', 'shared', 'tooling'],
   'apps/server/src/game-packages/legacy-save.test.ts': [
     'shared',
@@ -253,6 +254,11 @@ const verificationScopes = {
   'tools/maintenance/current-delivery.test.mjs': ['tooling'],
   'tools/maintenance/current-delivery.test.ps1': ['tooling'],
   'tools/test/platform/verify-download-loopback.mjs': ['tooling', 'shared'],
+  'tools/test/platform/verify-uno-idle-training.mjs': [
+    'tooling',
+    'shared',
+    'game:uno',
+  ],
   'tools/test/desktop/verify-delivery-session.mjs': [
     'tooling',
     'box',

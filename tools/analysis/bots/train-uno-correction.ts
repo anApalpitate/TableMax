@@ -1,8 +1,14 @@
 import { createHash } from 'node:crypto';
-import { spawnSync } from 'node:child_process';
+import { fitUnoOnGpu } from './uno-gpu-fit';
+import { readTrainingLease } from '../../../packages/platform-core/src/training-lease';
 import { readFileSync } from 'node:fs';
 import { parseArgs } from 'node:util';
 import { fileURLToPath } from 'node:url';
+import { dirname, resolve } from 'node:path';
+import {
+  assertLearningBudget,
+  learningJobByteLimit,
+} from '../../../packages/platform-core/src/learning-storage';
 import { loadUnoLeafScorer } from '../../../games/uno/bot/calibration';
 import {
   unoCorrectedBest,
@@ -48,6 +54,9 @@ const { values } = parseArgs({
     'learning-log': { type: 'string' },
     checkpoint: { type: 'string' },
     'steps-per-run': { type: 'string' },
+    'idle-lease': { type: 'string' },
+    'idle-session': { type: 'string' },
+    'jobs-root': { type: 'string' },
     'train-seeds': { type: 'string' },
     'tune-seeds': { type: 'string' },
     roots: { type: 'string', default: '2' },
@@ -55,6 +64,23 @@ const { values } = parseArgs({
     'max-steps': { type: 'string', default: '15000' },
   },
 });
+const leasePath = values['idle-lease'];
+const leaseSession = values['idle-session'];
+if (Boolean(leasePath) !== Boolean(leaseSession))
+  throw new Error(
+    'Provide both idle lease and session when using the local watcher',
+  );
+let nextLeaseRead = 0;
+function checkIdle(force = false) {
+  if (!leasePath) return;
+  const now = Date.now();
+  if (!force && now < nextLeaseRead) return;
+  nextLeaseRead = now + 125;
+  const lease = readTrainingLease(leasePath, now);
+  if (!lease?.allowed || lease.session !== leaseSession)
+    throw new Error('UNO_IDLE_TRAINING_PAUSED');
+}
+checkIdle(true);
 if (!values.calibration)
   throw new Error('Pass a frozen UNO B calibration report');
 const report = JSON.parse(readFileSync(values.calibration, 'utf8'));
@@ -113,7 +139,9 @@ async function collect(
   inputRoots?: readonly UnoRoot[],
 ): Promise<PositionEvidence[]> {
   const result: PositionEvidence[] = [];
-  const roots = inputRoots ?? (await collectUnoRoots(seed, options));
+  checkIdle();
+  const roots =
+    inputRoots ?? (await collectUnoRoots(seed, options, undefined, checkIdle));
   for (const [index, root] of roots.entries()) {
     const signal = new AbortController().signal;
     const short = searchUnoPlays(
@@ -133,6 +161,7 @@ async function collect(
         seed: independentSeed(seed, salt + 0x10000 + index),
       },
       scoreLeaf,
+      checkIdle,
     );
     if (
       JSON.stringify(long.short.candidates.map(({ action }) => action)) !==
@@ -192,8 +221,24 @@ const identity = createHash('sha256')
     }),
   )
   .digest('hex');
+const jobsRoot = values['jobs-root'] && resolve(values['jobs-root']);
+if (
+  jobsRoot &&
+  (!values.checkpoint ||
+    dirname(dirname(resolve(values.checkpoint))) !== jobsRoot)
+)
+  throw new Error(
+    'Training checkpoint must stay in its configured job directory',
+  );
 const checkpoint = values.checkpoint
-  ? openTrainingCheckpoint(values.checkpoint, identity, initial)
+  ? openTrainingCheckpoint(
+      values.checkpoint,
+      identity,
+      initial,
+      jobsRoot
+        ? (bytes) => assertLearningBudget(jobsRoot, bytes, learningJobByteLimit)
+        : undefined,
+    )
   : null;
 const state = checkpoint?.state ?? initial;
 if (
@@ -217,6 +262,7 @@ if (
 )
   throw new Error('A positive step limit requires --checkpoint');
 async function beginUnit() {
+  checkIdle(true);
   if (remaining > 0) {
     remaining--;
     return;
@@ -266,15 +312,13 @@ const penalty = 0.001;
 const solver = fileURLToPath(new URL('./ridge-cuda.py', import.meta.url));
 if (!state.fit) {
   await beginUnit();
-  const gpu = spawnSync('python', ['-B', solver], {
-    input: JSON.stringify({ examples: training, penalty }),
-    encoding: 'utf8',
-    maxBuffer: 8 * 1024 * 1024,
-  });
-  if (gpu.error) throw gpu.error;
-  if (gpu.status !== 0)
-    throw new Error(gpu.stderr || 'UNO residual GPU fit failed');
-  state.fit = JSON.parse(gpu.stdout) as GpuFit;
+  state.fit = JSON.parse(
+    await fitUnoOnGpu(
+      solver,
+      JSON.stringify({ examples: training, penalty }),
+      checkIdle,
+    ),
+  ) as GpuFit;
 }
 const fit = state.fit;
 const independentFit = fitModel(training, 'linear', penalty);

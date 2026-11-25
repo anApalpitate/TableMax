@@ -18,8 +18,9 @@ import { WorkerBotExecutor } from './bot-executor';
 
 let workerPath: string;
 beforeAll(async () => {
-  mkdirSync('tmp', { recursive: true });
-  const output = mkdtempSync(resolve('tmp/uno-worker-'));
+  const temporaryRoot = resolve(process.env.TABLEMAX_TEST_TMP_ROOT ?? 'tmp');
+  mkdirSync(temporaryRoot, { recursive: true });
+  const output = mkdtempSync(join(temporaryRoot, 'uno-worker-'));
   mkdirSync(join(output, 'bots'));
   workerPath = join(output, 'bot-worker.cjs');
   const module = JSON.parse(readFileSync('games/uno/game-module.json', 'utf8'));

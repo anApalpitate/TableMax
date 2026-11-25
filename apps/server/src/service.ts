@@ -40,6 +40,7 @@ import { SqliteSaveRepository } from './save-repository';
 import { WorkerBotExecutor } from './bot-executor';
 import { LocalBotModels } from './local-bot-models';
 import { LocalBotLearning } from './local-bot-learning';
+import { IdleTrainingLease } from './idle-training-lease';
 import { openFoundationDatabase } from './database';
 import { NetworkDirectory } from './network-directory';
 import { normalizeAvatar, AVATAR_HTTP_LIMIT } from './avatar-images';
@@ -203,9 +204,18 @@ export async function createService(
     storage.close();
     throw error;
   }
-  room.configureBotLearning(
-    new LocalBotLearning(config.dataDir, developmentBuild),
+  const learning: LocalBotLearning = new LocalBotLearning(
+    config.dataDir,
+    developmentBuild,
+    undefined,
+    () => trainingLease.status(),
   );
+  const trainingLease: IdleTrainingLease = new IdleTrainingLease(
+    config.dataDir,
+    room,
+    () => learning.trainingEnabled,
+  );
+  room.configureBotLearning(learning);
   const scheduler = new BotScheduler(
     room,
     undefined,
@@ -445,6 +455,7 @@ export async function createService(
       closing = true;
       shutdown = room.beginShutdown();
       scheduler.stop();
+      trainingLease.stop();
       automaticScheduler.stop();
       projections.dispose();
       interactions.dispose();
@@ -839,6 +850,7 @@ export async function createService(
     syncDiagnostics: () => syncDiagnostics.snapshot(),
     async listen() {
       await app.listen({ host: config.host, port: config.port });
+      trainingLease.start();
       log('service-ready');
       return (app.server.address() as { port: number }).port;
     },

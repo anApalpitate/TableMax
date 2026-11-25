@@ -8,6 +8,17 @@ export function BotLearningSettings({ session }: { session: RoomSession }) {
   const learning = session.view?.botLearning;
   if (!session.isHost || session.role !== 'host' || !learning) return null;
   const disabled = session.locked || session.awaitingConfirmation;
+  const trainingMessage = learning.trainingState
+    ? {
+        disabled: '',
+        waiting: '等待本机训练器',
+        paused: '训练已暂停或正在等待空闲',
+        running: '本机正在训练',
+        candidate: '候选模型待独立验收',
+        quota: '本机训练空间已达上限',
+        failed: '本机训练器暂不可用',
+      }[learning.trainingState]
+    : '';
   return (
     <>
       <div className="display-settings-choice">
@@ -53,8 +64,8 @@ export function BotLearningSettings({ session }: { session: RoomSession }) {
       <div className="display-settings-choice">
         <SettingHelp
           id={trainingId}
-          label="空闲训练偏好"
-          hint="为本机训练保留启用偏好。学习模型仍需通过独立验收才可用于新局。"
+          label="空闲训练"
+          hint="本机训练器就绪后只在空闲时运行，开始游玩会暂停。模型通过独立验收后才可用于新局。"
         />
         <button
           type="button"
@@ -80,6 +91,9 @@ export function BotLearningSettings({ session }: { session: RoomSession }) {
           {learning.training ? '已开启' : '已关闭'}
         </button>
       </div>
+      {learning.training && trainingMessage && (
+        <p role="status">{trainingMessage}</p>
+      )}
     </>
   );
 }

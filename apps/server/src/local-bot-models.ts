@@ -10,6 +10,10 @@ import {
 } from 'node:fs';
 import { join } from 'node:path';
 import { isDeepStrictEqual } from 'node:util';
+import {
+  assertLearningBudget,
+  learningModelByteLimit,
+} from '../../../packages/platform-core/src/learning-storage';
 import type { JsonValue } from '@tablemax/game-sdk';
 import type {
   BotModelBinding,
@@ -35,7 +39,10 @@ export class LocalBotModels implements BotModelProvider {
   private readonly learningDir: string;
   private readonly modelsDir: string;
 
-  constructor(private readonly dataDir: string) {
+  constructor(
+    private readonly dataDir: string,
+    private readonly byteLimit = learningModelByteLimit,
+  ) {
     this.learningDir = join(dataDir, 'learning');
     this.modelsDir = join(this.learningDir, 'models');
   }
@@ -132,6 +139,8 @@ export class LocalBotModels implements BotModelProvider {
     const path = join(this.modelsDir, ref + '.json');
     this.mutateIndex(() => {
       try {
+        if (!lstatSync(path, { throwIfNoEntry: false }))
+          assertLearningBudget(this.modelsDir, bytes.length, this.byteLimit);
         writeFileSync(path, bytes, { flag: 'wx', flush: true });
       } catch (error) {
         if (

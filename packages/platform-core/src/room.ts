@@ -1732,6 +1732,13 @@ export class RoomCoordinator {
     if (changedInstance || c.type === 'resume') this.restored = false;
     return reply;
   }
+  get canTrainWhileIdle() {
+    return (
+      !this.operations.closing &&
+      !this.missingRelease &&
+      this.data.status !== 'playing'
+    );
+  }
   get botPaused() {
     return this.operations.closing || this.data.paused;
   }

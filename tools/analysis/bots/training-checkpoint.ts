@@ -32,6 +32,7 @@ export function openTrainingCheckpoint<State>(
   path: string,
   identity: string,
   initial: State,
+  beforeWrite?: (temporaryBytes: number) => void,
 ) {
   const file = resolve(path);
   const parent = lstatSync(dirname(file));
@@ -63,6 +64,7 @@ export function openTrainingCheckpoint<State>(
         const current = checkpointBytes(file);
         if ((current && hash(current)) !== expected)
           throw new Error('Training checkpoint changed since it was opened');
+        beforeWrite?.(next.length);
         const temporary = file + '.' + randomUUID() + '.tmp';
         writeFileSync(temporary, next, {
           flag: 'wx',

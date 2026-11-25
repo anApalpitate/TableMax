@@ -110,6 +110,17 @@ export const BotLearningStatusSchema = BotLearningOptionsSchema.extend({
   defaultCapture: z.boolean(),
   captureEnabled: z.boolean(),
   captureState: z.enum(['off', 'ready', 'quota', 'unavailable']),
+  trainingState: z
+    .enum([
+      'disabled',
+      'waiting',
+      'paused',
+      'running',
+      'candidate',
+      'quota',
+      'failed',
+    ])
+    .optional(),
 });
 export type BotLearningStatus = z.infer<typeof BotLearningStatusSchema>;
 

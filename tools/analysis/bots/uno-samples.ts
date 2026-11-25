@@ -60,6 +60,7 @@ export async function collectUnoRoots(
   seed: number,
   options: UnoSampleOptions,
   policy: BotStrategy = bot,
+  checkpoint?: () => void,
 ): Promise<UnoRoot[]> {
   const rng = new RandomSource(independentSeed(seed, 0x201a1));
   const roots: UnoRoot[] = [];
@@ -106,7 +107,10 @@ export async function collectUnoRoots(
   });
   const match = await evaluateBotMatch(
     { rules, seats, seed },
-    { maxSteps: options.maxSteps },
+    {
+      maxSteps: options.maxSteps,
+      ...(checkpoint ? { onStep: checkpoint } : {}),
+    },
   );
   if (match.outcome !== 'ended')
     throw new Error(
@@ -119,6 +123,7 @@ export function sampleUnoContinuations(
   root: UnoRoot,
   options: RolloutOptions,
   evaluate: (view: UnoView) => number,
+  checkpoint?: () => void,
 ): UnoRootSamples {
   const signal = new AbortController().signal;
   const leaves: UnoLeafLabel[] = [];
@@ -147,6 +152,7 @@ export function sampleUnoContinuations(
               seed,
               options.maxSteps,
               signal,
+              checkpoint,
             );
             if (result === null) unfinished++;
             byCandidate[index]!.push(result);

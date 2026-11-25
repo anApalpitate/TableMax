@@ -218,6 +218,7 @@ export function continueUnoHypothesis(
   seed: number,
   maxSteps: number,
   signal: AbortSignal,
+  checkpoint?: () => void,
 ): 0 | 1 | null {
   if (
     !Number.isSafeInteger(maxSteps) ||
@@ -232,6 +233,7 @@ export function continueUnoHypothesis(
   let state = leaf.state;
   for (let steps = 0; state.phase !== 'ended' && steps < maxSteps; steps++) {
     signal.throwIfAborted();
+    if (steps % 16 === 0) checkpoint?.();
     state =
       state.phase === 'round-result'
         ? (rules.applyLifecycle(state, { type: 'next-round' }, context)

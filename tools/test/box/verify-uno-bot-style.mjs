@@ -128,7 +128,7 @@ try {
       captureState: 'ready',
     },
   });
-  await page.getByRole('switch', { name: '空闲训练偏好' }).click();
+  await page.getByRole('switch', { name: '空闲训练' }).click();
   assert.deepEqual(await page.evaluate(() => window.commands.at(-1)), {
     type: 'set-bot-learning',
     options: { capture: true, training: true },
