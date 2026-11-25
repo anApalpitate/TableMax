@@ -60,6 +60,7 @@ export function projectRoomView(
           name: rules!.manifest.name,
           ...rules!.manifest.players,
           decisionTimer: rules!.manifest.decisionTimer !== false,
+          botDifficulties: [...(context.game.bot.difficulties ?? ['default'])],
           ...(d.variantId === undefined ? {} : { variantId: d.variantId }),
           ...(d.releaseRef === undefined ? {} : { releaseRef: d.releaseRef }),
           ...(context.game.restoreOnly ? { restoreOnly: true } : {}),

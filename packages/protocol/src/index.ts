@@ -92,7 +92,12 @@ export const ServiceReadySchema = z.object({
 });
 
 export const CredentialSchema = z.string().min(32).max(128);
-export const BotDifficultySchema = z.enum(['default', 'doubao', 'juewu']);
+export const BotDifficultySchema = z.enum([
+  'default',
+  'doubao',
+  'juewu',
+  'mischief',
+]);
 export type BotDifficulty = z.infer<typeof BotDifficultySchema>;
 export const CommandSchema = z
   .object({
@@ -361,6 +366,7 @@ export interface RoomView {
     variantId?: string | undefined;
     releaseRef?: string | undefined;
     restoreOnly?: boolean | undefined;
+    botDifficulties?: BotDifficulty[] | undefined;
     setup?: unknown;
     nextSetup?: unknown;
   } | null;
@@ -456,6 +462,7 @@ export const RoomViewSchema = z
         max: z.number().int().positive(),
         decisionTimer: z.boolean().optional(),
         restoreOnly: z.boolean().optional(),
+        botDifficulties: z.array(BotDifficultySchema).min(1).max(4).optional(),
         setup: z.json().optional(),
         nextSetup: z.json().optional(),
         variantId: z.string().optional(),

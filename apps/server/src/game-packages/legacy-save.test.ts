@@ -8,7 +8,6 @@ import {
   cpSync,
 } from 'node:fs';
 import { join, resolve } from 'node:path';
-import { tmpdir } from 'node:os';
 import { randomUUID } from 'node:crypto';
 import { build } from 'esbuild';
 import { createService } from '../service';
@@ -53,7 +52,9 @@ function loadSave(dataDir: string): Save {
 async function fixture(
   mismatch?: 'gameVersion' | 'rulesVersion' | 'stateVersion',
 ) {
-  const root = mkdtempSync(join(tmpdir(), 'tablemax-legacy-save-'));
+  const temporaryRoot = resolve(process.env.TABLEMAX_TEST_TMP_ROOT ?? 'tmp');
+  mkdirSync(temporaryRoot, { recursive: true });
+  const root = mkdtempSync(join(temporaryRoot, 'tablemax-legacy-save-'));
   const config = {
     host: '127.0.0.1' as const,
     port: 0,
@@ -162,8 +163,12 @@ async function fixture(
       'export const client = {};',
     );
     // Current complete payload coexists with the preserved, distinctly versioned old module.
+    const { version } = JSON.parse(readFileSync('package.json', 'utf8'));
     const pointer = JSON.parse(
-      readFileSync('artifacts/package-payloads/v1.0.6/current.json', 'utf8'),
+      readFileSync(
+        `artifacts/package-payloads/v${version}/current.json`,
+        'utf8',
+      ),
     );
     const payload = join(
       pointer.deliveries.find(

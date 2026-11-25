@@ -406,6 +406,8 @@ export function choose(
           : -1;
       return rank(b) - rank(a);
     })[0]!;
+  if (difficulty === 'mischief')
+    throw new Error('Unsupported Pokémon expansion bot style');
   const started = performance.now(),
     deadline = started + { default: 120, doubao: 400, juewu: 750 }[difficulty];
   const count = { default: 1, doubao: 8, juewu: 32 }[difficulty];

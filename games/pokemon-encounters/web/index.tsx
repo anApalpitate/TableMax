@@ -69,7 +69,7 @@ function PokemonScreen({ session }: { session: RoomSession }) {
     portrait: avatarFor(seat.avatarId),
     ...(seat.botDifficulty
       ? {
-          botLabel: `${{ default: '默认', doubao: '豆包', juewu: '绝悟' }[seat.botDifficulty]}人机`,
+          botLabel: `${{ default: '默认', doubao: '豆包', juewu: '绝悟', mischief: '捣蛋王' }[seat.botDifficulty]}人机`,
         }
       : {}),
   }));

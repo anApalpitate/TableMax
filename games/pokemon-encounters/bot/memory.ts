@@ -163,6 +163,8 @@ export function observeMemory(
               ? previous.summaries
               : [],
         };
+  if (difficulty === 'mischief')
+    throw new Error('Unsupported Pokémon bot style');
   const profile = memoryProfiles[difficulty];
   const fresh = view.events.filter((e) => e.id > memory.lastEvent);
   if (

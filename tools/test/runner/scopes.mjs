@@ -351,6 +351,7 @@ const verificationScopes = {
   'tools/test/box/verify-box-expanded-seats.mjs': ['box'],
   'tools/test/box/verify-box-redesign.mjs': ['box'],
   'tools/test/box/verify-box-lobby.mjs': ['box', 'game:uno'],
+  'tools/test/box/verify-uno-bot-style.mjs': ['box', 'game:uno'],
   'tools/test/box/verify-box-notifications.mjs': ['box'],
   'tools/test/platform/verify-speech-panel.mjs': ['box', 'shared'],
   'tools/test/platform/verify-player-interaction-audio.mjs': ['box', 'shared'],

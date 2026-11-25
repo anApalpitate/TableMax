@@ -1,12 +1,8 @@
-import type { BotDifficulty, RoomView } from '@tablemax/protocol';
+import type { RoomView } from '@tablemax/protocol';
 import { avatarFor } from '../assets/avatars';
 import './room-table.css';
 
-const botDifficultyNames: Record<BotDifficulty, string> = {
-  default: '默认',
-  doubao: '豆包',
-  juewu: '绝悟',
-};
+import { botDifficultyNames } from '../content/bot-difficulty';
 
 interface RoomTableProps {
   seats: RoomView['seats'];

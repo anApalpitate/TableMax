@@ -1,12 +1,11 @@
 import { useGameDetails } from '../game-clients/details';
-import type { BotDifficulty, RoomView } from '@tablemax/protocol';
+import type { RoomView } from '@tablemax/protocol';
+import {
+  botDifficultyNames,
+  availableBotDifficulties,
+} from '../content/bot-difficulty';
 import './box-overlays.css';
 
-const names: Record<BotDifficulty, string> = {
-  default: '默认',
-  doubao: '豆包',
-  juewu: '绝悟',
-};
 export function BotInformation({
   game,
 }: {
@@ -14,6 +13,7 @@ export function BotInformation({
 }) {
   const { details, error, retry } = useGameDetails(game.id, game.releaseRef);
   const introduction = details?.botIntroduction;
+  const levels = availableBotDifficulties(game);
   return (
     <div className="bot-information">
       <p className="bot-information__game">{game.name}</p>
@@ -24,22 +24,32 @@ export function BotInformation({
         </button>
       )}
       {introduction &&
-        (Object.keys(names) as BotDifficulty[]).map((level, index) => (
-          <section className="bot-information__level" key={level}>
-            <span className="bot-information__rank" aria-hidden="true">
-              {index + 1}
-            </span>
-            <div>
-              <h3>{names[level]}</h3>
-              <p>{introduction[level].lead}</p>
-              <p className="bot-information__detail">
-                {introduction[level].details.join(' ')}
-              </p>
-            </div>
-          </section>
-        ))}
+        levels
+          .filter((level) => level !== 'mischief')
+          .map((level, index) => (
+            <section className="bot-information__level" key={level}>
+              <span className="bot-information__rank" aria-hidden="true">
+                {index + 1}
+              </span>
+              <div>
+                <h3>{botDifficultyNames[level]}</h3>
+                <p>{introduction[level].lead}</p>
+                <p className="bot-information__detail">
+                  {introduction[level].details.join(' ')}
+                </p>
+              </div>
+            </section>
+          ))}
+      {levels.includes('mischief') && (
+        <section className="bot-information__level">
+          <div>
+            <h3>{botDifficultyNames.mischief}</h3>
+            <p>独立对局风格，倾向干扰场上领先的对手。</p>
+          </div>
+        </section>
+      )}
       <p className="bot-information__note">
-        三档均为本地策略，只用本人获准信息。名称不代表云端模型；不保证高等级一定获胜。
+        人机在本机运行，只使用本席获准信息。
       </p>
     </div>
   );

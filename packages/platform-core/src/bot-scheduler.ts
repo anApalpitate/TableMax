@@ -9,7 +9,7 @@ export function botDelayMs(
 ) {
   return mode === 'test'
     ? 40
-    : { default: 1500, doubao: 1800, juewu: 2200 }[difficulty];
+    : { default: 1500, doubao: 1800, juewu: 2200, mischief: 2200 }[difficulty];
 }
 
 export interface BotExecutor {

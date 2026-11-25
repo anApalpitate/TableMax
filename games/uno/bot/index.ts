@@ -1,5 +1,6 @@
 import type { BotDifficulty, BotStrategy, JsonValue } from '@tablemax/game-sdk';
 import { CARD_IDS, getCard, RULES_VERSION } from '../data/catalog';
+import { leadingRival, pressureOnLeader } from './mischief';
 import {
   COLORS,
   type Action,
@@ -141,7 +142,7 @@ function chosenColorScore(
       .filter((card) => card.color === color)
       .reduce((sum, card) => sum + points(card), 0) *
       0.18;
-  if (difficulty === 'juewu' && view.self) {
+  if ((difficulty === 'juewu' || difficulty === 'mischief') && view.self) {
     const rival = adjacent(view, view.self.seatId),
       known = memory.knownCards[rival] ?? [],
       hint = memory.colorHints[rival];
@@ -229,6 +230,7 @@ export function chooseAction(
   const seat = self.seatId,
     next = adjacent(view, seat),
     danger = view.players[next]!.handCount <= 2;
+  const leader = difficulty === 'mischief' ? leadingRival(view) : undefined;
   function evaluate(action: Extract<Action, { type: 'play' }>): number {
     const card = getCard(action.cardId),
       remaining = hand.filter((c) => c.id !== action.cardId),
@@ -307,7 +309,9 @@ export function chooseAction(
         score -= 80;
       else if (hint?.color === color) score -= hint.strength * 30;
     }
-    return score;
+    return (
+      score + (leader ? pressureOnLeader(view, action, memory, leader) : 0)
+    );
   }
   return [...plays].sort(
     (a, b) =>
@@ -318,10 +322,10 @@ export function chooseAction(
 }
 export const bot: BotStrategy = {
   id: 'uno-local',
-  version: '1.0.0',
+  version: '1.1.0',
   gameId: 'uno',
   rulesVersion: RULES_VERSION,
-  difficulties: ['default', 'doubao', 'juewu'],
+  difficulties: ['default', 'doubao', 'juewu', 'mischief'],
   validateMemory: (input) => validMemory(input) as JsonValue,
   observe({ view, memory, seatId, difficulty }) {
     const projection = view as UnoView;

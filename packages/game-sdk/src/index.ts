@@ -114,7 +114,9 @@ export interface GameRules<
   project(state: State, viewer: Viewer): View;
 }
 
-export type BotDifficulty = 'default' | 'doubao' | 'juewu';
+export type BotStrength = 'default' | 'doubao' | 'juewu';
+/** Mischief is a separate play style exposed by games that implement it. */
+export type BotDifficulty = BotStrength | 'mischief';
 
 export interface BotStrategy {
   id: string;

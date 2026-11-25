@@ -45,14 +45,13 @@ import { feedbackText } from '../content/feedback';
 import { useNotifications } from '../components/notifications/context';
 import { navigate } from '../navigation';
 import { useSeatRemoval } from '../components/useSeatRemoval';
+import {
+  botDifficultyNames,
+  availableBotDifficulties,
+} from '../content/bot-difficulty';
 import './box-refinements.css';
 import './box-lobby.css';
 
-const difficultyNames: Record<BotDifficulty, string> = {
-  default: '默认',
-  doubao: '豆包',
-  juewu: '绝悟',
-};
 type BoxPanel =
   'intro' | 'seats' | 'library' | 'bot-info' | 'avatars' | 'transfer' | null;
 
@@ -92,6 +91,10 @@ function BoxScreenContent({ session }: { session: RoomSession }) {
   } = session;
   const nameError = playerNameError(name);
   const game = view?.game;
+  const levels = availableBotDifficulties(game);
+  const selectedDifficulty = levels.includes(difficulty)
+    ? difficulty
+    : levels[0]!;
   const { details } = useGameDetails(game?.id, game?.releaseRef);
   const transfer = useDeviceTransfer(
     role === 'player' && !credential,
@@ -498,19 +501,17 @@ function BoxScreenContent({ session }: { session: RoomSession }) {
                         <label htmlFor="bot-difficulty">人机等级</label>
                         <select
                           id="bot-difficulty"
-                          value={difficulty}
+                          value={selectedDifficulty}
                           disabled={locked || !game}
                           onChange={(event) =>
                             setDifficulty(event.target.value as BotDifficulty)
                           }
                         >
-                          {Object.entries(difficultyNames).map(
-                            ([value, label]) => (
-                              <option key={value} value={value}>
-                                {label}
-                              </option>
-                            ),
-                          )}
+                          {levels.map((level) => (
+                            <option key={level} value={level}>
+                              {botDifficultyNames[level]}
+                            </option>
+                          ))}
                         </select>
                         <button
                           type="button"
@@ -541,9 +542,9 @@ function BoxScreenContent({ session }: { session: RoomSession }) {
                         }
                         onClick={() => {
                           const prefix =
-                            difficulty === 'default'
+                            selectedDifficulty === 'default'
                               ? '人机'
-                              : difficultyNames[difficulty];
+                              : botDifficultyNames[selectedDifficulty];
                           let number = 1;
                           while (
                             view.seats.some(
@@ -554,7 +555,7 @@ function BoxScreenContent({ session }: { session: RoomSession }) {
                           command({
                             type: 'add-bot',
                             name: `${prefix}${number}`,
-                            difficulty,
+                            difficulty: selectedDifficulty,
                           });
                         }}
                       >

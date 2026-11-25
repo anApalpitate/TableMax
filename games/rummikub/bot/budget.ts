@@ -1,11 +1,11 @@
-import type { BotDifficulty } from '@tablemax/game-sdk';
+import type { BotDifficulty, BotStrength } from '@tablemax/game-sdk';
 
 export const SEARCH_LIMITS = {
   default: { candidates: 900, generation: 14000, nodes: 1000 },
   doubao: { candidates: 3000, generation: 60000, nodes: 14000 },
   juewu: { candidates: 7000, generation: 130000, nodes: 36000 },
 } as const satisfies Record<
-  BotDifficulty,
+  BotStrength,
   { candidates: number; generation: number; nodes: number }
 >;
 
@@ -24,11 +24,13 @@ export class SearchBudget {
     nodes: 0,
     truncated: false,
   };
-  readonly limits: (typeof SEARCH_LIMITS)[BotDifficulty];
+  readonly limits: (typeof SEARCH_LIMITS)[BotStrength];
   constructor(
     difficulty: BotDifficulty,
     private readonly signal?: AbortSignal,
   ) {
+    if (difficulty === 'mischief')
+      throw new Error('Unsupported Rummikub bot style');
     this.limits = SEARCH_LIMITS[difficulty];
   }
   check(): void {

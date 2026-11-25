@@ -10,14 +10,12 @@ import { OverlayPanel } from './OverlayPanel';
 import { feedbackText } from '../content/feedback';
 import { useNotifications } from './notifications/context';
 import { avatarFor } from '../assets/avatars';
+import {
+  botDifficultyNames,
+  availableBotDifficulties,
+} from '../content/bot-difficulty';
 import './seat-settings.css';
 import { useGameClient } from '../game-clients/registry';
-
-const difficultyNames: Record<BotDifficulty, string> = {
-  default: '默认',
-  doubao: '豆包',
-  juewu: '绝悟',
-};
 
 export function SeatSettings({
   session,
@@ -106,15 +104,15 @@ export function SeatSettings({
                     })
                   }
                 >
-                  {Object.entries(difficultyNames).map(([value, label]) => (
+                  {availableBotDifficulties(view.game).map((value) => (
                     <option value={value} key={value}>
-                      {label}人机
+                      {botDifficultyNames[value]}人机
                     </option>
                   ))}
                 </select>
               ) : seat.controller === 'bot' ? (
                 <span className="seat-settings-level">
-                  {difficultyNames[seat.botDifficulty ?? 'default']}人机
+                  {botDifficultyNames[seat.botDifficulty ?? 'default']}人机
                 </span>
               ) : (
                 <span

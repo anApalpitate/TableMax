@@ -214,7 +214,8 @@ export const rules: GameRules = {
     const limits = own
       ? { default: [800, 3200], doubao: [400, 1800], juewu: [200, 900] }
       : { default: [1200, 4000], doubao: [700, 2400], juewu: [400, 1200] };
-    const [minMs, maxMs] = limits[difficulty]!,
+    const [minMs, maxMs] =
+        limits[difficulty === 'mischief' ? 'juewu' : difficulty]!,
       delay = own ? 0 : unoSetupFor(s).catchUnoDelayMs;
     return {
       key: `${s.roundNumber}:${s.turnNumber}:${s.actionSerial}:${s.unoWindow.seatId}`,

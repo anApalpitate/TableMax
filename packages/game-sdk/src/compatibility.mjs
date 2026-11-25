@@ -4,6 +4,7 @@ export const PLATFORM_CAPABILITIES = Object.freeze([
   'retired-variants',
   'web-details',
   'saved-game-deadlines',
+  'bot-play-styles',
 ]);
 export function moduleCompatibilityIssue(
   value,

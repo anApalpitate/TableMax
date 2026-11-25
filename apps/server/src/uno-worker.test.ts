@@ -54,7 +54,11 @@ class MemoryRepository implements SaveRepository {
     this.value = structuredClone(value);
   }
 }
-async function fixture(count: number, difficulty: BotDifficulty) {
+async function fixture(
+  count: number,
+  difficulty: BotDifficulty,
+  repository = new MemoryRepository(),
+) {
   const room = new RoomCoordinator(
     {
       ...rules,
@@ -62,7 +66,7 @@ async function fixture(count: number, difficulty: BotDifficulty) {
         rules.initialize({ ...context, random: new RandomSource(63) }),
     },
     bot,
-    new MemoryRepository(),
+    repository,
   );
   const host = async (command: Command['command']) => {
     const view = room.view(room.hostToken);
@@ -84,7 +88,12 @@ async function fixture(count: number, difficulty: BotDifficulty) {
   return room;
 }
 for (const count of [2, 4, 6])
-  for (const difficulty of ['default', 'doubao', 'juewu'] as const) {
+  for (const difficulty of [
+    'default',
+    'doubao',
+    'juewu',
+    'mischief',
+  ] as const) {
     it(`UNO ${count} seats ${difficulty} executes an authorized action in a 32MiB Worker under two seconds`, async () => {
       const room = await fixture(count, difficulty),
         task = room.botTask()!;
@@ -124,4 +133,26 @@ it('UNO cancels an old Worker without saving its result', async () => {
   controller.abort();
   await expect(result).rejects.toThrow('cancelled');
   expect(room.view(room.hostToken).history).toHaveLength(0);
+});
+
+it('persists the UNO style and restores it in the same strategy release', async () => {
+  const repository = new MemoryRepository();
+  const room = await fixture(4, 'mischief', repository);
+  expect(room.view().game?.botDifficulties).toEqual([
+    'default',
+    'doubao',
+    'juewu',
+    'mischief',
+  ]);
+  expect(repository.value?.snapshot?.bots).toBeDefined();
+  const restored = new RoomCoordinator(rules, bot, repository);
+  expect(restored.view()).toMatchObject({ restored: true, paused: true });
+  expect(
+    restored.view().seats.map(({ botDifficulty }) => botDifficulty),
+  ).toEqual(Array(4).fill('mischief'));
+  expect(
+    Object.values(repository.value!.snapshot!.bots).map(
+      ({ difficulty, version }) => [difficulty, version],
+    ),
+  ).toEqual(Array.from({ length: 4 }, () => ['mischief', '1.1.0']));
 });

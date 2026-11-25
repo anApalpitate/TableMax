@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { rules } from '../rules';
 import { face, type PokemonView } from '../rules/project';
 import { observeMemory, memoryProfiles, validateMemory } from './memory';
-import type { BotDifficulty, JsonValue } from '@tablemax/game-sdk';
+import type { JsonValue } from '@tablemax/game-sdk';
 
 function view(): PokemonView {
   const result = rules.project(
@@ -15,7 +15,7 @@ function view(): PokemonView {
   return result;
 }
 describe('saved observation version 2', () => {
-  for (const difficulty of ['default', 'doubao', 'juewu'] as BotDifficulty[]) {
+  for (const difficulty of ['default', 'doubao', 'juewu'] as const) {
     it(`${difficulty} ages once per completed own turn and deduplicates observations`, () => {
       const current = view();
       let memory = observeMemory(null, current, 'S1', difficulty);

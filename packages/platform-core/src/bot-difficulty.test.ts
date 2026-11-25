@@ -115,6 +115,14 @@ it('rejects unavailable levels and malformed wire values without creating seats'
   expect(
     await command(room, { type: 'add-bot', name: '高级', difficulty: 'juewu' }),
   ).toEqual({ ok: false, reason: 'unsupported-bot-difficulty' });
+  expect(
+    await command(room, {
+      type: 'add-bot',
+      name: '捣蛋王',
+      difficulty: 'mischief',
+    }),
+  ).toEqual({ ok: false, reason: 'unsupported-bot-difficulty' });
+  expect(room.view().game?.botDifficulties).toEqual(['default']);
   expect(room.view().seats).toHaveLength(0);
   await command(room, { type: 'add-bot', name: '旧默认' });
   expect(room.view().seats[0]!.botDifficulty).toBe('default');

@@ -22,7 +22,13 @@ it('discovers UNO metadata and resolves matching independent rules and strategy 
   const loaded = await registry.load('uno');
   expect(loaded.rules.manifest.rulesVersion).toBe('classic-108-g7942-1');
   expect(loaded.bot.rulesVersion).toBe(loaded.rules.manifest.rulesVersion);
-  expect(loaded.bot.difficulties).toEqual(['default', 'doubao', 'juewu']);
+  expect(loaded.bot.difficulties).toEqual([
+    'default',
+    'doubao',
+    'juewu',
+    'mischief',
+  ]);
+  expect(loaded.bot.version).toBe('1.1.0');
 });
 
 const game = (view: RoomView) => view.gameView as UnoView;

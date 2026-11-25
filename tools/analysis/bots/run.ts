@@ -3,16 +3,13 @@ import { readFileSync } from 'node:fs';
 import { parseArgs } from 'node:util';
 import { createUnoSearchStrategy } from '../../../games/uno/bot/search-strategy';
 import { BotDifficultySchema } from '../../../packages/protocol/src/index';
-import { bot as unoBot, rules as unoRules } from '../../../games/uno';
-import {
-  bot as pokemonBot,
-  rules as pokemonRules,
-} from '../../../games/pokemon-encounters';
+import { createGameRegistry } from '../../../apps/server/src/game-registry';
 import { evaluateBotMatch } from './evaluate';
 
 const { values } = parseArgs({
   options: {
     game: { type: 'string' },
+    variant: { type: 'string' },
     seeds: { type: 'string' },
     levels: { type: 'string' },
     'max-steps': { type: 'string' },
@@ -22,22 +19,14 @@ const { values } = parseArgs({
     'uno-correction': { type: 'string' },
   },
 });
-const games = {
-  uno: { rules: unoRules, strategy: unoBot },
-  'pokemon-encounters': { rules: pokemonRules, strategy: pokemonBot },
-};
-const selected = values.game as keyof typeof games | undefined;
-if (
-  !selected ||
-  !Object.hasOwn(games, selected) ||
-  !values.seeds ||
-  !values.levels
-)
+const selected = values.game;
+if (!selected || !values.seeds || !values.levels)
   throw new Error(
-    'Usage: node --import tsx tools/analysis/bots/run.ts --game=uno|pokemon-encounters --seeds=41,42 --levels=default,doubao [--max-steps=15000] [--setup=<JSON>] [--uno-calibration=<JSON-path> --uno-samples=8|16]',
+    'Usage: node --import tsx tools/analysis/bots/run.ts --game=<game-id> [--variant=<variant-id>] --seeds=41,42 --levels=default,doubao [--max-steps=15000] [--setup=<JSON>] [--uno-calibration=<JSON-path> --uno-samples=8|16 --uno-correction=<JSON-path>]',
   );
-const { rules } = games[selected];
-let strategy = games[selected].strategy;
+const loaded = await createGameRegistry().load(selected, values.variant);
+const { rules } = loaded;
+let strategy = loaded.bot;
 if (values['uno-calibration']) {
   if (selected !== 'uno')
     throw new Error('This calibration only applies to UNO');
@@ -96,6 +85,7 @@ console.log(
   JSON.stringify({
     type: 'batch',
     game: rules.manifest,
+    variantId: loaded.variantId,
     strategy: strategy.version,
     seeds,
     levels: seats.map(({ difficulty }) => difficulty),
