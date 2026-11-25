@@ -19,6 +19,7 @@ const { values } = parseArgs({
     setup: { type: 'string' },
     'uno-calibration': { type: 'string' },
     'uno-samples': { type: 'string' },
+    'uno-correction': { type: 'string' },
   },
 });
 const games = {
@@ -44,13 +45,39 @@ if (values['uno-calibration']) {
   if (samples !== 8 && samples !== 16)
     throw new Error('UNO search uses 8 or 16 samples');
   const bytes = readFileSync(values['uno-calibration']);
+  const input = JSON.parse(bytes.toString('utf8'));
+  const correction = values['uno-correction']
+    ? (() => {
+        const artifact = readFileSync(values['uno-correction']);
+        const candidate = JSON.parse(artifact.toString('utf8'));
+        return {
+          model:
+            candidate?.type === 'uno-residual-candidate'
+              ? candidate.model
+              : candidate,
+          digest: createHash('sha256').update(artifact).digest('hex'),
+        };
+      })()
+    : undefined;
   strategy = createUnoSearchStrategy(
-    JSON.parse(bytes.toString('utf8')),
-    createHash('sha256').update(bytes).digest('hex'),
+    input?.type === 'uno-calibration-development' ? input.calibration : input,
+    createHash('sha256')
+      .update(
+        JSON.stringify(
+          input?.type === 'uno-calibration-development'
+            ? input.calibration
+            : input,
+        ),
+      )
+      .digest('hex'),
     samples,
+    correction,
   );
-} else if (values['uno-samples'] !== undefined) {
-  throw new Error('UNO search sample count requires a calibration file');
+} else if (
+  values['uno-samples'] !== undefined ||
+  values['uno-correction'] !== undefined
+) {
+  throw new Error('UNO search options require a calibration file');
 }
 const seeds = values.seeds.split(',').map(Number);
 if (

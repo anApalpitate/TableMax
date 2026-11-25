@@ -43,3 +43,11 @@ node --import tsx tools/analysis/bots/run.ts --game=pokemon-encounters --seeds=2
 UNO 可传 `--uno-calibration=<JSON 路径>` 启用离线 B 组，`--uno-samples=8|16` 选择共享假设数。文件声明 `version: 1`、[固定特征顺序](../../games/uno/bot/calibration.ts)和与之对应的有限数值 `coefficients`。文件摘要进入离线策略身份，仅为该次所选绝悟席启用搜索。
 
 标准输出为 JSONL，含玩法和策略版本、批次输入、每局结论与动作链摘要。未终局或失败时返回非零状态。命令使用合成种子和规则投影，不启动服务或读取正式存档。程序化 checkpoint 和逐步动作只给受信任的离线评价调用端，标准报告输出公开投影。该入口的快速反应模拟与真实 Worker、事务、重启和回退验收分别认定。
+
+## UNO 校准与配对试点
+
+下面的入口使用合成种子和真实规则，输出 JSON 报告到标准输出，进度写入标准错误。保留报告时由调用者明确选择项目维护路径。
+
+- [calibrate-uno.ts](bots/calibrate-uno.ts) 接受 `--train-seeds`、`--holdout-seeds`、`--roots`、`--hypotheses=8|16`、`--continuations` 和 `--max-steps`。默认用现行策略选开局采样。正式校准检查用 `--root-policy=search`，在独立留出局中使用拟合后的 B 策略。报告给出胜率分桶、简单对照的 Brier 分数、独立长推演对照和证据门槛。烟测参数只验证流程。
+- [train-uno-correction.ts](bots/train-uno-correction.ts) 接受已达到校准门槛的 `--calibration=<报告>`、独立的 `--train-seeds` 与 `--tune-seeds`，另可传 `--roots`、`--continuations` 和 `--max-steps`。校验采样隔离和 B 系数摘要。用本机 CUDA PyTorch 拟合残差权重，并由独立数值解复核。对每种权重与限幅组合报告调参增益和改选率。C 候选报告可由离线 `run.ts --uno-calibration=<报告> --uno-correction=<候选报告>` 加载。
+- [compare-uno.ts](bots/compare-uno.ts) 接受 `--plan=<JSON>`、`--calibration=<B 报告>` 和 `--correction=<C 候选>`。计划为 `version: 1`，声明 `looks: 1|2`、`bootstrapSeed`、`maxSteps` 和 `seeds`。后者分别登记 `starter`、`mixed`、`strong` 的 `first` 与 `extra` 种子列表。扩样附上第一阶段的 `--previous=<报告>`，工具复核输入摘要、第一阶段结果和未完成块。整场胜率门槛与另外的生产、关键局面和真人体验验收分开认定。

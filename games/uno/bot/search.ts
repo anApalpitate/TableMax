@@ -12,6 +12,15 @@ type Play = Extract<Action, { type: 'play' }>;
 interface SearchOptions {
   samples: 8 | 16;
   maxRuleSteps: number;
+  onHypothesis?: (leaves: readonly UnoHypothesisLeaf[]) => void;
+}
+
+/** Synthetic continuation visible only to the offline analysis caller. */
+export interface UnoHypothesisLeaf {
+  action: Play;
+  state: State;
+  memories: Readonly<Record<string, Memory | null>>;
+  seat: string;
 }
 
 interface SearchCandidate {
@@ -172,6 +181,70 @@ function samplePosition(
   );
 }
 
+function playStep(
+  state: State,
+  memories: Record<string, Memory | null>,
+  seat: string,
+  context: RuleContext,
+  signal: AbortSignal,
+) {
+  for (const id of state.seats) {
+    const view = project(state, { role: 'player', seatId: id });
+    memories[id] = observe(
+      view,
+      memories[id],
+      id === seat ? 'juewu' : 'doubao',
+    );
+  }
+  const acting = state.unoWindow?.seatId ?? state.turnSeat;
+  if (!acting) throw new Error('UNO search reached an unresolved rule phase');
+  const next = chooseAction(
+    project(state, { role: 'player', seatId: acting }),
+    legalActions(state, acting),
+    memories[acting]!,
+    acting === seat ? 'juewu' : 'doubao',
+    signal,
+    context.random,
+  );
+  return {
+    acting,
+    state: rules.apply(state, next, acting, context).state as State,
+  };
+}
+
+/** Finish a synthetic branch using the same fixed policies as the short search. */
+export function continueUnoHypothesis(
+  leaf: UnoHypothesisLeaf,
+  seed: number,
+  maxSteps: number,
+  signal: AbortSignal,
+): 0 | 1 | null {
+  if (
+    !Number.isSafeInteger(maxSteps) ||
+    maxSteps < 1 ||
+    !Number.isInteger(seed) ||
+    seed < 1 ||
+    seed > 0xffffffff
+  )
+    throw new Error('Invalid UNO continuation budget or seed');
+  const context = { seats: leaf.state.seats, random: rolloutRandom(seed) };
+  const memories = { ...leaf.memories };
+  let state = leaf.state;
+  for (let steps = 0; state.phase !== 'ended' && steps < maxSteps; steps++) {
+    signal.throwIfAborted();
+    state =
+      state.phase === 'round-result'
+        ? (rules.applyLifecycle(state, { type: 'next-round' }, context)
+            .state as State)
+        : playStep(state, memories, leaf.seat, context, signal).state;
+  }
+  return state.phase === 'ended'
+    ? state.winners.includes(leaf.seat)
+      ? 1
+      : 0
+    : null;
+}
+
 function evaluateBranch(
   root: State,
   action: Play,
@@ -192,36 +265,11 @@ function evaluateBranch(
   let ownTurns = 0;
   while (state.phase === 'playing' && steps < 16) {
     signal.throwIfAborted();
-    // Start projected observations after the root action. Contenders do not
-    // inherit the initiating seat's authorized information.
-    for (const id of state.seats) {
-      const view = project(state, { role: 'player', seatId: id });
-      memories[id] = observe(
-        view,
-        memories[id],
-        id === seat ? 'juewu' : 'doubao',
-      );
-    }
-    const decision = rules.decisions(state).find(
-      (pending) =>
-        // Fixed continuation policies prioritize the affected player declaring UNO.
-        pending.seatId === (state.unoWindow?.seatId ?? state.turnSeat),
-    );
-    if (!decision)
-      throw new Error('UNO search reached an unresolved rule phase');
-    const acting = decision.seatId;
-    const view = project(state, { role: 'player', seatId: acting });
-    const isNormal = state.stage === 'turn' || state.stage === 'drawn';
-    const next = chooseAction(
-      view,
-      legalActions(state, acting),
-      memories[acting]!,
-      acting === seat ? 'juewu' : 'doubao',
-      signal,
-      random,
-    );
     const before = state;
-    state = rules.apply(before, next, acting, context).state as State;
+    const isNormal = state.stage === 'turn' || state.stage === 'drawn';
+    const next = playStep(state, memories, seat, context, signal);
+    const acting = next.acting;
+    state = next.state;
     steps++;
     if (
       isNormal &&
@@ -243,7 +291,7 @@ function evaluateBranch(
       : scoreUnfinished(project(state, { role: 'player', seatId: seat }));
   if (!Number.isFinite(score) || score < 0 || score > 1)
     throw new Error('UNO leaf evaluation must be a probability');
-  return { score, steps };
+  return { score, steps, state, memories, seat };
 }
 
 /** Short shared-hypothesis search. Unfinished leaves require the caller's frozen evaluator. */
@@ -254,7 +302,7 @@ export function searchUnoPlays(
   random: RuleContext['random'],
   signal: AbortSignal,
   scoreUnfinished: (view: UnoView) => number,
-  { samples, maxRuleSteps }: SearchOptions = {
+  { samples, maxRuleSteps, onHypothesis }: SearchOptions = {
     samples: 16,
     maxRuleSteps: 2048,
   },
@@ -290,6 +338,9 @@ export function searchUnoPlays(
     const hypothesis = samplePosition(view, memory, random);
     if (!hypothesis) break;
     const seed = Math.floor(random.next() * 0x100000000) || 1;
+    const leaves: UnoHypothesisLeaf[] | undefined = onHypothesis
+      ? []
+      : undefined;
     for (const [index, action] of roots.entries()) {
       const branch = evaluateBranch(
         hypothesis,
@@ -301,7 +352,14 @@ export function searchUnoPlays(
       );
       totals[index]! += branch.score;
       ruleSteps += branch.steps;
+      leaves?.push({
+        action,
+        state: branch.state,
+        memories: branch.memories,
+        seat: branch.seat,
+      });
     }
+    if (leaves) onHypothesis?.(leaves);
     completed++;
   }
   return {
