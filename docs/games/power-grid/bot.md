@@ -48,6 +48,6 @@
 
 开发换座完成 24 个配对，5 对出现实际动作差异，焦点席各胜 1 场，捣蛋王平均多供电 0.5 城。历史签名 `1.0.1` 用原 Worker 回退、重开后复现原决策。[换座对照](../../../artifacts/maintenance/power-grid-bot-rise-20261126/rotation-report.json) · [历史签名恢复](../../../artifacts/maintenance/power-grid-bot-rise-20261126/old-signed-recovery.json)
 
-整局回归与其他测量并行运行时，账本记录了三个五人单局超过 60 秒，以及一个六人默认单局的最长源码决策为 2234 毫秒，超过 1500 毫秒断言。待单独定位并按原门槛复验。[整局回归进度与失败项](../../../artifacts/maintenance/power-grid-bot-rise-20261126/regression-progress.json)
+整局回归与其他测量并行运行时，最终记录有六个五／六人整局超过 60 秒，以及一个六人默认单局的最长源码决策为 2234 毫秒，超过 1500 毫秒断言。固定局面夹具和服务测试导入问题已分别复验通过。五人绝悟种子 1 在独立诊断中用 43.55 秒完成，最长决策约 641 毫秒，耗时主要来自生产规划。七个耗时失败项继续按原门槛定向复验。[CPU 诊断](../../../artifacts/maintenance/power-grid-bot-rise-20261126/performance-profile-5p-juewu-1.json) · [整局回归及失败项](../../../artifacts/maintenance/test-history/runs/59b40ee7-3e21-4fdf-83d0-1956aba9d6bf/results.json)
 
 四种人机均用本地启发式及有界生产计划。强度、真人体验与新签名发行的结论待相应对照通过。

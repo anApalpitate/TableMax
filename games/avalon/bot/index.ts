@@ -1,5 +1,6 @@
 import type { BotDifficulty, BotStrategy, JsonValue } from '@tablemax/game-sdk';
 import { CONFIGURED_RULES_VERSION } from '../config';
+import { influentialOpponent } from './mischief';
 import {
   COURT_RULES_VERSION,
   RULES_VERSION,
@@ -142,6 +143,10 @@ export function chooseAction(
   if (!view.self || !actions.length)
     throw new Error('阿瓦隆策略没有本人合法选择。');
   if (signal?.aborted) throw new Error('阿瓦隆策略已取消。');
+  const mischief = difficulty === 'mischief';
+  if (mischief && view.variant !== 'configured')
+    throw new Error('历史阿瓦隆玩法不支持此人机风格。');
+  difficulty = mischief ? 'juewu' : difficulty;
   const self = view.self;
   const threshold = view.questFailThresholds[view.questNumber - 1]!;
   const acknowledge = actions.find(
@@ -188,11 +193,21 @@ export function chooseAction(
     )[0]!;
   }
   const beliefs = hypotheses(view, difficulty);
+  const probabilities = new Map<readonly string[], number>();
+  const clean = (team: readonly string[]) => {
+    let probability = probabilities.get(team);
+    if (probability === undefined) {
+      probability = cleanProbability(team, beliefs, threshold);
+      probabilities.set(team, probability);
+    }
+    return probability;
+  };
   const proposals = actions.filter(
     (a): a is Extract<Action, { type: 'propose-team' }> =>
       a.type === 'propose-team',
   );
   if (proposals.length) {
+    const rival = mischief ? influentialOpponent(view, beliefs) : undefined;
     const tie = new Map(proposals.map((a) => [a, random.next()]));
     function score(team: readonly string[]): number {
       if (signal?.aborted) throw new Error('阿瓦隆策略已取消。');
@@ -202,10 +217,7 @@ export function chooseAction(
             seat === self.seatId || self.knowledge.evilSeats.includes(seat),
         ).length;
         if (view.variant === 'configured')
-          return (
-            (1 - cleanProbability(team, beliefs, threshold)) * 100 +
-            (ownEvil === threshold ? 2 : 0)
-          );
+          return (1 - clean(team)) * 100 + (ownEvil === threshold ? 2 : 0);
         return ownEvil === threshold
           ? 100 +
               cleanProbability(
@@ -223,9 +235,9 @@ export function chooseAction(
               : 65
             : 0;
       }
-      const clean = cleanProbability(team, beliefs, threshold);
+      const success = clean(team);
       if (difficulty === 'default')
-        return (team.includes(self.seatId) ? 2 : 0) + clean;
+        return (team.includes(self.seatId) ? 2 : 0) + success;
       const continuity = view.quests
         .filter((q) => q.succeeded)
         .reduce(
@@ -234,7 +246,7 @@ export function chooseAction(
         );
       // Merlin still uses his knowledge but need not always include himself.
       return (
-        clean * (difficulty === 'juewu' ? 100 : 50) +
+        success * (difficulty === 'juewu' ? 100 : 50) +
         continuity * 0.6 +
         (self.role === 'merlin' && difficulty === 'juewu'
           ? 0
@@ -244,18 +256,30 @@ export function chooseAction(
       );
     }
     const scores = new Map(proposals.map((a) => [a, score(a.team)]));
-    return [...proposals].sort(
+    const ordered = [...proposals].sort(
       (a, b) => scores.get(b)! - scores.get(a)! || tie.get(b)! - tie.get(a)!,
-    )[0]!;
+    );
+    const baseline = ordered[0]!;
+    if (!rival || !baseline.team.includes(rival)) return baseline;
+    const goal = (team: readonly string[]) =>
+      self.alignment === 'good' ? clean(team) : 1 - clean(team);
+    return (
+      ordered.find(
+        (candidate) =>
+          !candidate.team.includes(rival) &&
+          goal(candidate.team) >= goal(baseline.team) - 1e-9 &&
+          scores.get(candidate)! >= scores.get(baseline)! - 2,
+      ) ?? baseline
+    );
   }
   const votes = actions.filter(
     (a): a is Extract<Action, { type: 'vote-team' }> => a.type === 'vote-team',
   );
   if (votes.length) {
-    const clean = cleanProbability(view.team, beliefs, threshold);
+    const success = clean(view.team);
     const evilOnTeam =
       view.variant === 'configured'
-        ? 1 - clean >= 0.5
+        ? 1 - success >= 0.5
         : view.team.filter(
             (seat) =>
               seat === self.seatId || self.knowledge.evilSeats.includes(seat),
@@ -266,7 +290,7 @@ export function chooseAction(
         : view.rejectedTeams === 4 ||
           (difficulty === 'default'
             ? view.team.includes(self.seatId) || view.rejectedTeams >= 2
-            : clean >=
+            : success >=
               (view.rejectedTeams >= 3
                 ? 0.15
                 : difficulty === 'juewu'
@@ -277,14 +301,17 @@ export function chooseAction(
   throw new Error('阿瓦隆策略没有可处理的合法动作。');
 }
 function createBot(rulesVersion: string): BotStrategy {
+  const configured = rulesVersion === CONFIGURED_RULES_VERSION;
   return {
     id: 'avalon-local',
-    version: '1.0.0',
+    version: configured ? '1.1.0' : '1.0.0',
     gameId: 'avalon',
     rulesVersion,
-    difficulties: ['default', 'doubao', 'juewu'],
+    difficulties: configured
+      ? ['default', 'doubao', 'juewu', 'mischief']
+      : ['default', 'doubao', 'juewu'],
     immediateActions: ['finish-discussion'],
-    ...(rulesVersion === CONFIGURED_RULES_VERSION
+    ...(configured
       ? {
           testImmediateActions: ['vote-team', 'quest-card'],
           concurrentActions: ['vote-team', 'quest-card'],

@@ -18,6 +18,8 @@ import {
 } from '../rules/test-fixtures';
 import { alignment, questSizes, type State } from '../rules/state';
 import type { Action } from '../types';
+import { pressureNomination } from './test-fixtures';
+import { influentialOpponent } from './mischief';
 describe('阿瓦隆独立三档策略', () => {
   it('每档每variant完成固定种子整局，覆盖所有决策并严格合法', async () => {
     for (const variant of ['classic', 'court'] as const)
@@ -138,5 +140,136 @@ describe('阿瓦隆独立三档策略', () => {
         signal: new AbortController().signal,
       }),
     ).rejects.toThrow();
+  });
+});
+
+describe('Avalon configured Mischief', () => {
+  const seven = () => context(37, ['a', 'b', 'c', 'd', 'e', 'f', 'g']);
+
+  it.each(['good', 'evil'] as const)(
+    'avoids a publicly influential likely opponent without reducing the %s task goal',
+    (side) => {
+      const s = pressureNomination(seven(), side);
+      expect(s.leader).toBe('a');
+      expect(s.questNumber).toBe(4);
+      const v = project(s, { role: 'player', seatId: 'a' });
+      const choices = legalActions(s, 'a');
+      const beliefs = hypotheses(v, 'juewu');
+      expect(influentialOpponent(v, beliefs)).toBe('b');
+      const a = chooseAction(v, choices, 'juewu', { next: () => 0 });
+      const b = chooseAction(v, choices, 'mischief', { next: () => 0 });
+      expect(a).toMatchObject({
+        type: 'propose-team',
+        team: expect.arrayContaining(['b']),
+      });
+      expect(b.type).toBe('propose-team');
+      if (a.type !== 'propose-team' || b.type !== 'propose-team')
+        throw new Error('No legal proposal');
+      expect(b.team).not.toContain('b');
+      expect(cleanProbability(b.team, beliefs, 2)).toBeCloseTo(
+        cleanProbability(a.team, beliefs, 2),
+      );
+      expect(choices).toContainEqual(b);
+      const next = apply(s, b, 'a');
+      expect(next.phase).toBe('discussion');
+    },
+  );
+
+  it.each([5, 6, 7, 8, 9, 10])(
+    'completes a configured %i-seat match with all decisions authorized',
+    async (count) => {
+      const ctx = context(
+        71 + count,
+        Array.from({ length: count }, (_, index) => 'S' + index),
+      );
+      const rules = rulesByVariant.configured;
+      const style = botsByVariant.configured;
+      let state = rules.initialize(ctx) as State;
+      let steps = 0;
+      while (state.phase !== 'ended' && steps++ < 650) {
+        const decision = decisions(state)[0]!;
+        const actions = legalActions(state, decision.seatId);
+        const view = project(state, {
+          role: 'player',
+          seatId: decision.seatId,
+        });
+        const choice = await style.decide({
+          view,
+          actions,
+          decision,
+          memory: null,
+          difficulty: 'mischief',
+          random: ctx.random,
+          signal: new AbortController().signal,
+        });
+        expect(actions).toContainEqual(choice.action);
+        expect(choice.memory).toBeNull();
+        state = rules.apply(state, choice.action, decision.seatId, ctx)
+          .state as State;
+        rules.validateState(state, state.seats);
+      }
+      expect(state.phase).toBe('ended');
+      expect(steps).toBeLessThan(650);
+    },
+  );
+
+  it('keeps sealed voting and the final rejection guard under the faction policy', () => {
+    let state = pressureNomination(seven());
+    state = discuss(
+      apply(
+        state,
+        { type: 'propose-team', team: ['a', 'b', 'c', 'e'] },
+        state.leader,
+      ),
+    );
+    for (const seat of state.seats)
+      state = apply(state, { type: 'vote-team', vote: 'reject' }, seat);
+    expect(state.rejectedTeams).toBe(4);
+    state = discuss(
+      apply(
+        state,
+        { type: 'propose-team', team: ['b', 'c', 'd', 'e'] },
+        state.leader,
+      ),
+    );
+    const seat = { role: 'player', seatId: 'a' } as const;
+    const approveState = apply(
+      state,
+      { type: 'vote-team', vote: 'approve' },
+      'f',
+    );
+    const rejectState = apply(
+      state,
+      { type: 'vote-team', vote: 'reject' },
+      'f',
+    );
+    const a = project(approveState, seat);
+    const b = project(rejectState, seat);
+    expect(a).toEqual(b);
+    expect(a.submittedSeats).toEqual(['f']);
+    const choice = chooseAction(
+      a,
+      legalActions(approveState, 'a'),
+      'mischief',
+      { next: () => 0 },
+    );
+    expect(choice).toEqual({ type: 'vote-team', vote: 'approve' });
+    expect(
+      chooseAction(b, legalActions(rejectState, 'a'), 'mischief', {
+        next: () => 0,
+      }),
+    ).toEqual(choice);
+  });
+
+  it('only exposes Mischief on the current configured rules and leaves old strategies intact', () => {
+    expect(botsByVariant.configured).toMatchObject({
+      version: '1.1.0',
+      difficulties: ['default', 'doubao', 'juewu', 'mischief'],
+    });
+    for (const old of [botsByVariant.classic, botsByVariant.court])
+      expect(old).toMatchObject({
+        version: '1.0.0',
+        difficulties: ['default', 'doubao', 'juewu'],
+      });
   });
 });

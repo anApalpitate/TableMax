@@ -28,13 +28,14 @@
     "requiredCapabilities": [
       "concurrent-secret-actions",
       "saved-release-restore",
-      "retired-variants"
+      "retired-variants",
+      "bot-play-styles"
     ],
     "webHost": 1,
     "rulesVersion": "classic-2012-configured-1",
     "stateVersion": 1,
     "gameVersion": "1.0.0",
-    "strategyVersion": "1.0.0"
+    "strategyVersion": "1.1.0"
   },
   "entries": {
     "rules": "games/avalon/rules/index.ts",
@@ -97,13 +98,14 @@
         "requiredCapabilities": [
           "concurrent-secret-actions",
           "saved-release-restore",
-          "retired-variants"
+          "retired-variants",
+          "bot-play-styles"
         ],
         "webHost": 1,
         "rulesVersion": "classic-2012-configured-1",
         "stateVersion": 1,
         "gameVersion": "1.0.0",
-        "strategyVersion": "1.0.0"
+        "strategyVersion": "1.1.0"
       }
     }
   ],

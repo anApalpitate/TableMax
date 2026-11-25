@@ -1,6 +1,6 @@
 import { beforeAll, expect, it } from 'vitest';
 import { mkdirSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
-import { join, resolve } from 'node:path';
+import { dirname, join, resolve } from 'node:path';
 import { build } from 'esbuild';
 import { RoomCoordinator } from '@tablemax/platform-core';
 import type {
@@ -14,11 +14,14 @@ import { botsByVariant } from '../../../games/avalon/bot';
 import type { AvalonView, Variant } from '../../../games/avalon/types';
 import { createGameRegistry } from './game-registry';
 import { WorkerBotExecutor } from './bot-executor';
+import { SqliteSaveRepository } from './save-repository';
+import { pressureNomination } from '../../../games/avalon/bot/test-fixtures';
 
 let workerPath: string;
 beforeAll(async () => {
-  mkdirSync('tmp', { recursive: true });
-  const output = mkdtempSync(resolve('tmp/avalon-worker-'));
+  const root = resolve(process.env.TABLEMAX_TEST_TMP_ROOT ?? 'tmp');
+  mkdirSync(root, { recursive: true });
+  const output = mkdtempSync(join(root, 'avalon-worker-'));
   mkdirSync(join(output, 'bots'));
   workerPath = join(output, 'bot-worker.cjs');
   const module = JSON.parse(
@@ -30,24 +33,26 @@ beforeAll(async () => {
     web: 'web/avalon.js',
   };
   writeFileSync(join(output, 'modules.json'), JSON.stringify([module]));
-  await build({
-    entryPoints: ['apps/server/src/bot-worker.ts'],
-    outfile: workerPath,
-    bundle: true,
-    platform: 'node',
-    format: 'cjs',
-    target: 'node22',
-    logLevel: 'silent',
-  });
-  await build({
-    entryPoints: ['games/avalon/bot/index.ts'],
-    outfile: join(output, 'bots/avalon.cjs'),
-    bundle: true,
-    platform: 'node',
-    format: 'cjs',
-    target: 'node22',
-    logLevel: 'silent',
-  });
+  await Promise.all([
+    build({
+      entryPoints: ['apps/server/src/bot-worker.ts'],
+      outfile: workerPath,
+      bundle: true,
+      platform: 'node',
+      format: 'cjs',
+      target: 'node22',
+      logLevel: 'silent',
+    }),
+    build({
+      entryPoints: ['games/avalon/bot/index.ts'],
+      outfile: join(output, 'bots/avalon.cjs'),
+      bundle: true,
+      platform: 'node',
+      format: 'cjs',
+      target: 'node22',
+      logLevel: 'silent',
+    }),
+  ]);
 });
 class MemoryRepository implements SaveRepository {
   value: Save | null = null;
@@ -94,7 +99,7 @@ async function fixture(
 }
 for (const count of [5, 6, 7, 8, 9, 10])
   for (const variant of ['configured'] as const)
-    for (const difficulty of ['default', 'doubao', 'juewu'] as const) {
+    for (const difficulty of botsByVariant[variant].difficulties!) {
       it(`Avalon ${variant} ${count} seats ${difficulty} completes a natural match in isolated 32MiB Workers`, async () => {
         const { room, host } = await fixture(count, difficulty, variant);
         const executor = new WorkerBotExecutor(workerPath);
@@ -161,8 +166,8 @@ it('Avalon cancels an obsolete Worker without committing its result', async () =
   expect(room.view(room.hostToken).history).toHaveLength(0);
 });
 
-it('10 sealed ballots calculate simultaneously in real Workers and survive serial commits', async () => {
-  const { room } = await fixture(10, 'juewu', 'configured');
+it('10 Mischief sealed ballots calculate simultaneously in real Workers and survive serial commits', async () => {
+  const { room } = await fixture(10, 'mischief', 'configured');
   while ((room.view().gameView as AvalonView).phase !== 'vote') {
     const task = room.botTask()!;
     expect(
@@ -203,4 +208,89 @@ it('10 sealed ballots calculate simultaneously in real Workers and survive seria
   expect(active).toBe(0);
   expect(performance.now() - started).toBeLessThan(2000);
   expect(room.view().botError).toBeNull();
+});
+
+it('persists a configured Mischief nomination and replays it with a real Worker after reopening SQLite', async () => {
+  const profile = mkdtempSync(join(dirname(workerPath), 'avalon-mischief-'));
+  const rules = {
+    ...rulesByVariant.configured,
+    initialize: (
+      context: Parameters<typeof rulesByVariant.configured.initialize>[0],
+    ) => pressureNomination(context),
+  };
+  const bot = botsByVariant.configured;
+  const registry = createGameRegistry();
+  let repository = new SqliteSaveRepository(profile);
+  const open = (token?: string) =>
+    new RoomCoordinator(
+      rules,
+      bot,
+      repository,
+      token,
+      'test',
+      registry,
+      undefined,
+      'configured',
+    );
+  let room = open();
+  const host = async (command: Command['command']) => {
+    const { instanceId, revision, branch } = room.view(room.hostToken);
+    expect(
+      await room.command(room.hostToken, {
+        actionId: crypto.randomUUID(),
+        instanceId,
+        revision,
+        branch,
+        command,
+      }),
+    ).toMatchObject({ ok: true });
+  };
+  try {
+    for (let i = 0; i < 7; i++)
+      await host({
+        type: 'add-bot',
+        name: '圆桌' + (i + 1),
+        difficulty: 'mischief',
+      });
+    await host({ type: 'start' });
+    const task = room.botTask()!;
+    expect(room.view().game?.botDifficulties).toContain('mischief');
+    expect(task.data).toMatchObject({
+      difficulty: 'mischief',
+      version: '1.1.0',
+    });
+    const view = task.view as AvalonView;
+    expect(view.questNumber).toBe(4);
+    expect(view.self?.role).toBe('merlin');
+    expect(view.revealedRoles).toBeNull();
+    const started = performance.now();
+    const executor = new WorkerBotExecutor(workerPath);
+    const result = await executor.execute(task, AbortSignal.timeout(2000));
+    expect(performance.now() - started).toBeLessThan(2000);
+    expect((result.action as { team: string[] }).team).not.toContain(
+      view.seatOrder[1],
+    );
+    expect(task.actions).toContainEqual(result.action);
+    expect(
+      (await room.submitBot(task, result.action, result.memory, result.random))
+        .ok,
+    ).toBe(true);
+    await host({
+      type: 'rollback',
+      checkpointId: room.view(room.hostToken).history[0]!.id,
+    });
+    repository.close();
+    repository = new SqliteSaveRepository(profile);
+    room = open(room.hostToken);
+    expect(room.view()).toMatchObject({ restored: true, paused: true });
+    expect(
+      (repository.load() as Save).snapshot?.bots[task.decision.seatId],
+    ).toEqual(task.data);
+    await host({ type: 'resume' });
+    expect(
+      await executor.execute(room.botTask()!, AbortSignal.timeout(2000)),
+    ).toEqual(result);
+  } finally {
+    repository.close();
+  }
 });
