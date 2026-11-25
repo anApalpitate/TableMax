@@ -153,9 +153,13 @@ export function projectRoomView(
               ) !== 'host',
           )
         : [],
-    botError: context.missingRelease
-      ? `${context.restorationReason === 'ambiguous-legacy-release' ? '旧存档匹配到多个游戏发行，无法确定原版本' : context.restorationReason?.startsWith('incompatible-') ? '旧游戏或存档接口与当前程序不兼容' : '旧对局所需游戏版本缺失或损坏'}（${d.manifest?.id ?? '未知游戏'}，游戏 ${d.manifest?.gameVersion ?? '?'}／规则 ${d.manifest?.rulesVersion ?? '?'}，引用 ${context.missingRelease}）。请使用包含该版本且支持此存档格式的旧完整 EXE；原存档已保留。`
-      : (d.botError ?? context.transientBotError),
+    botError:
+      context.restorationReason === 'missing-bot-model' ||
+      context.restorationReason === 'incompatible-bot-model'
+        ? '旧对局所需的本机人机模型缺失、损坏或不兼容。请恢复该对局原先绑定的模型；原存档已保留。'
+        : context.missingRelease
+          ? `${context.restorationReason === 'ambiguous-legacy-release' ? '旧存档匹配到多个游戏发行，无法确定原版本' : context.restorationReason?.startsWith('incompatible-') ? '旧游戏或存档接口与当前程序不兼容' : '旧对局所需游戏版本缺失或损坏'}（${d.manifest?.id ?? '未知游戏'}，游戏 ${d.manifest?.gameVersion ?? '?'}／规则 ${d.manifest?.rulesVersion ?? '?'}，引用 ${context.missingRelease}）。请使用包含该版本且支持此存档格式的旧完整 EXE；原存档已保留。`
+          : (d.botError ?? context.transientBotError),
     endReason: d.endReason,
   };
 }

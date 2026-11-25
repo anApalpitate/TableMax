@@ -1,8 +1,11 @@
 import { beforeAll, expect, it } from 'vitest';
 import { mkdirSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
-import { join, resolve } from 'node:path';
+import { dirname, join, resolve } from 'node:path';
+import { createHash } from 'node:crypto';
 import { build } from 'esbuild';
-import { RoomCoordinator } from '@tablemax/platform-core';
+import { GameRegistry, RoomCoordinator } from '@tablemax/platform-core';
+import { unoLeafFeatureNames } from '../../../games/uno/bot/calibration';
+import { LocalBotModels } from './local-bot-models';
 import { RandomSource } from '@tablemax/platform-core/random';
 import type {
   Save,
@@ -155,4 +158,145 @@ it('persists the UNO style and restores it in the same strategy release', async 
       ({ difficulty, version }) => [difficulty, version],
     ),
   ).toEqual(Array.from({ length: 4 }, () => ['mischief', '1.1.0']));
+});
+
+it('pins the validated local model through the real Worker, rollback, and recovery', async () => {
+  const releaseRef = '6'.repeat(64);
+  const registry = new GameRegistry([
+    {
+      catalog: { id: 'uno', name: 'UNO', min: 2, max: 6 },
+      load: async () => ({ rules, bot, releaseRef }),
+    },
+  ]);
+  const dataDir = mkdtempSync(join(dirname(workerPath), 'model-test-'));
+  const modelDir = join(dataDir, 'learning', 'models');
+  mkdirSync(modelDir, { recursive: true });
+  const store = new LocalBotModels(dataDir);
+  const envelope = {
+    version: 1 as const,
+    binding: {
+      gameId: 'uno',
+      releaseRef,
+      rulesVersion: bot.rulesVersion,
+      strategyId: bot.id,
+      strategyVersion: bot.version,
+      difficulty: 'juewu' as const,
+    },
+    // These digests and coefficients are an isolated fixture, not promotion evidence.
+    reviews: {
+      calibration: 'a'.repeat(64),
+      comparison: 'b'.repeat(64),
+      runtime: 'c'.repeat(64),
+    },
+    model: {
+      version: 1,
+      samples: 8,
+      calibrationDigest: '1'.repeat(64),
+      calibration: {
+        version: 1,
+        features: [...unoLeafFeatureNames],
+        coefficients: unoLeafFeatureNames.map(() => 0),
+      },
+    },
+  };
+  const modelBytes = JSON.stringify(envelope);
+  const ref = createHash('sha256').update(modelBytes).digest('hex');
+  const modelPath = join(modelDir, ref + '.json');
+  expect(store.promote(envelope)).toBe(ref);
+
+  const repository = new MemoryRepository();
+  const room = await RoomCoordinator.open(
+    registry,
+    repository,
+    undefined,
+    undefined,
+    'uno',
+    store,
+  );
+  const host = async (command: Command['command']) => {
+    const { instanceId, revision, branch } = room.view(room.hostToken);
+    expect(
+      (
+        await room.command(room.hostToken, {
+          actionId: crypto.randomUUID(),
+          instanceId,
+          revision,
+          branch,
+          command,
+        })
+      ).ok,
+    ).toBe(true);
+  };
+  for (const name of ['电脑甲', '电脑乙', '电脑丙', '电脑丁'])
+    await host({ type: 'add-bot', name, difficulty: 'juewu' });
+  await host({ type: 'start' });
+  const task = room.botTask()!;
+  expect(task.data.modelRef).toBe(ref);
+  expect(JSON.stringify(room.view(room.hostToken))).not.toContain(ref);
+  const signal = new AbortController().signal;
+
+  // A pinned saved choice cannot silently use the unlearned policy.
+  await expect(
+    new WorkerBotExecutor(workerPath).execute(task, signal),
+  ).rejects.toThrow('strategy-failed');
+  const worker = new WorkerBotExecutor(
+    workerPath,
+    undefined,
+    undefined,
+    (data) => room.botModelData(data),
+  );
+  const result = await worker.execute(task, signal);
+  expect(
+    (await room.submitBot(task, result.action, result.memory, result.random))
+      .ok,
+  ).toBe(true);
+  await host({
+    type: 'rollback',
+    checkpointId: room.view(room.hostToken).history[0]!.id,
+  });
+  for (const savedBot of Object.values(repository.value!.snapshot!.bots))
+    expect(savedBot.modelRef).toBe(ref);
+
+  // Deactivating the active pointer only affects subsequent matches.
+  store.deactivate(ref);
+  expect(store.active(envelope.binding)).toBeUndefined();
+  const restored = await RoomCoordinator.open(
+    registry,
+    repository,
+    room.hostToken,
+    undefined,
+    undefined,
+    store,
+  );
+  expect(restored.view().restored).toBe(true);
+  expect(
+    Object.values(repository.value!.snapshot!.bots).every(
+      (saved) => saved.modelRef === ref,
+    ),
+  ).toBe(true);
+
+  const saved = structuredClone(repository.value);
+  writeFileSync(modelPath, '{}');
+  const damaged = await RoomCoordinator.open(
+    registry,
+    repository,
+    room.hostToken,
+    undefined,
+    undefined,
+    store,
+  );
+  expect(damaged.view().botError).toContain('本机人机模型');
+  expect(damaged.botTask()).toBeNull();
+  expect(repository.value).toEqual(saved);
+  await expect(damaged.restoreMissingRelease()).rejects.toThrow(
+    'incompatible-bot-model',
+  );
+  writeFileSync(modelPath, modelBytes);
+  expect(await damaged.restoreMissingRelease()).toBe(true);
+  expect(damaged.view().botError).toBeNull();
+  expect(
+    Object.values(repository.value!.snapshot!.bots).every(
+      (entry) => entry.modelRef === ref,
+    ),
+  ).toBe(true);
 });

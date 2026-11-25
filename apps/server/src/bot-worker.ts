@@ -1,4 +1,5 @@
 import { loadInstalledModule } from './module-loader';
+import type { JsonValue } from '@tablemax/game-sdk';
 import { parentPort, workerData } from 'node:worker_threads';
 import { createRequire } from 'node:module';
 import { RandomSource } from '@tablemax/platform-core/random';
@@ -6,7 +7,7 @@ import type { RoomCoordinator } from '@tablemax/platform-core';
 
 const task = workerData as NonNullable<
   ReturnType<RoomCoordinator['botTask']>
-> & { botEntry?: string };
+> & { botEntry?: string; model?: JsonValue };
 async function run() {
   const module = task.botEntry
     ? createRequire(task.botEntry)(task.botEntry)
@@ -33,6 +34,17 @@ async function run() {
     )
   )
     throw new Error('incompatible-strategy');
+  let model: JsonValue | undefined;
+  if (task.data.modelRef !== undefined) {
+    if (
+      !bot.model?.difficulties.includes(task.data.difficulty ?? 'default') ||
+      task.model === undefined
+    )
+      throw new Error('missing-bot-model');
+    model = bot.model.validate(task.model);
+  } else if (task.model !== undefined) {
+    throw new Error('unbound-bot-model');
+  }
   const random = new RandomSource(task.data.random);
   const result = await bot.decide({
     view: task.view,
@@ -40,6 +52,7 @@ async function run() {
     decision: task.decision,
     memory: bot.validateMemory(task.data.memory),
     difficulty: task.data.difficulty ?? 'default',
+    ...(model === undefined ? {} : { model }),
     random,
     signal: new AbortController().signal,
   });

@@ -160,12 +160,14 @@ export class BotScheduler {
         ? this.executor.execute(task, controller.signal)
         : Promise.resolve().then(async () => {
             const random = new RandomSource(task.data.random);
+            const model = this.room.botModelData(task.data);
             const result = await this.room.strategy.decide({
               view: task.view,
               actions: task.actions,
               decision: task.decision,
               memory: task.data.memory,
               difficulty: task.data.difficulty ?? 'default',
+              ...(model === undefined ? {} : { model }),
               random,
               signal: controller.signal,
             });

@@ -1,6 +1,9 @@
 import type { BotDifficulty, BotStrategy, JsonValue } from '@tablemax/game-sdk';
 import { CARD_IDS, getCard, RULES_VERSION } from '../data/catalog';
 import { leadingRival, pressureOnLeader } from './mischief';
+import { searchUnoPlays } from './search';
+import { unoCorrectedBest, unoSearchBest } from './correction';
+import { readUnoRuntimeModel, validateUnoRuntimeModel } from './runtime-model';
 import {
   COLORS,
   type Action,
@@ -326,6 +329,7 @@ export const bot: BotStrategy = {
   gameId: 'uno',
   rulesVersion: RULES_VERSION,
   difficulties: ['default', 'doubao', 'juewu', 'mischief'],
+  model: { difficulties: ['juewu'], validate: validateUnoRuntimeModel },
   validateMemory: (input) => validMemory(input) as JsonValue,
   observe({ view, memory, seatId, difficulty }) {
     const projection = view as UnoView;
@@ -339,6 +343,7 @@ export const bot: BotStrategy = {
     decision,
     memory,
     difficulty = 'default',
+    model,
     random,
     signal,
   }) {
@@ -346,16 +351,35 @@ export const bot: BotStrategy = {
     if (view.self?.seatId !== decision.seatId)
       throw new Error('UNO 策略决策身份不一致。');
     const m = observe(view, memory, difficulty);
-    return {
-      action: chooseAction(
-        view,
-        actions as Action[],
-        m,
-        difficulty,
-        signal,
-        random,
-      ),
-      memory: m as JsonValue,
-    };
+    const authorized = actions as Action[];
+    const baseline = chooseAction(
+      view,
+      authorized,
+      m,
+      difficulty,
+      signal,
+      random,
+    );
+    if (model === undefined)
+      return { action: baseline, memory: m as JsonValue };
+    if (difficulty !== 'juewu')
+      throw new Error('UNO learning model requires the Juewu seat');
+    const learned = readUnoRuntimeModel(model);
+    const search = searchUnoPlays(
+      view,
+      authorized,
+      m,
+      random,
+      signal,
+      learned.scoring,
+      {
+        samples: learned.samples,
+        maxRuleSteps: learned.samples * 8 * 16,
+      },
+    );
+    const chosen = learned.correction
+      ? unoCorrectedBest(search, view, m, learned.correction, learned.samples)
+      : unoSearchBest(search.candidates);
+    return { action: chosen?.action ?? baseline, memory: m as JsonValue };
   },
 };

@@ -42,7 +42,12 @@ import {
 import { Rejection, requireThat } from './errors';
 import { allowsGameAction } from './game-actions';
 import { GameRegistry, type LoadedGame } from './game-registry';
-import type { Save, SaveExtras, SaveRepository } from './model';
+import type { BotData, Save, SaveExtras, SaveRepository } from './model';
+import {
+  botModelBinding,
+  resolveBotModel,
+  type BotModelProvider,
+} from './bot-model';
 import { RandomSource } from './random';
 import { RoomOperations, type RoomShutdownStatus } from './room-operations';
 import { controlsRoom, projectRoomView } from './room-projection';
@@ -101,6 +106,7 @@ export class RoomCoordinator {
     loadedVariantId?: string,
     loadedReleaseRef?: string,
     repairSave?: Save,
+    private readonly botModels?: BotModelProvider,
   ) {
     this.hostToken = hostToken;
     requireThat(
@@ -172,6 +178,7 @@ export class RoomCoordinator {
             this.game?.variantId,
             this.game?.releaseRef,
           );
+    this.checkSavedModels(this.data, game);
     for (const seat of this.data.seats) {
       if (!seat.avatarId?.startsWith('custom-')) continue;
       const png = repository.getAvatar?.(seat.avatarId);
@@ -248,15 +255,30 @@ export class RoomCoordinator {
     hostToken?: string,
     initialPlayMode?: PlayMode,
     initialGameId?: string,
+    botModels?: BotModelProvider,
   ) {
     const saved = repository.load() as Save | null;
-    let game: LoadedGame | null;
     try {
-      game = saved?.manifest
+      const game = saved?.manifest
         ? await registry.loadSaved(saved)
         : saved === null && initialGameId
           ? await registry.load(initialGameId)
           : null;
+      const room = new RoomCoordinator(
+        game?.rules ?? null,
+        game?.bot ?? null,
+        repository,
+        hostToken,
+        initialPlayMode,
+        registry,
+        saved,
+        game?.variantId,
+        game?.releaseRef,
+        undefined,
+        botModels,
+      );
+      if (game) room.game = game;
+      return room;
     } catch (error) {
       if (
         !saved?.manifest ||
@@ -270,6 +292,8 @@ export class RoomCoordinator {
           'incompatible-game-module',
           'incompatible-game-variant',
           'incompatible-game-capabilities',
+          'missing-bot-model',
+          'incompatible-bot-model',
         ].includes(error instanceof Error ? error.message : '')
       )
         throw error;
@@ -284,25 +308,14 @@ export class RoomCoordinator {
         undefined,
         undefined,
         saved,
+        botModels,
       );
       room.restorationReason =
         error instanceof Error ? error.message : 'missing-game-release';
       return room;
     }
-    const room = new RoomCoordinator(
-      game?.rules ?? null,
-      game?.bot ?? null,
-      repository,
-      hostToken,
-      initialPlayMode,
-      registry,
-      saved,
-      game?.variantId,
-      game?.releaseRef,
-    );
-    if (game) room.game = game;
-    return room;
   }
+
   /** Reopen the exact saved package after repair; never select a newer release. */
   async restoreMissingRelease() {
     if (!this.missingRelease || !this.data.manifest) return false;
@@ -315,6 +328,7 @@ export class RoomCoordinator {
         game.variantId,
         game.releaseRef,
       );
+      this.checkSavedModels(next, game);
       next.paused = true;
       next.revision++;
       next.branch++;
@@ -330,6 +344,18 @@ export class RoomCoordinator {
       this.listeners.forEach((listener) => listener());
       return true;
     });
+  }
+  private checkSavedModels(data: Save, game: LoadedGame | null) {
+    const checked = new Set<string>();
+    for (const bot of Object.values(data.snapshot?.bots ?? {})) {
+      const key = JSON.stringify([bot.modelRef, bot.difficulty]);
+      if (bot.modelRef === undefined || checked.has(key)) continue;
+      resolveBotModel(this.botModels, game, bot);
+      checked.add(key);
+    }
+  }
+  botModelData(data: BotData) {
+    return resolveBotModel(this.botModels, this.game, data);
   }
   get rules(): GameRules {
     requireThat(this.game, 'game-not-selected');
@@ -1245,6 +1271,32 @@ export class RoomCoordinator {
           }),
           next.seats.map((s) => s.id),
         );
+
+        const selectedModels = new Map<
+          NonNullable<BotData['difficulty']>,
+          string | undefined
+        >();
+        for (const seat of next.seats.filter(
+          (seat) => seat.controller === 'bot',
+        )) {
+          const difficulty = seat.botDifficulty ?? 'default';
+          if (selectedModels.has(difficulty)) continue;
+          const binding = botModelBinding(this.game, difficulty);
+          const modelRef = binding
+            ? this.botModels?.active(binding)
+            : undefined;
+          if (modelRef !== undefined) {
+            resolveBotModel(this.botModels, this.game, {
+              id: activeStrategy.id,
+              version: activeStrategy.version,
+              difficulty,
+              random: 1,
+              memory: null,
+              modelRef,
+            });
+          }
+          selectedModels.set(difficulty, modelRef);
+        }
         next.snapshot = {
           state,
           random: random.state,
@@ -1259,6 +1311,14 @@ export class RoomCoordinator {
                   memory: activeStrategy.validateMemory(null),
                   random: randomBytes(4).readUInt32LE() || 1,
                   difficulty: s.botDifficulty ?? 'default',
+                  ...(selectedModels.get(s.botDifficulty ?? 'default') ===
+                  undefined
+                    ? {}
+                    : {
+                        modelRef: selectedModels.get(
+                          s.botDifficulty ?? 'default',
+                        )!,
+                      }),
                 },
               ]),
           ),

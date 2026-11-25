@@ -133,6 +133,11 @@ export interface BotStrategy {
   testImmediateActions?: readonly string[];
   /** Opt in only for commuting decisions with a rules concurrencyGroup. */
   concurrentActions?: readonly string[];
+  /** Optional, data-only model accepted by this exact strategy release. */
+  model?: {
+    difficulties: readonly BotDifficulty[];
+    validate(input: unknown): JsonValue;
+  };
   validateMemory(input: unknown): JsonValue;
   /** Pure, authorized observation committed atomically with a successful action. */
   observe?(input: {
@@ -147,6 +152,7 @@ export interface BotStrategy {
     decision: PendingDecision;
     memory: JsonValue;
     difficulty?: BotDifficulty;
+    model?: JsonValue;
     random: { next(): number };
     signal: AbortSignal;
   }): Promise<{ action: JsonValue; memory: JsonValue }>;

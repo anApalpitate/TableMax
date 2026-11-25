@@ -15,6 +15,9 @@ export class WorkerBotExecutor implements BotExecutor {
       task: NonNullable<ReturnType<RoomCoordinator['botTask']>>,
     ) => string | undefined,
     private diagnostic?: (sample: WorkerDiagnostic) => void,
+    private resolveModel?: (
+      data: NonNullable<ReturnType<RoomCoordinator['botTask']>>['data'],
+    ) => JsonValue | undefined,
   ) {}
   execute(
     task: NonNullable<ReturnType<RoomCoordinator['botTask']>>,
@@ -42,7 +45,11 @@ export class WorkerBotExecutor implements BotExecutor {
         }
       };
       const worker = new Worker(this.workerPath, {
-        workerData: { ...task, botEntry: this.botEntry?.(task) },
+        workerData: {
+          ...task,
+          botEntry: this.botEntry?.(task),
+          model: this.resolveModel?.(task.data),
+        },
         resourceLimits: { maxOldGenerationSizeMb: 32 },
       });
       if (this.diagnostic)

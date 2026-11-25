@@ -18,7 +18,7 @@
   "compatibility": {
     "sdk": 1,
     "protocol": 8,
-    "requiredCapabilities": ["bot-play-styles"],
+    "requiredCapabilities": ["bot-play-styles", "pinned-local-bot-models"],
     "webHost": 1,
     "rulesVersion": "classic-108-g7942-1",
     "stateVersion": 1,

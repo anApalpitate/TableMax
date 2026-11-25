@@ -38,6 +38,7 @@ import {
 import { createGameRegistry } from './game-registry';
 import { SqliteSaveRepository } from './save-repository';
 import { WorkerBotExecutor } from './bot-executor';
+import { LocalBotModels } from './local-bot-models';
 import { openFoundationDatabase } from './database';
 import { NetworkDirectory } from './network-directory';
 import { normalizeAvatar, AVATAR_HTTP_LIMIT } from './avatar-images';
@@ -82,6 +83,7 @@ export async function createService(
       `${JSON.stringify({ at: new Date().toISOString(), event })}\n`,
     );
   const storage = openFoundationDatabase(config.dataDir);
+  const botModels = new LocalBotModels(config.dataDir);
   let repository: SqliteSaveRepository;
   let room: RoomCoordinator;
   const developmentBuild = existsSync(
@@ -169,6 +171,12 @@ export async function createService(
               repository,
               undefined,
               config.playMode,
+              undefined,
+              undefined,
+              game.variantId,
+              game.releaseRef,
+              undefined,
+              botModels,
             )
           : await RoomCoordinator.open(
               registry,
@@ -184,6 +192,7 @@ export async function createService(
                     ? undefined
                     : freshFullInitialGame
                 : undefined,
+              botModels,
             );
     } catch (error) {
       repository.close();
@@ -198,12 +207,17 @@ export async function createService(
     undefined,
     2_000,
     config.botWorkerPath
-      ? new WorkerBotExecutor(config.botWorkerPath, (task) => {
-          if (!task.releaseRef) return undefined;
-          const installed = packages?.resolveModule(task.releaseRef);
-          if (!installed) throw new Error('missing-game-release');
-          return join(installed.root, installed.release.module.entries.bot);
-        })
+      ? new WorkerBotExecutor(
+          config.botWorkerPath,
+          (task) => {
+            if (!task.releaseRef) return undefined;
+            const installed = packages?.resolveModule(task.releaseRef);
+            if (!installed) throw new Error('missing-game-release');
+            return join(installed.root, installed.release.module.entries.bot);
+          },
+          undefined,
+          (data) => room.botModelData(data),
+        )
       : undefined,
   );
   const automaticScheduler = new AutomaticScheduler(room);

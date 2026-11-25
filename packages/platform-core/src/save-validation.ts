@@ -253,6 +253,19 @@ export function validateSave(
         Number.isInteger(b.random) && b.random > 0 && b.random <= 0xffffffff,
         'damaged-save',
       );
+      if (b.modelRef !== undefined) {
+        requireThat(
+          typeof b.modelRef === 'string' &&
+            /^[a-f0-9]{64}$/.test(b.modelRef) &&
+            !!releaseRef &&
+            !!strategy.model?.difficulties.includes(b.difficulty),
+          'incompatible-bot-model',
+        );
+      }
+      requireThat(
+        b.modelRef === d.snapshot?.bots[seat.id]?.modelRef,
+        'incompatible-bot-model',
+      );
       b.memory = strategy.validateMemory(b.memory);
     }
     requireThat(

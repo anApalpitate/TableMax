@@ -17,6 +17,8 @@ export interface BotData {
   memory: JsonValue;
   random: number;
   difficulty?: BotDifficulty;
+  /** Immutable local model content identity, private to the saved bot seat. */
+  modelRef?: string;
 }
 export interface Snapshot {
   state: JsonValue;
