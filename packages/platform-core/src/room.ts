@@ -774,6 +774,7 @@ export class RoomCoordinator {
                 policy: {
                   id: policy.id,
                   version: policy.version,
+                  difficulty: policy.difficulty ?? 'default',
                   memory: structuredClone(policy.memory),
                   ...(policy.modelRef ? { modelRef: policy.modelRef } : {}),
                 },

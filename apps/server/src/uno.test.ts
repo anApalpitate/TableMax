@@ -504,6 +504,13 @@ it('lets only the host opt into collecting durable authorized UNO decisions', as
     expect(first).toMatchObject({
       type: 'decision',
       source: 'player-command',
+      provenance: {
+        labelVersion: 1,
+        sourceType: 'player-command',
+        qualityTier: 'exploratory',
+        validationStatus: 'durable-authorized',
+        sourceBasis: 'saved-player-command',
+      },
       firstForSessionMatch: true,
       openedFrom: {
         instanceId: enabled.view.instanceId,

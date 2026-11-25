@@ -24,6 +24,7 @@ import {
 } from '../../../packages/platform-core/src/training-lease';
 
 import { isCurrentUnoPilot } from './uno-pilot';
+import { parseUnoHumanReview, readUnoHumanReview } from './uno-human-review';
 
 const { values } = parseArgs({
   options: {
@@ -36,6 +37,7 @@ const { values } = parseArgs({
     continuations: { type: 'string', default: '16' },
     'max-steps': { type: 'string', default: '15000' },
     'include-recorded': { type: 'boolean' },
+    'learning-review': { type: 'string' },
   },
 });
 if (
@@ -117,6 +119,11 @@ const seedList = (value: string) => {
     throw new Error('Invalid UNO training seed partition');
   return seeds;
 };
+const review = values['learning-review']
+  ? readBounded(values['learning-review'], 1024 * 1024)
+  : null;
+if (review && !values['include-recorded'])
+  throw new Error('UNO human review requires --include-recorded');
 const plan = {
   version: 1,
   training: seedList(values['train-seeds']),
@@ -126,6 +133,7 @@ const plan = {
   maxSteps: Number(values['max-steps']),
   includeRecorded: values['include-recorded'] === true,
   calibration: sha256(calibration),
+  ...(review ? { review: sha256(review) } : {}),
 };
 if (
   [plan.roots, plan.continuations, plan.maxSteps].some(
@@ -177,6 +185,7 @@ try {
   const job = join(jobs, values.job);
   const calibrationPath = join(job, 'calibration.json');
   const corpusPath = join(job, 'uno-decisions-v1.jsonl');
+  const reviewPath = join(job, 'uno-human-review.json');
   const planPath = join(job, 'plan.json');
   const output = join(job, 'candidate.json');
   const script = fileURLToPath(
@@ -202,7 +211,18 @@ try {
             16 * 1024 * 1024,
           );
           corpusDigest = sha256(input);
+          const reviewSaved = lstatSync(reviewPath, { throwIfNoEntry: false });
+          if (review && plan.review) {
+            const inspected = reviewSaved
+              ? readUnoHumanReview(reviewPath, corpusDigest)
+              : parseUnoHumanReview(review, corpusDigest);
+            if (inspected.digest !== plan.review)
+              throw new Error(
+                'The partially prepared job has different UNO human review bytes',
+              );
+          }
           if (!saved) writeSealed(corpusPath, input);
+          if (review && !reviewSaved) writeSealed(reviewPath, review);
         }
         const saved = lstatSync(calibrationPath, { throwIfNoEntry: false });
         if (!saved) writeSealed(calibrationPath, calibration);
@@ -231,6 +251,12 @@ try {
             frozen.corpusDigest
         )
           throw new Error('The sealed training corpus changed');
+        if (
+          plan.review &&
+          readUnoHumanReview(reviewPath, frozen.corpusDigest).digest !==
+            plan.review
+        )
+          throw new Error('The sealed UNO human review changed');
       }
       if (lstatSync(output, { throwIfNoEntry: false })) {
         const candidate = JSON.parse(
@@ -279,6 +305,7 @@ try {
       '--idle-session',
       lease.session,
       ...(plan.includeRecorded ? ['--learning-log', corpusPath] : []),
+      ...(plan.review ? ['--learning-review', reviewPath] : []),
     ];
     const child = spawn(process.execPath, args, {
       windowsHide: true,

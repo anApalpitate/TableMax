@@ -14,10 +14,11 @@ import {
   type BotLearningOptions,
   type BotLearningStatus,
 } from '@tablemax/protocol';
-import type {
-  BotLearningStore,
-  LearningEvent,
-  LearningPosition,
+import {
+  durableLearningProvenance,
+  type BotLearningStore,
+  type LearningEvent,
+  type LearningPosition,
 } from '@tablemax/platform-core';
 
 const defaultLogByteLimit = 16 * 1024 * 1024;
@@ -166,6 +167,14 @@ export class LocalBotLearning implements BotLearningStore {
               }
             : {}),
           ...event,
+          ...(event.type === 'decision'
+            ? {
+                provenance: durableLearningProvenance(
+                  event.source,
+                  event.policy?.difficulty,
+                ),
+              }
+            : {}),
         }) + '\n';
       if (
         (file.stats?.size ?? 0) + Buffer.byteLength(entry) >

@@ -8,6 +8,7 @@ import { verifyUnoWorker } from '../../../tools/analysis/bots/uno-worker-verific
 import { unoCorrectionFeatureNames } from '../../../games/uno/bot/correction';
 import { unoLeafFeatureNames } from '../../../games/uno/bot/calibration';
 import { LocalBotModels } from './local-bot-models';
+import { LocalBotLearning } from './local-bot-learning';
 import { RandomSource } from '@tablemax/platform-core/random';
 import type {
   Save,
@@ -108,6 +109,8 @@ for (const count of [2, 4, 6])
     it(`UNO ${count} seats ${difficulty} executes an authorized action in a 32MiB Worker under two seconds`, async () => {
       const room = await fixture(count, difficulty),
         task = room.botTask()!;
+      const profile = mkdtempSync(join(dirname(workerPath), 'capture-'));
+      room.configureBotLearning(new LocalBotLearning(profile, true));
       const controller = new AbortController();
       const timer = setTimeout(() => controller.abort(), 2000);
       try {
@@ -129,6 +132,21 @@ for (const count of [2, 4, 6])
         ).toBe(true);
         expect(room.view(room.hostToken).history).toHaveLength(1);
         expect(room.view(room.hostToken).gameView).not.toHaveProperty('hands');
+        const capture = JSON.parse(
+          readFileSync(
+            join(profile, 'learning', 'uno-decisions-v1.jsonl'),
+            'utf8',
+          ),
+        );
+        expect(capture).toMatchObject({
+          source: 'bot',
+          policy: { difficulty },
+          provenance: {
+            sourceType: 'bot',
+            qualityTier: difficulty === 'default' ? 'exploratory' : 'standard',
+            validationStatus: 'durable-authorized',
+          },
+        });
       } finally {
         clearTimeout(timer);
       }

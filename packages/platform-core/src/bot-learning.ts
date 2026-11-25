@@ -1,4 +1,4 @@
-import type { JsonValue } from '@tablemax/game-sdk';
+import type { BotDifficulty, JsonValue } from '@tablemax/game-sdk';
 import type { BotLearningOptions, BotLearningStatus } from '@tablemax/protocol';
 
 export interface LearningPosition {
@@ -25,6 +25,7 @@ export type LearningEvent =
       policy?: {
         id: string;
         version: string;
+        difficulty?: BotDifficulty;
         memory: JsonValue;
         modelRef?: string;
       };
@@ -38,6 +39,25 @@ export type LearningEvent =
   | (LearningPosition & {
       type: 'abandoned';
     });
+
+export function durableLearningProvenance(
+  source: Extract<LearningEvent, { type: 'decision' }>['source'],
+  difficulty?: BotDifficulty,
+) {
+  return {
+    labelVersion: 1 as const,
+    sourceType: source,
+    qualityTier:
+      source === 'bot' && difficulty && difficulty !== 'default'
+        ? ('standard' as const)
+        : ('exploratory' as const),
+    validationStatus: 'durable-authorized' as const,
+    sourceBasis:
+      source === 'bot'
+        ? ('saved-bot-policy' as const)
+        : ('saved-player-command' as const),
+  };
+}
 
 export interface BotLearningStore {
   status(): BotLearningStatus;

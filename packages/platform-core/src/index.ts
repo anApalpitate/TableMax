@@ -4,6 +4,7 @@ export { BotScheduler } from './bot-scheduler';
 export { AutomaticScheduler } from './automatic-scheduler';
 export type { BotExecutor } from './bot-scheduler';
 export type { BotModelBinding, BotModelProvider } from './bot-model';
+export { durableLearningProvenance } from './bot-learning';
 export type {
   BotLearningStore,
   LearningPosition,

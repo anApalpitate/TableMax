@@ -57,3 +57,12 @@ UNO 可传 `--uno-calibration=<JSON 路径>` 启用离线 B 组，`--uno-samples
 - [watch-uno-training.ts](bots/watch-uno-training.ts) 在已准备的 Windows 本机训练环境中独立启动。用 `--data-dir` 指向当前应用数据，提供 `--job`、通过测量门槛的 `--calibration`、独立的 `--train-seeds` 和 `--tune-seeds`。可选 `--include-recorded` 在首次空闲时封存当时的 UNO 样本。打开主机的空闲训练开关后开始分片。开始游玩、关闭开关或服务退出时撤销许可，未完成的单元可重跑，已保存种子和拟合断点保留。用同一任务参数恢复。产出 `learning/jobs/<job>/candidate.json` 后仍按独立验收流程处理。
 - [verify-uno-worker.ts](bots/verify-uno-worker.ts) 接受同一批 `--calibration`、`--correction`、`--comparison`，以及 `--preinstalled-dir`、`--application-manifest=<冻结 full manifest>`、`--worker=<对应的 bot-worker.cjs>`、`--verification-dir=<现有空目录>`。核对冻结文件摘要后，从签名载荷读取同一发行，用真实 Worker 对比六个固定局面的 B／C 耗时与动作，在隔离 SQLite 验证保存失败、取消、回退、正常重开和模型损坏修复。成功时将 `uno-model-worker-acceptance` 报告写到标准输出，包含文件、载荷映射和配对报告的 SHA-256，供登记入口复核。固定局面报告与完整对局胜率、真人体验及实际安装体积分别验收。
 - [promote-uno-model.ts](bots/promote-uno-model.ts) 将通过各阶段验收的 C 模型登记到本机。传入 `--data-dir`、`--preinstalled-dir=<目标完整程序的 preinstalled-games 目录>`、`--verification-dir=<现有空目录>`、`--calibration`、`--correction`、`--comparison` 和 `--runtime-proof`。空目录须与正式数据及载荷目录分离，签名校验与加载在此进行。登记前复核独立配对门槛，确认真实 Worker、关键局面和回退／重启报告的试点配置、发行标识及 `preinstalledMappingSha256` 一致。`--data-dir=<数据目录> --deactivate=<模型SHA-256>` 仅取消新局可用性；已有对局继续绑定原模型。
+
+## UNO 本机样本来源复核
+
+使用冻结的本机采集 JSONL。按确实观察到的执手情况复核玩家指令，仅登记对应的对局、分支、保存修订和从 0 开始的席位编号。每条填写可复核的本地证据引用。复核文件留在本机。
+
+- 根对象包含 `type: "uno-human-source-review"`、`version: 1`、`inputDigest` 和 `decisions`。`inputDigest` 是冻结 JSONL 原始字节的 SHA-256。`decisions` 的每条包含 `instanceId`、`branch`、`revision`、`seat` 和 `evidenceRef`。
+- 给训练器传 `--learning-log=<冻结日志> --learning-review=<复核 JSON>`。复核必须匹配原始字节，范围限于试点中能重新标注的合法存活决策。人机策略、回退废弃动作和校验失败的记录都会使对应复核被拒绝。
+- 训练器可用 `--learning-source-weight=uniform` 将同样的入选根按统一来源乘数训练，再用独立种子检验分级加权效果。默认 `graded` 按高质量、标准、探索分别取 1.5、1、0.5。包含本机日志的旧训练断点保留，采用新版分级时以新任务重新拟合。
+- 空闲训练器可传 `--include-recorded --learning-review=<复核 JSON>`。它将在首次获得空闲许可时封存对应摘要的日志和复核。若活跃日志后来有追加，使用复核所对应的冻结版本启动独立离线训练。

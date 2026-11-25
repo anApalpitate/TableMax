@@ -23,7 +23,10 @@ import {
 import { RandomSource } from '../../../packages/platform-core/src/random';
 import { fitModel, type WeightedExample } from './fit';
 import { collectUnoResidualExamples } from './uno-residual-labels';
-import { readUnoLearningCorpus } from './local-uno-corpus';
+import {
+  readUnoLearningCorpus,
+  unoLearningQualityWeights,
+} from './local-uno-corpus';
 import { isCurrentUnoPilot, unoPilotEvidence } from './uno-pilot';
 import { calibrationSeeds } from './uno-calibration-provenance';
 import { openTrainingCheckpoint } from './training-checkpoint';
@@ -54,6 +57,8 @@ const { values } = parseArgs({
   options: {
     calibration: { type: 'string' },
     'learning-log': { type: 'string' },
+    'learning-review': { type: 'string' },
+    'learning-source-weight': { type: 'string', default: 'graded' },
     checkpoint: { type: 'string' },
     'steps-per-run': { type: 'string' },
     'idle-lease': { type: 'string' },
@@ -178,8 +183,17 @@ async function collect(
   return result;
 }
 
+const sourceWeight = values['learning-source-weight'];
+if (sourceWeight !== 'graded' && sourceWeight !== 'uniform')
+  throw new Error('Choose graded or uniform local source weights');
+if (values['learning-review'] && !values['learning-log'])
+  throw new Error('UNO human review requires its exact --learning-log');
 const corpus = values['learning-log']
-  ? readUnoLearningCorpus(values['learning-log'], options.roots)
+  ? readUnoLearningCorpus(
+      values['learning-log'],
+      options.roots,
+      values['learning-review'],
+    )
   : null;
 const occupiedSeeds = new Set([...excluded, ...trainSeeds, ...tuneSeeds]);
 for (const entry of corpus?.entries ?? []) {
@@ -190,6 +204,12 @@ for (const entry of corpus?.entries ?? []) {
 const localRoots = new Map(
   (corpus?.entries ?? []).map(({ seed, roots }) => [seed, roots]),
 );
+const localWeights = new Map<UnoRoot, number>();
+if (sourceWeight === 'graded') {
+  for (const roots of localRoots.values())
+    for (const root of roots)
+      localWeights.set(root, unoLearningQualityWeights[root.qualityTier]);
+}
 type GpuFit = { coefficients: number[]; device: string; torch: string };
 type Checkpoint = {
   training: WeightedExample[];
@@ -218,6 +238,15 @@ const identity = createHash('sha256')
       tuneSeeds,
       options,
       corpus: corpus?.inputDigest,
+      ...(corpus
+        ? {
+            provenance: {
+              version: 1,
+              reviewDigest: corpus.reviewDigest,
+              sourceWeight,
+            },
+          }
+        : {}),
     }),
   )
   .digest('hex');
@@ -296,8 +325,12 @@ for (const seed of work.slice(state.trainingSeeds.length)) {
       outcomes,
       options.continuations,
     );
+    const sourceMultiplier = localWeights.get(root) ?? 1;
     training.push(
-      ...rows.map((row) => ({ ...row, weight: row.weight / positions.length })),
+      ...rows.map((row) => ({
+        ...row,
+        weight: (row.weight * sourceMultiplier) / positions.length,
+      })),
     );
   }
   state.trainingSeeds.push(seed);
@@ -429,6 +462,15 @@ console.log(
             usable: corpus.entries.length,
             seeds: [...localRoots.keys()],
             invalidLines: corpus.invalidLines,
+            provenance: {
+              version: 1,
+              reviewDigest: corpus.reviewDigest,
+              sourceWeight,
+              eligible: corpus.eligible,
+              selected: corpus.selected,
+              selectedMatches: corpus.selectedMatches,
+              isolated: corpus.isolated,
+            },
           }
         : null,
       trainingUnfinished: state.trainingUnfinished,
