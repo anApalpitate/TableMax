@@ -29,7 +29,9 @@ type Waiting = {
   controller?: AbortController;
   dispatchQueued?: boolean;
 };
-export function reactionDelayMs(task: Task): number {
+export function reactionDelayMs(
+  task: Pick<Task, 'instanceId' | 'branch' | 'timing' | 'decision' | 'data'>,
+): number {
   const timing = task.timing!;
   const text = JSON.stringify([
     task.instanceId,
