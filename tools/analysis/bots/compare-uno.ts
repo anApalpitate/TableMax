@@ -1,5 +1,5 @@
 import { createHash } from 'node:crypto';
-import { readFileSync } from 'node:fs';
+import { readFileSync, readdirSync } from 'node:fs';
 import { parseArgs } from 'node:util';
 import type { BotStrategy } from '../../../packages/game-sdk/src/index';
 import { bot, rules } from '../../../games/uno';
@@ -15,20 +15,16 @@ import {
   unoOpponentPools,
   type UnoPairedMatch,
   type UnoPairedSeed,
-  type UnoPool,
 } from './uno-paired-statistics';
-
-interface Stratum {
-  first: number[];
-  extra: number[];
-}
-interface Plan {
-  version: 1;
-  looks: 1 | 2;
-  bootstrapSeed: number;
-  maxSteps: number;
-  seeds: Record<UnoPool, Stratum>;
-}
+import {
+  followsUnoComparisonSeeds,
+  matchesUnoComparisonStage,
+  selectUnoComparisonSeeds,
+  unoComparisonDigest,
+  validateUnoComparisonPlan,
+  type UnoComparisonPlan,
+} from './uno-comparison-plan';
+import { openTrainingCheckpoint } from './training-checkpoint';
 
 const { values } = parseArgs({
   options: {
@@ -36,6 +32,9 @@ const { values } = parseArgs({
     calibration: { type: 'string' },
     correction: { type: 'string' },
     previous: { type: 'string' },
+    checkpoint: { type: 'string' },
+    development: { type: 'boolean', default: false },
+    'steps-per-run': { type: 'string' },
   },
 });
 if (!values.plan || !values.calibration || !values.correction) {
@@ -44,44 +43,30 @@ if (!values.plan || !values.calibration || !values.correction) {
   );
 }
 
-const pools = Object.keys(unoOpponentPools) as UnoPool[];
-const plan = JSON.parse(readFileSync(values.plan, 'utf8')) as Plan;
+const stepsPerRun =
+  values['steps-per-run'] === undefined
+    ? Infinity
+    : Number(values['steps-per-run']);
 if (
-  plan.version !== 1 ||
-  ![1, 2].includes(plan.looks) ||
-  !Number.isSafeInteger(plan.maxSteps) ||
-  plan.maxSteps < 1 ||
-  !Number.isInteger(plan.bootstrapSeed) ||
-  plan.bootstrapSeed < 1 ||
-  plan.bootstrapSeed > 0xffffffff ||
-  !plan.seeds ||
-  Object.keys(plan.seeds).length !== pools.length ||
-  pools.some(
-    (pool) =>
-      !Array.isArray(plan.seeds[pool]?.first) ||
-      plan.seeds[pool].first.length < 2 ||
-      !Array.isArray(plan.seeds[pool].extra) ||
-      (plan.looks === 1 && plan.seeds[pool].extra.length > 0) ||
-      (plan.looks === 2 && plan.seeds[pool].extra.length < 1),
-  )
-)
-  throw new Error('Invalid frozen paired plan');
-const allSeeds = pools.flatMap((pool) => [
-  ...plan.seeds[pool].first,
-  ...plan.seeds[pool].extra,
-]);
-if (
-  allSeeds.some(
-    (seed) => !Number.isInteger(seed) || seed < 1 || seed > 0xffffffff,
-  ) ||
-  new Set(allSeeds).size !== allSeeds.length
-)
-  throw new Error(
-    'Each original seed can occur only once across pools and stages',
-  );
-
-const calibration = JSON.parse(readFileSync(values.calibration, 'utf8'));
-const candidate = JSON.parse(readFileSync(values.correction, 'utf8'));
+  values['steps-per-run'] !== undefined &&
+  (!values.checkpoint || !Number.isSafeInteger(stepsPerRun) || stepsPerRun < 1)
+) {
+  throw new Error('A positive step limit requires --checkpoint');
+}
+const sha = (bytes: string | Buffer) =>
+  createHash('sha256').update(bytes).digest('hex');
+function report(path: string) {
+  const bytes = readFileSync(path);
+  return { value: JSON.parse(bytes.toString('utf8')), sha256: sha(bytes) };
+}
+const plan = report(values.plan).value as UnoComparisonPlan;
+const allSeeds = validateUnoComparisonPlan(plan);
+if (values.development && (plan.looks !== 1 || values.previous))
+  throw new Error('Development sizing uses a separate one-stage seed plan');
+const calibrationReport = report(values.calibration);
+const candidateReport = report(values.correction);
+const calibration = calibrationReport.value;
+const candidate = candidateReport.value;
 if (
   calibration?.type !== 'uno-calibration-development' ||
   calibration?.evaluation !== 'meets-measured-gates' ||
@@ -110,8 +95,7 @@ if (allSeeds.some((seed) => excluded.has(seed)))
     'Formal comparison or expansion reuses a model development seed',
   );
 
-const hash = (value: unknown) =>
-  createHash('sha256').update(JSON.stringify(value)).digest('hex');
+const hash = (value: unknown) => sha(JSON.stringify(value));
 const calibrationDigest = hash(calibration.calibration);
 const candidateDigest = hash(candidate.model);
 if (
@@ -136,37 +120,71 @@ const strategies: Record<(typeof unoArms)[number], BotStrategy> = {
     },
   ),
 };
-const planDigest = hash({
+const root = new URL('../../../', import.meta.url);
+function sourceDigest() {
+  const gameDirectories = ['bot', 'data', 'rules'];
+  const files = [
+    ...gameDirectories.flatMap((directory) => {
+      const path = 'games/uno/' + directory + '/';
+      return readdirSync(new URL(path, root), { withFileTypes: true })
+        .filter(
+          (item) =>
+            item.isFile() &&
+            item.name.endsWith('.ts') &&
+            !item.name.endsWith('.test.ts') &&
+            item.name !== 'test-fixtures.ts',
+        )
+        .map((item) => path + item.name);
+    }),
+    ...['index', 'config', 'types'].map((name) => 'games/uno/' + name + '.ts'),
+    ...['bot-scheduler', 'game-actions', 'random'].map(
+      (name) => 'packages/platform-core/src/' + name + '.ts',
+    ),
+    ...[
+      'compare-uno',
+      'evaluate',
+      'uno-pilot',
+      'uno-comparison-plan',
+      'uno-paired-statistics',
+      'uno-calibration-provenance',
+      'training-checkpoint',
+    ].map((name) => 'tools/analysis/bots/' + name + '.ts'),
+  ].sort();
+  return hash(
+    files.map((file) => [file, sha(readFileSync(new URL(file, root)))]),
+  );
+}
+const sourceSha256 = sourceDigest();
+const planDigest = unoComparisonDigest(
   plan,
-  calibrationDigest,
-  candidateDigest,
-  rules: rules.manifest,
-  reference: bot.version,
-  pilot: unoPilotEvidence,
-});
+  calibrationReport.sha256,
+  candidateReport.sha256,
+  sourceSha256,
+  process.version,
+);
 interface Previous {
+  type: string;
   planDigest: string;
   decision: string;
   stage: number;
+  failures: number;
+  undispatched: unknown[];
   blocks: UnoPairedSeed[];
 }
-const previous: Previous | null = values.previous
-  ? JSON.parse(readFileSync(values.previous, 'utf8'))
-  : null;
-if (previous) {
-  const expected = pools.flatMap((pool) =>
-    plan.seeds[pool].first.map((seed) => `${pool}/${seed}`),
-  );
-  const supplied = Array.isArray(previous.blocks)
-    ? previous.blocks.map(({ pool, seed }) => `${pool}/${seed}`)
-    : [];
-  if (
-    plan.looks !== 2 ||
+const previousReport = values.previous ? report(values.previous) : null;
+const previous: Previous | null = previousReport?.value ?? null;
+if (
+  previousReport &&
+  (!previous ||
+    previous.type !== 'uno-abc-acceptance' ||
     previous.stage !== 1 ||
     previous.planDigest !== planDigest ||
     previous.decision !== 'expand' ||
-    expected.length !== supplied.length ||
-    !expected.every((key, index) => key === supplied[index]) ||
+    previous.failures !== 0 ||
+    !Array.isArray(previous.undispatched) ||
+    previous.undispatched.length !== 0 ||
+    plan.looks !== 2 ||
+    !matchesUnoComparisonStage(plan, 1, previous.blocks) ||
     !previous.blocks.every(completeUnoBlock) ||
     unoComparisonDecision(
       summarizeUnoComparison(
@@ -178,20 +196,35 @@ if (previous) {
       ),
       previous.blocks,
       true,
-    ) !== 'expand'
-  )
-    throw new Error(
-      'Expansion requires the unchanged, complete first-stage report',
-    );
+    ) !== 'expand')
+) {
+  throw new Error(
+    'Expansion requires the unchanged, complete first-stage report',
+  );
 }
-const selected = pools.flatMap((pool) => {
-  const seedList = previous ? plan.seeds[pool].extra : plan.seeds[pool].first;
-  return seedList.map((seed, index) => ({
-    pool,
-    seed,
-    ordinal: index + (previous ? plan.seeds[pool].first.length : 0),
-  }));
-});
+const stage = previous ? 2 : 1;
+const selected = selectUnoComparisonSeeds(plan, stage);
+const checkpoint = values.checkpoint
+  ? openTrainingCheckpoint<UnoPairedSeed[]>(
+      values.checkpoint,
+      hash({
+        planDigest,
+        stage,
+        development: values.development,
+        previousReportSha256: previousReport?.sha256,
+      }),
+      [],
+    )
+  : null;
+const current = checkpoint?.state ?? [];
+if (!followsUnoComparisonSeeds(current, selected, true))
+  throw new Error(
+    'Comparison checkpoint does not follow the frozen seed order',
+  );
+function assertSource() {
+  if (sourceDigest() !== sourceSha256)
+    throw new Error('Comparison source changed during the frozen run');
+}
 const permutations = [
   [0, 1, 2],
   [0, 2, 1],
@@ -200,10 +233,14 @@ const permutations = [
   [2, 0, 1],
   [2, 1, 0],
 ] as const;
-const blocks: UnoPairedSeed[] = [...(previous?.blocks ?? [])];
-let failures = 0;
-for (const { pool, seed, ordinal } of selected) {
-  if (failures >= 10) break;
+let failures = current.reduce(
+  (total, block) =>
+    total + block.matches.filter((match) => match.outcome !== 'ended').length,
+  0,
+);
+let remainingSteps = stepsPerRun;
+for (const { pool, seed, ordinal } of selected.slice(current.length)) {
+  if (failures >= 10 || remainingSteps === 0) break;
   const matches: UnoPairedMatch[] = [];
   const opponent = unoOpponentPools[pool].opponents;
   const permutation = permutations[ordinal % permutations.length]!;
@@ -256,57 +293,104 @@ for (const { pool, seed, ordinal } of selected) {
       }
     }
   }
-  blocks.push({ pool, seed, matches });
+  current.push({ pool, seed, matches });
+  if (checkpoint) {
+    assertSource();
+    checkpoint.save(current);
+  }
+  remainingSteps--;
   console.error(
-    JSON.stringify({ pool, seed, matches: matches.length, failures }),
+    JSON.stringify({
+      pool,
+      seed,
+      matches: matches.length,
+      failures,
+      completed: current.length,
+      planned: selected.length,
+    }),
   );
 }
-const stage = previous ? 2 : 1;
-const main = summarizeUnoComparison(
-  blocks,
-  'C',
-  'B',
-  plan.bootstrapSeed,
-  plan.looks,
-);
-console.log(
-  JSON.stringify(
-    {
-      type: 'uno-abc-acceptance',
-      pilot: unoPilotEvidence,
+assertSource();
+if (remainingSteps === 0 && failures < 10 && current.length < selected.length) {
+  console.log(
+    JSON.stringify({
+      type: 'uno-abc-progress',
       stage,
       planDigest,
-      plan,
-      calibrationDigest,
-      candidateDigest,
       failures,
-      poolWeights: unoOpponentPools,
-      blocks,
-      undispatched: selected.filter(
-        ({ seed }) => !blocks.some((block) => block.seed === seed),
-      ),
-      main,
-      baselineComparison: summarizeUnoComparison(
+      recordedBlocks: current.length,
+      plannedBlocks: selected.length,
+      development: values.development,
+    }),
+  );
+} else if (values.development) {
+  console.log(
+    JSON.stringify(
+      {
+        type: 'uno-abc-development',
+        pilot: unoPilotEvidence,
+        plan,
+        planDigest,
+        failures,
+        blocks: current,
+        undispatched: selected.slice(current.length),
+      },
+      null,
+      2,
+    ),
+  );
+} else {
+  const blocks = [...(previous?.blocks ?? []), ...current];
+  const undispatched = selected.slice(current.length);
+  const main = summarizeUnoComparison(
+    blocks,
+    'C',
+    'B',
+    plan.bootstrapSeed,
+    plan.looks,
+  );
+  console.log(
+    JSON.stringify(
+      {
+        type: 'uno-abc-acceptance',
+        pilot: unoPilotEvidence,
+        stage,
+        planDigest,
+        sourceSha256,
+        node: process.version,
+        plan,
+        calibrationDigest,
+        candidateDigest,
+        failures,
+        poolWeights: unoOpponentPools,
         blocks,
-        'B',
-        'A',
-        plan.bootstrapSeed,
-        plan.looks,
-      ),
-      candidateComparison: summarizeUnoComparison(
-        blocks,
-        'C',
-        'A',
-        plan.bootstrapSeed,
-        plan.looks,
-      ),
-      decision: unoComparisonDecision(
+        undispatched,
         main,
-        blocks,
-        plan.looks === 2 && stage === 1,
-      ),
-    },
-    null,
-    2,
-  ),
-);
+        baselineComparison: summarizeUnoComparison(
+          blocks,
+          'B',
+          'A',
+          plan.bootstrapSeed,
+          plan.looks,
+        ),
+        candidateComparison: summarizeUnoComparison(
+          blocks,
+          'C',
+          'A',
+          plan.bootstrapSeed,
+          plan.looks,
+        ),
+        decision:
+          undispatched.length > 0
+            ? 'incomplete-blocks'
+            : unoComparisonDecision(
+                main,
+                blocks,
+                plan.looks === 2 && stage === 1,
+              ),
+      },
+      null,
+      2,
+    ),
+  );
+}

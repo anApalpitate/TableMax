@@ -8,10 +8,7 @@ import { PROJECT_GAME_PUBLIC_KEY } from '../../../apps/server/src/game-packages/
 import { LocalBotModels } from '../../../apps/server/src/local-bot-models';
 import { botModelBinding } from '../../../packages/platform-core/src/bot-model';
 import { isCurrentUnoPilot, unoPilotEvidence } from './uno-pilot';
-import {
-  summarizeUnoComparison,
-  unoComparisonDecision,
-} from './uno-paired-statistics';
+import { unoComparisonPasses } from './uno-comparison-plan';
 
 const { values } = parseArgs({
   options: {
@@ -52,8 +49,6 @@ if (values.deactivate) {
   const runtime = report(values['runtime-proof']);
   const leafDigest = sha(JSON.stringify(calibration.value.calibration));
   const candidateDigest = sha(JSON.stringify(correction.value.model));
-  const looks = comparison.value.plan?.looks;
-  const seed = comparison.value.plan?.bootstrapSeed;
   const samples = calibration.value.options?.hypotheses;
   if (
     ![calibration, correction, comparison, runtime].every(({ value }) =>
@@ -66,35 +61,16 @@ if (values.deactivate) {
     correction.value.type !== 'uno-residual-candidate' ||
     !(correction.value.model?.weight > 0) ||
     correction.value.calibrationDigest !== leafDigest ||
-    comparison.value.type !== 'uno-abc-acceptance' ||
-    comparison.value.decision !== 'meets-win-rate-gate' ||
     comparison.value.calibrationDigest !== leafDigest ||
     comparison.value.candidateDigest !== candidateDigest ||
-    comparison.value.failures !== 0 ||
-    comparison.value.undispatched?.length !== 0 ||
-    !Array.isArray(comparison.value.blocks) ||
-    (looks !== 1 && looks !== 2) ||
-    !Number.isInteger(seed) ||
-    seed < 1 ||
-    seed > 0xffffffff
+    !unoComparisonPasses(
+      comparison.value,
+      calibration.sha256,
+      correction.sha256,
+    )
   )
     throw new Error(
       'The UNO calibration and paired comparison do not approve this model',
-    );
-
-  const paired = summarizeUnoComparison(
-    comparison.value.blocks,
-    'C',
-    'B',
-    seed,
-    looks,
-  );
-  if (
-    unoComparisonDecision(paired, comparison.value.blocks, false) !==
-    'meets-win-rate-gate'
-  )
-    throw new Error(
-      'The declared acceptance does not match the paired block results',
     );
 
   const proof = runtime.value;

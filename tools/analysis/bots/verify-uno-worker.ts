@@ -7,6 +7,7 @@ import { createGameRegistry } from '../../../apps/server/src/game-registry';
 import { PROJECT_GAME_PUBLIC_KEY } from '../../../apps/server/src/game-packages/project-public-key';
 import { PackageStore } from '../../../apps/server/src/game-packages/store';
 import { isCurrentUnoPilot, unoPilotEvidence } from './uno-pilot';
+import { unoComparisonPasses } from './uno-comparison-plan';
 import { verifyUnoWorker } from './uno-worker-verification';
 
 const { values } = parseArgs({
@@ -35,8 +36,8 @@ function report(path: string) {
     sha256: digest(bytes),
   };
 }
-const { contents: b } = report(required('calibration'));
-const { contents: c } = report(required('correction'));
+const { contents: b, sha256: bReportSha256 } = report(required('calibration'));
+const { contents: c, sha256: cReportSha256 } = report(required('correction'));
 const { contents: paired, sha256: comparisonDigest } = report(
   required('comparison'),
 );
@@ -53,8 +54,7 @@ assert.ok(
     b.evaluation === 'meets-measured-gates' &&
     c.type === 'uno-residual-candidate' &&
     c.model?.weight > 0 &&
-    paired.type === 'uno-abc-acceptance' &&
-    paired.decision === 'meets-win-rate-gate' &&
+    unoComparisonPasses(paired, bReportSha256, cReportSha256) &&
     [b, c, paired].every(
       (item) => item.calibrationDigest === calibrationDigest,
     ) &&

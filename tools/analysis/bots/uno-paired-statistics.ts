@@ -34,7 +34,7 @@ export function completeUnoBlock(block: UnoPairedSeed) {
         (seat) =>
           block.matches.filter(
             (match) =>
-              match.arm === arm &&
+              match?.arm === arm &&
               match.seat === seat &&
               match.outcome === 'ended' &&
               typeof match.won === 'boolean',
@@ -52,6 +52,78 @@ function blockDifference(
   const wins = (arm: UnoArm) =>
     block.matches.filter((match) => match.arm === arm && match.won).length;
   return (wins(target) - wins(reference)) / 4;
+}
+
+export function sizeUnoComparison(
+  blocks: readonly UnoPairedSeed[],
+  looks: 1 | 2,
+  halfWidth = 0.02,
+) {
+  if (
+    ![1, 2].includes(looks) ||
+    !Number.isFinite(halfWidth) ||
+    halfWidth <= 0 ||
+    halfWidth >= 1
+  )
+    throw new Error('Invalid comparison sizing precision');
+  if (
+    blocks.some((block) => !completeUnoBlock(block)) ||
+    new Set(blocks.map((block) => block.seed)).size !== blocks.length
+  )
+    throw new Error('Use distinct, complete development seed blocks');
+  const pools = (Object.keys(unoOpponentPools) as UnoPool[]).map((pool) => {
+    const differences = blocks
+      .filter((block) => block.pool === pool)
+      .map((block) => blockDifference(block, 'C', 'B'));
+    if (differences.length < 2)
+      throw new Error('Need at least two complete development blocks per pool');
+    const mean =
+      differences.reduce((sum, value) => sum + value, 0) / differences.length;
+    const variance =
+      differences.reduce((sum, value) => sum + (value - mean) ** 2, 0) /
+      (differences.length - 1);
+    return {
+      pool,
+      developmentBlocks: differences.length,
+      variance,
+      weight: unoOpponentPools[pool].weight,
+    };
+  });
+  const weightedVariance = pools.reduce(
+    (sum, pool) => sum + pool.weight * pool.variance,
+    0,
+  );
+  if (weightedVariance === 0)
+    throw new Error(
+      'Development blocks show no within-pool variation; collect more before estimating sample size',
+    );
+  const quantile = looks === 2 ? 2.241402727604947 : 1.959963984540054;
+  const approximateFirst = Math.ceil(
+    (quantile ** 2 * weightedVariance) / halfWidth ** 2,
+  );
+  const groupSize = looks === 2 ? 8 : 4;
+  const firstBlocks = Math.max(
+    8,
+    Math.ceil(approximateFirst / groupSize) * groupSize,
+  );
+  if (!Number.isSafeInteger(firstBlocks * 18))
+    throw new Error('Requested precision exceeds the supported sample size');
+  const extraBlocks = looks === 2 ? firstBlocks / 2 : 0;
+  return {
+    halfWidth,
+    approximateFirst,
+    firstBlocks,
+    firstMatches: firstBlocks * 12,
+    extraBlocks,
+    maximumBlocks: firstBlocks + extraBlocks,
+    pools: pools.map(({ pool, developmentBlocks, variance, weight }) => ({
+      pool,
+      developmentBlocks,
+      variance,
+      first: firstBlocks * weight,
+      extra: extraBlocks * weight,
+    })),
+  };
 }
 
 export function summarizeUnoComparison(
