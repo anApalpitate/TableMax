@@ -39,6 +39,7 @@ import { createGameRegistry } from './game-registry';
 import { SqliteSaveRepository } from './save-repository';
 import { WorkerBotExecutor } from './bot-executor';
 import { LocalBotModels } from './local-bot-models';
+import { LocalBotLearning } from './local-bot-learning';
 import { openFoundationDatabase } from './database';
 import { NetworkDirectory } from './network-directory';
 import { normalizeAvatar, AVATAR_HTTP_LIMIT } from './avatar-images';
@@ -202,6 +203,9 @@ export async function createService(
     storage.close();
     throw error;
   }
+  room.configureBotLearning(
+    new LocalBotLearning(config.dataDir, developmentBuild),
+  );
   const scheduler = new BotScheduler(
     room,
     undefined,

@@ -52,6 +52,11 @@ import { RandomSource } from './random';
 import { RoomOperations, type RoomShutdownStatus } from './room-operations';
 import { controlsRoom, projectRoomView } from './room-projection';
 import { copySave } from './save-draft';
+import type {
+  BotLearningStore,
+  LearningEvent,
+  LearningPosition,
+} from './bot-learning';
 import { validateSave } from './save-validation';
 import { openCredential, sealCredential } from './session-receipts';
 
@@ -91,6 +96,7 @@ export class RoomCoordinator {
   private rejectedCommands = new Map<string, RejectedCommand>();
   readonly hostToken: string;
   private game: LoadedGame | null;
+  private learning?: BotLearningStore;
   private registry: GameRegistry;
   restored = false;
   missingRelease: string | null = null;
@@ -707,8 +713,115 @@ export class RoomCoordinator {
       return transferState(next, transferForKey(next, requestKey), requestKey);
     });
   }
+  configureBotLearning(store: BotLearningStore) {
+    this.learning = store;
+  }
+  private learningPosition(data: Save): LearningPosition | null {
+    if (!data.manifest) return null;
+    return {
+      instanceId: data.instanceId,
+      branch: data.branch,
+      revision: data.revision,
+      gameId: data.manifest.id,
+      rulesVersion: data.manifest.rulesVersion,
+      ...(data.releaseRef === undefined ? {} : { releaseRef: data.releaseRef }),
+      ...(data.variantId === undefined ? {} : { variantId: data.variantId }),
+    };
+  }
+  private recordLearning(
+    before: Save,
+    details?: {
+      seat: string;
+      action: JsonValue;
+      decisionId: string;
+      checkpointId: string;
+    },
+  ) {
+    try {
+      const position = this.learningPosition(before);
+      if (
+        !position ||
+        !before.snapshot ||
+        !this.learning?.wants(position.gameId)
+      )
+        return;
+      let event: LearningEvent | undefined;
+      if (details) {
+        const policy = before.snapshot.bots[details.seat];
+        const viewer = { role: 'player' as const, seatId: details.seat };
+        const game = this.game;
+        if (!game || !this.data.snapshot) return;
+        event = {
+          ...position,
+          type: 'decision',
+          beforeRevision: before.revision,
+          revision: this.data.revision,
+          seat: before.seats.findIndex(({ id }) => id === details.seat),
+          decisionId: details.decisionId,
+          checkpointId: details.checkpointId,
+          source: policy ? 'bot' : 'player-command',
+          observation: game.rules.project(
+            structuredClone(before.snapshot.state),
+            viewer,
+          ),
+          actions: game.rules.legalActions(
+            structuredClone(before.snapshot.state),
+            details.seat,
+          ),
+          action: details.action,
+          ...(policy
+            ? {
+                policy: {
+                  id: policy.id,
+                  version: policy.version,
+                  memory: structuredClone(policy.memory),
+                  ...(policy.modelRef ? { modelRef: policy.modelRef } : {}),
+                },
+              }
+            : {}),
+          ...(this.data.endReason === '游戏完成'
+            ? {
+                result: game.rules.project(
+                  structuredClone(this.data.snapshot.state),
+                  { role: 'public' },
+                ),
+              }
+            : {}),
+        };
+      } else if (
+        before.status === 'playing' &&
+        (before.instanceId !== this.data.instanceId ||
+          ['管理员结束', '房主结束'].includes(this.data.endReason ?? ''))
+      ) {
+        event = {
+          ...position,
+          revision: before.revision + 1,
+          type: 'abandoned',
+        };
+      } else if (
+        before.branch !== this.data.branch &&
+        before.instanceId === this.data.instanceId
+      ) {
+        const removed = before.history[this.data.history.length];
+        if (removed)
+          event = {
+            ...position,
+            type: 'rollback',
+            previousBranch: before.branch,
+            branch: this.data.branch,
+            revision: this.data.revision,
+            checkpointId: removed.id,
+          };
+      }
+      if (event) this.learning.record(event);
+    } catch {
+      // Decision collection is supplementary and never changes a durable acknowledgement.
+    }
+  }
+
   view(credential?: string, online: ReadonlySet<string> = new Set()): RoomView {
-    return projectRoomView(this.data, this.identity(credential), online, {
+    const identity = this.identity(credential);
+    const projection = projectRoomView(this.data, identity, online, {
       game: this.game,
       catalog: this.registry.catalog(),
       restored: this.restored,
@@ -716,6 +829,9 @@ export class RoomCoordinator {
       restorationReason: this.restorationReason,
       transientBotError: this.transientBotError,
     });
+    return identity.role === 'host' && this.learning
+      ? { ...projection, botLearning: this.learning.status() }
+      : projection;
   }
   private controls(identity: Identity) {
     return controlsRoom(this.data, identity);
@@ -996,7 +1112,23 @@ export class RoomCoordinator {
       requireThat(this.managesSeats(identity), 'unauthorized');
     const lobby = () => requireThat(next.status === 'lobby', 'not-in-lobby');
     let events: PublicEvent[] = [];
+    const learningBefore = this.data;
+    let learningDecision:
+      | {
+          seat: string;
+          action: JsonValue;
+          decisionId: string;
+          checkpointId: string;
+        }
+      | undefined;
     switch (c.type) {
+      case 'set-bot-learning': {
+        host();
+        requireThat(this.learning, 'invalid-setting');
+        this.learning.update(c.options, this.learningPosition(learningBefore));
+        this.notify();
+        return { ok: true, revision: next.revision, branch: next.branch };
+      }
       case 'set-game-setup': {
         control();
         requireThat(next.status !== 'playing', 'not-in-lobby');
@@ -1106,6 +1238,7 @@ export class RoomCoordinator {
         };
         fresh.receipts[key] = { fingerprint, reply };
         this.commit(fresh, true, [], game, extras);
+        this.recordLearning(learningBefore);
         this.restored = false;
         return reply;
       }
@@ -1361,6 +1494,7 @@ export class RoomCoordinator {
           };
           fresh.receipts[key] = { fingerprint, reply };
           this.commit(fresh, true, [], this.game, { journal: [next] });
+          this.recordLearning(learningBefore);
           this.restored = false;
           return reply;
         }
@@ -1553,12 +1687,20 @@ export class RoomCoordinator {
             next.snapshot!.bots[observerSeat] = observedBot;
           }
         }
+        const checkpointId = randomUUID();
         next.history.push({
-          id: randomUUID(),
+          id: checkpointId,
           ...result.decision,
           before,
           seatId: c.type === 'game' ? seatId : null,
         });
+        if (c.type === 'game')
+          learningDecision = {
+            seat: seatId,
+            action,
+            decisionId: c.decisionId,
+            checkpointId,
+          };
         if (this.rules.ended(next.snapshot!.state)) {
           next.status = 'ended';
           next.endReason = '游戏完成';
@@ -1586,6 +1728,7 @@ export class RoomCoordinator {
       committedGame,
       image ? { avatars: [image] } : undefined,
     );
+    this.recordLearning(learningBefore, learningDecision);
     if (changedInstance || c.type === 'resume') this.restored = false;
     return reply;
   }

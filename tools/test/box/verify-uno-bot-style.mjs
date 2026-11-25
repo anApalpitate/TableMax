@@ -36,7 +36,7 @@ let options={};
 window.renderBox=(patch={})=>{options={...options,...patch};const o=options;
 const seats=Array.from({length:o.joining?0:(o.count??3)},(_,i)=>({id:'seat-'+i,name:o.long?(i%2?'Abcdefghijklmnop':'大家一起开心玩耍'):i===0?'小明':'朋友'+i,avatarId:AVATAR_PRESETS[i%AVATAR_PRESETS.length].id,ready:i===0?!!o.ready:true,online:i!==1,controller:i===2?'bot':'human',botDifficulty:i===2?(o.botSeatStyle??'default'):null}));
 const role=o.role??'player';
-const view={id:'fixture',name:'聚会牌桌',status:o.status??'lobby',joinOpen:!o.closed,playMode:'play',self:{role,seatId:role==='player'?(seats[0]?.id??null):null},seats,ownerSeatId:o.owner?'seat-0':null,paused:!!o.paused,lifecycleActions:o.status==='playing'?[{type:'next'}]:[],botError:null,gameView:o.status==='playing'||o.status==='ended'?{}:null,capabilities:{manage:false,manageSeats:false},game:{id:o.game??'uno',name:'UNO',min:2,max:o.capacity??6,...(o.botLevels?{botDifficulties:o.botLevels}:{})}};
+const view={id:'fixture',name:'聚会牌桌',status:o.status??'lobby',joinOpen:!o.closed,playMode:'play',...(o.botLearning?{botLearning:o.botLearning}:{}),self:{role,seatId:role==='player'?(seats[0]?.id??null):null},seats,ownerSeatId:o.owner?'seat-0':null,paused:!!o.paused,lifecycleActions:o.status==='playing'?[{type:'next'}]:[],botError:null,gameView:o.status==='playing'||o.status==='ended'?{}:null,capabilities:{manage:false,manageSeats:false},game:{id:o.game??'uno',name:'UNO',min:2,max:o.capacity??6,...(o.botLevels?{botDifficulties:o.botLevels}:{})}};
 const session={role,view,self:role!=='player'||o.joining?null:seats[0],isHost:role==='host',canControl:role==='host'||!!o.owner,canManageSeats:role==='host'||!!o.owner,locked:!!o.closed,busy:!!o.busy,connected:o.connected!==false,credential:o.joining?null:'fixture',name:'小明',message:o.message??'',messageKind:o.kind??'saved',errorId:'',admissionPending:!!o.pending,awaitingConfirmation:!!o.awaiting,admissionAvatarId:null,admissionAvatarImage:null,addresses:[],adapters:[],address:'',port:38473,networkMessage:'',externalJoinUrl:null,setAddress(){},refreshNetwork(){},async saveExternalJoinUrl(){return true},setName(){},join(){window.commands.push({type:'join'})},retry(){window.commands.push({type:'retry'})},retryAdmission(){window.commands.push({type:'retryAdmission'})},setPlayerCredential(){},command(c){window.commands.push(c)}};
 flushSync(()=>root.render(<BoxScreen session={session}/>));};window.renderBox();
 `,
@@ -103,11 +103,51 @@ try {
   report.checks.push(
     'UNO style is selectable only when advertised and resets across games',
   );
+  const botLearning = {
+    capture: null,
+    training: false,
+    defaultCapture: false,
+    captureEnabled: false,
+    captureState: 'off',
+  };
+  await render({ role: 'host', botLearning });
+  await page.getByRole('button', { name: '设置', exact: true }).click();
+  await page.getByRole('button', { name: '游戏', exact: true }).click();
+  const capture = page.getByRole('combobox', { name: '人机样本采集' });
+  assert.equal(await capture.inputValue(), 'default');
+  await capture.selectOption('on');
+  assert.deepEqual(await page.evaluate(() => window.commands.at(-1)), {
+    type: 'set-bot-learning',
+    options: { capture: true, training: false },
+  });
+  await render({
+    botLearning: {
+      ...botLearning,
+      capture: true,
+      captureEnabled: true,
+      captureState: 'ready',
+    },
+  });
+  await page.getByRole('switch', { name: '空闲训练偏好' }).click();
+  assert.deepEqual(await page.evaluate(() => window.commands.at(-1)), {
+    type: 'set-bot-learning',
+    options: { capture: true, training: true },
+  });
+  const learningScreenshot = join(output, 'host-learning-390.png');
+  await page.screenshot({ path: learningScreenshot });
+  report.screenshots.push(learningScreenshot);
+  await render({ role: 'player', owner: true, botLearning });
+  assert.equal(await capture.count(), 0);
+  report.checks.push(
+    'learning preferences are independent, host-only and visible at 390 CSS pixels',
+  );
   assert.deepEqual(report.errors, []);
   report.sources = {};
   for (const path of [
     'apps/web/src/screens/BoxScreen.tsx',
     'apps/web/src/content/bot-difficulty.ts',
+    'apps/web/src/components/BotLearningSettings.tsx',
+    'apps/web/src/components/CountdownSettings.tsx',
     'apps/web/src/components/RoomTable.tsx',
     'tools/test/box/verify-uno-bot-style.mjs',
   ])

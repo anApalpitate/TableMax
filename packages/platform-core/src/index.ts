@@ -4,6 +4,11 @@ export { BotScheduler } from './bot-scheduler';
 export { AutomaticScheduler } from './automatic-scheduler';
 export type { BotExecutor } from './bot-scheduler';
 export type { BotModelBinding, BotModelProvider } from './bot-model';
+export type {
+  BotLearningStore,
+  LearningPosition,
+  LearningEvent,
+} from './bot-learning';
 export { RandomSource } from './random';
 export type { Save, SaveRepository, SaveExtras } from './model';
 export { Rejection } from './errors';

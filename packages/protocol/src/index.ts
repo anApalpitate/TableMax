@@ -99,6 +99,20 @@ export const BotDifficultySchema = z.enum([
   'mischief',
 ]);
 export type BotDifficulty = z.infer<typeof BotDifficultySchema>;
+export const BotLearningOptionsSchema = z
+  .object({
+    capture: z.boolean().nullable(),
+    training: z.boolean(),
+  })
+  .strict();
+export type BotLearningOptions = z.infer<typeof BotLearningOptionsSchema>;
+export const BotLearningStatusSchema = BotLearningOptionsSchema.extend({
+  defaultCapture: z.boolean(),
+  captureEnabled: z.boolean(),
+  captureState: z.enum(['off', 'ready', 'quota', 'unavailable']),
+});
+export type BotLearningStatus = z.infer<typeof BotLearningStatusSchema>;
+
 export const CommandSchema = z
   .object({
     actionId: z.string().min(1).max(128),
@@ -114,6 +128,12 @@ export const CommandSchema = z
         .strict(),
       z
         .object({ type: z.literal('set-play-mode'), mode: PlayModeSchema })
+        .strict(),
+      z
+        .object({
+          type: z.literal('set-bot-learning'),
+          options: BotLearningOptionsSchema,
+        })
         .strict(),
       z.object({ type: z.literal('join-open'), open: z.boolean() }).strict(),
       z.object({ type: z.literal('ready'), ready: z.boolean() }).strict(),
@@ -380,6 +400,7 @@ export interface RoomView {
     variants?: { id: string; name: string; description: string }[] | undefined;
   }[];
   ownerSeatId: string | null;
+  botLearning?: BotLearningStatus | undefined;
   capabilities: {
     manage: boolean;
     control: boolean;
@@ -497,6 +518,7 @@ export const RoomViewSchema = z
         .strict(),
     ),
     ownerSeatId: z.string().nullable(),
+    botLearning: BotLearningStatusSchema.optional(),
     transferRequests: z
       .array(z.object(transferMetadata).strict())
       .max(32)

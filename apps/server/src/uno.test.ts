@@ -1,5 +1,11 @@
 import { expect, it, vi } from 'vitest';
-import { mkdirSync, mkdtempSync, writeFileSync } from 'node:fs';
+import {
+  existsSync,
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
+  writeFileSync,
+} from 'node:fs';
 import { join, resolve } from 'node:path';
 import { io, type Socket } from 'socket.io-client';
 import type { Command, CommandReply, RoomView } from '@tablemax/protocol';
@@ -10,6 +16,7 @@ import type { UnoView } from '../../../games/uno/types';
 import { createService } from './service';
 import { SqliteSaveRepository } from './save-repository';
 import { createGameRegistry } from './game-registry';
+import { LocalBotLearning } from './local-bot-learning';
 
 it('discovers UNO metadata and resolves matching independent rules and strategy versions', async () => {
   const registry = createGameRegistry();
@@ -42,8 +49,9 @@ function envelope(view: RoomView, command: Command['command']): Command {
   };
 }
 async function fixture(setup?: JsonValue) {
-  mkdirSync('tmp', { recursive: true });
-  const base = mkdtempSync(resolve('tmp/uno-service-'));
+  const temporaryRoot = resolve(process.env.TABLEMAX_TEST_TMP_ROOT ?? 'tmp');
+  mkdirSync(temporaryRoot, { recursive: true });
+  const base = mkdtempSync(join(temporaryRoot, 'uno-service-'));
   const webDir = join(base, 'web');
   mkdirSync(webDir);
   writeFileSync(join(webDir, 'index.html'), '<html>local</html>');
@@ -137,6 +145,7 @@ async function fixture(setup?: JsonValue) {
       players[i] = await connect(tokens[i]!);
   };
   return {
+    dataDir: config.dataDir,
     get service() {
       return service;
     },
@@ -428,3 +437,155 @@ it('UNO pregame transfer settings and catch grace are enforced over real Socket/
     date.mockRestore();
   }
 }, 60000);
+
+it('lets only the host opt into collecting durable authorized UNO decisions', async () => {
+  const f = await fixture();
+  const log = join(f.dataDir, 'learning', 'uno-decisions-v1.jsonl');
+  const preference = {
+    type: 'set-bot-learning',
+    options: { capture: true, training: false },
+  } as const;
+  const nextDecision = () => {
+    const actor = f.actor();
+    const view = f.service.room.view(actor.token);
+    const action = (view.actions.find(
+      (value) => (value as { type: string }).type === 'draw',
+    ) ?? view.actions[0]) as JsonValue;
+    return {
+      actor,
+      view,
+      command: envelope(view, {
+        type: 'game',
+        decisionId: view.decisionId!,
+        action,
+      }),
+    };
+  };
+  const records = () =>
+    readFileSync(log, 'utf8')
+      .trim()
+      .split('\n')
+      .map((line) => JSON.parse(line));
+  try {
+    expect(f.service.room.view().botLearning).toBeUndefined();
+    expect(f.service.room.view(f.service.hostToken).botLearning).toMatchObject({
+      capture: null,
+      defaultCapture: false,
+      captureEnabled: false,
+      training: false,
+    });
+    expect((await f.run(f.players[0]!, f.tokens[0]!, preference)).ok).toBe(
+      false,
+    );
+    const off = nextDecision();
+    expect((await f.send(off.actor.socket, off.command)).ok).toBe(true);
+    expect(existsSync(log)).toBe(false);
+    expect((await f.run(f.host, f.service.hostToken, preference)).ok).toBe(
+      true,
+    );
+    expect(f.service.room.view(f.tokens[0]!).botLearning).toBeUndefined();
+
+    const enabled = nextDecision();
+    const save = vi
+      .spyOn(SqliteSaveRepository.prototype, 'save')
+      .mockImplementationOnce(() => {
+        throw new Error('simulated disk failure');
+      });
+    expect((await f.send(enabled.actor.socket, enabled.command)).ok).toBe(
+      false,
+    );
+    expect(existsSync(log)).toBe(false);
+    save.mockRestore();
+
+    expect((await f.send(enabled.actor.socket, enabled.command)).ok).toBe(true);
+    expect((await f.send(enabled.actor.socket, enabled.command)).ok).toBe(true);
+    expect(records()).toHaveLength(1);
+    const first = records()[0];
+    expect(first).toMatchObject({
+      type: 'decision',
+      source: 'player-command',
+      firstForSessionMatch: true,
+      openedFrom: {
+        instanceId: enabled.view.instanceId,
+        revision: enabled.view.revision,
+      },
+      observation: game(enabled.view),
+    });
+    const bytes = readFileSync(log, 'utf8');
+    expect(bytes).not.toContain('"deck"');
+    expect(bytes).not.toContain('"hands"');
+    for (const token of [...f.tokens, f.service.hostToken])
+      expect(bytes).not.toContain(token);
+
+    expect(
+      (
+        await f.run(f.host, f.service.hostToken, {
+          type: 'rollback',
+          checkpointId: first.checkpointId,
+        })
+      ).ok,
+    ).toBe(true);
+    expect(records()[1]).toMatchObject({
+      type: 'rollback',
+      previousBranch: enabled.view.branch,
+      checkpointId: first.checkpointId,
+    });
+    expect(
+      (await f.run(f.host, f.service.hostToken, { type: 'resume' })).ok,
+    ).toBe(true);
+    expect(
+      (
+        await f.run(f.host, f.service.hostToken, {
+          type: 'set-bot-learning',
+          options: { capture: false, training: true },
+        })
+      ).ok,
+    ).toBe(true);
+    const disabled = nextDecision();
+    expect((await f.send(disabled.actor.socket, disabled.command)).ok).toBe(
+      true,
+    );
+    await f.restart();
+    expect(records()).toHaveLength(2);
+    expect(f.service.room.view(f.service.hostToken).botLearning).toMatchObject({
+      capture: false,
+      captureEnabled: false,
+      training: true,
+    });
+  } finally {
+    vi.restoreAllMocks();
+    await f.close();
+  }
+}, 60_000);
+
+it('uses a build-dependent default, respects explicit overrides and pauses a full sample log', () => {
+  const root = resolve(process.env.TABLEMAX_TEST_TMP_ROOT ?? 'tmp');
+  mkdirSync(root, { recursive: true });
+  const profile = mkdtempSync(join(root, 'uno-learning-quota-'));
+  new LocalBotLearning(profile, true).update(
+    { capture: false, training: false },
+    null,
+  );
+  expect(new LocalBotLearning(profile, true).status().captureState).toBe('off');
+  const recorder = new LocalBotLearning(profile, true, 8);
+  recorder.update({ capture: null, training: true }, null);
+  expect(recorder.status()).toMatchObject({
+    defaultCapture: true,
+    captureEnabled: true,
+  });
+  recorder.record({
+    type: 'abandoned',
+    instanceId: 'synthetic',
+    branch: 0,
+    revision: 1,
+    gameId: 'uno',
+    rulesVersion: 'fixture',
+  });
+  expect(recorder.status()).toMatchObject({
+    captureState: 'quota',
+    training: true,
+  });
+  expect(existsSync(join(profile, 'learning', 'uno-decisions-v1.jsonl'))).toBe(
+    false,
+  );
+});

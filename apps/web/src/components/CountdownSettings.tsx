@@ -10,6 +10,7 @@ import {
   VideoSettingsFields,
 } from './DisplaySettings';
 import { GameSetupSettings } from './GameSetupSettings';
+import { BotLearningSettings } from './BotLearningSettings';
 import {
   MenuIcon,
   PreferencesIcon,
@@ -108,10 +109,12 @@ export function Settings({
             </SettingLockHelp.Provider>
             {children}
             {localGamePreferences}
+            <BotLearningSettings session={session} />
             {!hasGameSetup &&
               !hasTimer &&
               !children &&
-              !localGamePreferences && <p>当前玩法没有可配置的游戏选项。</p>}
+              !localGamePreferences &&
+              !view?.botLearning && <p>当前玩法没有可配置的游戏选项。</p>}
           </section>
           <section
             className="settings-section"

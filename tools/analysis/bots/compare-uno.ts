@@ -97,6 +97,7 @@ const sourceSeeds = [
   calibration.holdoutSeeds,
   candidate.trainSeeds,
   candidate.tuneSeeds,
+  candidate.localCorpus?.seeds ?? [],
 ];
 if (sourceSeeds.some((group) => !Array.isArray(group)))
   throw new Error('The B/C reports must identify their source seeds');
