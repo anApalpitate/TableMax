@@ -43,11 +43,12 @@ const victims: Record<string, Kind> = {
   funeral: 'pharaoh',
 };
 
-function discardOptions(s: State): Extract<Action, { type: 'discard' }>[] {
-  const pending = s.disaster!;
-  const disasterId = pending.queue[0]!;
+export function discardChoices(
+  holdings: readonly string[],
+  disasterId: string,
+): Extract<Action, { type: 'discard' }>[] {
   const { face } = tile(disasterId);
-  const held = [...s.players[pending.owner]!.held].sort();
+  const held = [...holdings].sort();
   const make = (tileIds: string[]): Extract<Action, { type: 'discard' }> => ({
     type: 'discard',
     disasterId,
@@ -74,6 +75,11 @@ function discardOptions(s: State): Extract<Action, { type: 'discard' }>[] {
     ...(group.length >= 2 ? [make(group.slice(0, 2))] : []),
     ...groups.slice(index + 1).map((other) => make([group[0]!, other[0]!])),
   ]);
+}
+
+function discardOptions(s: State) {
+  const { owner, queue } = s.disaster!;
+  return discardChoices(s.players[owner]!.held, queue[0]!);
 }
 
 function godOptions(s: State, seat: string): Action[] {

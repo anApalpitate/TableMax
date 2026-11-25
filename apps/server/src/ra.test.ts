@@ -3,12 +3,14 @@ import { describe, expect, it } from 'vitest';
 import { mkdirSync, mkdtempSync, rmSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import type { Command } from '@tablemax/protocol';
-import { RoomCoordinator } from '@tablemax/platform-core';
+import { RoomCoordinator, type Save } from '@tablemax/platform-core';
 import { bot, rules } from '../../../games/ra';
 import { limits, tileIds } from '../../../games/ra/rules/data';
 import type { Action, RaView } from '../../../games/ra/rules';
 import type { State } from '../../../games/ra/rules/state';
+import { build } from 'esbuild';
 import { SqliteSaveRepository } from './save-repository';
+import { WorkerBotExecutor } from './bot-executor';
 
 function context(count: number) {
   let seed = 19;
@@ -43,6 +45,36 @@ const apply = (s: State, action: Action) =>
     random: { next: () => 0 },
   }).state;
 
+async function pickRa(state: State, difficulty: BotDifficulty) {
+  const decision = rules.decisions(state)[0]!;
+  const actions = rules.legalActions(state, decision.seatId);
+  const result = await bot.decide({
+    view: rules.project(state, { role: 'player', seatId: decision.seatId }),
+    actions,
+    decision,
+    memory: null,
+    difficulty,
+    random: { next: () => 0.5 },
+    signal: new AbortController().signal,
+  });
+  expect(actions).toContainEqual(result.action);
+  return result.action;
+}
+
+function leaderAuction() {
+  let s = arrange(rules.initialize(context(3)), ['flood-1'], {
+    b: ['nile-1', 'nile-2', 'nile-3', 'nile-4', 'nile-5'],
+  });
+  s.actor = 'a';
+  s.center = 3;
+  s.players.a!.up = [2, 8, 11, 12];
+  s.players.b!.up = [4, 5, 7, 9];
+  s.players.c!.up = [1, 6, 10, 13];
+  s = apply(s, { type: 'invokeRa' });
+  s = apply(s, { type: 'bid', disk: 7 });
+  return apply(s, { type: 'pass' });
+}
+
 describe('Ra retail third printing', () => {
   it('projects settlement effects without exposing hidden scores', () => {
     const closed = arrange(rules.initialize(context(2)), [], {}, ['ra-1']);
@@ -75,7 +107,7 @@ describe('Ra retail third printing', () => {
       let s = rules.initialize(ctx);
       expect(s.bag).toHaveLength(180);
       expect(rules.project(s, { role: 'public' }).limit).toBe(limits[n]);
-      const difficulties = ['default', 'doubao', 'juewu'] as const;
+      const difficulties = bot.difficulties!;
       for (let i = 0; i < 550 && !rules.ended(s); i++) {
         const decision = rules.decisions(s)[0]!;
         const actions = rules.legalActions(s, decision.seatId);
@@ -396,4 +428,232 @@ describe('Ra retail third printing', () => {
       rmSync(path, { recursive: true, force: true });
     }
   });
+});
+
+describe('Ra strategy styles', () => {
+  it('makes the god exchange depend on the authorized river set for Juewu', async () => {
+    const s = rules.initialize(context(3));
+    const start = arrange(s, ['gold-1', 'flood-1', 'pharaoh-1'], {
+      [s.actor!]: ['god-1', 'god-2', 'nile-1', 'nile-2', 'nile-3', 'nile-4'],
+    });
+    const state = apply(start, {
+      type: 'spendGod',
+      slot: 2,
+      tileId: 'pharaoh-1',
+      godId: 'god-1',
+    });
+    expect(state.phase).toBe('godChain');
+    expect(await pickRa(state, 'doubao')).toMatchObject({
+      type: 'spendGod',
+      tileId: 'gold-1',
+    });
+    expect(await pickRa(state, 'juewu')).toMatchObject({
+      type: 'spendGod',
+      tileId: 'flood-1',
+    });
+  });
+
+  it('considers the end-of-epoch risk before drawing a tile', async () => {
+    const s = arrange(rules.initialize(context(3)), ['gold-1', 'gold-2'], {});
+    expect(await pickRa(s, 'juewu')).toEqual({ type: 'draw' });
+    s.raDrawn = limits[3] - 1;
+    expect(await pickRa(s, 'doubao')).toEqual({ type: 'draw' });
+    expect(await pickRa(s, 'juewu')).toEqual({ type: 'invokeRa' });
+  });
+
+  it('preserves a monument set through an earthquake decision', async () => {
+    let s = rules.initialize(context(2));
+    const caller = s.actor!;
+    const rival = s.seats.find((seat) => seat !== caller)!;
+    s = arrange(s, ['earthquake-1'], {
+      [caller]: [
+        'sphinx-1',
+        'sphinx-2',
+        'sphinx-3',
+        'pyramid-1',
+        'pyramid-2',
+        'obelisk-1',
+        'obelisk-2',
+      ],
+    });
+    s = apply(s, { type: 'invokeRa' });
+    if (s.actor === rival) s = apply(s, { type: 'pass' });
+    if (s.phase === 'auction')
+      s = apply(s, { type: 'bid', disk: s.players[caller]!.up[0]! });
+    expect(s.phase).toBe('disaster');
+    const chosen = await pickRa(s, 'juewu');
+    expect(chosen).toMatchObject({
+      type: 'discard',
+      tileIds: ['obelisk-1', 'pyramid-1'],
+    });
+  });
+
+  it('takes the smallest disk that denies the visible leader a valuable flood', async () => {
+    const s = leaderAuction();
+    expect(s.actor).toBe('a');
+    expect(await pickRa(s, 'juewu')).toEqual({ type: 'pass' });
+    expect(await pickRa(s, 'mischief')).toEqual({ type: 'bid', disk: 8 });
+    const tied = structuredClone(s);
+    // Only the score-setting projection can disclose the earlier totals.
+    tied.epoch = 2;
+    for (const player of Object.values(tied.players)) {
+      const bonus = player === tied.players.a ? 15 : 0;
+      player.scores.push({
+        epoch: 1,
+        parts: {
+          pharaoh: 0,
+          god: 0,
+          gold: bonus,
+          river: 0,
+          civilization: 0,
+          monument: 0,
+          disks: 0,
+        },
+        total: 10 + bonus,
+        delta: bonus,
+      });
+    }
+    expect(await pickRa(tied, 'mischief')).toEqual({ type: 'bid', disk: 8 });
+    tied.publicScoring = true;
+    expect(await pickRa(tied, 'mischief')).toEqual({ type: 'pass' });
+  });
+
+  it('runs Mischief in the real Worker and resumes its SQLite state', async () => {
+    const taskRoot = resolve(
+      'tmp',
+      process.env.TABLEMAX_TASK_ID ?? 'ra-bot-rise-20261126',
+    );
+    mkdirSync(taskRoot, { recursive: true });
+    const output = mkdtempSync(join(taskRoot, 'ra-worker-'));
+    const workerPath = join(output, 'bot-worker.cjs');
+    const strategyPath = join(output, 'ra.cjs');
+    await Promise.all([
+      build({
+        entryPoints: ['apps/server/src/bot-worker.ts'],
+        outfile: workerPath,
+        bundle: true,
+        platform: 'node',
+        format: 'cjs',
+        target: 'node22',
+      }),
+      build({
+        entryPoints: ['games/ra/bot/index.ts'],
+        outfile: strategyPath,
+        bundle: true,
+        platform: 'node',
+        format: 'cjs',
+        target: 'node22',
+      }),
+    ]);
+    const seeded = {
+      ...rules,
+      initialize(ctx: Parameters<typeof rules.initialize>[0]) {
+        const s = rules.initialize(ctx);
+        s.raDrawn = limits[3] - 1;
+        return arrange(s, ['gold-1', 'gold-2'], {}, ['ra-1']);
+      },
+    };
+    let repository = new SqliteSaveRepository(output);
+    let room = new RoomCoordinator(seeded, bot, repository);
+    const host = async (command: Command['command']) => {
+      const { instanceId, revision, branch } = room.view(room.hostToken);
+      const result = await room.command(room.hostToken, {
+        actionId: crypto.randomUUID(),
+        instanceId,
+        revision,
+        branch,
+        command,
+      });
+      expect(result.ok).toBe(true);
+    };
+    try {
+      for (const name of ['甲', '乙', '丙'])
+        await host({
+          type: 'add-bot',
+          name: '电脑' + name,
+          difficulty: 'mischief',
+        });
+      await host({ type: 'start' });
+      const task = room.botTask()!;
+      const worker = new WorkerBotExecutor(workerPath, () => strategyPath);
+      expect(room.view().game?.botDifficulties).toContain('mischief');
+      expect(
+        (task.view as RaView).players.filter(
+          ({ private: details }) => details !== null,
+        ),
+      ).toHaveLength(1);
+      const start = performance.now();
+      const result = await worker.execute(task, AbortSignal.timeout(2000));
+      expect(performance.now() - start).toBeLessThan(2000);
+      expect(result.action).toEqual({ type: 'invokeRa' });
+      expect(
+        (
+          await room.submitBot(
+            task,
+            result.action,
+            result.memory,
+            result.random,
+          )
+        ).ok,
+      ).toBe(true);
+      await host({
+        type: 'rollback',
+        checkpointId: room.view(room.hostToken).history[0]!.id,
+      });
+      repository.close();
+      repository = new SqliteSaveRepository(output);
+      room = new RoomCoordinator(seeded, bot, repository, room.hostToken);
+      expect(room.view()).toMatchObject({ restored: true, paused: true });
+      expect(Object.values((repository.load() as Save).snapshot!.bots)).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({ difficulty: 'mischief', version: '1.1.0' }),
+        ]),
+      );
+      await host({ type: 'resume' });
+      const repeated = await worker.execute(
+        room.botTask()!,
+        AbortSignal.timeout(2000),
+      );
+      expect(repeated).toEqual(result);
+
+      const dense = rules.initialize(context(3));
+      const denseActor = dense.actor!;
+      arrange(
+        dense,
+        [
+          'war-1',
+          'war-2',
+          'war-3',
+          'war-4',
+          'earthquake-1',
+          'earthquake-2',
+          'funeral-1',
+          'drought-1',
+        ],
+        {
+          [denseActor]: tileIds.filter((id) =>
+            /^(god|art|religion|writing|agriculture|astronomy|sphinx|pyramid|obelisk|statue|mortuary|shrine|temple|step-pyramid|nile|flood|pharaoh)-[1-3]$/.test(
+              id,
+            ),
+          ),
+        },
+      );
+      const denseTask = {
+        ...task,
+        decision: rules.decisions(dense)[0]!,
+        actions: rules.legalActions(dense, denseActor),
+        view: rules.project(dense, { role: 'player', seatId: denseActor }),
+      };
+      expect(denseTask.actions.length).toBeGreaterThan(20);
+      const denseStart = performance.now();
+      const denseResult = await worker.execute(
+        denseTask,
+        AbortSignal.timeout(2000),
+      );
+      expect(performance.now() - denseStart).toBeLessThan(2000);
+      expect(denseTask.actions).toContainEqual(denseResult.action);
+    } finally {
+      repository.close();
+    }
+  }, 15000);
 });

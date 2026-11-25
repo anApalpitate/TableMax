@@ -10,12 +10,13 @@
   "catalog": { "id": "ra", "name": "太阳神", "min": 2, "max": 5 },
   "compatibility": {
     "sdk": 1,
-    "protocol": 7,
+    "protocol": 8,
+    "requiredCapabilities": ["bot-play-styles"],
     "webHost": 1,
     "rulesVersion": "25cg-retail3-base-v1",
     "stateVersion": 1,
     "gameVersion": "1.0.0",
-    "strategyVersion": "1.0.0"
+    "strategyVersion": "1.1.0"
   },
   "entries": {
     "rules": "games/ra/rules/index.ts",
@@ -23,6 +24,20 @@
     "web": "games/ra/web/index.tsx"
   },
   "cover": "assets/games/ra/cover-v1.webp",
+  "botIntroduction": {
+    "default": {
+      "lead": "在合法选项中尝试不同做法。",
+      "details": ["有竞争时通常先抽取空行，竞拍中会尝试不同面值。"]
+    },
+    "doubao": {
+      "lead": "根据这一行拍品和眼前圆盘成本决定是否出价。",
+      "details": ["文明重复时压低估值，给能补齐文明的拍品更高优先级。"]
+    },
+    "juewu": {
+      "lead": "兼顾套组、灾难损失和时代结束前的圆盘机会。",
+      "details": ["看对手还有哪些可用盘，再决定保留高盘还是锁定当前拍品。"]
+    }
+  },
   "budgets": {
     "payloadBytes": 8388608,
     "serviceHeapBytes": 67108864,
