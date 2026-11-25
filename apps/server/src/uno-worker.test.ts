@@ -58,6 +58,21 @@ class MemoryRepository implements SaveRepository {
     this.value = structuredClone(value);
   }
 }
+async function hostCommand(room: RoomCoordinator, command: Command['command']) {
+  const { instanceId, revision, branch } = room.view(room.hostToken);
+  expect(
+    (
+      await room.command(room.hostToken, {
+        actionId: crypto.randomUUID(),
+        instanceId,
+        revision,
+        branch,
+        command,
+      })
+    ).ok,
+  ).toBe(true);
+}
+
 async function fixture(
   count: number,
   difficulty: BotDifficulty,
@@ -72,23 +87,13 @@ async function fixture(
     bot,
     repository,
   );
-  const host = async (command: Command['command']) => {
-    const view = room.view(room.hostToken);
-    expect(
-      (
-        await room.command(room.hostToken, {
-          actionId: crypto.randomUUID(),
-          instanceId: view.instanceId,
-          revision: view.revision,
-          branch: view.branch,
-          command,
-        })
-      ).ok,
-    ).toBe(true);
-  };
   for (let i = 0; i < count; i++)
-    await host({ type: 'add-bot', name: `UNO电脑${i + 1}`, difficulty });
-  await host({ type: 'start' });
+    await hostCommand(room, {
+      type: 'add-bot',
+      name: `UNO电脑${i + 1}`,
+      difficulty,
+    });
+  await hostCommand(room, { type: 'start' });
   return room;
 }
 for (const count of [2, 4, 6])
@@ -161,6 +166,63 @@ it('persists the UNO style and restores it in the same strategy release', async 
   ).toEqual(Array.from({ length: 4 }, () => ['mischief', '1.1.0']));
 });
 
+it.each([
+  { seats: 2, drawPenaltyStacking: true, catchUnoDelayMs: 500 },
+  { seats: 4, drawPenaltyStacking: false, catchUnoDelayMs: 500 },
+  { seats: 4, drawPenaltyStacking: true, catchUnoDelayMs: 1000 },
+  { seats: 6, drawPenaltyStacking: true, catchUnoDelayMs: 500 },
+])(
+  'keeps the heuristic Worker for an out-of-scope match %j',
+  async ({ seats, ...setup }) => {
+    const registry = new GameRegistry([
+      {
+        catalog: { id: 'uno', name: 'UNO', min: 2, max: 6 },
+        load: async () => ({ rules, bot, releaseRef: '6'.repeat(64) }),
+      },
+    ]);
+    const repository = new MemoryRepository();
+    const room = await RoomCoordinator.open(
+      registry,
+      repository,
+      undefined,
+      undefined,
+      'uno',
+      {
+        active: () => {
+          throw new Error('Out-of-scope match queried the active model');
+        },
+        load: () => {
+          throw new Error('Out-of-scope match loaded a model');
+        },
+      },
+    );
+    await hostCommand(room, { type: 'set-game-setup', setup });
+    for (let i = 0; i < seats; i++)
+      await hostCommand(room, {
+        type: 'add-bot',
+        name: `UNO电脑${i + 1}`,
+        difficulty: 'juewu',
+      });
+    await hostCommand(room, { type: 'start' });
+    const task = room.botTask()!;
+    expect(task.data.modelRef).toBeUndefined();
+    expect(room.botModelData(task.data)).toBeUndefined();
+    expect(
+      Object.values(repository.value!.snapshot!.bots).every(
+        ({ modelRef }) => modelRef === undefined,
+      ),
+    ).toBe(true);
+    const result = await new WorkerBotExecutor(workerPath).execute(
+      task,
+      new AbortController().signal,
+    );
+    expect(
+      (await room.submitBot(task, result.action, result.memory, result.random))
+        .ok,
+    ).toBe(true);
+  },
+);
+
 it('pins the validated local model through the real Worker, rollback, and recovery', async () => {
   const releaseRef = '6'.repeat(64);
   const registry = new GameRegistry([
@@ -214,23 +276,9 @@ it('pins the validated local model through the real Worker, rollback, and recove
     'uno',
     store,
   );
-  const host = async (command: Command['command']) => {
-    const { instanceId, revision, branch } = room.view(room.hostToken);
-    expect(
-      (
-        await room.command(room.hostToken, {
-          actionId: crypto.randomUUID(),
-          instanceId,
-          revision,
-          branch,
-          command,
-        })
-      ).ok,
-    ).toBe(true);
-  };
   for (const name of ['电脑甲', '电脑乙', '电脑丙', '电脑丁'])
-    await host({ type: 'add-bot', name, difficulty: 'juewu' });
-  await host({ type: 'start' });
+    await hostCommand(room, { type: 'add-bot', name, difficulty: 'juewu' });
+  await hostCommand(room, { type: 'start' });
   const task = room.botTask()!;
   expect(task.data.modelRef).toBe(ref);
   expect(JSON.stringify(room.view(room.hostToken))).not.toContain(ref);
@@ -251,7 +299,7 @@ it('pins the validated local model through the real Worker, rollback, and recove
     (await room.submitBot(task, result.action, result.memory, result.random))
       .ok,
   ).toBe(true);
-  await host({
+  await hostCommand(room, {
     type: 'rollback',
     checkpointId: room.view(room.hostToken).history[0]!.id,
   });

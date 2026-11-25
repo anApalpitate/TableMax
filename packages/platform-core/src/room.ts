@@ -1384,8 +1384,9 @@ export class RoomCoordinator {
           if (committedGame.releaseRef === undefined) delete next.releaseRef;
           else next.releaseRef = committedGame.releaseRef;
         }
-        const activeRules = committedGame!.rules,
-          activeStrategy = committedGame!.bot;
+        const activeGame = committedGame!;
+        const activeRules = activeGame.rules,
+          activeStrategy = activeGame.bot;
         requireThat(
           next.seats.length >= activeRules.manifest.players.min &&
             next.seats.every((s) => s.ready),
@@ -1409,17 +1410,22 @@ export class RoomCoordinator {
           NonNullable<BotData['difficulty']>,
           string | undefined
         >();
+        const supportsModel =
+          activeStrategy.model?.supportsMatch?.(next.seats.length, setup) ??
+          true;
         for (const seat of next.seats.filter(
           (seat) => seat.controller === 'bot',
         )) {
           const difficulty = seat.botDifficulty ?? 'default';
           if (selectedModels.has(difficulty)) continue;
-          const binding = botModelBinding(this.game, difficulty);
+          const binding = supportsModel
+            ? botModelBinding(activeGame, difficulty)
+            : undefined;
           const modelRef = binding
             ? this.botModels?.active(binding)
             : undefined;
           if (modelRef !== undefined) {
-            resolveBotModel(this.botModels, this.game, {
+            resolveBotModel(this.botModels, activeGame, {
               id: activeStrategy.id,
               version: activeStrategy.version,
               difficulty,

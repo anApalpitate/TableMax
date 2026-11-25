@@ -1,11 +1,13 @@
 import { createHash } from 'node:crypto';
-import { readFileSync } from 'node:fs';
+import { lstatSync, readFileSync, readdirSync, realpathSync } from 'node:fs';
+import { isAbsolute, relative, sep } from 'node:path';
 import { parseArgs, isDeepStrictEqual } from 'node:util';
 import { createGameRegistry } from '../../../apps/server/src/game-registry';
 import { PackageStore } from '../../../apps/server/src/game-packages/store';
 import { PROJECT_GAME_PUBLIC_KEY } from '../../../apps/server/src/game-packages/project-public-key';
 import { LocalBotModels } from '../../../apps/server/src/local-bot-models';
 import { botModelBinding } from '../../../packages/platform-core/src/bot-model';
+import { isCurrentUnoPilot, unoPilotEvidence } from './uno-pilot';
 import {
   summarizeUnoComparison,
   unoComparisonDecision,
@@ -14,7 +16,8 @@ import {
 const { values } = parseArgs({
   options: {
     'data-dir': { type: 'string' },
-    'games-dir': { type: 'string' },
+    'preinstalled-dir': { type: 'string' },
+    'verification-dir': { type: 'string' },
     calibration: { type: 'string' },
     correction: { type: 'string' },
     comparison: { type: 'string' },
@@ -29,8 +32,10 @@ if (values.deactivate) {
   models.deactivate(values.deactivate);
   console.log(JSON.stringify({ deactivated: values.deactivate }));
 } else {
-  if (!values['games-dir'])
-    throw new Error('Specify the signed installed game store');
+  if (!values['preinstalled-dir'] || !values['verification-dir'])
+    throw new Error(
+      'Specify the preinstalled-games payload from the intended executable and an empty verification directory',
+    );
   const sha = (bytes: string | Buffer) =>
     createHash('sha256').update(bytes).digest('hex');
   function report(path: string | undefined) {
@@ -51,6 +56,9 @@ if (values.deactivate) {
   const seed = comparison.value.plan?.bootstrapSeed;
   const samples = calibration.value.options?.hypotheses;
   if (
+    ![calibration, correction, comparison, runtime].every(({ value }) =>
+      isCurrentUnoPilot(value?.pilot),
+    ) ||
     calibration.value.type !== 'uno-calibration-development' ||
     calibration.value.evaluation !== 'meets-measured-gates' ||
     calibration.value.calibrationDigest !== leafDigest ||
@@ -89,26 +97,10 @@ if (values.deactivate) {
       'The declared acceptance does not match the paired block results',
     );
 
-  const packages = new PackageStore({
-    root: values['games-dir'],
-    publicKey: PROJECT_GAME_PUBLIC_KEY,
-  });
-  const installed = packages.current('uno');
-  if (!installed || !packages.resolveModule(installed.releaseId))
-    throw new Error('The current signed UNO release is not available');
-  const game = await createGameRegistry(false, packages).load(
-    'uno',
-    undefined,
-    installed.releaseId,
-  );
-  const binding = botModelBinding(game, 'juewu');
-  if (!binding || !game.bot.model)
-    throw new Error('The current signed UNO release cannot pin a local model');
   const proof = runtime.value;
   if (
     proof?.type !== 'uno-model-worker-acceptance' ||
     proof.result !== 'passed' ||
-    !isDeepStrictEqual(proof.binding, binding) ||
     proof.calibrationDigest !== leafDigest ||
     proof.candidateDigest !== candidateDigest ||
     proof.workerOldGenerationMiB !== 32 ||
@@ -118,7 +110,65 @@ if (values.deactivate) {
     proof.failures !== 0 ||
     proof.restart !== 'passed' ||
     proof.rollback !== 'passed' ||
-    proof.keyPositions !== 'passed'
+    proof.keyPositions !== 'passed' ||
+    !/^[a-f0-9]{64}$/.test(proof.preinstalledMappingSha256)
+  )
+    throw new Error(
+      'The Worker, recovery and key-position evidence did not pass',
+    );
+
+  const dataDir = realpathSync(values['data-dir']);
+  const preinstalled = realpathSync(values['preinstalled-dir']);
+  const scratch = realpathSync(values['verification-dir']);
+  const contains = (parent: string, child: string) => {
+    const path = relative(parent, child);
+    return (
+      path === '' ||
+      (!isAbsolute(path) && path !== '..' && !path.startsWith('..' + sep))
+    );
+  };
+  if (
+    lstatSync(values['verification-dir']).isSymbolicLink() ||
+    [dataDir, preinstalled].some(
+      (directory) =>
+        contains(directory, scratch) || contains(scratch, directory),
+    ) ||
+    readdirSync(scratch).length
+  )
+    throw new Error('The verification directory must be empty and isolated');
+  const packages = new PackageStore({
+    root: scratch,
+    publicKey: PROJECT_GAME_PUBLIC_KEY,
+    protectedReleaseIds: () => [],
+  });
+  await packages.importPreinstalled(preinstalled);
+  const installed = packages.current('uno');
+  if (!installed || !packages.resolveModule(installed.releaseId))
+    throw new Error('The current signed UNO release is not available');
+  const game = await createGameRegistry(false, packages).load(
+    'uno',
+    undefined,
+    installed.releaseId,
+  );
+  const binding = botModelBinding(game, 'juewu');
+  if (
+    !binding ||
+    binding.rulesVersion !== unoPilotEvidence.rulesVersion ||
+    binding.strategyId !== unoPilotEvidence.strategyId ||
+    binding.strategyVersion !== unoPilotEvidence.strategyVersion ||
+    game.rules.manifest.gameVersion !== unoPilotEvidence.gameVersion ||
+    game.rules.manifest.stateVersion !== unoPilotEvidence.stateVersion ||
+    !game.bot.model?.supportsMatch?.(
+      unoPilotEvidence.seatCount,
+      unoPilotEvidence.setup,
+    )
+  )
+    throw new Error(
+      'The current signed UNO release does not match the reviewed pilot',
+    );
+  if (
+    !isDeepStrictEqual(proof.binding, binding) ||
+    proof.preinstalledMappingSha256 !== packages.currentMappingSha256
   )
     throw new Error(
       'The Worker, recovery and key-position evidence does not approve this binding',

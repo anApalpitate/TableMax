@@ -24,6 +24,7 @@ import { RandomSource } from '../../../packages/platform-core/src/random';
 import { fitModel, type WeightedExample } from './fit';
 import { collectUnoResidualExamples } from './uno-residual-labels';
 import { readUnoLearningCorpus } from './local-uno-corpus';
+import { isCurrentUnoPilot, unoPilotEvidence } from './uno-pilot';
 import { openTrainingCheckpoint } from './training-checkpoint';
 import { bot } from '../../../games/uno/bot/index';
 import {
@@ -87,6 +88,7 @@ const report = JSON.parse(readFileSync(values.calibration, 'utf8'));
 const hypotheses = report?.options?.hypotheses;
 if (
   report?.type !== 'uno-calibration-development' ||
+  !isCurrentUnoPilot(report.pilot) ||
   report?.evaluation !== 'meets-measured-gates' ||
   !Array.isArray(report.trainSeeds) ||
   !Array.isArray(report.holdoutSeeds) ||
@@ -414,6 +416,7 @@ console.log(
   JSON.stringify(
     {
       type: 'uno-residual-candidate',
+      pilot: unoPilotEvidence,
       calibrationDigest,
       trainSeeds,
       tuneSeeds,

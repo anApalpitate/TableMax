@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { spawn } from 'node:child_process';
+import { spawn, spawnSync } from 'node:child_process';
 import { createHash, randomUUID } from 'node:crypto';
 import {
   existsSync,
@@ -103,46 +103,74 @@ const calibration = {
   features,
   coefficients: features.map(() => 0),
 };
+const compatibility = JSON.parse(
+  readFileSync('games/uno/game-module.json', 'utf8'),
+).compatibility;
 const supplied = join(profile, 'fixture-calibration.json');
+const currentReport = {
+  type: 'uno-calibration-development',
+  pilot: {
+    seatCount: 4,
+    setup: { drawPenaltyStacking: true, catchUnoDelayMs: 500 },
+    gameVersion: compatibility.gameVersion,
+    rulesVersion: compatibility.rulesVersion,
+    stateVersion: compatibility.stateVersion,
+    strategyId: 'uno-local',
+    strategyVersion: compatibility.strategyVersion,
+  },
+  evaluation: 'meets-measured-gates',
+  calibration,
+  calibrationDigest: createHash('sha256')
+    .update(JSON.stringify(calibration))
+    .digest('hex'),
+  trainSeeds: [41],
+  holdoutSeeds: [42],
+  options: { hypotheses: 8 },
+};
+writeFileSync(supplied, JSON.stringify(currentReport));
+const wrongScope = join(profile, 'other-configuration.json');
 writeFileSync(
-  supplied,
+  wrongScope,
   JSON.stringify({
-    type: 'uno-calibration-development',
-    evaluation: 'meets-measured-gates',
-    calibration,
-    calibrationDigest: createHash('sha256')
-      .update(JSON.stringify(calibration))
-      .digest('hex'),
-    trainSeeds: [41],
-    holdoutSeeds: [42],
-    options: { hypotheses: 8 },
+    ...currentReport,
+    pilot: { ...currentReport.pilot, seatCount: 2 },
   }),
 );
+const argumentsFor = (calibrationPath) => [
+  '--import',
+  'tsx',
+  'tools/analysis/bots/watch-uno-training.ts',
+  '--data-dir',
+  profile,
+  '--job',
+  'fixture',
+  '--calibration',
+  calibrationPath,
+  '--train-seeds',
+  '1041,1042',
+  '--tune-seeds',
+  '3041,3042',
+  '--roots',
+  '1',
+  '--continuations',
+  '1',
+];
+const denied = spawnSync(process.execPath, argumentsFor(wrongScope), {
+  encoding: 'utf8',
+  timeout: 5000,
+  windowsHide: true,
+});
+assert.ifError(denied.error);
+assert.equal(denied.status, 1);
+assert.match(denied.stderr, /does not match the current UNO pilot/);
+assert.equal(existsSync(checkpoint), false);
+
 writeLease();
 const heartbeat = setInterval(writeLease, 300);
-const child = spawn(
-  process.execPath,
-  [
-    '--import',
-    'tsx',
-    'tools/analysis/bots/watch-uno-training.ts',
-    '--data-dir',
-    profile,
-    '--job',
-    'fixture',
-    '--calibration',
-    supplied,
-    '--train-seeds',
-    '1041,1042',
-    '--tune-seeds',
-    '3041,3042',
-    '--roots',
-    '1',
-    '--continuations',
-    '1',
-  ],
-  { windowsHide: true, stdio: ['ignore', 'pipe', 'pipe'] },
-);
+const child = spawn(process.execPath, argumentsFor(supplied), {
+  windowsHide: true,
+  stdio: ['ignore', 'pipe', 'pipe'],
+});
 let diagnostic = '';
 child.stdout.on('data', (chunk) => {
   diagnostic = (diagnostic + chunk.toString()).slice(-8192);
@@ -154,7 +182,11 @@ const closed = new Promise((resolve, reject) => {
   child.once('error', reject);
   child.once('close', resolve);
 });
-const report = { fixture: true, checks: [], result: 'failed' };
+const report = {
+  fixture: true,
+  checks: ['Rejected a B report for a different match configuration'],
+  result: 'failed',
+};
 try {
   await delay(1200);
   assert.equal(existsSync(checkpoint), false);

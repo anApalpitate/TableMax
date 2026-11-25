@@ -12,6 +12,11 @@ export const legacyUnoSetup: Readonly<UnoSetup> = Object.freeze({
   catchUnoDelayMs: 0,
 });
 
+export const unoPilotMatch = Object.freeze({
+  seatCount: 4,
+  setup: Object.freeze({ drawPenaltyStacking: true, catchUnoDelayMs: 500 }),
+});
+
 export function validateUnoSetup(input: unknown): UnoSetup {
   const value = input as UnoSetup;
   if (

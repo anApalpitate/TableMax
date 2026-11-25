@@ -136,6 +136,8 @@ export interface BotStrategy {
   /** Optional, data-only model accepted by this exact strategy release. */
   model?: {
     difficulties: readonly BotDifficulty[];
+    /** Applies at the start of a new match. Existing model pins stay immutable. */
+    supportsMatch?(seatCount: number, setup: JsonValue | undefined): boolean;
     validate(input: unknown): JsonValue;
   };
   validateMemory(input: unknown): JsonValue;

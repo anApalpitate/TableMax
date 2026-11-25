@@ -1,5 +1,6 @@
 import type { BotDifficulty, BotStrategy, JsonValue } from '@tablemax/game-sdk';
 import { CARD_IDS, getCard, RULES_VERSION } from '../data/catalog';
+import { unoPilotMatch, type UnoSetup } from '../config';
 import { leadingRival, pressureOnLeader } from './mischief';
 import { searchUnoPlays } from './search';
 import { unoCorrectedBest, unoSearchBest } from './correction';
@@ -329,7 +330,19 @@ export const bot: BotStrategy = {
   gameId: 'uno',
   rulesVersion: RULES_VERSION,
   difficulties: ['default', 'doubao', 'juewu', 'mischief'],
-  model: { difficulties: ['juewu'], validate: validateUnoRuntimeModel },
+  model: {
+    difficulties: ['juewu'],
+    supportsMatch(seatCount, setup) {
+      const options = setup as UnoSetup | undefined;
+      return (
+        seatCount === unoPilotMatch.seatCount &&
+        options?.drawPenaltyStacking ===
+          unoPilotMatch.setup.drawPenaltyStacking &&
+        options?.catchUnoDelayMs === unoPilotMatch.setup.catchUnoDelayMs
+      );
+    },
+    validate: validateUnoRuntimeModel,
+  },
   validateMemory: (input) => validMemory(input) as JsonValue,
   observe({ view, memory, seatId, difficulty }) {
     const projection = view as UnoView;

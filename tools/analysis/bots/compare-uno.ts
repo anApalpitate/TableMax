@@ -4,6 +4,7 @@ import { parseArgs } from 'node:util';
 import type { BotStrategy } from '../../../packages/game-sdk/src/index';
 import { bot, rules } from '../../../games/uno';
 import { createUnoSearchStrategy } from '../../../games/uno/bot/search-strategy';
+import { isCurrentUnoPilot, unoPilotEvidence } from './uno-pilot';
 import { evaluateBotMatch } from './evaluate';
 import {
   completeUnoBlock,
@@ -84,6 +85,8 @@ if (
   calibration?.type !== 'uno-calibration-development' ||
   calibration?.evaluation !== 'meets-measured-gates' ||
   candidate?.type !== 'uno-residual-candidate' ||
+  !isCurrentUnoPilot(calibration.pilot) ||
+  !isCurrentUnoPilot(candidate?.pilot) ||
   !(candidate?.model?.weight > 0)
 )
   throw new Error(
@@ -139,6 +142,7 @@ const planDigest = hash({
   candidateDigest,
   rules: rules.manifest,
   reference: bot.version,
+  pilot: unoPilotEvidence,
 });
 interface Previous {
   planDigest: string;
@@ -219,7 +223,7 @@ for (const { pool, seed, ordinal } of selected) {
       });
       try {
         const result = await evaluateBotMatch(
-          { rules, seats, seed },
+          { rules, seats, seed, setup: unoPilotEvidence.setup },
           { maxSteps: plan.maxSteps },
         );
         const winners = (result.publicResult as { winners?: unknown })?.winners;
@@ -269,6 +273,7 @@ console.log(
   JSON.stringify(
     {
       type: 'uno-abc-acceptance',
+      pilot: unoPilotEvidence,
       stage,
       planDigest,
       plan,

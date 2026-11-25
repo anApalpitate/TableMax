@@ -7,7 +7,6 @@ import {
 } from '../../../games/uno/bot/calibration';
 import { createUnoSearchStrategy } from '../../../games/uno/bot/search-strategy';
 import type { UnoView } from '../../../games/uno/types';
-import { rules } from '../../../games/uno/rules';
 import { RandomSource } from '../../../packages/platform-core/src/random';
 import {
   fitModel,
@@ -23,6 +22,8 @@ import {
   type UnoLeafLabel,
   type UnoSampleOptions,
 } from './uno-samples';
+
+import { unoPilotEvidence } from './uno-pilot';
 
 interface EvaluatedLeaf extends UnoLeafLabel {
   seed: number;
@@ -370,7 +371,8 @@ console.log(
     {
       type: 'uno-calibration-development',
       revision: 1,
-      setup: rules.setup!.defaults,
+      pilot: unoPilotEvidence,
+      setup: unoPilotEvidence.setup,
       rootPolicy,
       trainSeeds,
       holdoutSeeds,

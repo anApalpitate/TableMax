@@ -39,6 +39,7 @@ function playableRoots(
       view.self.hand.length < 2 ||
       view.turnSeat !== view.self.seatId ||
       !Array.isArray(view.seatOrder) ||
+      !bot.model?.supportsMatch?.(view.seatOrder.length, view.setup) ||
       view.seatOrder[row.seat] !== view.self.seatId ||
       !Array.isArray(row.actions)
     )

@@ -9,6 +9,7 @@ import {
   continueUnoHypothesis,
   searchUnoPlays,
 } from '../../../games/uno/bot/search';
+import { unoPilotMatch } from '../../../games/uno/config';
 import { rules, project } from '../../../games/uno/rules';
 import type { Action, UnoView } from '../../../games/uno/types';
 import { evaluateBotMatch } from './evaluate';
@@ -96,7 +97,7 @@ export async function collectUnoRoots(
     },
   };
   const opponents: readonly BotDifficulty[] = ['default', 'doubao', 'juewu'];
-  const seats = Array.from({ length: 4 }, (_, index) => {
+  const seats = Array.from({ length: unoPilotMatch.seatCount }, (_, index) => {
     const offset = (index + 4 - (seed % 4)) % 4;
     return {
       id: `seat-${index + 1}`,
@@ -106,7 +107,7 @@ export async function collectUnoRoots(
     };
   });
   const match = await evaluateBotMatch(
-    { rules, seats, seed },
+    { rules, seats, seed, setup: unoPilotMatch.setup },
     {
       maxSteps: options.maxSteps,
       ...(checkpoint ? { onStep: checkpoint } : {}),

@@ -23,6 +23,8 @@ import {
   writeTrainingControl,
 } from '../../../packages/platform-core/src/training-lease';
 
+import { isCurrentUnoPilot } from './uno-pilot';
+
 const { values } = parseArgs({
   options: {
     'data-dir': { type: 'string' },
@@ -100,6 +102,8 @@ if (
   throw new Error(
     'The watcher requires a B calibration report meeting the measured gates',
   );
+if (!isCurrentUnoPilot(accepted.pilot))
+  throw new Error('The B report does not match the current UNO pilot');
 
 const seedList = (value: string) => {
   const seeds = value.split(',').map(Number);
@@ -234,6 +238,7 @@ try {
         );
         if (
           candidate?.type !== 'uno-residual-candidate' ||
+          !isCurrentUnoPilot(candidate.pilot) ||
           candidate.calibrationDigest !== accepted.calibrationDigest
         )
           throw new Error(
@@ -317,6 +322,7 @@ try {
     }
     if (
       result?.type !== 'uno-residual-candidate' ||
+      !isCurrentUnoPilot(result.pilot) ||
       result.calibrationDigest !== accepted.calibrationDigest
     )
       throw new Error('Worker returned invalid candidate output');
