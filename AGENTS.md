@@ -4,7 +4,7 @@ Windows 全数字桌游平台。电脑管理兼展示，真人使用玩家端，
 
 ## 最小阅读
 
-先查 Git 状态和任务 diff，明确范围与完成标准。同文件仅一名负责人，保留其他改动。已注入且未变的入口只补 diff。按[任务入口](docs/README.md#开始开发)读取所需章节，默认 8 KiB，MORE 按游标续读。归档仅用于追溯，生成物只查已知证据。
+先查 Git 状态和任务 diff，明确范围与完成标准。文档提效试点按[验收入口](docs/reference/validation.md#按变更范围选择检查)在首次查阅前锁定采样。同文件仅一名负责人，保留其他改动。已注入且未变的入口只补 diff。按[任务入口](docs/README.md#开始开发)读取所需章节，默认 8 KiB，MORE 按游标续读。归档仅用于追溯，生成物只查已知证据。
 
 - 游戏规则、版本、秘密、人机与验证查[游戏索引](docs/games/README.md)，模块接入查[扩展指南](docs/reference/game-development.md)。
 - UI／声画先查[用户偏好](docs/reference/art-preferences.md#agent-使用入口)和[通用视觉](docs/reference/visual-design.md)，再查[盒子](docs/reference/box-visual-design.md)或游戏。手机横屏门禁直接查[通用正文](docs/reference/visual-design.md#手机仅竖屏与横屏提示2026-10-28)。
