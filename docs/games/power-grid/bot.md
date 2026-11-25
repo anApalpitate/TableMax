@@ -46,4 +46,8 @@
 
 原三档的 45 场规则对局覆盖 2～6 人、各三个种子。现有测试已接入四种风格，检查每步合法性、状态恢复、库存守恒及 1500 毫秒计算预算。捣蛋王的三个固定局面已复验通过，分别覆盖竞价上限与隐藏现金、两种都需要的燃料和最后建城空位。真实 Worker 完成竞价，回退并重开 SQLite 后复现同一决策。[固定局面](../../../artifacts/maintenance/test-history/runs/e41da966-2472-4474-a315-342a9c07b51f/results.json) · [真实 Worker 与回环服务](../../../artifacts/maintenance/test-history/runs/4fc5921b-1043-49f7-90c7-a467bb271316/results.json)
 
+开发换座完成 24 个配对，5 对出现实际动作差异，焦点席各胜 1 场，捣蛋王平均多供电 0.5 城。历史签名 `1.0.1` 用原 Worker 回退、重开后复现原决策。[换座对照](../../../artifacts/maintenance/power-grid-bot-rise-20261126/rotation-report.json) · [历史签名恢复](../../../artifacts/maintenance/power-grid-bot-rise-20261126/old-signed-recovery.json)
+
+整局回归与其他测量并行运行时，账本记录了三个五人单局超过 60 秒，以及一个六人默认单局的最长源码决策为 2234 毫秒，超过 1500 毫秒断言。待单独定位并按原门槛复验。[整局回归进度与失败项](../../../artifacts/maintenance/power-grid-bot-rise-20261126/regression-progress.json)
+
 四种人机均用本地启发式及有界生产计划。强度、真人体验与新签名发行的结论待相应对照通过。

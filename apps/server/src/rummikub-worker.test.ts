@@ -1,6 +1,6 @@
 import { beforeAll, expect, it } from 'vitest';
 import { mkdirSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
-import { join, resolve } from 'node:path';
+import { dirname, join, resolve } from 'node:path';
 import { build } from 'esbuild';
 import type { BotDifficulty } from '@tablemax/game-sdk';
 import type { Command } from '@tablemax/protocol';
@@ -11,6 +11,10 @@ import type {
   SaveRepository,
 } from '../../../packages/platform-core/src/model';
 import { rules, bot } from '../../../games/rummikub';
+import type { State } from '../../../games/rummikub/rules';
+import type { PlayAction } from '../../../games/rummikub/types';
+import { pressureTable } from '../../../games/rummikub/bot/test-fixtures';
+import { SqliteSaveRepository } from './save-repository';
 import { WorkerBotExecutor } from './bot-executor';
 import lateGame from './fixtures/rummikub-late-game.json';
 import worstLateGame from './fixtures/rummikub-juewu-peak.json';
@@ -20,8 +24,9 @@ import type { JsonValue } from '@tablemax/game-sdk';
 
 let workerPath: string;
 beforeAll(async () => {
-  mkdirSync(resolve('tmp'), { recursive: true });
-  const output = mkdtempSync(resolve('tmp/rummikub-worker-'));
+  const root = resolve(process.env.TABLEMAX_TEST_TMP_ROOT ?? 'tmp');
+  mkdirSync(root, { recursive: true });
+  const output = mkdtempSync(join(root, 'rummikub-worker-'));
   mkdirSync(join(output, 'bots'));
   workerPath = join(output, 'bot-worker.cjs');
   const module = JSON.parse(
@@ -89,7 +94,7 @@ async function fixture(seats: number, difficulty: BotDifficulty) {
   return room;
 }
 for (const seats of [2, 3, 4]) {
-  for (const difficulty of ['default', 'doubao', 'juewu'] as const) {
+  for (const difficulty of bot.difficulties!) {
     it(`runs ${seats} seats ${difficulty} in the actual 32MiB Worker under the two-second deadline`, async () => {
       const room = await fixture(seats, difficulty),
         task = room.botTask()!;
@@ -128,12 +133,33 @@ it('cancels an in-flight Rummikub Worker without saving its late result', async 
   expect(room.view(room.hostToken).history).toHaveLength(0);
 });
 
+const pressurePeak = (() => {
+  const fixture = structuredClone(worstLateGame);
+  const state = rules.validateState(
+    fixture.state,
+    fixture.state.seats,
+  ) as State;
+  const seat = fixture.decision.seatId;
+  const following =
+    state.seats[(state.seats.indexOf(seat) + 1) % state.seats.length]!;
+  state.pool.push(...state.racks[following]!.splice(1));
+  rules.validateState(state, state.seats);
+  return {
+    state,
+    decision: fixture.decision,
+    randomSnapshot: fixture.randomSnapshot,
+    view: rules.project(state, { role: 'player', seatId: seat }),
+    actions: rules.legalActions(state, seat),
+  };
+})();
+
 for (const [label, difficulty, peak] of [
   ['default', 'default', worstLateGame],
   ['doubao', 'doubao', doubaoLateGame],
   ['juewu', 'juewu', lateGame],
   ['juewu-dense', 'juewu', denseLateGame],
   ['juewu-peak', 'juewu', worstLateGame],
+  ['mischief-peak', 'mischief', pressurePeak],
 ] as const) {
   it(`replays a measured late-game joker hotspot ${label} in the bounded Worker`, async () => {
     // These generated positions contain no production player data. The default
@@ -187,3 +213,67 @@ for (const [label, difficulty, peak] of [
     }
   });
 }
+
+it('persists the Mischief rearrangement in a real Worker and replays it after SQLite recovery', async () => {
+  const profile = mkdtempSync(join(dirname(workerPath), 'style-profile-'));
+  const fixtureRules = { ...rules, initialize: pressureTable };
+  let repository = new SqliteSaveRepository(profile);
+  let room = new RoomCoordinator(fixtureRules, bot, repository);
+  const host = async (command: Command['command']) => {
+    const { instanceId, revision, branch } = room.view(room.hostToken);
+    expect(
+      (
+        await room.command(room.hostToken, {
+          actionId: crypto.randomUUID(),
+          instanceId,
+          revision,
+          branch,
+          command,
+        })
+      ).ok,
+    ).toBe(true);
+  };
+  try {
+    await host({ type: 'add-bot', name: '电脑甲', difficulty: 'mischief' });
+    await host({ type: 'add-bot', name: '电脑乙', difficulty: 'juewu' });
+    await host({ type: 'start' });
+    const task = room.botTask()!;
+    expect(room.view().game?.botDifficulties).toContain('mischief');
+    expect(task.data).toMatchObject({
+      difficulty: 'mischief',
+      version: '1.1.0',
+    });
+    const executor = new WorkerBotExecutor(workerPath);
+    const start = performance.now();
+    const result = await executor.execute(task, AbortSignal.timeout(2000));
+    expect(performance.now() - start).toBeLessThan(2000);
+    const action = result.action as PlayAction;
+    expect(action.type).toBe('submit-turn');
+    const red = action.table.filter(({ tiles }) => tiles[0]!.color === 'red');
+    expect(red).toHaveLength(1);
+    expect(red[0]!.tiles).toHaveLength(7);
+    expect(
+      (await room.submitBot(task, result.action, result.memory, result.random))
+        .ok,
+    ).toBe(true);
+    await host({
+      type: 'rollback',
+      checkpointId: room.view(room.hostToken).history[0]!.id,
+    });
+    repository.close();
+    repository = new SqliteSaveRepository(profile);
+    room = new RoomCoordinator(fixtureRules, bot, repository, room.hostToken);
+    expect(room.view()).toMatchObject({ restored: true, paused: true });
+    expect(
+      (repository.load() as Save).snapshot?.bots[task.decision.seatId],
+    ).toEqual(task.data);
+    await host({ type: 'resume' });
+    const repeated = await executor.execute(
+      room.botTask()!,
+      AbortSignal.timeout(2000),
+    );
+    expect(repeated).toEqual(result);
+  } finally {
+    repository.close();
+  }
+});

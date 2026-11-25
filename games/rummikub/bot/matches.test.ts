@@ -11,7 +11,7 @@ import type { State } from '../rules/state';
 import type { RummikubView } from '../types';
 import { bot } from './index';
 
-const difficulties = ['default', 'doubao', 'juewu'] as const;
+const difficulties = bot.difficulties!;
 const timings: Record<
   string,
   {
@@ -29,7 +29,10 @@ const timings: Record<
   }
 > = {};
 const fixtureRunId = randomUUID();
-const peakDirectory = resolve('artifacts/rummikub/validation/bot-peaks');
+const peakDirectory = resolve(
+  process.env.TABLEMAX_RUMMIKUB_PEAK_DIRECTORY ??
+    'artifacts/rummikub/validation/bot-peaks',
+);
 const replayPath = process.env.TABLEMAX_RUMMIKUB_PEAK_REPLAY;
 function projectFor(state: State, seatId: string): RummikubView {
   return project(state, { role: 'player', seatId });

@@ -6,13 +6,14 @@ import { planTurn } from './planner';
 
 export { planTurn } from './planner';
 export { SEARCH_LIMITS } from './budget';
+export { TABLE_PRESSURE_LIMITS } from './mischief';
 
 export const bot: BotStrategy = {
   id: 'rummikub-local',
-  version: '1.0.0',
+  version: '1.1.0',
   gameId: 'rummikub',
   rulesVersion: RULES_VERSION,
-  difficulties: ['default', 'doubao', 'juewu'],
+  difficulties: ['default', 'doubao', 'juewu', 'mischief'],
   validateMemory(input) {
     if (input !== null) throw new Error('拉密策略记忆无效。');
     return null;

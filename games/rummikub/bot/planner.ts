@@ -1,15 +1,20 @@
-import type { BotDifficulty } from '@tablemax/game-sdk';
+import type { BotDifficulty, BotStrength } from '@tablemax/game-sdk';
 import { prepareTurn, TurnProofCache } from '../shared/turn';
 import { getTile } from '../data/catalog';
 import type { Meld, PlayAction, RummikubView, Tile } from '../types';
 import { SearchBudget, type SearchStats } from './budget';
+import { refineThreatenedTable, type TablePressure } from './mischief';
 import {
   buildCandidates,
   type Candidate,
   type CandidatePool,
 } from './candidates';
 
-export type TurnPlan = { action: PlayAction | null; stats: SearchStats };
+export type TurnPlan = {
+  action: PlayAction | null;
+  stats: SearchStats;
+  pressure?: TablePressure;
+};
 
 function remainingPotential(
   rack: readonly Tile[],
@@ -60,9 +65,9 @@ function actionScore(
 }
 
 /** Complete-turn search uses only the supplied public table and private rack. */
-export function planTurn(
+function searchTurn(
   view: RummikubView,
-  difficulty: BotDifficulty,
+  difficulty: BotStrength,
   signal?: AbortSignal,
 ): TurnPlan {
   const budget = new SearchBudget(difficulty, signal);
@@ -309,4 +314,21 @@ export function planTurn(
     if (bestScore >= 1_000_000_000) break;
   }
   return { action: best, stats: budget.stats };
+}
+
+export function planTurn(
+  view: RummikubView,
+  difficulty: BotDifficulty,
+  signal?: AbortSignal,
+): TurnPlan {
+  const baseline = searchTurn(
+    view,
+    difficulty === 'mischief' ? 'juewu' : difficulty,
+    signal,
+  );
+  if (difficulty !== 'mischief' || !baseline.action) return baseline;
+  return {
+    ...baseline,
+    ...refineThreatenedTable(view, baseline.action, signal),
+  };
 }

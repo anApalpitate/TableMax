@@ -6,7 +6,7 @@ import { getTile, RULES_VERSION } from '../data/catalog';
 import { parseMeld } from '../shared/melds';
 import { inspectTurn } from '../shared/turn';
 import type { Action, Meld, PlayAction, RummikubView } from '../types';
-import { SEARCH_LIMITS, bot, planTurn } from './index';
+import { SEARCH_LIMITS, TABLE_PRESSURE_LIMITS, bot, planTurn } from './index';
 
 const id = (color: string, value: number, copy = 'a') =>
   `${color}-${String(value).padStart(2, '0')}-${copy}`;
@@ -283,5 +283,69 @@ describe('Rummikub bounded authorized local strategies', () => {
       );
       expect(performance.now() - started).toBeLessThan(1500);
     }
+  });
+});
+
+describe('Rummikub pressure on the next player', () => {
+  it('joins two open runs without changing the tiles played when the next seat has one tile', async () => {
+    const view = fixture(
+      [id('red', 5), id('black', 11)],
+      [run('red', 2, 4), run('red', 6, 8)],
+    );
+    view.players.S2 = { ...view.players.S2!, opened: true, rackCount: 1 };
+    const original = structuredClone(view);
+    const baseline = planTurn(view, 'juewu');
+    const pressured = planTurn(view, 'mischief');
+    const own = (action: PlayAction) =>
+      inspectTurn(
+        {
+          rack: view.self!.rack.map((tile) => tile.id),
+          table: view.table,
+          opened: true,
+        },
+        action,
+      ).placedTileIds;
+    expect(baseline.action!.table).toHaveLength(2);
+    expect(pressured.action!.table).toHaveLength(1);
+    expect(own(pressured.action!)).toEqual(own(baseline.action!));
+    expect(own(pressured.action!)).toEqual([id('red', 5)]);
+    expect(pressured.pressure!.after).toBeLessThan(pressured.pressure!.before);
+    expect(pressured.pressure!.pairs).toBeLessThanOrEqual(
+      TABLE_PRESSURE_LIMITS.pairs,
+    );
+    expect(pressured.pressure!.alternatives).toBeLessThanOrEqual(
+      TABLE_PRESSURE_LIMITS.alternatives,
+    );
+    expect(pressured.pressure!.proofs).toBeLessThanOrEqual(
+      TABLE_PRESSURE_LIMITS.proofs,
+    );
+    expect((await choose(view, 'mischief')).action).toEqual(pressured.action);
+    expect(view).toEqual(original);
+  });
+
+  it('keeps the original plan before a valid target is imminent and on its own finishing move', () => {
+    const table = [run('red', 2, 4), run('red', 6, 8)];
+    const view = fixture([id('red', 5), id('black', 11)], table);
+    view.players.S2 = { ...view.players.S2!, opened: false, rackCount: 1 };
+    expect(planTurn(view, 'mischief')).toEqual(planTurn(view, 'juewu'));
+    view.players.S2 = { ...view.players.S2, opened: true, rackCount: 2 };
+    expect(planTurn(view, 'mischief')).toEqual(planTurn(view, 'juewu'));
+    const winning = fixture([id('red', 5)], table);
+    winning.players.S2 = { ...winning.players.S2!, opened: true, rackCount: 1 };
+    expect(planTurn(winning, 'mischief')).toEqual(planTurn(winning, 'juewu'));
+    expect(placed(winning, planTurn(winning, 'mischief').action)).toBe(1);
+  });
+
+  it('never performs the second pass before its own opening', () => {
+    const view = fixture(
+      [id('blue', 12), id('orange', 12), id('red', 12)],
+      [group(10)],
+      false,
+    );
+    view.players.S2 = { ...view.players.S2!, opened: true, rackCount: 1 };
+    const planned = planTurn(view, 'mischief');
+    expect(planned.pressure).toBeUndefined();
+    expect(planned).toEqual(planTurn(view, 'juewu'));
+    expect(placed(view, planned.action)).toBe(3);
   });
 });
