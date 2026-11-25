@@ -22,8 +22,9 @@ function envelope(view: RoomView, command: Command['command']): Command {
 }
 
 async function fixture() {
-  mkdirSync('tmp', { recursive: true });
-  const base = mkdtempSync(resolve('tmp/manila-service-'));
+  const root = resolve(process.env.TABLEMAX_TEST_TMP_ROOT ?? 'tmp');
+  mkdirSync(root, { recursive: true });
+  const base = mkdtempSync(join(root, 'manila-service-'));
   const webDir = join(base, 'web');
   mkdirSync(webDir);
   writeFileSync(
@@ -125,7 +126,7 @@ async function fixture() {
   };
 }
 
-it('discovers Manila metadata and the matching independent rules and three bot levels', async () => {
+it('discovers Manila metadata and the matching independent rules and four bot styles', async () => {
   const registry = createGameRegistry();
   expect(registry.catalog().find((game) => game.id === 'manila')).toMatchObject(
     {
@@ -138,7 +139,12 @@ it('discovers Manila metadata and the matching independent rules and three bot l
   const loaded = await registry.load('manila');
   expect(loaded.rules.manifest.rulesVersion).toBe(rules.manifest.rulesVersion);
   expect(loaded.bot.rulesVersion).toBe(rules.manifest.rulesVersion);
-  expect(loaded.bot.difficulties).toEqual(['default', 'doubao', 'juewu']);
+  expect(loaded.bot.difficulties).toEqual([
+    'default',
+    'doubao',
+    'juewu',
+    'mischief',
+  ]);
 });
 
 it('Manila real Socket/SQLite saves are private, atomic, idempotent and deterministic through rollback and restart', async () => {

@@ -2,6 +2,9 @@ import { describe, expect, it } from 'vitest';
 import { RandomSource } from '../../../packages/platform-core/src/random';
 import { rules } from './index';
 import { bot } from '../bot';
+import { competitiveAuction, decideFromState } from '../bot/test-fixtures';
+import { leadingRival, rivalPressure } from '../bot/mischief';
+import { influenceScore } from '../bot/evaluation';
 import { CARGO, CARGOS, MARKET } from './catalog';
 import { turnSeat, validateState, type State } from './state';
 import { finalScores, resolveWinners } from './scoring';
@@ -684,7 +687,7 @@ describe('Manila complete voyage finance', () => {
 });
 
 describe('Manila authorized local strategies', () => {
-  it.each(['default', 'doubao', 'juewu'] as const)(
+  it.each(bot.difficulties!)(
     'completes original 3/4/5-player seeded games with %s and validates every saved decision',
     async (difficulty) => {
       for (const count of [3, 4, 5]) {
@@ -758,5 +761,116 @@ describe('Manila authorized local strategies', () => {
         signal: abort.signal,
       }),
     ).rejects.toThrow('cancelled');
+  });
+});
+
+describe('Manila bounded pressure', () => {
+  it('takes the smallest cash-funded bid against a public leader without using the hidden holdings', async () => {
+    const state = competitiveAuction(context());
+    const authorized = rules.project(state, {
+      role: 'player',
+      seatId: 'A',
+    }) as ManilaView;
+    expect(leadingRival(authorized)).toBe('B');
+    expect((await decideFromState(state, 'juewu')).action).toEqual({
+      type: 'pass',
+    });
+    const mischief = await decideFromState(state, 'mischief');
+    expect(mischief.action).toEqual({
+      type: 'bid',
+      amount: state.auction.bid + 1,
+    });
+    expect(rules.legalActions(state, 'A')).toContainEqual(mischief.action);
+
+    const hidden = structuredClone(state);
+    const a = hidden.players.B!.shares[0]!;
+    hidden.players.B!.shares[0] = hidden.players.C!.shares[0]!;
+    hidden.players.C!.shares[0] = a;
+    expect(
+      rules.project(validateState(hidden, seats), {
+        role: 'player',
+        seatId: 'A',
+      }),
+    ).toEqual(authorized);
+    expect(await decideFromState(hidden, 'mischief')).toEqual(mischief);
+
+    const tightFunds = structuredClone(state);
+    tightFunds.players.A!.cash = state.auction.bid + 3;
+    tightFunds.voyageFinance = startFinance(
+      tightFunds.voyage,
+      seats,
+      tightFunds.players,
+    );
+    expect((await decideFromState(tightFunds, 'mischief')).action).toEqual({
+      type: 'pass',
+    });
+    const overlap = structuredClone(state);
+    overlap.players.B!.cash = 32;
+    overlap.market.silk = 20;
+    overlap.voyageFinance = startFinance(
+      overlap.voyage,
+      seats,
+      overlap.players,
+    );
+    const projected = rules.project(overlap, {
+      role: 'player',
+      seatId: 'A',
+    }) as ManilaView;
+    expect(leadingRival(projected)).toBeUndefined();
+    expect(await decideFromState(overlap, 'mischief')).toEqual(
+      await decideFromState(overlap, 'juewu'),
+    );
+  });
+
+  it('evaluates an actual boarder diluting a rival crew instead of moving the rival', async () => {
+    const state = finalPlacement([13, 13, 9]);
+    state.phase = 'board';
+    state.placementRound = 2;
+    state.boardQueue = [0];
+    state.boardCursor = 0;
+    existing(state, 'pirate-0', 'A');
+    existing(state, 'cargo-silk-0', 'B');
+    validateState(state, seats);
+    const view = rules.project(state, {
+      role: 'player',
+      seatId: 'A',
+    }) as ManilaView;
+    const action = { type: 'board', cargo: 'silk' } as const;
+    expect(rules.legalActions(state, 'A')).toContainEqual(action);
+    const original = structuredClone(view);
+    expect(influenceScore(view, action, true, 'B')).toBeCloseTo(-15);
+    expect(rivalPressure(view, 'B')(action)).toBe(4);
+    expect(view).toEqual(original);
+    expect(
+      apply(state, action).boats.find(({ cargo }) => cargo === 'silk')?.crew,
+    ).toEqual(['B', 'A']);
+  });
+
+  it('assigns no target-specific setup value to the identity of an unrevealed share', () => {
+    const state = competitiveAuction(context());
+    const view = rules.project(state, {
+      role: 'player',
+      seatId: 'A',
+    }) as ManilaView;
+    const target = 'B';
+    const disclosed = state.players.B!.shares[0]!;
+    const set: Action = {
+      type: 'setup',
+      cargos: CARGOS.filter((cargo) => cargo !== disclosed.cargo),
+      positions: [3, 3, 3],
+    };
+    expect(rivalPressure(view, target)(set)).toBe(0);
+    disclosed.revealed = true;
+    const scoped = rules.project(state, {
+      role: 'player',
+      seatId: 'A',
+    }) as ManilaView;
+    expect(rivalPressure(scoped, target)(set)).toBeGreaterThan(0);
+    expect(
+      rivalPressure(
+        scoped,
+        target,
+      )({ type: 'mortgage', shareId: state.players.A!.shares[0]!.id }),
+    ).toBe(0);
   });
 });

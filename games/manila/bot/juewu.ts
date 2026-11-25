@@ -56,16 +56,8 @@ export function evaluateJuewu(v: ManilaView, a: Action): number {
     // Opponent public crews and redeemed shares permit a bounded denial term.
     let opponents = 0;
     for (const seat of v.seatOrder)
-      if (seat !== v.self!.seatId) {
-        const next = structuredClone(v);
-        next.self = {
-          seatId: seat,
-          cash: v.players[seat]!.cash,
-          shares: v.players[seat]!.revealedShares,
-          availableCredit: 0,
-        };
-        opponents += influenceScore(next, a, true);
-      }
+      if (seat !== v.self!.seatId)
+        opponents += influenceScore(v, a, true, seat);
     return mine - opponents * 0.18;
   }
   if (a.type === 'mortgage' && v.phase === 'financing') {

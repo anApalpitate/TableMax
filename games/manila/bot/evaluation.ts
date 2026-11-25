@@ -185,12 +185,23 @@ export function placementScore(
   if (v.self!.cash < space.cost) score -= depth >= 2 ? 3 : 1;
   return score;
 }
+export function publicPerspective(v: ManilaView, seat: string): ManilaView {
+  const { cash, revealedShares } = v.players[seat]!;
+  return {
+    ...v,
+    self: { seatId: seat, cash, shares: revealedShares, availableCredit: 0 },
+  };
+}
+
 export function influenceScore(
   v: ManilaView,
   action: Action,
   cautious: boolean,
+  beneficiary = v.self!.seatId,
 ): number {
-  const next = structuredClone(v);
+  const actor = v.self!.seatId;
+  const before = beneficiary === actor ? v : publicPerspective(v, beneficiary);
+  const next = structuredClone(before);
   if (action.type === 'pilot')
     for (const move of action.moves) {
       const b = next.boats.find((x) => x.cargo === move.cargo)!;
@@ -202,9 +213,9 @@ export function influenceScore(
     }
   else if (action.type === 'board' && action.cargo) {
     const b = next.boats.find((x) => x.cargo === action.cargo)!;
-    b.crew.push(next.self!.seatId);
+    b.crew.push(actor);
     const pirate = next.spaces.find(
-      (x) => x.kind === 'pirate' && x.occupant === next.self!.seatId,
+      (x) => x.kind === 'pirate' && x.occupant === actor,
     );
     if (pirate) pirate.occupant = null;
   } else if (action.type === 'plunder') {
@@ -213,7 +224,7 @@ export function influenceScore(
     b.plundered = true;
     b.crew = [];
   }
-  return projectedWealth(next, cautious) - projectedWealth(v, cautious);
+  return projectedWealth(next, cautious) - projectedWealth(before, cautious);
 }
 export function setupScore(
   v: ManilaView,

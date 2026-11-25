@@ -11,11 +11,14 @@ import type { Command } from '@tablemax/protocol';
 import { rules, bot } from '../../../games/manila';
 import type { ManilaView } from '../../../games/manila/rules/view';
 import { WorkerBotExecutor } from './bot-executor';
+import { SqliteSaveRepository } from './save-repository';
+import { competitiveAuction } from '../../../games/manila/bot/test-fixtures';
 
 let workerPath: string;
 beforeAll(async () => {
-  mkdirSync('tmp', { recursive: true });
-  const output = mkdtempSync(resolve('tmp/manila-worker-'));
+  const root = resolve(process.env.TABLEMAX_TEST_TMP_ROOT ?? 'tmp');
+  mkdirSync(root, { recursive: true });
+  const output = mkdtempSync(join(root, 'manila-worker-'));
   mkdirSync(join(output, 'bots'));
   workerPath = join(output, 'bot-worker.cjs');
   const module = JSON.parse(
@@ -77,12 +80,15 @@ async function fixture(count: number) {
       ).ok,
     ).toBe(true);
   };
-  const levels = ['default', 'doubao', 'juewu'] as const;
+  const levels =
+    count === 3
+      ? (['default', 'doubao', 'mischief'] as const)
+      : bot.difficulties!;
   for (let i = 0; i < count; i++)
     await host({
       type: 'add-bot',
       name: `航商${i + 1}`,
-      difficulty: levels[i % 3]!,
+      difficulty: levels[i % levels.length]!,
     });
   await host({ type: 'start' });
   return { room, host };
@@ -157,4 +163,72 @@ it('Manila cancels an obsolete real Worker without adding a saved checkpoint', a
   controller.abort();
   await expect(result).rejects.toThrow('cancelled');
   expect(room.view(room.hostToken).history).toHaveLength(0);
+});
+
+it('Manila Mischief saves a counterbid and resumes the same SQLite decision', async () => {
+  const dir = mkdtempSync(
+    join(
+      resolve(process.env.TABLEMAX_TEST_TMP_ROOT ?? 'tmp'),
+      'manila-mischief-',
+    ),
+  );
+  const game = { ...rules, initialize: competitiveAuction };
+  let repository = new SqliteSaveRepository(dir);
+  let room = new RoomCoordinator(game, bot, repository, undefined, 'test');
+  const host = async (command: Command['command']) => {
+    const v = room.view(room.hostToken);
+    expect(
+      (
+        await room.command(room.hostToken, {
+          actionId: crypto.randomUUID(),
+          instanceId: v.instanceId,
+          revision: v.revision,
+          branch: v.branch,
+          command,
+        })
+      ).ok,
+    ).toBe(true);
+  };
+  try {
+    await host({ type: 'add-bot', name: '航商甲', difficulty: 'mischief' });
+    await host({ type: 'add-bot', name: '航商乙', difficulty: 'juewu' });
+    await host({ type: 'add-bot', name: '航商丙', difficulty: 'doubao' });
+    await host({ type: 'start' });
+    const task = room.botTask()!;
+    const view = task.view as ManilaView;
+    expect(task.data).toMatchObject({
+      difficulty: 'mischief',
+      version: '1.1.0',
+    });
+    expect(room.view().game?.botDifficulties).toContain('mischief');
+    expect(view.players[view.auction.highBidder!]!.revealedShares).toEqual([]);
+    const executor = new WorkerBotExecutor(workerPath);
+    const started = performance.now();
+    const result = await executor.execute(task, AbortSignal.timeout(2000));
+    expect(performance.now() - started).toBeLessThan(2000);
+    expect(result.action).toEqual({
+      type: 'bid',
+      amount: view.auction.bid + 1,
+    });
+    expect(
+      (await room.submitBot(task, result.action, result.memory, result.random))
+        .ok,
+    ).toBe(true);
+    await host({
+      type: 'rollback',
+      checkpointId: room.view(room.hostToken).history[0]!.id,
+    });
+    repository.close();
+    repository = new SqliteSaveRepository(dir);
+    room = new RoomCoordinator(game, bot, repository, room.hostToken, 'test');
+    expect(room.view()).toMatchObject({ restored: true, paused: true });
+    await host({ type: 'resume' });
+    const revived = room.botTask()!;
+    expect(revived.data).toEqual(task.data);
+    expect(await executor.execute(revived, AbortSignal.timeout(2000))).toEqual(
+      result,
+    );
+  } finally {
+    repository.close();
+  }
 });

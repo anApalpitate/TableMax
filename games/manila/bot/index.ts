@@ -1,15 +1,23 @@
-import type { BotStrategy } from '@tablemax/game-sdk';
+import type { BotDifficulty, BotStrategy } from '@tablemax/game-sdk';
 import type { Action, ManilaView } from '../rules/view';
 import { evaluateDefault } from './default';
 import { evaluateDoubao } from './doubao';
 import { evaluateJuewu } from './juewu';
+import { leadingRival, rivalPressure } from './mischief';
+
+const evaluate = {
+  default: evaluateDefault,
+  doubao: evaluateDoubao,
+  juewu: evaluateJuewu,
+  mischief: evaluateJuewu,
+} satisfies Record<BotDifficulty, typeof evaluateJuewu>;
 
 export const bot: BotStrategy = {
   id: 'manila-local',
-  version: '1.0.0',
+  version: '1.1.0',
   gameId: 'manila',
   rulesVersion: 'manila-classic-2005-v1',
-  difficulties: ['default', 'doubao', 'juewu'],
+  difficulties: ['default', 'doubao', 'juewu', 'mischief'],
   validateMemory(input) {
     if (input !== null) throw new Error('Invalid Manila bot memory');
     return null;
@@ -17,28 +25,40 @@ export const bot: BotStrategy = {
   async decide({
     view,
     actions,
+    decision,
     memory,
     difficulty = 'default',
     random,
     signal,
   }) {
-    if (memory !== null || !['default', 'doubao', 'juewu'].includes(difficulty))
+    bot.validateMemory(memory);
+    if (!Object.hasOwn(evaluate, difficulty))
       throw new Error('Invalid Manila bot configuration');
     const v = view as ManilaView;
-    if (!v.self || !actions.length)
+    if (
+      v.self?.seatId !== decision.seatId ||
+      v.turnSeat !== decision.seatId ||
+      !actions.length
+    )
       throw new Error('No authorized Manila decision');
-    const evaluate =
-      difficulty === 'juewu'
-        ? evaluateJuewu
-        : difficulty === 'doubao'
-          ? evaluateDoubao
-          : evaluateDefault;
+
+    // Visit the same candidates in the supplied order for normal play and pressure.
+    const scores = (actions as readonly Action[]).map((action) => {
+      if (signal.aborted) throw new Error('Manila bot cancelled');
+      return { action, baseline: evaluate[difficulty](v, action) };
+    });
+    const target = difficulty === 'mischief' ? leadingRival(v) : undefined;
+    const adjust = target ? rivalPressure(v, target) : undefined;
+    const bestBaseline = scores.reduce(
+      (maximum, { baseline }) => Math.max(maximum, baseline),
+      -Infinity,
+    );
     let best = -Infinity;
     const choices: Action[] = [];
-    for (const raw of actions) {
+    for (const { action, baseline } of scores) {
       if (signal.aborted) throw new Error('Manila bot cancelled');
-      const action = raw as Action,
-        value = evaluate(v, action);
+      const bonus = adjust && baseline >= bestBaseline - 2 ? adjust(action) : 0;
+      const value = baseline + bonus;
       if (value > best + 1e-9) {
         best = value;
         choices.length = 0;
