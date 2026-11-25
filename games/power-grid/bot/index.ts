@@ -14,6 +14,12 @@ import {
   pooledResources,
 } from '../rules/production';
 import { forecast, nextBid, type Forecast } from './planner';
+import {
+  cityPressure,
+  fuelPressure,
+  gridLeader,
+  plantPressure,
+} from './mischief';
 import type {
   Action,
   OwnedPlant,
@@ -125,7 +131,7 @@ class GridEvaluator {
     }
     return best;
   }
-  value(plantId: number): number {
+  value(plantId: number, strategicPremium = 0): number {
     const plant = getPlant(plantId),
       next = this.replacement(plantId);
     if (!Number.isFinite(this.fuelCost(plant))) return 0;
@@ -153,7 +159,7 @@ class GridEvaluator {
                 (this.player.cities.length >= this.view.endThreshold - 5
                   ? 18
                   : 10),
-            ),
+            ) + strategicPremium,
           ),
         ),
       );
@@ -276,10 +282,20 @@ export function chooseAction(
 ): Action {
   if (!view.self || !actions.length)
     throw new Error('电力公司策略缺少本人决策。');
-  const level = ['default', 'doubao', 'juewu'].indexOf(difficulty);
+  const level =
+    difficulty === 'mischief'
+      ? 2
+      : ['default', 'doubao', 'juewu'].indexOf(difficulty);
   if (level < 0) throw new Error('不支持的人机等级。');
   const evaluate = new GridEvaluator(view, level, signal),
     p = evaluate.player;
+  const leadingRival =
+    difficulty === 'mischief' &&
+    (view.phase === 'auction' ||
+      view.phase === 'resources' ||
+      view.phase === 'building')
+      ? gridLeader(view)
+      : undefined;
   const finish = () => actions.filter((a) => a.type === 'finish').at(-1)!;
   if (view.phase === 'regions') {
     const choices = actions.filter(
@@ -315,10 +331,12 @@ export function chooseAction(
     return actions.find((a) => a.type === 'pass') ?? offers[0]!;
   }
   if (view.phase === 'auction') {
-    const amount = nextBid(
-      view.auction!.amount,
-      evaluate.value(view.auction!.plantId),
-    );
+    const { plantId, amount: current } = view.auction!;
+    const budget = evaluate.value(plantId);
+    const premium =
+      budget > 0 && current >= budget ? plantPressure(view, leadingRival) : 0;
+    const limit = premium ? evaluate.value(plantId, premium) : budget;
+    const amount = nextBid(current, limit);
     return (
       actions.find((a) => a.type === 'bid' && a.amount === amount) ??
       actions.find((a) => a.type === 'pass')!
@@ -376,22 +394,34 @@ export function chooseAction(
     );
     const need = buys.filter((a) => planned.demand[a.resource] > 0);
     if (need.length) {
-      const selected = need.sort(
+      need.sort(
         (a, b) =>
           evaluate.unit(a.resource) - evaluate.unit(b.resource) ||
           Number(getPlant(a.plantId).fuel === 'hybrid') -
             Number(getPlant(b.plantId).fuel === 'hybrid') ||
           a.plantId - b.plantId,
-      )[0]!;
-      return actions
-        .filter(
-          (a): a is Extract<Action, { type: 'buy-resource' }> =>
-            a.type === 'buy-resource' &&
-            a.plantId === selected.plantId &&
-            a.resource === selected.resource &&
-            (a.quantity ?? 1) <= planned.demand[a.resource],
-        )
-        .sort((a, b) => (b.quantity ?? 1) - (a.quantity ?? 1))[0]!;
+      );
+      const purchase = (selected: (typeof need)[number]) =>
+        actions
+          .filter(
+            (a): a is Extract<Action, { type: 'buy-resource' }> =>
+              a.type === 'buy-resource' &&
+              a.plantId === selected.plantId &&
+              a.resource === selected.resource &&
+              (a.quantity ?? 1) <= planned.demand[a.resource],
+          )
+          .sort((a, b) => (b.quantity ?? 1) - (a.quantity ?? 1))[0]!;
+      const base = purchase(need[0]!);
+      if (!leadingRival) return base;
+      const resources = [...new Set(need.map(({ resource }) => resource))];
+      return fuelPressure(
+        view,
+        leadingRival,
+        base,
+        resources.map((resource) =>
+          purchase(need.find((option) => option.resource === resource)!),
+        ),
+      );
     }
     return finish();
   }
@@ -410,7 +440,7 @@ export function chooseAction(
       const affordable = view.buildOptions
         .filter((o) => o.cost <= view.self!.cash)
         .sort((a, b) => a.cost - b.cost || a.cityId.localeCompare(b.cityId))[0];
-      return (
+      const base =
         actions.find(
           (a) => a.type === 'build' && a.cityId === planned.cities[0],
         ) ??
@@ -422,7 +452,19 @@ export function chooseAction(
               (a) => a.type === 'build' && a.cityId === affordable.cityId,
             )
           : null) ??
-        finish()
+        finish();
+      if (base.type !== 'build' || !leadingRival) return base;
+      const builds = actions.filter(
+        (action): action is Extract<Action, { type: 'build' }> =>
+          action.type === 'build',
+      );
+      return cityPressure(
+        view,
+        leadingRival,
+        base,
+        builds,
+        planned.cities[1],
+        signal,
       );
     }
     const builds = actions
@@ -530,10 +572,10 @@ export function chooseAction(
 
 export const bot: BotStrategy = {
   id: 'power-grid-local',
-  version: '1.0.1',
+  version: '1.1.0',
   gameId: 'power-grid',
   rulesVersion: RULES_VERSION,
-  difficulties: ['default', 'doubao', 'juewu'],
+  difficulties: ['default', 'doubao', 'juewu', 'mischief'],
   validateMemory(input) {
     if (input !== null) throw new Error('电力公司策略记忆无效。');
     return null;
@@ -541,6 +583,7 @@ export const bot: BotStrategy = {
   async decide({
     view,
     actions,
+    decision,
     difficulty = 'default',
     random,
     signal,
@@ -548,9 +591,15 @@ export const bot: BotStrategy = {
   }) {
     if (signal.aborted) throw new Error('策略已取消。');
     if (memory !== null) throw new Error('电力公司策略记忆无效。');
+    const projected = view as PowerGridView;
+    if (
+      projected.self?.seatId !== decision.seatId ||
+      projected.actor !== decision.seatId
+    )
+      throw new Error('电力公司策略决策身份不一致。');
     return {
       action: chooseAction(
-        view as PowerGridView,
+        projected,
         actions as readonly Action[],
         difficulty,
         random,

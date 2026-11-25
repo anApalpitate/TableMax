@@ -1,15 +1,19 @@
 import { expect, it, vi } from 'vitest';
-import { mkdtempSync, writeFileSync } from 'node:fs';
-import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import { mkdirSync, mkdtempSync, writeFileSync } from 'node:fs';
+import { join, resolve } from 'node:path';
+import { build } from 'esbuild';
+import { RoomCoordinator, type Save } from '@tablemax/platform-core';
 import { io, type Socket } from 'socket.io-client';
 import { RandomSource } from '@tablemax/platform-core/random';
 import type { Command, CommandReply, RoomView } from '@tablemax/protocol';
 import type { BotStrategy, JsonValue } from '@tablemax/game-sdk';
 import { rules } from '../../../games/power-grid/rules';
+import { bot as localBot } from '../../../games/power-grid/bot';
+import { pressureAuction } from '../../../games/power-grid/bot/test-fixtures';
+import { SqliteSaveRepository } from './save-repository';
+import { WorkerBotExecutor } from './bot-executor';
 import type { Action, PowerGridView } from '../../../games/power-grid/types';
 import { createService } from './service';
-import { SqliteSaveRepository } from './save-repository';
 
 // This transport test uses only real phone seats; strategy quality and Worker
 // loading have separate seeded-match and actual-desktop verification.
@@ -23,8 +27,12 @@ const bot: BotStrategy = {
 };
 
 it('persists classic auction, fuel, building and production through real sockets, failed saves, duplicate ACKs, rollback and restart without exposing cash', async () => {
-  const dataDir = mkdtempSync(join(tmpdir(), 'tablemax-power-grid-'));
-  const webDir = mkdtempSync(join(tmpdir(), 'tablemax-power-grid-web-'));
+  const root = resolve(
+    process.env.TABLEMAX_TEST_TMP_ROOT ?? 'tmp/power-grid-bot-rise-20261126',
+  );
+  mkdirSync(root, { recursive: true });
+  const dataDir = mkdtempSync(join(root, 'power-grid-data-'));
+  const webDir = mkdtempSync(join(root, 'power-grid-web-'));
   writeFileSync(join(webDir, 'index.html'), '<html>local</html>');
   const config = { dataDir, webDir, host: '127.0.0.1', port: 0 };
   let service = await createService(config, {
@@ -361,3 +369,92 @@ it('persists classic auction, fuel, building and production through real sockets
     await service.close();
   }
 }, 30000);
+
+it('runs the Power Grid Mischief counterbid through the real Worker and resumes SQLite', async () => {
+  const taskRoot = resolve(
+    process.env.TABLEMAX_TEST_TMP_ROOT ?? 'tmp/power-grid-bot-rise-20261126',
+  );
+  mkdirSync(taskRoot, { recursive: true });
+  const output = mkdtempSync(join(taskRoot, 'power-grid-worker-'));
+  const workerPath = join(output, 'bot-worker.cjs');
+  const strategyPath = join(output, 'power-grid.cjs');
+  await Promise.all([
+    build({
+      entryPoints: ['apps/server/src/bot-worker.ts'],
+      outfile: workerPath,
+      bundle: true,
+      platform: 'node',
+      format: 'cjs',
+      target: 'node22',
+    }),
+    build({
+      entryPoints: ['games/power-grid/bot/index.ts'],
+      outfile: strategyPath,
+      bundle: true,
+      platform: 'node',
+      format: 'cjs',
+      target: 'node22',
+    }),
+  ]);
+  const game = {
+    ...rules,
+    initialize: (context: Parameters<typeof rules.initialize>[0]) =>
+      pressureAuction(context, 47),
+  };
+  let repository = new SqliteSaveRepository(output);
+  let room = new RoomCoordinator(game, localBot, repository);
+  const host = async (command: Command['command']) => {
+    const { instanceId, revision, branch } = room.view(room.hostToken);
+    expect(
+      (
+        await room.command(room.hostToken, {
+          actionId: crypto.randomUUID(),
+          instanceId,
+          revision,
+          branch,
+          command,
+        })
+      ).ok,
+    ).toBe(true);
+  };
+  try {
+    await host({ type: 'add-bot', name: '电网甲', difficulty: 'mischief' });
+    await host({ type: 'add-bot', name: '电网乙', difficulty: 'juewu' });
+    await host({ type: 'add-bot', name: '电网丙', difficulty: 'doubao' });
+    await host({ type: 'start' });
+    const task = room.botTask()!;
+    const view = task.view as PowerGridView;
+    expect(task.data).toMatchObject({
+      difficulty: 'mischief',
+      version: '1.1.0',
+    });
+    expect(room.view().game?.botDifficulties).toContain('mischief');
+    expect(view.players[view.auction!.highBidder]!.cash).toBeNull();
+    const worker = new WorkerBotExecutor(workerPath, () => strategyPath);
+    const start = performance.now();
+    const result = await worker.execute(task, AbortSignal.timeout(2000));
+    expect(performance.now() - start).toBeLessThan(2000);
+    expect(result.action).toEqual({ type: 'bid', amount: 50 });
+    expect(
+      (await room.submitBot(task, result.action, result.memory, result.random))
+        .ok,
+    ).toBe(true);
+    await host({
+      type: 'rollback',
+      checkpointId: room.view(room.hostToken).history[0]!.id,
+    });
+    repository.close();
+    repository = new SqliteSaveRepository(output);
+    room = new RoomCoordinator(game, localBot, repository, room.hostToken);
+    expect(room.view()).toMatchObject({ restored: true, paused: true });
+    expect(
+      (repository.load() as Save).snapshot?.bots[task.decision.seatId],
+    ).toEqual(task.data);
+    await host({ type: 'resume' });
+    expect(
+      await worker.execute(room.botTask()!, AbortSignal.timeout(2000)),
+    ).toEqual(result);
+  } finally {
+    repository.close();
+  }
+}, 15000);

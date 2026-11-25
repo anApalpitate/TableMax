@@ -1,6 +1,8 @@
 import { afterAll, describe, expect, it } from 'vitest';
 import { writeFileSync } from 'node:fs';
 import { forecast, nextBid } from '../bot/planner';
+import { gridLeader, plantPressure } from '../bot/mischief';
+import { pressureAuction } from '../bot/test-fixtures';
 const strategyMetrics: unknown[] = [];
 afterAll(() => {
   if (strategyMetrics.length && process.env.TABLEMAX_STRATEGY_METRICS)
@@ -1161,7 +1163,7 @@ describe('Power Grid bounded production and seeded full games', () => {
     expect(s.winners).toEqual(['S2']);
   });
   for (const count of [2, 3, 4, 5, 6])
-    for (const difficulty of ['default', 'doubao', 'juewu'] as const)
+    for (const difficulty of bot.difficulties!)
       for (const seed of [0, 1, 2])
         it(`${count} players / ${difficulty} seed ${seed} completes a conserved, restorable game`, async () => {
           const seats = Array.from({ length: count }, (_, i) => `S${i + 1}`),
@@ -1237,4 +1239,94 @@ describe('Power Grid bounded production and seeded full games', () => {
                 ),
             ).toBe(TOTAL_RESOURCES[resource]);
         }, 60000);
+});
+
+describe('Power Grid Mischief', () => {
+  it('can outbid the public leader by up to three without exposing or assuming rival cash', () => {
+    const state = pressureAuction(context(['A', 'B', 'C'], 42), 47);
+    validateState(state, state.seatOrder);
+    const seat = { role: 'player', seatId: 'A' } as const;
+    const view = rules.project(state, seat) as PowerGridView;
+    const actions = legalActions(state, 'A');
+    expect(gridLeader(view)).toBe('B');
+    const pick = (projected: PowerGridView, difficulty: 'juewu' | 'mischief') =>
+      chooseAction(projected, actions, difficulty, { next: () => 0 });
+    expect(pick(view, 'juewu')).toEqual({ type: 'pass' });
+    expect(pick(view, 'mischief')).toEqual({ type: 'bid', amount: 50 });
+    const privateChange = structuredClone(state);
+    privateChange.players.B!.cash -= 20;
+    privateChange.players.C!.cash += 20;
+    expect(
+      rules.project(validateState(privateChange, state.seatOrder), seat),
+    ).toEqual(view);
+    expect(
+      pick(rules.project(privateChange, seat) as PowerGridView, 'mischief'),
+    ).toEqual({ type: 'bid', amount: 50 });
+    const previousRaises = structuredClone(view);
+    for (let n = 0; n < 3; n++)
+      previousRaises.history.push({
+        id: 'test-bid-' + n,
+        actor: 'A',
+        verb: 'bid',
+        resource: null,
+        cityId: null,
+        plantId: 4,
+        amount: 42 + n,
+        text: '',
+      });
+    expect(plantPressure(previousRaises, 'B')).toBe(0);
+    expect(pick(previousRaises, 'mischief')).toEqual({ type: 'pass' });
+  });
+
+  it('can buy scarce coal before equally priced oil when both are in its plan', () => {
+    const s = fixture([[16, 42], [13, 25], [18]], 'resources');
+    s.actor = 'S1';
+    s.playerOrder = ['S2', 'S1', 'S3'];
+    s.phaseIndex = 1;
+    cities(s, 'S2', 4);
+    s.players.S1!.cities = CITIES.filter(({ region }) =>
+      s.regions.includes(region),
+    )
+      .slice(-4)
+      .map(({ id }) => id);
+    for (const resource of ['coal', 'oil'] as const) {
+      s.resources[resource] = 2;
+      s.supply[resource] = TOTAL_RESOURCES[resource] - 2;
+    }
+    validateState(s, s.seatOrder);
+    const view = rules.project(s, {
+      role: 'player',
+      seatId: 'S1',
+    }) as PowerGridView;
+    const actions = legalActions(s, 'S1');
+    const plan = forecast(view, view.players.S1!.plants, view.self!.cash, 2);
+    expect(plan.demand.coal).toBeGreaterThan(0);
+    expect(plan.demand.oil).toBeGreaterThan(0);
+    const a = chooseAction(view, actions, 'juewu', { next: () => 0 });
+    const b = chooseAction(view, actions, 'mischief', { next: () => 0 });
+    expect(a).toMatchObject({ type: 'buy-resource', resource: 'oil' });
+    expect(b).toMatchObject({ type: 'buy-resource', resource: 'coal' });
+    expect(actions).toContainEqual(b);
+  });
+
+  it('occupies the public leader cheapest last slot while keeping its own planned build', () => {
+    const s = fixture([[3], [13], [5]], 'building');
+    s.actor = 'S1';
+    s.playerOrder = ['S2', 'S1', 'S3'];
+    s.phaseIndex = 1;
+    s.players.S2!.cities = ['flensburg'];
+    fuel(s, 'S1', 3, { oil: 2 });
+    const view = rules.project(validateState(s, s.seatOrder), {
+      role: 'player',
+      seatId: 'S1',
+    }) as PowerGridView;
+    const actions = legalActions(s, 'S1');
+    const a = chooseAction(view, actions, 'juewu', { next: () => 0 });
+    const b = chooseAction(view, actions, 'mischief', { next: () => 0 });
+    expect(a).toEqual({ type: 'build', cityId: 'berlin' });
+    expect(b).toEqual({ type: 'build', cityId: 'kiel' });
+    const after = apply(s, b);
+    expect(after.players.S1!.cities).toEqual(['kiel']);
+    expect(after.players.S1!.cash).toBe(s.players.S1!.cash - 10);
+  });
 });
