@@ -68,4 +68,8 @@
 
 六个独立开局按四座轮换，共 24 个配对。两轮规划的绝悟由 1 胜增至 5 胜，按对手池加权的胜率差为 +21.88 个百分点，开局配对 95% 区间为 +12.50 至 +31.25。平均终局供电由 12.42 城增至 15.08 城，各配对的首厂出价与首轮供电相同。策略 `1.1.4` 接入两轮范围，继续用三个公开场景比较，随后对四档按新开局全座复验。[两轮与三轮对照](../../../artifacts/maintenance/bot-rise-power-grid-short-horizon-20261126/report.json) · [现行规则、Worker 与四人整局](../../../artifacts/maintenance/test-history/runs/dcfbc8b2-0687-4bad-9fed-bcf33c179907/results.json)
 
-两轮估值下，捣蛋王竞价固定局面的绝悟退出价变为 39 电币，捣蛋王最多加至 42，面对旧夹具的 47 电币报价会退出。定向回归继续验证对手秘密现金隔离、反制次数上限、真实 Worker 和 SQLite 回退重开。[规则与策略结果](../../../artifacts/maintenance/test-history/runs/6678fe30-81e8-4b8c-9e03-e646be2ba4b6/results.json) · [真实 Worker 复验](../../../artifacts/maintenance/test-history/runs/0ebff8b2-7064-4fd8-888d-ac831a4370f8/results.json)
+两轮估值下，捣蛋王竞价固定局面的绝悟退出价变为 39 电币，捣蛋王最多加至 42，面对旧夹具的 47 电币报价会退出。定向回归继续验证对手秘密现金隔离、反制次数上限、真实 Worker 和 SQLite 回退重开。
+
+`1.1.4` 全座轮换的 128 场均正常结束，焦点席首轮均供电。四档分别赢 10、12、8、9 场。绝悟平均供电 15.25 城，豆包为 14.97 城，绝悟整场胜率低 12.50 个百分点，开局配对 95% 区间为 −25.00 至 0。捣蛋王两次首个改选针对同一可信领先者，其中一例该领先者由胜转负。七个同开局配对出现豆包胜、绝悟负，且两档首轮出价与供电相同。其中两例绝悟终局供电更多，终局触发与对手供电已另做复核。[1.1.4 全档换座](../../../artifacts/maintenance/bot-rise-power-grid-v114-rotation-20261126/power-grid-report.json)
+
+精确复现其中六个配对的 12 条轨迹。两例绝悟和赢家供电相同，按剩余现金落败。一例绝悟触发终局，当时对手按已建城市可供 15 城，已备燃料可支撑 19 城。后手继续建城后以 19 城胜出，绝悟供 17 城。另三例在他人触发终局时供电落后。把后手已备燃料的产能纳入绝悟判断后，单步替换令自触发一例推迟建城，绝悟仍负且供电降至 16 城。现行源码保留原策略。[终局逐场复盘](../../../artifacts/maintenance/bot-rise-power-grid-terminal-race-20261126/phase-diagnostics.json) · [后手产能单步对照](../../../artifacts/maintenance/bot-rise-power-grid-later-builder-20261126/screen.json)[规则与策略结果](../../../artifacts/maintenance/test-history/runs/6678fe30-81e8-4b8c-9e03-e646be2ba4b6/results.json) · [真实 Worker 复验](../../../artifacts/maintenance/test-history/runs/0ebff8b2-7064-4fd8-888d-ac831a4370f8/results.json)
