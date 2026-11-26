@@ -3,11 +3,11 @@
 ## 任务接续速查
 
 - 目标：建立可复用的人机评估环境，逐游戏升级默认／豆包／绝悟，增加捣蛋王策略。
-- 状态：原版宝可梦保留三档，其他八个玩法已接入四种人机，并完成源码端入座、保存和恢复校验。UNO 前一批 B 组候选排序未通过，上限 32 组的自适应方案正在进行新一轮独立正式校准。正式 C 组训练、真人体验和新签名发行验收仍待完成。
+- 状态：原版宝可梦保留三档，其他八个玩法已接入四种人机，并完成源码端入座、保存和恢复校验。UNO 自适应 B 组已跑完 128 个正式留出开局，候选排序与末张 +4 分组误差仍待修正。正式 C 组训练、真人体验和新签名发行验收仍待完成。
 - 发行依据：[当前已验收交付](../reference/acceptance.md#当前源码与本地交付)。当前实施证据按源码与实际交付分别记录。
 - 所属范围：游戏SDK、人机运行与验证工具、各游戏策略及必要的配置／展示／恢复适配；规则、计分和秘密边界不因策略升级改变。
 - 有效基础与缺口：九个源码玩法已跑通统一离线对局与能力声明。各款游戏的策略、实际 Worker 和恢复证据记录在[逐游戏迁移](#逐游戏迁移与能力声明)；真人体验需要真实混合对局。
-- 下一步：完成自适应 UNO B 组正式留出的 128 个开局并独立复算门槛。通过后，再开始三组 UNO 绝悟动作评分训练。[B 组冻结计划](../../artifacts/maintenance/bot-rise-uno-qualification-05-20261126/frozen-plan.json) · [首轮学习范围](#首轮试点范围) · [R0 冻结清单](#r0-实施前冻结清单)
+- 下一步：在冻结的开发集中复核长续推标签的方向稳定性，继续改进 B 组校准。正式 B 组通过后，再开始三组 UNO 绝悟动作评分训练。[B 组冻结计划](../../artifacts/maintenance/bot-rise-uno-qualification-05-20261126/frozen-plan.json) · [首轮学习范围](#首轮试点范围) · [R0 冻结清单](#r0-实施前冻结清单)
 
 ## 来源、范围与目标
 
@@ -171,6 +171,10 @@ R1／R2 可与[游戏开发接口](../reference/game-development.md#模块与契
 同一开发集上，按共享假设整组推进并受 2048 规则步硬上限约束，上限 32 组的方案命中 21/29 对。同前缀的固定 8、16 组分别命中 15、18 对。89 个根平均完成 31.52 组，最多用了 2011 规则步。四个 8 候选压力夹具在真实 Worker 中完成 22–27 组、1930–1952 步，最长约 0.67 秒，动作提交成功。已另外启动 64 个新开局的独立开发复验。正式校准与 C 组训练仍用各自隔离的种子。[预算开发筛查](../../artifacts/maintenance/bot-rise-uno-adaptive-ranking-20261126/report.json) · [真实 Worker 复验](../../artifacts/maintenance/bot-rise-uno-adaptive-worker-20261126/report.json) · [64 个开局的开发计划](../../artifacts/maintenance/bot-rise-uno-adaptive-ranking-20261126/independent-plan.json)
 
 64 个独立开发开局已完成，35 对可确认方向。8、16、最多 32 组分别命中 21、24、25 对，自适应方案最高实际执行 1983 规则步。短搜索、离线和本地候选模型格式统一支持该上限，旧 8／16 组报告仍可复算。新正式批次以同样系数在 128 个新自然留出开局运行，上限 32 组和 2048 规则步。自然概率标签取同一抽样前缀的 8 组，候选排序由另一批独立长续推确认。80 个新罚牌复核开局覆盖普通 +2、普通 +4 和末张 +4 共 80／80／14 个开局。保留此前的概率、Brier、排序和首选差值门槛。[独立开发结论](../../artifacts/maintenance/bot-rise-uno-adaptive-ranking-20261126/independent-development.json) · [正式冻结计划](../../artifacts/maintenance/bot-rise-uno-qualification-05-20261126/frozen-plan.json) · [正式罚牌复核](../../artifacts/maintenance/bot-rise-uno-qualification-05-20261126/pending-data.json) · [旧报告复算](../../artifacts/maintenance/bot-rise-uno-qualification-05-20261126/old-qualification-audit-replay.json) · [搜索、归因及 Worker 回归](../../artifacts/maintenance/test-history/runs/aef31d9a-7e3a-47ab-b2a8-9f536ffb1f38/results.json) · [8／32 组实际模型保存恢复](../../artifacts/maintenance/test-history/runs/712a237d-ef98-4301-b582-d6ced4416d1a/results.json)
+
+本批 128 个正式留出开局全部结束，独立复算与原始报告一致。127 个开局贡献 5902 条自然概率标签，总体误差 0.32 个百分点，Brier 为 0.18591，简单对照为 0.19056。末张 +4 的 14 个独立开局误差为 5.04 个百分点，高于 5 个百分点门槛。1075 对候选中有 53 对方向可确认，B 命中 30 对（56.60%），低于 70%。首选平均胜率损失为 0.07 个百分点，配对区间为 −0.30 至 +0.48 个百分点。整体校准未通过，正式 C 保持待启动。[正式自适应报告](../../artifacts/maintenance/bot-rise-uno-qualification-05-20261126/report.json) · [独立复算](../../artifacts/maintenance/bot-rise-uno-qualification-05-20261126/audit.json)
+
+只用已冻结的 2078 条拟合标签比较现有叶节点评分与七个既有授权特征的交互项。自然样本的四折 Brier 由 0.18269 变为 0.18238。两批开发集的排序命中分别由 18/29 变为 17/29、由 23/35 保持 23/35，现行校准保留原特征。[叶节点交互项开发对照](../../artifacts/maintenance/bot-rise-uno-leaf-interactions-20261126/report.json)
 
 在已封存的 48 和 64 个开发开局上，另试同一未知牌排列的成对轮转，保留候选共享假设及 2048 规则步上限。两套短搜索随机种子下，前一批正确方向从 33/58 增至 38/58，后一批两组均为 51/70，同牌选色从 17/20 降至 15/20。开发复算未显示稳定收益，正式批次仍按冻结的独立洗牌方案运行。[成对轮转开发对照](../../artifacts/maintenance/bot-rise-uno-paired-world-rotation-20261126/report.json)
 
