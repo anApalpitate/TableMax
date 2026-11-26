@@ -14,6 +14,7 @@ import {
 } from './uno-attribution';
 import { calibrationSeeds } from './uno-calibration-provenance';
 import { matchesUnoCorrectionCalibration } from './uno-correction-provenance';
+import { correctionSeeds } from './uno-correction-seeds';
 import { isCurrentUnoPilot, unoPilotEvidence } from './uno-pilot';
 import { validateUnoComparisonPlan } from './uno-comparison-plan';
 import { openTrainingCheckpoint } from './training-checkpoint';
@@ -84,11 +85,7 @@ const tune = seeds(plan.tuneSeeds),
 const comparisonSeeds = validateUnoComparisonPlan(abc.value);
 const modelInputs = [
   ...calibrationSeeds(b.value),
-  ...seeds(c.value.trainSeeds),
-  ...seeds(c.value.tuneSeeds),
-  ...(c.value.localCorpus?.seeds?.length
-    ? seeds(c.value.localCorpus.seeds)
-    : []),
+  ...correctionSeeds(c.value),
   ...comparisonSeeds,
 ];
 const reserved = new Set(modelInputs);

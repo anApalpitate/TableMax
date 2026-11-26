@@ -2,7 +2,7 @@ import { execFile } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { fitUnoOnGpu } from './uno-gpu-fit';
 import { readTrainingLease } from '../../../packages/platform-core/src/training-lease';
-import { readFileSync, readdirSync } from 'node:fs';
+import { readFileSync } from 'node:fs';
 import { availableParallelism } from 'node:os';
 import { parseArgs, promisify } from 'node:util';
 import { fileURLToPath } from 'node:url';
@@ -32,6 +32,7 @@ import {
 import { isCurrentUnoPilot, unoPilotEvidence } from './uno-pilot';
 import { calibrationSeeds } from './uno-calibration-provenance';
 import { openTrainingCheckpoint } from './training-checkpoint';
+import { unoResidualSourceDigest as sourceDigest } from './uno-residual-source';
 import { bot } from '../../../games/uno/bot/index';
 import {
   pairedUnoDifferences,
@@ -66,6 +67,7 @@ const { values } = parseArgs({
     jobs: { type: 'string', default: '1' },
     'train-seeds': { type: 'string' },
     'tune-seeds': { type: 'string' },
+    'related-seeds': { type: 'string' },
     roots: { type: 'string', default: '2' },
     continuations: { type: 'string', default: '16' },
     'max-steps': { type: 'string', default: '15000' },
@@ -121,7 +123,14 @@ if (report.calibrationDigest !== calibrationDigest)
 loadUnoLeafScorer(report.calibration);
 const trainSeeds = seedList(values['train-seeds']);
 const tuneSeeds = seedList(values['tune-seeds']);
-const excluded = new Set(calibrationSeeds(report));
+const relatedSeeds =
+  values['related-seeds'] === undefined
+    ? []
+    : seedList(values['related-seeds']);
+const previous = calibrationSeeds(report);
+const excluded = new Set([...previous, ...relatedSeeds]);
+if (excluded.size !== previous.length + relatedSeeds.length)
+  throw new Error('Related C seeds must be separate from B calibration seeds');
 if (
   trainSeeds.some((seed) => excluded.has(seed)) ||
   tuneSeeds.some((seed) => excluded.has(seed) || trainSeeds.includes(seed))
@@ -186,53 +195,6 @@ const initial: Checkpoint = {
   tuningSeeds: [],
   tuning: [],
 };
-const root = new URL('../../../', import.meta.url);
-function sourceDigest() {
-  const files = [
-    ...['bot', 'data', 'rules'].flatMap((directory) => {
-      const path = 'games/uno/' + directory + '/';
-      return readdirSync(new URL(path, root), { withFileTypes: true })
-        .filter(
-          (file) =>
-            file.isFile() &&
-            file.name.endsWith('.ts') &&
-            !file.name.endsWith('.test.ts') &&
-            file.name !== 'test-fixtures.ts',
-        )
-        .map((file) => path + file.name);
-    }),
-    ...['index', 'config', 'types'].map((name) => 'games/uno/' + name + '.ts'),
-    ...[
-      'bot-scheduler',
-      'game-actions',
-      'random',
-      'learning-storage',
-      'training-lease',
-      'bot-learning',
-    ].map((name) => 'packages/platform-core/src/' + name + '.ts'),
-    ...[
-      'train-uno-correction',
-      'uno-residual-seed',
-      'uno-residual-worker',
-      'uno-residual-labels',
-      'uno-samples',
-      'evaluate',
-      'fit',
-      'uno-pilot',
-      'uno-gpu-fit',
-      'training-checkpoint',
-      'local-uno-corpus',
-      'uno-human-review',
-      'uno-calibration-provenance',
-    ].map((name) => 'tools/analysis/bots/' + name + '.ts'),
-    'tools/analysis/bots/ridge-cuda.py',
-  ].sort();
-  return sha(
-    JSON.stringify(
-      files.map((path) => [path, sha(readFileSync(new URL(path, root)))]),
-    ),
-  );
-}
 const sourceSha256 = sourceDigest();
 const identity = createHash('sha256')
   .update(
@@ -246,6 +208,7 @@ const identity = createHash('sha256')
       calibrationDigest,
       work,
       tuneSeeds,
+      ...(relatedSeeds.length ? { relatedSeeds } : {}),
       options,
       corpus: corpus?.inputDigest,
       ...(corpus
@@ -548,6 +511,7 @@ console.log(
       node: process.version,
       trainSeeds,
       tuneSeeds,
+      ...(relatedSeeds.length ? { relatedSeeds } : {}),
       options,
       device: fit.device,
       torch: fit.torch,

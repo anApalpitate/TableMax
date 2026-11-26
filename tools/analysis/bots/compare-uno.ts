@@ -7,6 +7,7 @@ import { parseArgs, promisify } from 'node:util';
 import { isCurrentUnoPilot, unoPilotEvidence } from './uno-pilot';
 import { calibrationSeeds } from './uno-calibration-provenance';
 import { matchesUnoCorrectionCalibration } from './uno-correction-provenance';
+import { correctionSeeds } from './uno-correction-seeds';
 import {
   createUnoComparisonEvaluator,
   runUnoComparisonBlock,
@@ -93,14 +94,14 @@ const hypotheses = calibration.options?.hypotheses;
 if (hypotheses !== 8 && hypotheses !== 16)
   throw new Error('The search sample budget must come from the B report');
 const sourceSeeds = [
-  calibrationSeeds(calibration),
-  candidate.trainSeeds,
-  candidate.tuneSeeds,
-  candidate.localCorpus?.seeds ?? [],
+  ...calibrationSeeds(calibration),
+  ...correctionSeeds(candidate),
 ];
-if (sourceSeeds.some((group) => !Array.isArray(group)))
-  throw new Error('The B/C reports must identify their source seeds');
-const excluded = new Set(sourceSeeds.flat());
+const excluded = new Set(sourceSeeds);
+if (excluded.size !== sourceSeeds.length)
+  throw new Error(
+    'The B calibration and C development seed partitions overlap',
+  );
 if (allSeeds.some((seed) => excluded.has(seed)))
   throw new Error(
     'Formal comparison or expansion reuses a model development seed',
@@ -159,6 +160,7 @@ function sourceDigest() {
       'uno-paired-statistics',
       'uno-calibration-provenance',
       'uno-correction-provenance',
+      'uno-correction-seeds',
       'training-checkpoint',
     ].map((name) => 'tools/analysis/bots/' + name + '.ts'),
   ].sort();
