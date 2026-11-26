@@ -9,6 +9,7 @@ import { spawnSync } from 'node:child_process';
 import { test } from 'node:test';
 import {
   allowsScope,
+  gameIds,
   parseScope,
   scopedVitestIncludes,
   selectUnitTests,
@@ -142,6 +143,21 @@ test('uno checks are isolated from other games and mixed verification matrices',
         'game:uno',
       ),
     /outside/,
+  );
+});
+
+test('the cross-game bot picker requires the full source catalog scope', () => {
+  const script = 'tools/test/box/verify-uno-bot-style.mjs';
+  const catalog = plan(item(script, ['--catalog']));
+  assert.doesNotThrow(() =>
+    validateBatchScope(plan(item(script)), 'box,game:uno'),
+  );
+  assert.throws(() => validateBatchScope(catalog, 'box,game:uno'), /outside/);
+  assert.doesNotThrow(() =>
+    validateBatchScope(
+      catalog,
+      ['box', ...gameIds.map((id) => `game:${id}`)].join(','),
+    ),
   );
 });
 

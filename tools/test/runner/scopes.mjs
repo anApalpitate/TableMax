@@ -646,6 +646,11 @@ export function verificationTestScopes(item) {
     if (only.length) throw new Error('Invalid installed-game selection');
   }
   if (
+    script === 'tools/test/box/verify-uno-bot-style.mjs' &&
+    item.args.includes('--catalog')
+  )
+    return ['box', ...gameScopes];
+  if (
     script === 'tools/test/games/rummikub/verify-rummikub-ui.mjs' &&
     item.args.includes('--entry-only')
   )
