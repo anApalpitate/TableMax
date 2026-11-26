@@ -263,26 +263,26 @@ function searchTurn(
   if (!self.opened || level === 0 || bestScore >= 1_000_000_000)
     return { action: best, stats: budget.stats };
 
-  // Doubao manipulates one existing set at a time. Juewu covers the whole table.
-  const searchTables =
-    level === 1 ? view.table.map((meld) => [meld]) : [view.table];
-  for (const moving of searchTables) {
-    if (!budget.visit()) break;
-    const stationary = original.filter(
-      (_, i) => !moving.includes(view.table[i]!),
-    );
-    const pool = buildCandidates(self.rack, moving, budget);
+  // Juewu's local and whole-table searches share the same candidate pool.
+  const searchTable = (
+    moving: readonly Meld[],
+    stationary: Meld[],
+    pool: CandidatePool,
+    alreadyPlaced = 0n,
+    nodeStop: number = budget.limits.nodes,
+  ) => {
+    if (budget.stats.nodes >= nodeStop || !budget.visit()) return;
     const selected: Candidate[] = [];
     const requiredOrder = pool.tiles
       .map((_, i) => i)
-      .filter((i) => i >= self.rack.length)
+      .filter((i) => i >= self.rack.length && !(alreadyPlaced & pool.bits[i]!))
       .sort((a, b) => pool.byTile[a]!.length - pool.byTile[b]!.length);
     const covered = new Set<bigint>();
     const hasTableJoker = moving.some((meld) =>
       meld.tiles.some((placement) => getTile(placement.tileId).joker),
     );
     const visit = (used: bigint) => {
-      if (!budget.visit()) return;
+      if (budget.stats.nodes >= nodeStop || !budget.visit()) return;
       if (!hasTableJoker) {
         if (covered.has(used)) return;
         covered.add(used);
@@ -294,7 +294,7 @@ function searchTurn(
           ...selected.map((candidate) => candidate.meld),
         ];
         consider(base, used);
-        packRack(pool, used, base);
+        packRack(pool, used, base, nodeStop);
         return;
       }
       const pivot = requiredOrder.find((i) => remaining & pool.bits[i]!)!;
@@ -303,15 +303,45 @@ function searchTurn(
         selected.push(candidate);
         visit(used | candidate.mask);
         selected.pop();
-        if (
-          bestScore >= 1_000_000_000 ||
-          budget.stats.nodes >= budget.limits.nodes
-        )
+        if (bestScore >= 1_000_000_000 || budget.stats.nodes >= nodeStop)
           return;
       }
     };
-    visit(0n);
-    if (bestScore >= 1_000_000_000) break;
+    visit(alreadyPlaced);
+  };
+  if (level === 1) {
+    for (const [index, meld] of view.table.entries()) {
+      if (
+        budget.stats.nodes >= budget.limits.nodes ||
+        bestScore >= 1_000_000_000
+      )
+        break;
+      const moving = [meld];
+      searchTable(
+        moving,
+        original.filter((_, i) => i !== index),
+        buildCandidates(self.rack, moving, budget),
+      );
+    }
+  } else {
+    const pool = buildCandidates(self.rack, view.table, budget);
+    const byId = new Map(pool.tiles.map((tile, i) => [tile.id, pool.bits[i]!]));
+    const perSet = Math.floor(8000 / Math.max(1, view.table.length));
+    for (const [index, meld] of view.table.entries()) {
+      if (bestScore >= 1_000_000_000) break;
+      const localMask = meld.tiles.reduce(
+        (mask, tile) => mask | byId.get(tile.tileId)!,
+        0n,
+      );
+      searchTable(
+        [meld],
+        original.filter((_, i) => i !== index),
+        pool,
+        pool.requiredMask & ~localMask,
+        budget.stats.nodes + perSet,
+      );
+    }
+    if (bestScore < 1_000_000_000) searchTable(view.table, [], pool);
   }
   return { action: best, stats: budget.stats };
 }

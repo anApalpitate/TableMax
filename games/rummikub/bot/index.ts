@@ -10,7 +10,7 @@ export { TABLE_PRESSURE_LIMITS } from './mischief';
 
 export const bot: BotStrategy = {
   id: 'rummikub-local',
-  version: '1.1.0',
+  version: '1.1.1',
   gameId: 'rummikub',
   rulesVersion: RULES_VERSION,
   difficulties: ['default', 'doubao', 'juewu', 'mischief'],

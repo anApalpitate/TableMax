@@ -158,6 +158,7 @@ for (const [label, difficulty, peak] of [
   ['doubao', 'doubao', doubaoLateGame],
   ['juewu', 'juewu', lateGame],
   ['juewu-dense', 'juewu', denseLateGame],
+  ['juewu-local-coverage', 'juewu', doubaoLateGame],
   ['juewu-peak', 'juewu', worstLateGame],
   ['mischief-peak', 'mischief', pressurePeak],
 ] as const) {
@@ -198,6 +199,13 @@ for (const [label, difficulty, peak] of [
       ).toBe(true);
       expect(result.memory).toBeNull();
       expect(result.random).toBe(peak.randomSnapshot);
+      if (label === 'juewu-local-coverage') {
+        const play = result.action as PlayAction;
+        expect(play.type).toBe('submit-turn');
+        const count = (table: PlayAction['table']) =>
+          table.reduce((sum, meld) => sum + meld.tiles.length, 0);
+        expect(count(play.table) - count(state.table)).toBe(4);
+      }
       const direct = await bot.decide({
         view: task.view,
         actions: task.actions,
@@ -241,7 +249,7 @@ it('persists the Mischief rearrangement in a real Worker and replays it after SQ
     expect(room.view().game?.botDifficulties).toContain('mischief');
     expect(task.data).toMatchObject({
       difficulty: 'mischief',
-      version: '1.1.0',
+      version: bot.version,
     });
     const executor = new WorkerBotExecutor(workerPath);
     const start = performance.now();
