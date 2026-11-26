@@ -1322,7 +1322,7 @@ describe('Power Grid bounded production and seeded full games', () => {
 
 describe('Power Grid Mischief', () => {
   it('can outbid the public leader by up to three without exposing or assuming rival cash', () => {
-    const state = pressureAuction(context(['A', 'B', 'C'], 42), 47);
+    const state = pressureAuction(context(['A', 'B', 'C'], 42), 39);
     validateState(state, state.seatOrder);
     const seat = { role: 'player', seatId: 'A' } as const;
     const view = rules.project(state, seat) as PowerGridView;
@@ -1331,7 +1331,7 @@ describe('Power Grid Mischief', () => {
     const pick = (projected: PowerGridView, difficulty: 'juewu' | 'mischief') =>
       chooseAction(projected, actions, difficulty, { next: () => 0 });
     expect(pick(view, 'juewu')).toEqual({ type: 'pass' });
-    expect(pick(view, 'mischief')).toEqual({ type: 'bid', amount: 50 });
+    expect(pick(view, 'mischief')).toEqual({ type: 'bid', amount: 42 });
     const privateChange = structuredClone(state);
     privateChange.players.B!.cash -= 20;
     privateChange.players.C!.cash += 20;
@@ -1340,7 +1340,7 @@ describe('Power Grid Mischief', () => {
     ).toEqual(view);
     expect(
       pick(rules.project(privateChange, seat) as PowerGridView, 'mischief'),
-    ).toEqual({ type: 'bid', amount: 50 });
+    ).toEqual({ type: 'bid', amount: 42 });
     const previousRaises = structuredClone(view);
     for (let n = 0; n < 3; n++)
       previousRaises.history.push({
@@ -1350,11 +1350,21 @@ describe('Power Grid Mischief', () => {
         resource: null,
         cityId: null,
         plantId: 4,
-        amount: 42 + n,
+        amount: 34 + n,
         text: '',
       });
     expect(plantPressure(previousRaises, 'B')).toBe(0);
     expect(pick(previousRaises, 'mischief')).toEqual({ type: 'pass' });
+
+    const tooExpensive = pressureAuction(context(['A', 'B', 'C'], 42), 47);
+    expect(
+      chooseAction(
+        rules.project(tooExpensive, seat) as PowerGridView,
+        legalActions(tooExpensive, 'A'),
+        'mischief',
+        { next: () => 0 },
+      ),
+    ).toEqual({ type: 'pass' });
   });
 
   it('can buy scarce coal before equally priced oil when both are in its plan', () => {

@@ -605,7 +605,7 @@ export function chooseAction(
 
 export const bot: BotStrategy = {
   id: 'power-grid-local',
-  version: '1.1.3',
+  version: '1.1.4',
   gameId: 'power-grid',
   rulesVersion: RULES_VERSION,
   difficulties: ['default', 'doubao', 'juewu', 'mischief'],

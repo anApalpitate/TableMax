@@ -399,7 +399,7 @@ it('runs the Power Grid Mischief counterbid through the real Worker and resumes 
   const game = {
     ...rules,
     initialize: (context: Parameters<typeof rules.initialize>[0]) =>
-      pressureAuction(context, 47),
+      pressureAuction(context, 39),
   };
   let repository = new SqliteSaveRepository(output);
   let room = new RoomCoordinator(game, localBot, repository);
@@ -434,7 +434,7 @@ it('runs the Power Grid Mischief counterbid through the real Worker and resumes 
     const start = performance.now();
     const result = await worker.execute(task, AbortSignal.timeout(2000));
     expect(performance.now() - start).toBeLessThan(2000);
-    expect(result.action).toEqual({ type: 'bid', amount: 50 });
+    expect(result.action).toEqual({ type: 'bid', amount: 42 });
     expect(
       (await room.submitBot(task, result.action, result.memory, result.random))
         .ok,

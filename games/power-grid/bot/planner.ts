@@ -132,7 +132,7 @@ export function forecast(
 ): Forecast {
   if (!view.self) throw new Error('规划缺少本人投影。');
   const own = view.players[view.self.seatId]!,
-    horizon = level === 2 ? 3 : level === 1 ? 2 : 1;
+    horizon = level > 0 ? 2 : 1;
   const width = level === 2 ? 16 : level === 1 ? 8 : 1;
   const limit = maxNodes ?? (level === 2 ? 6000 : level === 1 ? 1000 : 160);
   const values = Object.fromEntries(

@@ -2,7 +2,7 @@
 
 独立策略入口为 `games/power-grid/bot/index.ts`，经共享 `BotStrategy` 接收本人安全投影和服务端合法动作。策略只看到本人现金、公开的电厂／仓储／城市／顺序／市场、本人可见建城费用与合法动作；对手现金、牌堆牌号、秘密移除牌号均不提供。记忆为 `null`，不调用其他游戏策略或网络服务。
 
-源码 `power-grid-local@1.1.3` 支持默认、豆包、绝悟和捣蛋王。历史签名对局仍固定原策略与发行。
+源码 `power-grid-local@1.1.4` 支持默认、豆包、绝悟和捣蛋王。历史签名对局仍固定原策略与发行。
 
 ## 三个强度档位
 
@@ -30,7 +30,7 @@
 
 ## 生产计划与动作粒度
 
-联合预测位于 `games/power-grid/bot/planner.ts`。豆包保留最多 8 个候选、每次决策最多 1000 个预测节点；绝悟最多 16 个候选、6000 个节点，多个购厂／替换候选共享该预算。每轮搜索前三次扩城的不同序列，再合法贪心完成后续扩张；除本轮现金收入外计入网络和可供电能力的后续价值，避免无限积累现金而停滞。节点上限、稳定排序和取消检查固定，时间不会改变选出的动作。
+联合预测位于 `games/power-grid/bot/planner.ts`。豆包和绝悟都推演两轮。豆包保留最多 8 个候选、每次决策最多 1000 个预测节点。绝悟最多保留 16 个候选和 6000 个节点，分别考虑基础、燃料竞争和扩城竞争场景，多个购厂／替换候选共享预算。每轮搜索前三次扩城的不同序列，再合法贪心完成后续扩张；除本轮现金收入外计入网络和可供电能力的后续价值，避免无限积累现金而停滞。节点上限、稳定排序和取消检查固定，时间不会改变选出的动作。
 
 采购费用按完整价格阶梯逐份计算，售罄不可购；混燃同时约束煤油共仓。三档策略保留原有燃料及电厂优先级，将同厂同种燃料合并为一次合法数量采购，上限取当前计划缺口与服务端合法数量；跨厂、跨燃料仍分别决策。旧的单份合法动作列表仍可使用。运行资源返回供应池，补给受供应与市场容量限制。当前建城／发电阶段不能预测本轮再购料；已运行厂从剩余组合排除。只根据公开已出现的第三步信号预测生效边界，不猜牌序或保证未来电厂可得；行政阶段抽到第三步牌的最后一次第二步补给由规则层保持。
 
@@ -64,4 +64,8 @@
 
 `1.1.3` 用另外八个开局完成 128 场换座，四档各自的 32 场首轮均实际供电。四档整场分别赢 12、11、2、2 场，绝悟比豆包低 28.13 个胜率百分点，95% 开局配对区间为 −40.63 至 −15.63。捣蛋王有 5 对首次改选指向同一明确领先者，其中 1 对该领先者由负转胜。开局供电已复验，后续继续检验中盘计划和干扰时机。[1.1.3 全档复验](../../../artifacts/maintenance/bot-rise-power-grid-v113-rotation-20261126/power-grid-report.json)
 
-从本批四档对照中选出六个首厂同价、首轮供电相同的开局，精确复现绝悟与豆包共 12 条动作轨迹。三例首次分歧为选区，另外三例分别为采购燃料、发起购厂竞价和建城。在前三例只替换选区动作，绝悟终局供电分别改变 −1、−4、+5 城，三场仍负。后三例只替换首个分歧动作，购料、购厂两例的终局供电相同，建城一例从 16 增至 18 城并由负转胜。这些是筛查局面，下一批将独立比较绝悟两轮和三轮预测，保留公开燃料压力和扩城压力场景以及相同计算上限。[预测深度开发计划](../../../artifacts/maintenance/bot-rise-power-grid-short-horizon-20261126/frozen-plan.json) · [同局面分歧](../../../artifacts/maintenance/bot-rise-power-grid-midgame-20261126/phase-diagnostics.json) · [只改选区](../../../artifacts/maintenance/bot-rise-power-grid-map-counterfactual-20261126/report.json) · [只改中盘动作](../../../artifacts/maintenance/bot-rise-power-grid-midgame-counterfactual-20261126/report.json)[规则与策略结果](../../../artifacts/maintenance/test-history/runs/6678fe30-81e8-4b8c-9e03-e646be2ba4b6/results.json) · [真实 Worker 复验](../../../artifacts/maintenance/test-history/runs/0ebff8b2-7064-4fd8-888d-ac831a4370f8/results.json)
+从本批四档对照中选出六个首厂同价、首轮供电相同的开局，精确复现绝悟与豆包共 12 条动作轨迹。三例首次分歧为选区，另外三例分别为采购燃料、发起购厂竞价和建城。在前三例只替换选区动作，绝悟终局供电分别改变 −1、−4、+5 城，三场仍负。后三例只替换首个分歧动作，购料、购厂两例的终局供电相同，建城一例从 16 增至 18 城并由负转胜。这些是筛查局面，下一批将独立比较绝悟两轮和三轮预测，保留公开燃料压力和扩城压力场景以及相同计算上限。[预测深度开发计划](../../../artifacts/maintenance/bot-rise-power-grid-short-horizon-20261126/frozen-plan.json) · [同局面分歧](../../../artifacts/maintenance/bot-rise-power-grid-midgame-20261126/phase-diagnostics.json) · [只改选区](../../../artifacts/maintenance/bot-rise-power-grid-map-counterfactual-20261126/report.json) · [只改中盘动作](../../../artifacts/maintenance/bot-rise-power-grid-midgame-counterfactual-20261126/report.json)
+
+六个独立开局按四座轮换，共 24 个配对。两轮规划的绝悟由 1 胜增至 5 胜，按对手池加权的胜率差为 +21.88 个百分点，开局配对 95% 区间为 +12.50 至 +31.25。平均终局供电由 12.42 城增至 15.08 城，各配对的首厂出价与首轮供电相同。策略 `1.1.4` 接入两轮范围，继续用三个公开场景比较，随后对四档按新开局全座复验。[两轮与三轮对照](../../../artifacts/maintenance/bot-rise-power-grid-short-horizon-20261126/report.json) · [现行规则、Worker 与四人整局](../../../artifacts/maintenance/test-history/runs/dcfbc8b2-0687-4bad-9fed-bcf33c179907/results.json)
+
+两轮估值下，捣蛋王竞价固定局面的绝悟退出价变为 39 电币，捣蛋王最多加至 42，面对旧夹具的 47 电币报价会退出。定向回归继续验证对手秘密现金隔离、反制次数上限、真实 Worker 和 SQLite 回退重开。[规则与策略结果](../../../artifacts/maintenance/test-history/runs/6678fe30-81e8-4b8c-9e03-e646be2ba4b6/results.json) · [真实 Worker 复验](../../../artifacts/maintenance/test-history/runs/0ebff8b2-7064-4fd8-888d-ac831a4370f8/results.json)
