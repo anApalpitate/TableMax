@@ -78,7 +78,7 @@ export function validateUnoComparisonPlan(plan: UnoComparisonPlan) {
     throw new Error(
       'Each original seed can occur only once across development, pools and stages',
     );
-  return seeds;
+  return separate;
 }
 
 export function selectUnoComparisonSeeds(

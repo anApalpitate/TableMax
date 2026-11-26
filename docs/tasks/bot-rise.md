@@ -138,7 +138,7 @@ R1／R2 可与[游戏开发接口](../reference/game-development.md#模块与契
 
 第二次仍未达到通过条件时，按区间记录为低于预定收益或证据不足，保留 B，C 继续作为候选。扩样固定模型、校准器、对手池和统计口径。若调整 C 的权重、限幅或改选条件，新版本使用独立种子重新正式验收。
 
-首批和扩样分别在种子块边界保存断点。续跑核对冻结计划、源码、运行时和 B/C 报告摘要。扩样核对完整首批及扩样判定。真实 Worker 验收和模型登记按完整计划重查块成员和配对结果。定向回归与夹具烟测已验证样本量计算、失败上限、断点输入绑定和阶段完整性。[配对与归因回归](../../artifacts/maintenance/test-history/runs/1f425bdb-421c-4791-90f3-65642c8211d0/results.json) · [对照工具烟测](../../artifacts/maintenance/bot-rise-abc-planning-20261126/comparison-smoke.json)
+首批和扩样分别在种子块边界保存断点。可并行执行块内场次，按固定座位与 A／B／C 顺序汇总。启动每场前为可能失败预留配额，累计 10 次异常就停。续跑核对冻结计划、源码、运行时和 B/C 报告摘要。扩样核对完整首批及扩样判定。真实 Worker 验收和模型登记按完整计划重查块成员和配对结果。定向回归与夹具烟测已验证样本量计算、失败上限、断点输入绑定和阶段完整性。[配对与归因回归](../../artifacts/maintenance/test-history/runs/1f425bdb-421c-4791-90f3-65642c8211d0/results.json) · [对照工具烟测](../../artifacts/maintenance/bot-rise-abc-planning-20261126/comparison-smoke.json) · [并行回归](../../artifacts/maintenance/test-history/runs/da4ee809-dc61-48b8-8e90-7eac0833ab80/results.json) · [串并行一致性烟测](../../artifacts/maintenance/bot-rise-uno-abc-parallel-20261126/parallel-smoke.json)
 
 ### UNO 绝悟 B 组有界搜索
 

@@ -14,7 +14,7 @@ import {
 } from './uno-attribution';
 import { calibrationSeeds } from './uno-calibration-provenance';
 import { isCurrentUnoPilot, unoPilotEvidence } from './uno-pilot';
-import { unoOpponentPools } from './uno-paired-statistics';
+import { validateUnoComparisonPlan } from './uno-comparison-plan';
 import { openTrainingCheckpoint } from './training-checkpoint';
 
 const { values } = parseArgs({
@@ -74,18 +74,13 @@ if (
   plan.continuations < 16 ||
   !Number.isInteger(plan.bootstrapSeed) ||
   plan.bootstrapSeed < 1 ||
-  plan.bootstrapSeed > 0xffffffff ||
-  abc.value?.version !== 1 ||
-  ![1, 2].includes(abc.value.looks)
+  plan.bootstrapSeed > 0xffffffff
 )
   throw new Error('Invalid frozen calibration attribution plans');
 
 const tune = seeds(plan.tuneSeeds),
   review = seeds(plan.reviewSeeds);
-const formal = Object.keys(unoOpponentPools).flatMap((pool) => [
-  ...seeds(abc.value.seeds?.[pool]?.first),
-  ...(abc.value.looks === 2 ? seeds(abc.value.seeds?.[pool]?.extra) : []),
-]);
+const comparisonSeeds = validateUnoComparisonPlan(abc.value);
 const modelInputs = [
   ...calibrationSeeds(b.value),
   ...seeds(c.value.trainSeeds),
@@ -93,11 +88,11 @@ const modelInputs = [
   ...(c.value.localCorpus?.seeds?.length
     ? seeds(c.value.localCorpus.seeds)
     : []),
-  ...formal,
+  ...comparisonSeeds,
 ];
 const reserved = new Set(modelInputs);
 if (reserved.size !== modelInputs.length)
-  throw new Error('The B, C or formal A/B/C partitions overlap');
+  throw new Error('The B, C or A/B/C partitions overlap');
 if (
   tune.some((seed) => reserved.has(seed) || review.includes(seed)) ||
   review.some((seed) => reserved.has(seed))

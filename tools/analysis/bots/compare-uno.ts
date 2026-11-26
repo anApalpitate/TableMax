@@ -1,16 +1,20 @@
+import { execFile } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { readFileSync, readdirSync } from 'node:fs';
-import { parseArgs } from 'node:util';
-import type { BotStrategy } from '../../../packages/game-sdk/src/index';
-import { bot, rules } from '../../../games/uno';
-import { createUnoSearchStrategy } from '../../../games/uno/bot/search-strategy';
+import { availableParallelism } from 'node:os';
+import { fileURLToPath } from 'node:url';
+import { parseArgs, promisify } from 'node:util';
 import { isCurrentUnoPilot, unoPilotEvidence } from './uno-pilot';
 import { calibrationSeeds } from './uno-calibration-provenance';
-import { evaluateBotMatch } from './evaluate';
+import {
+  createUnoComparisonEvaluator,
+  runUnoComparisonBlock,
+  type UnoComparisonInputs,
+  type UnoComparisonMatch,
+} from './uno-comparison-match';
 import {
   completeUnoBlock,
   summarizeUnoComparison,
-  unoArms,
   unoComparisonDecision,
   unoOpponentPools,
   type UnoPairedMatch,
@@ -35,6 +39,7 @@ const { values } = parseArgs({
     checkpoint: { type: 'string' },
     development: { type: 'boolean', default: false },
     'steps-per-run': { type: 'string' },
+    jobs: { type: 'string', default: '1' },
   },
 });
 if (!values.plan || !values.calibration || !values.correction) {
@@ -42,6 +47,11 @@ if (!values.plan || !values.calibration || !values.correction) {
     'Pass --plan, --calibration and --correction; --previous is the stage-one report for expansion',
   );
 }
+
+const maximumJobs = Math.min(8, Math.max(1, availableParallelism() - 2));
+const jobs = Number(values.jobs);
+if (!Number.isSafeInteger(jobs) || jobs < 1 || jobs > maximumJobs)
+  throw new Error('Choose between 1 and ' + maximumJobs + ' comparison jobs');
 
 const stepsPerRun =
   values['steps-per-run'] === undefined
@@ -103,23 +113,15 @@ if (
   candidate.calibrationDigest !== calibrationDigest
 )
   throw new Error('B and C must share the same frozen calibration digest');
-const strategies: Record<(typeof unoArms)[number], BotStrategy> = {
-  A: bot,
-  B: createUnoSearchStrategy(
-    calibration.calibration,
-    calibrationDigest,
-    hypotheses,
-  ),
-  C: createUnoSearchStrategy(
-    calibration.calibration,
-    calibrationDigest,
-    hypotheses,
-    {
-      model: candidate.model,
-      digest: candidateDigest,
-    },
-  ),
+const input: UnoComparisonInputs = {
+  calibration: calibration.calibration,
+  calibrationDigest,
+  hypotheses,
+  correction: candidate.model,
+  candidateDigest,
+  maxSteps: plan.maxSteps,
 };
+const playLocally = createUnoComparisonEvaluator(input);
 const root = new URL('../../../', import.meta.url);
 function sourceDigest() {
   const gameDirectories = ['bot', 'data', 'rules'];
@@ -145,6 +147,8 @@ function sourceDigest() {
       'evaluate',
       'uno-pilot',
       'uno-comparison-plan',
+      'uno-comparison-match',
+      'uno-comparison-worker',
       'uno-paired-statistics',
       'uno-calibration-provenance',
       'training-checkpoint',
@@ -225,90 +229,76 @@ function assertSource() {
   if (sourceDigest() !== sourceSha256)
     throw new Error('Comparison source changed during the frozen run');
 }
-const permutations = [
-  [0, 1, 2],
-  [0, 2, 1],
-  [1, 0, 2],
-  [1, 2, 0],
-  [2, 0, 1],
-  [2, 1, 0],
-] as const;
+const stopped = new AbortController();
+const stop = () => stopped.abort(new Error('UNO comparison interrupted'));
+const worker = fileURLToPath(
+  new URL('./uno-comparison-worker.ts', import.meta.url),
+);
+const exec = promisify(execFile);
+async function playInChild(match: UnoComparisonMatch): Promise<UnoPairedMatch> {
+  let output: string;
+  try {
+    output = (
+      await exec(
+        process.execPath,
+        ['--import', 'tsx', worker, JSON.stringify({ input, match })],
+        {
+          windowsHide: true,
+          encoding: 'utf8',
+          maxBuffer: 32768,
+          signal: stopped.signal,
+        },
+      )
+    ).stdout;
+  } catch (error) {
+    throw new Error('UNO comparison process failed', { cause: error });
+  }
+  return JSON.parse(output) as UnoPairedMatch;
+}
 let failures = current.reduce(
   (total, block) =>
     total + block.matches.filter((match) => match.outcome !== 'ended').length,
   0,
 );
 let remainingSteps = stepsPerRun;
-for (const { pool, seed, ordinal } of selected.slice(current.length)) {
-  if (failures >= 10 || remainingSteps === 0) break;
-  const matches: UnoPairedMatch[] = [];
-  const opponent = unoOpponentPools[pool].opponents;
-  const permutation = permutations[ordinal % permutations.length]!;
-  for (let seat = 0; seat < 4 && failures < 10; seat++) {
-    for (const arm of unoArms) {
-      if (failures >= 10) break;
-      const seats = Array.from({ length: 4 }, (_, index) => {
-        const id = `seat-${index + 1}`;
-        const offset = (index + 4 - seat) % 4;
-        return offset === 0
-          ? { id, strategy: strategies[arm], difficulty: 'juewu' as const }
-          : {
-              id,
-              strategy: bot,
-              difficulty: opponent[permutation[offset - 1]!]!,
-            };
-      });
-      try {
-        const result = await evaluateBotMatch(
-          { rules, seats, seed, setup: unoPilotEvidence.setup },
-          { maxSteps: plan.maxSteps },
-        );
-        const winners = (result.publicResult as { winners?: unknown })?.winners;
-        if (result.outcome === 'ended' && !Array.isArray(winners))
-          throw new Error('Ended UNO match did not report winners');
-        if (result.outcome !== 'ended') failures++;
-        matches.push({
-          arm,
-          seat,
-          outcome: result.outcome,
-          won:
-            result.outcome === 'ended'
-              ? (winners as string[]).includes(seats[seat]!.id)
-              : null,
-          steps: result.checkpoint.steps,
-          traceDigest: result.checkpoint.traceDigest,
-        });
-      } catch (error) {
-        failures++;
-        matches.push({
-          arm,
-          seat,
-          outcome: 'failed',
-          won: null,
-          error:
-            error instanceof Error
-              ? error.message
-              : 'Unknown UNO comparison error',
-        });
-      }
+if (jobs > 1) {
+  process.once('SIGINT', stop);
+  process.once('SIGTERM', stop);
+}
+try {
+  for (const assignment of selected.slice(current.length)) {
+    if (failures >= 10 || remainingSteps === 0) break;
+    const block = await runUnoComparisonBlock(
+      assignment,
+      jobs,
+      10 - failures,
+      jobs === 1 ? playLocally : playInChild,
+      stopped.signal,
+    );
+    failures += block.failures;
+    const { pool, seed } = assignment;
+    current.push({ pool, seed, matches: block.matches });
+    if (checkpoint) {
+      assertSource();
+      checkpoint.save(current);
     }
+    remainingSteps--;
+    console.error(
+      JSON.stringify({
+        pool,
+        seed,
+        matches: block.matches.length,
+        failures,
+        completed: current.length,
+        planned: selected.length,
+      }),
+    );
   }
-  current.push({ pool, seed, matches });
-  if (checkpoint) {
-    assertSource();
-    checkpoint.save(current);
+} finally {
+  if (jobs > 1) {
+    process.off('SIGINT', stop);
+    process.off('SIGTERM', stop);
   }
-  remainingSteps--;
-  console.error(
-    JSON.stringify({
-      pool,
-      seed,
-      matches: matches.length,
-      failures,
-      completed: current.length,
-      planned: selected.length,
-    }),
-  );
 }
 assertSource();
 if (remainingSteps === 0 && failures < 10 && current.length < selected.length) {
