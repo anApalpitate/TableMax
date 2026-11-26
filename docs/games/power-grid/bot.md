@@ -2,7 +2,7 @@
 
 独立策略入口为 `games/power-grid/bot/index.ts`，经共享 `BotStrategy` 接收本人安全投影和服务端合法动作。策略只看到本人现金、公开的电厂／仓储／城市／顺序／市场、本人可见建城费用与合法动作；对手现金、牌堆牌号、秘密移除牌号均不提供。记忆为 `null`，不调用其他游戏策略或网络服务。
 
-源码 `power-grid-local@1.1.1` 支持默认、豆包、绝悟和捣蛋王。历史签名对局仍固定原策略与发行。
+源码 `power-grid-local@1.1.2` 支持默认、豆包、绝悟和捣蛋王。历史签名对局仍固定原策略与发行。
 
 ## 三个强度档位
 
@@ -56,4 +56,4 @@
 
 首轮竞价回归、规则与策略固定局面、并发测试、当前策略真实 Worker 与 SQLite 重开已通过。修正后用 8 个独立开局全座复验，128 场均正常终局，四种人机各自的 32 场首轮都有实际供电。默认、豆包、绝悟和捣蛋王整场依次赢 11、10、5、6 场，绝悟比豆包低 15.63 个百分点，按开局配对的 95% 区间为 −31.25 至 0 个百分点。首轮资金修正已复验，整场档位仍需调整。真人体验与新签名发行待验收。[修正后独立对照](../../../artifacts/maintenance/bot-rise-power-grid-opening-rotation-20261126/power-grid-report.json)
 
-从修正后的批次选取四个开局，精确复现 12 条动作轨迹。四例中豆包和绝悟均花 22–34 电币买下首厂，只供 1 城；默认花 4–8 电币，三例供 2 城、一例供 1 城。独立对照将首轮加价限制在最多两座供电城市相对零供电的额外收入减去燃料成本，并保留已有的购厂估值和首城资金预留。比较时只替换焦点席绝悟的首轮竞价，核对竞价成本、首轮发电和整场胜负。[修正后对局复盘](../../../artifacts/maintenance/bot-rise-power-grid-auction-economy-20261126/phase-diagnostics.json) · [独立开发计划](../../../artifacts/maintenance/bot-rise-power-grid-opening-income-20261126/frozen-plan.json)[规则与策略结果](../../../artifacts/maintenance/test-history/runs/6678fe30-81e8-4b8c-9e03-e646be2ba4b6/results.json) · [真实 Worker 复验](../../../artifacts/maintenance/test-history/runs/0ebff8b2-7064-4fd8-888d-ac831a4370f8/results.json)
+从修正后的批次选取四个开局，精确复现 12 条动作轨迹。四例中豆包和绝悟均花 22–34 电币买下首厂，只供 1 城；默认花 4–8 电币，三例供 2 城、一例供 1 城。策略 `1.1.2` 将首轮加价限制在最多两座供电城市相对零供电的额外收入减去燃料成本，并保留已有的购厂估值和首城资金预留。先在六个新开局全座轮换，只替换焦点席绝悟的首轮竞价。24 个配对中平均买厂成本由 27.50 降到 10.79 电币，首轮零供电由 3 场降到 0 场，绝悟整场由 3 胜变为 5 胜。按对手池加权的胜率差为 +12.50 个百分点，配对 95% 区间为 −6.25 至 +31.25 个百分点，四档强度顺序仍待独立复验。[修正后对局复盘](../../../artifacts/maintenance/bot-rise-power-grid-auction-economy-20261126/phase-diagnostics.json) · [独立开发计划](../../../artifacts/maintenance/bot-rise-power-grid-opening-income-20261126/frozen-plan.json) · [独立开发结果](../../../artifacts/maintenance/bot-rise-power-grid-opening-income-20261126/report.json) · [竞价、规则、Worker 与 SQLite 验证](../../../artifacts/maintenance/test-history/runs/f70dc451-5120-461c-bfef-0fe5ed5abe58/results.json)[规则与策略结果](../../../artifacts/maintenance/test-history/runs/6678fe30-81e8-4b8c-9e03-e646be2ba4b6/results.json) · [真实 Worker 复验](../../../artifacts/maintenance/test-history/runs/0ebff8b2-7064-4fd8-888d-ac831a4370f8/results.json)

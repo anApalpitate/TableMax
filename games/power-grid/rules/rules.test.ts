@@ -1091,16 +1091,17 @@ describe('Power Grid bounded production and seeded full games', () => {
     expect(nextBid(29, 30)).toBe(30);
     expect(nextBid(30, 30)).toBeNull();
   });
-  it('reserves first-city cash and fuel after earlier buyers in the opening auction', () => {
+  it('limits opening premiums to net power income given earlier fuel buyers', () => {
     let state = setup(4, 8);
     state = apply(state, { type: 'offer', plantId: 4, amount: 4 });
     while (state.phase === 'auction') state = apply(state, { type: 'pass' });
 
     const chooseBid = (
+      plantId: number,
       amount: number,
       difficulty: 'doubao' | 'juewu' | 'mischief',
     ) => {
-      const auction = apply(state, { type: 'offer', plantId: 5, amount });
+      const auction = apply(state, { type: 'offer', plantId, amount });
       const seatId = auction.actor!;
       const view = rules.project(auction, {
         role: 'player',
@@ -1112,8 +1113,10 @@ describe('Power Grid bounded production and seeded full games', () => {
     };
 
     for (const difficulty of ['doubao', 'juewu', 'mischief'] as const) {
-      expect(chooseBid(35, difficulty)).toEqual({ type: 'bid', amount: 36 });
-      expect(chooseBid(37, difficulty)).toEqual({ type: 'pass' });
+      expect(chooseBid(5, 12, difficulty)).toEqual({ type: 'bid', amount: 13 });
+      expect(chooseBid(5, 13, difficulty)).toEqual({ type: 'pass' });
+      expect(chooseBid(7, 20, difficulty)).toEqual({ type: 'bid', amount: 21 });
+      expect(chooseBid(7, 21, difficulty)).toEqual({ type: 'pass' });
     }
   });
   it('uses future public fuel pressure to reserve rather than filling every plant blindly', () => {

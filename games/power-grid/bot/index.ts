@@ -160,18 +160,29 @@ class GridEvaluator {
         (n, r) => n + proposed.demand[r] * this.unit(r),
         0,
       );
-      const fuelReserve =
-        this.view.round === 1 && this.player.plants.length === 0
-          ? Math.max(forecastFuel, this.openingFuelCost(plant))
-          : forecastFuel;
+      const opening = this.view.round === 1 && this.player.plants.length === 0;
+      const openingFuel = opening ? this.openingFuelCost(plant) : 0;
+      const fuelReserve = opening
+        ? Math.max(forecastFuel, openingFuel)
+        : forecastFuel;
       const buildingReserve =
         this.player.cities.length === 0
           ? 10
           : Math.min(22, ...this.view.buildOptions.map((o) => o.cost), 22);
+      // A first plant is mandatory. Limit its premium to the additional cash
+      // from powering up to two cities in round one, after buying fuel.
+      const incomeLimit = opening
+        ? plantId +
+          Math.max(
+            0,
+            income(Math.min(2, plant.output)) - income(0) - openingFuel,
+          )
+        : Infinity;
       return Math.max(
         0,
         Math.floor(
           Math.min(
+            incomeLimit,
             this.view.self!.cash - fuelReserve - buildingReserve,
             Math.max(
               0,
@@ -594,7 +605,7 @@ export function chooseAction(
 
 export const bot: BotStrategy = {
   id: 'power-grid-local',
-  version: '1.1.1',
+  version: '1.1.2',
   gameId: 'power-grid',
   rulesVersion: RULES_VERSION,
   difficulties: ['default', 'doubao', 'juewu', 'mischief'],
