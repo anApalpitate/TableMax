@@ -7,7 +7,7 @@
 - 发行依据：[当前已验收交付](../reference/acceptance.md#当前源码与本地交付)。当前实施证据按源码与实际交付分别记录。
 - 所属范围：游戏SDK、人机运行与验证工具、各游戏策略及必要的配置／展示／恢复适配；规则、计分和秘密边界不因策略升级改变。
 - 有效基础与缺口：九个源码玩法已跑通统一离线对局与能力声明。各款游戏的策略、实际 Worker 和恢复证据记录在[逐游戏迁移](#逐游戏迁移与能力声明)；真人体验需要真实混合对局。
-- 下一步：继续改进 B 组排序和分组概率。用户确认保留 70% 排序门槛，正式 B 组通过后再开始三组 UNO 绝悟动作评分训练。[第七批独立复算](../../artifacts/maintenance/bot-rise-uno-qualification-07-20261126/audit.json) · [首轮学习范围](#首轮试点范围) · [R0 冻结清单](#r0-实施前冻结清单)
+- 下一步：复核同一推演的多截断点评分。用户确认保留 70% 排序门槛，正式 B 组通过后再开始三组 UNO 绝悟动作评分训练。[第七批独立复算](../../artifacts/maintenance/bot-rise-uno-qualification-07-20261126/audit.json) · [首轮学习范围](#首轮试点范围) · [R0 冻结清单](#r0-实施前冻结清单)
 
 ## 来源、范围与目标
 
@@ -228,6 +228,10 @@ C 组入口已绑定第六批 B 的冻结方案、评分摘要、检查点和独
 
 复用 272 个开发拟合开局的 6978 条标签，对照扩充语料重新拟合和单调校准版本 2。开发自然复核中，样本充分的概率桶最大误差由现行 6.10 个百分点增至 7.98 和 7.98 个百分点；两套独立开发排序的合并命中分别从现行 11/13、6/9 变为扩充语料 11/13、7/9，单调方案与现行相同。两条方案没有同时改善分组概率与排序。第七批正式留出封存为验收证据。[扩充语料开发对照](../../artifacts/maintenance/bot-rise-uno-expanded-calibration-20261127/report.json)
 
+已启动多截断点开发对照。32 个新开局的三种评分共用同一条短推演，在第 4、8 步与最终截断点记录授权叶评分。单用终叶、合并中途和终叶、合并三个截断点作对照；已达到整场终局的分支仍用真实胜负。短搜索的候选、未知牌假设与规则步预算沿用版本 2。[多截断点冻结计划](../../artifacts/maintenance/bot-rise-uno-trajectory-leaf-20261127/frozen-plan.json)
+
+另复用三套开发续推数据，检查先用 128 次续推筛选，再只给保留的根补独立参考样本能节省多少预算。即便只有同一根全部候选对的区间都落在 ±5 个百分点以内才停，四次双批复算中仍有三次漏掉独立续推可确认的候选对，每次漏 2 对。按点估计筛选也出现遗漏。正式参考续推保留完整候选集合。[参考筛选成本复核](../../artifacts/maintenance/bot-rise-uno-reference-screen-cost-20261127/report.json)
+
 在已封存的 48 和 64 个开发开局上，另试同一未知牌排列的成对轮转，保留候选共享假设及 2048 规则步上限。两套短搜索随机种子下，前一批正确方向从 33/58 增至 38/58，后一批两组均为 51/70，同牌选色从 17/20 降至 15/20。开发复算未显示稳定收益，正式批次仍按冻结的独立洗牌方案运行。[成对轮转开发对照](../../artifacts/maintenance/bot-rise-uno-paired-world-rotation-20261126/report.json)
 
 正式复核每个开局抽两根时，36 个开局里有 9 个贡献方向明确的候选对。按开局重抽已有计数，达到至少 30 对覆盖的 90% 情景约需 123 个开局。这个估算仅用于规划旧配置的覆盖成本，排序命中率和概率校准仍须另行达标。补采的拟合分片可以按原预算合并，保留逐分片摘要，并拒绝种子重叠。[候选覆盖估算](../../artifacts/maintenance/bot-rise-calibration-20261126/anchored-02/ranking-coverage-planning.json) · [拟合合并烟测](../../artifacts/maintenance/bot-rise-calibration-20261126/fit-extension-03/merge-corpora-smoke.json)
@@ -400,6 +404,8 @@ UNO 四人主配置已完成 24 个合成开局的四座轮换，共 384 场整�
 实际源码注册表已核对 9 个玩法的规则与策略版本。宝可梦奇遇原版仍声明三档，其余八个玩法声明四种人机。已用各玩法实际的开局前投影和 SQLite 重开席位，在 390 CSS 像素宽的 Edge 界面核对人机选项、说明和开局后只读显示。宝可梦原版同时验证了拒绝设置捣蛋王命令，八个支持玩法都保留了保存的捣蛋王席位。源码 `1c763461` 重新开局和重开全部 9 个玩法，确认电力公司 `1.1.4`、拉密 `1.1.1` 与其余 7 个玩法均保存当前注册的策略版本。另用实际编译的 Worker 为每个玩法执行一次合法决策，保存和重开均通过。各玩法的真实 Worker 与历史发行恢复证据见上文，真实玩家体验及新发行继续待验收。[源码能力声明](../../artifacts/maintenance/pokemon-expansion-bot-rise-20261126/source-capabilities.json) · [全玩法 SQLite 与界面回归](../../artifacts/maintenance/bot-rise-mischief-20261126/source-catalog-r2/report.json) · [现行注册表与 SQLite 复验](../../artifacts/maintenance/bot-rise-current-catalog-sqlite-20261126/report.json) · [现行注册表、Worker 与回存](../../artifacts/maintenance/bot-rise-current-catalog-worker-20261126/report.json) · [范围运行记录](../../artifacts/maintenance/test-history/runs/6dea9dbf-8cc4-4c5f-b8be-50fe370803ab/results.json)
 
 每款游戏独立通过授权、动作全覆盖、恢复与本机预算后，再声明实际支持的强度、独立风格及节点。新增规则或模式使用目标玩法的留出基线。未完成验收的等级或风格保留为任务，现有发行的策略与存档兼容按原依据验证。
+
+当前源码的九个玩法共 35 个支持档位组合已通过真实 Worker 和 SQLite 复验。各档分别入座、开局、生成并提交一次合法动作，重开后恢复原快照及档位。宝可梦原版拒绝捣蛋王。记录绑定电力公司 1.1.5、拉密 1.1.2 及当前源码注册表。这一批验证使用隔离合成存档。[全档位 Worker 与存档复验](../../artifacts/maintenance/bot-rise-current-catalog-all-styles-20261127/report.json)
 
 ## 自学习决策智能体
 
