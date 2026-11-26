@@ -6,7 +6,11 @@ import { build } from 'esbuild';
 import { GameRegistry, RoomCoordinator } from '@tablemax/platform-core';
 import { verifyUnoWorker } from '../../../tools/analysis/bots/uno-worker-verification';
 import { unoCorrectionFeatureNames } from '../../../games/uno/bot/correction';
-import { unoLeafFeatureNames } from '../../../games/uno/bot/calibration';
+import {
+  unoLeafFeatureNames,
+  unoLeafFeatureNamesFor,
+  type UnoLeafFeatureVersion,
+} from '../../../games/uno/bot/calibration';
 import { LocalBotModels } from './local-bot-models';
 import { LocalBotLearning } from './local-bot-learning';
 import { RandomSource } from '@tablemax/platform-core/random';
@@ -370,17 +374,26 @@ it('pins the validated local model through the real Worker, rollback, and recove
   ).toBe(true);
 });
 
-async function verifyWorkerCorrection(samples: 8 | 32) {
-  const calibrationDigest = 'a'.repeat(64);
+async function verifyWorkerCorrection(
+  samples: 8 | 32,
+  featureVersion: UnoLeafFeatureVersion = 1,
+) {
+  const features = unoLeafFeatureNamesFor(featureVersion);
+  const calibration = {
+    version: featureVersion,
+    features: [...features],
+    coefficients: features.map((name) =>
+      name === 'rival-score-over-hand-size' ? 0.25 : 0,
+    ),
+  };
+  const calibrationDigest = createHash('sha256')
+    .update(JSON.stringify(calibration))
+    .digest('hex');
   const baseline = {
     version: 1,
     samples,
     calibrationDigest,
-    calibration: {
-      version: 1,
-      features: [...unoLeafFeatureNames],
-      coefficients: unoLeafFeatureNames.map(() => 0),
-    },
+    calibration,
   };
   const evidence = await verifyUnoWorker({
     game: { bot, rules, releaseRef: '6'.repeat(64) },
@@ -417,6 +430,12 @@ async function verifyWorkerCorrection(samples: 8 | 32) {
 
 it.each([8, 32] as const)(
   'measures B and C with up to %s worlds in real Workers and verifies SQLite recovery',
-  verifyWorkerCorrection,
+  (samples) => verifyWorkerCorrection(samples),
+  15000,
+);
+
+it(
+  'keeps version 2 calibration bound across real Workers and SQLite recovery',
+  () => verifyWorkerCorrection(32, 2),
   15000,
 );
