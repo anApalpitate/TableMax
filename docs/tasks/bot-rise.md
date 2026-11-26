@@ -7,7 +7,7 @@
 - 发行依据：[当前已验收交付](../reference/acceptance.md#当前源码与本地交付)。当前实施证据按源码与实际交付分别记录。
 - 所属范围：游戏SDK、人机运行与验证工具、各游戏策略及必要的配置／展示／恢复适配；规则、计分和秘密边界不因策略升级改变。
 - 有效基础与缺口：九个源码玩法已跑通统一离线对局与能力声明。各款游戏的策略、实际 Worker 和恢复证据记录在[逐游戏迁移](#逐游戏迁移与能力声明)；真人体验需要真实混合对局。
-- 下一步：用优化后的续推复核更密集的独立排序标签。用户确认保留 70% 排序门槛，正式 B 组通过后再开始三组 UNO 绝悟动作评分训练。[第七批独立复算](../../artifacts/maintenance/bot-rise-uno-qualification-07-20261126/audit.json) · [首轮学习范围](#首轮试点范围) · [R0 冻结清单](#r0-实施前冻结清单)
+- 下一步：用已经核对等价性的共用续推，复核两批各 192 组独立排序参考。用户确认保留 70% 排序门槛，正式 B 组通过后再开始三组 UNO 绝悟动作评分训练。[第七批独立复算](../../artifacts/maintenance/bot-rise-uno-qualification-07-20261126/audit.json) · [首轮学习范围](#首轮试点范围) · [R0 冻结清单](#r0-实施前冻结清单)
 
 ## 来源、范围与目标
 
@@ -253,6 +253,18 @@ C 组入口已绑定第六批 B 的冻结方案、评分摘要、检查点和独
 已用上述两套开发参考冻结短搜索扩宽对照。保留 16 步分支上限、2048 规则步硬上限和候选集合，比较共享假设最多 32 组与最多 64 组。两组从相同假设起步，逐一核对共同前缀和可改选覆盖。复核用已封存的独立参考续推，正式留出不参与。[共享假设扩宽冻结计划](../../artifacts/maintenance/bot-rise-uno-extra-shared-hypotheses-20261127/frozen-plan.json)
 
 扩宽复算覆盖 72 个开发开局、138 个局面，平均完成的共享假设由 31.81 增至 58.48 组。两组共同前缀的逐候选评分完全一致，最大规则步数分别为 2020 和 2034，符合 24 组条件的可改选局面均为 137 个。29 个局面首选改变。原参考方法的合并排序命中由 8/19 降至 7/19，按小局配对的参考由 18/29 增至 20/29。两种参考下的首选收益区间均包含 0，保留 32 组上限。[共享假设扩宽开发结果](../../artifacts/maintenance/bot-rise-uno-extra-shared-hypotheses-20261127/report.json)
+
+行动席精简上线后，冻结 24 个新的 B 策略开局，每局等概率抽一个合规根。每个候选使用两批独立的 128 组共享参考假设，对照连续随机与按小局对齐。该批关注明确方向的独立复现及边际胜率差，正式校准与 C 组启动条件沿用现有标准。[密集参考开发计划](../../artifacts/maintenance/bot-rise-uno-dense-round-reference-20261127/frozen-plan.json)
+
+只用第六、七批的封存标签估算自然校准的样本精度，逐桶复算与两份原报告一致。每种规模按开局重抽 4000 次。第七批的 60%～70% 桶在 160 个开局时估计 95% 区间半宽约 3.33 个百分点，320 个时约 2.25，480 个时约 1.85。两批中样本充足概率桶的最大估计半宽分别在 320 个开局时为 1.99 和 2.52 个百分点，在 480 个时为 1.65 和 2.08 个百分点。该估算供后续冻结样本规模，历史标签只作诊断。[自然校准样本量估算](../../artifacts/maintenance/bot-rise-uno-probability-precision-20261127/report.json)
+
+对两套开发参考做 1200 次假设内候选置换，保留每组的胜局数和候选配对结构，并逐对计算精确重抽方向。48 个开局的复核中，连续随机实际确认 13 对，置换对照的 95% 范围为 5～22 对。按小局对齐实际确认 19 对，置换对照范围为 4～21 对。这些计数仍可能由抽样噪声解释，密集参考继续核对两批各自可确认的同一方向。[参考方向置换复核](../../artifacts/maintenance/bot-rise-uno-reference-null-20261127/report.json)
+
+密集参考已完成 24 个新开局，取得 22 个可用局面和 69 对候选。两种安排各完成 16,128 次候选续推。按小局对齐再次降低方差，开局配对方差差为 −0.0220，95% 区间为 −0.0467 至 −0.0017。两批各自确认的候选对只有 1 对，合并后两种安排均无明确方向。正式 B 组仍按第七批结论记录。该批封存为开发证据。[密集参考结果](../../artifacts/maintenance/bot-rise-uno-dense-round-reference-20261127/report.json) · [方向置换复核](../../artifacts/maintenance/bot-rise-uno-dense-round-reference-20261127/direction-null.json)
+
+共用后续小局的原型取得 22 组未知牌假设和 56 条候选分支，其中 6 条分支起始时已有玩家达到 400 分。对照同一试验随机和小局发牌，整场胜负、截断结果和输入状态逐条一致。六档预算检查包含拒绝零预算。四次交错复测的耗时由 15.06 秒降至 4.28 秒。共用范围仅限同一次试验内的后续小局，各候选独立累加分数并判断终局。[共用后续小局等价复验](../../artifacts/maintenance/bot-rise-uno-shared-future-rounds-20261127/report.json)
+
+用共用续推另冻结 48 个新的 B 策略开发开局，每局等概率抽至多两个合规根。每个候选在两批各 192 组共享参考假设下续推，逐批头尾抽查同不共用的完整推演一致。开发报告将分列不同胜率差、可确认对数、方向复现和 B 命中，正式门槛沿用原约定。[共用续推的独立开发计划](../../artifacts/maintenance/bot-rise-uno-shared-reference-development-20261127/frozen-plan.json)
 
 另复用三套开发续推数据，检查先用 128 次续推筛选，再只给保留的根补独立参考样本能节省多少预算。即便只有同一根全部候选对的区间都落在 ±5 个百分点以内才停，四次双批复算中仍有三次漏掉独立续推可确认的候选对，每次漏 2 对。按点估计筛选也出现遗漏。正式参考续推保留完整候选集合。[参考筛选成本复核](../../artifacts/maintenance/bot-rise-uno-reference-screen-cost-20261127/report.json)
 
@@ -503,7 +515,9 @@ R2定义采集起点、停止与来源记录；R6验证两种用途的首次默�
 
 UNO 续推优化后，用同一生产参数复编译 18 个 Node 组件。只有 UNO 策略组件的摘要变化，由 40,969 增至 41,181 字节，增加 212 字节。18 个组件合计 914,083 字节。运行依赖图未引入训练器、训练框架或学习数据。完整 EXE 体积仍以新冻结产物实测为准。[源码运行组件复测](../../artifacts/maintenance/bot-rise-uno-owned-memory-bundle-20261127/source-bundle-boundary.json)
 
-已核验 1.0.9.1 安装器、载荷及八个签名游戏代码包的内容摘要，外层载荷和代码包均未发现训练文件。用生产参数在隔离目录编译服务器、人机 Worker 及八款游戏的规则和策略共 18 个 Node 组件，依赖图未引入训练器或训练框架。同样参数复测源码 `6ee2c173`，18 个组件合计 912,183 字节。比上次源码测量多 1,225 字节，分别来自电力公司策略 745 字节、拉密策略 402 字节和 UNO 策略 78 字节。相对 1.0.9.1 同范围组件多 52,121 字节。随后在 `3b41250d` 单独复算唯一发生源码变化的电力公司策略组件，进一步减少 10 字节，同一组件范围合计 912,173 字节。完整 Windows EXE 仍按实际冻结产物实测。[签名载荷清查](../../artifacts/maintenance/bot-rise-bundle-boundary-20261126/sealed-boundary.json) · [上次源码组件测量](../../artifacts/maintenance/bot-rise-bundle-boundary-20261126/source-bundle-boundary.json) · [本次源码组件复测](../../artifacts/maintenance/bot-rise-current-bundle-boundary-20261126/source-bundle-boundary.json) · [1.1.4 增量测量](../../artifacts/maintenance/bot-rise-current-bundle-boundary-20261126/power-grid-v114-delta.json)
+再接入精简行动席投影后，UNO 策略和规则组件分别增加 253 与 36 字节，其他组件摘要一致。18 个 Node 组件合计 914,372 字节，运行依赖图仍未包含训练器、训练框架或学习数据。[行动席投影的源码组件复测](../../artifacts/maintenance/bot-rise-uno-acting-projection-bundle-20261127/source-bundle-boundary.json)
+
+再接入精简行动席投影后，UNO 策略和规则组件分别增加 253 与 36 字节，其他组件摘要一致。18 个 Node 组件合计 914,372 字节，运行依赖图仍未包含训练器、训练框架或学习数据。[行动席投影的源码组件复测](../../artifacts/maintenance/bot-rise-uno-acting-projection-bundle-20261127/source-bundle-boundary.json)，外层载荷和代码包均未发现训练文件。用生产参数在隔离目录编译服务器、人机 Worker 及八款游戏的规则和策略共 18 个 Node 组件，依赖图未引入训练器或训练框架。同样参数复测源码 `6ee2c173`，18 个组件合计 912,183 字节。比上次源码测量多 1,225 字节，分别来自电力公司策略 745 字节、拉密策略 402 字节和 UNO 策略 78 字节。相对 1.0.9.1 同范围组件多 52,121 字节。随后在 `3b41250d` 单独复算唯一发生源码变化的电力公司策略组件，进一步减少 10 字节，同一组件范围合计 912,173 字节。完整 Windows EXE 仍按实际冻结产物实测。[签名载荷清查](../../artifacts/maintenance/bot-rise-bundle-boundary-20261126/sealed-boundary.json) · [上次源码组件测量](../../artifacts/maintenance/bot-rise-bundle-boundary-20261126/source-bundle-boundary.json) · [本次源码组件复测](../../artifacts/maintenance/bot-rise-current-bundle-boundary-20261126/source-bundle-boundary.json) · [1.1.4 增量测量](../../artifacts/maintenance/bot-rise-current-bundle-boundary-20261126/power-grid-v114-delta.json)
 
 建议写入前核对余量，并为训练安全暂停／检查点预留空间；优先回收可重建缓存和已审无引用生成物，真人原始样本的保留／轮换口径在R0定案。正式存档、活动训练输入、当前模型及旧局／checkpoint仍引用的模型受保护，不作为自动腾空间候选。无安全候选时暂停新增采集或训练写入并提示，不阻塞正常游戏保存、回退与恢复。R2验证紧凑表示可还原且不串席泄露，R6验证配额耗尽与恢复；本轮不创建数据目录或执行清理。
 
