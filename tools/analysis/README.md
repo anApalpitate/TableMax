@@ -33,10 +33,10 @@
 
 ## 人机离线评估
 
-从仓库根运行 [bots/run.ts](bots/run.ts)。通过生产模块注册表加载当前正式玩法。`--game=<id>` 指定游戏，`--variant=<id>` 可选择已声明玩法，省略时沿用默认玩法，`--seeds` 为不重复的正 32 位整数列表，`--levels` 按座位顺序指定人机等级，`--max-steps` 限制每场推进次数。`--setup` 可传玩法验证的 JSON，省略时使用当前默认配置。
+从仓库根运行 [bots/run.ts](bots/run.ts)。通过生产模块注册表加载当前正式玩法。`--game=<id>` 指定游戏，`--variant=<id>` 可选择已声明玩法，省略时沿用默认玩法，`--seeds` 为不重复的正 32 位整数列表，`--levels` 按座位顺序指定人机等级，`--max-steps` 限制每场推进次数。`--setup` 可传玩法验证的 JSON，省略时使用当前默认配置。`--jobs` 指定并行计算的进程数，默认 1，最多 8 并保留处理器余量。每个进程执行独立种子，批次仍按请求种子顺序报告。
 
 ```powershell
-node --import tsx tools/analysis/bots/run.ts --game=uno --seeds=781 --levels=default,doubao,juewu,default
+node --import tsx tools/analysis/bots/run.ts --game=uno --seeds=781,782,783 --levels=default,doubao,juewu,default --jobs=2
 node --import tsx tools/analysis/bots/run.ts --game=pokemon-encounters --seeds=20261126 --levels=default,default
 ```
 
