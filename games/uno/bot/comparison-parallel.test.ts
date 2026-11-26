@@ -62,6 +62,43 @@ it('reserves one failure slot for every in-flight game even near the cutoff', as
   expect(parallel.failures).toBe(3);
 });
 
+it('reuses completed A/B controls while dispatching the four new C games', async () => {
+  const signal = new AbortController().signal;
+  const play = async (match: UnoComparisonMatch) => ({
+    arm: match.arm,
+    seat: match.seat,
+    outcome: 'ended' as const,
+    won: match.seat % 2 === 0,
+  });
+  const before = await runUnoComparisonBlock(matchup, 2, 10, play, signal);
+  const control = { ...matchup, matches: before.matches };
+  const dispatched: number[] = [];
+  const next = await runUnoComparisonBlock(
+    matchup,
+    4,
+    10,
+    async (assignment) => {
+      dispatched.push(order(assignment));
+      const result = await play(assignment);
+      return { ...result, won: !result.won };
+    },
+    signal,
+    control,
+  );
+  expect(dispatched).toEqual([2, 5, 8, 11]);
+  expect(next.matches).toEqual(
+    before.matches.map((match) =>
+      match.arm === 'C' ? { ...match, won: !match.won } : match,
+    ),
+  );
+  await expect(
+    runUnoComparisonBlock(matchup, 2, 10, play, signal, {
+      ...control,
+      seed: 95,
+    }),
+  ).rejects.toThrow('complete matching seed block');
+});
+
 it('rejects an interrupted block instead of treating cancellation as a saved match result', async () => {
   const controller = new AbortController();
   const work = runUnoComparisonBlock(

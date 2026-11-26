@@ -3,10 +3,12 @@ import { createUnoSearchStrategy } from '../../../games/uno/bot/search-strategy'
 import { evaluateBotMatch } from './evaluate';
 import { unoPilotEvidence } from './uno-pilot';
 import {
+  completeUnoBlock,
   unoArms,
   unoOpponentPools,
   type UnoArm,
   type UnoPairedMatch,
+  type UnoPairedSeed,
   type UnoPool,
 } from './uno-paired-statistics';
 
@@ -104,11 +106,30 @@ export async function runUnoComparisonBlock(
   remainingFailures: number,
   play: (match: UnoComparisonMatch) => Promise<UnoPairedMatch>,
   signal: AbortSignal,
+  control?: UnoPairedSeed,
 ) {
+  if (
+    control &&
+    (control.seed !== seed.seed ||
+      control.pool !== seed.pool ||
+      !completeUnoBlock(control))
+  )
+    throw new Error(
+      'Cached A/B matches must come from the complete matching seed block',
+    );
   const assignments = [0, 1, 2, 3].flatMap((seat) =>
     unoArms.map((arm) => ({ ...seed, seat, arm })),
   );
-  const matches: UnoPairedMatch[] = [];
+  const matches = assignments.map(({ seat, arm }) =>
+    arm === 'C'
+      ? undefined
+      : control?.matches.find(
+          (match) => match.seat === seat && match.arm === arm,
+        ),
+  );
+  const pending = assignments
+    .map((assignment, index) => ({ assignment, index }))
+    .filter(({ index }) => matches[index] === undefined);
   let next = 0;
   let failures = 0;
   let active = 0;
@@ -116,11 +137,10 @@ export async function runUnoComparisonBlock(
     // Reserve one possible failure for every in-flight match.
     while (
       !signal.aborted &&
-      next < assignments.length &&
+      next < pending.length &&
       failures + active < remainingFailures
     ) {
-      const index = next++;
-      const assignment = assignments[index]!;
+      const { index, assignment } = pending[next++]!;
       active++;
       try {
         const result = await play(assignment);
@@ -147,10 +167,10 @@ export async function runUnoComparisonBlock(
   };
   await Promise.all(
     Array.from(
-      { length: Math.min(assignments.length, jobs, remainingFailures) },
+      { length: Math.min(pending.length, jobs, remainingFailures) },
       consume,
     ),
   );
   signal.throwIfAborted();
-  return { matches, failures };
+  return { matches: matches.filter((match) => match !== undefined), failures };
 }

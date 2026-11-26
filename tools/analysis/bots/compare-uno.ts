@@ -3,7 +3,7 @@ import { createHash } from 'node:crypto';
 import { readFileSync, readdirSync } from 'node:fs';
 import { availableParallelism } from 'node:os';
 import { fileURLToPath } from 'node:url';
-import { parseArgs, promisify } from 'node:util';
+import { isDeepStrictEqual, parseArgs, promisify } from 'node:util';
 import { isCurrentUnoPilot, unoPilotEvidence } from './uno-pilot';
 import { calibrationSeeds } from './uno-calibration-provenance';
 import { matchesUnoCorrectionCalibration } from './uno-correction-provenance';
@@ -40,6 +40,7 @@ const { values } = parseArgs({
     previous: { type: 'string' },
     checkpoint: { type: 'string' },
     development: { type: 'boolean', default: false },
+    'development-control': { type: 'string' },
     'steps-per-run': { type: 'string' },
     jobs: { type: 'string', default: '1' },
   },
@@ -75,6 +76,10 @@ const plan = report(values.plan).value as UnoComparisonPlan;
 const allSeeds = validateUnoComparisonPlan(plan);
 if (values.development && (plan.looks !== 1 || values.previous))
   throw new Error('Development sizing uses a separate one-stage seed plan');
+if (values['development-control'] && !values.development)
+  throw new Error(
+    'Cached A/B matches are only available in development comparisons',
+  );
 const calibrationReport = report(values.calibration);
 const candidateReport = report(values.correction);
 const calibration = calibrationReport.value;
@@ -218,6 +223,49 @@ if (
 }
 const stage = previous ? 2 : 1;
 const selected = selectUnoComparisonSeeds(plan, stage);
+const controlReport = values['development-control']
+  ? report(values['development-control'])
+  : null;
+const controls = controlReport?.value;
+if (
+  controlReport &&
+  (controls?.type !== 'uno-abc-development' ||
+    !isCurrentUnoPilot(controls.pilot) ||
+    controls.sourceSha256 !== sourceSha256 ||
+    !isDeepStrictEqual(controls.plan, plan) ||
+    controls.node !== process.version ||
+    controls.calibrationReportSha256 !== calibrationReport.sha256 ||
+    typeof controls.candidateReportSha256 !== 'string' ||
+    !/^[a-f0-9]{64}$/.test(controls.candidateReportSha256) ||
+    controls.controlReportSha256 !== undefined ||
+    controls.planDigest !==
+      unoComparisonDigest(
+        plan,
+        calibrationReport.sha256,
+        controls.candidateReportSha256,
+        sourceSha256,
+        process.version,
+      ) ||
+    controls.failures !== 0 ||
+    !Array.isArray(controls.undispatched) ||
+    controls.undispatched.length !== 0 ||
+    !matchesUnoComparisonStage(plan, 1, controls.blocks) ||
+    !(controls.blocks as UnoPairedSeed[]).every(
+      (block) =>
+        completeUnoBlock(block) &&
+        block.matches.every(
+          (match) =>
+            Number.isSafeInteger(match.steps) &&
+            match.steps! > 0 &&
+            match.steps! <= plan.maxSteps &&
+            typeof match.traceDigest === 'string' &&
+            /^[a-f0-9]{64}$/.test(match.traceDigest),
+        ),
+    ))
+)
+  throw new Error(
+    'Reusing A/B needs an original, complete development report with the same frozen inputs',
+  );
 const checkpoint = values.checkpoint
   ? openTrainingCheckpoint<UnoPairedSeed[]>(
       values.checkpoint,
@@ -226,6 +274,7 @@ const checkpoint = values.checkpoint
         stage,
         development: values.development,
         previousReportSha256: previousReport?.sha256,
+        controlReportSha256: controlReport?.sha256,
       }),
       [],
     )
@@ -284,6 +333,7 @@ try {
       10 - failures,
       jobs === 1 ? playLocally : playInChild,
       stopped.signal,
+      controls?.blocks[current.length],
     );
     failures += block.failures;
     const { pool, seed } = assignment;
@@ -331,9 +381,18 @@ if (remainingSteps === 0 && failures < 10 && current.length < selected.length) {
         pilot: unoPilotEvidence,
         plan,
         planDigest,
+        sourceSha256,
+        node: process.version,
+        calibrationReportSha256: calibrationReport.sha256,
+        candidateReportSha256: candidateReport.sha256,
+        controlReportSha256: controlReport?.sha256,
         failures,
         blocks: current,
         undispatched: selected.slice(current.length),
+        main:
+          failures === 0 && current.length === selected.length
+            ? summarizeUnoComparison(current, 'C', 'B', plan.bootstrapSeed, 1)
+            : null,
       },
       null,
       2,

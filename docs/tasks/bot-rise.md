@@ -476,6 +476,8 @@ C 完整执行与 B 相同的有界搜索，随后只在同时满足下列条件
 
 首轮已冻结三组独立训练种子，每组 24 个拟合开局和 12 个调参开局。三组候选可共用另行冻结的 44 个开发种子块，每个候选对应 528 场对局，用来估计强度和配对差值的波动。正式对照继续使用独立种子，排除整个训练批次和开发开局。训练入口接收合格 B 报告后，按各组断点续跑并分别保存候选，保留各组结果。[三组拟合计划](../../artifacts/maintenance/bot-rise-calibration-20261126/candidate-campaign-01/fit-plan.json) · [开发对照计划](../../artifacts/maintenance/bot-rise-calibration-20261126/candidate-campaign-01/development-comparison-plan.json) · [训练门槛与续跑烟测](../../artifacts/maintenance/bot-rise-calibration-20261126/candidate-campaign-01/campaign-smoke.json) · [三组 CUDA 夹具复验](../../artifacts/maintenance/bot-rise-calibration-20261126/candidate-campaign-01/campaign-end-to-end-fixture.json)
 
+同一开发计划下，后续 C 候选可复用首份完整报告的 A／B 配对结果。三个候选均进入比较时，开发实跑由 1584 场降为 880 场，各候选仍有完整的 528 场配对结果。复用前核对完整种子块、源码、运行时和 B 报告字节。正式首批与备用种子仍独立运行全部 A／B／C 对局。[对照复用烟测](../../artifacts/maintenance/bot-rise-calibration-20261126/candidate-campaign-01/development-control-smoke.json)
+
 R0 在查看留出结果前冻结[正式样本量](#正式样本量)及[两阶段扩样规则](#两阶段扩样规则)、关键局面、启用范围及主要配置退步限制。捣蛋王在独立的启发式风格验证中记录领先者胜势、个人成绩代价与阵营胜负。非法动作、越权和运行异常进入工程失败账本，正常输局保留为对局样本。
 
 #### UNO 绝悟首轮建议通过门槛
