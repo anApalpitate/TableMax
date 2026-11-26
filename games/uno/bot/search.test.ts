@@ -7,7 +7,10 @@ import { unoLeafFeatureNames } from './calibration';
 import { createUnoSearchStrategy } from './search-strategy';
 import { context, fixture } from '../rules/test-fixtures';
 import { legalActions, project, rules } from '../rules';
-import { projectUnoMemoryObservation } from '../rules/project';
+import {
+  projectUnoMemoryObservation,
+  projectUnoRolloutDecision,
+} from '../rules/project';
 import type { State } from '../rules/state';
 import { observe, observeOwnedRolloutMemory, type Memory } from './index';
 import type { UnoView } from '../types';
@@ -90,6 +93,20 @@ it('preserves challenge memory while projecting only the observing seat evidence
   for (const seatId of state.seats) {
     const full = project(challenged, { role: 'player', seatId });
     const compact = projectUnoMemoryObservation(challenged, seatId);
+    const decision = projectUnoRolloutDecision(challenged, seatId);
+    expect(decision.self?.hand).toEqual(full.self?.hand);
+    expect(decision.self?.challengeEvidence).toEqual(
+      full.self?.challengeEvidence,
+    );
+    expect(decision.players.a).toEqual({
+      handCount: full.players.a!.handCount,
+      score: full.players.a!.score,
+    });
+    const pending = projectUnoRolloutDecision(claim, seatId);
+    expect(pending.drawFour).toEqual(
+      project(claim, { role: 'player', seatId }).drawFour,
+    );
+    expect(decision).not.toHaveProperty('results');
     expect(compact.self?.challengeEvidence).toEqual(
       full.self?.challengeEvidence,
     );

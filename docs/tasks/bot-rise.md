@@ -7,7 +7,7 @@
 - 发行依据：[当前已验收交付](../reference/acceptance.md#当前源码与本地交付)。当前实施证据按源码与实际交付分别记录。
 - 所属范围：游戏SDK、人机运行与验证工具、各游戏策略及必要的配置／展示／恢复适配；规则、计分和秘密边界不因策略升级改变。
 - 有效基础与缺口：九个源码玩法已跑通统一离线对局与能力声明。各款游戏的策略、实际 Worker 和恢复证据记录在[逐游戏迁移](#逐游戏迁移与能力声明)；真人体验需要真实混合对局。
-- 下一步：复核参考长续推按小局对齐随机流后，能否提高候选排序方向的确认率。用户确认保留 70% 排序门槛，正式 B 组通过后再开始三组 UNO 绝悟动作评分训练。[第七批独立复算](../../artifacts/maintenance/bot-rise-uno-qualification-07-20261126/audit.json) · [首轮学习范围](#首轮试点范围) · [R0 冻结清单](#r0-实施前冻结清单)
+- 下一步：用优化后的续推复核更密集的独立排序标签。用户确认保留 70% 排序门槛，正式 B 组通过后再开始三组 UNO 绝悟动作评分训练。[第七批独立复算](../../artifacts/maintenance/bot-rise-uno-qualification-07-20261126/audit.json) · [首轮学习范围](#首轮试点范围) · [R0 冻结清单](#r0-实施前冻结清单)
 
 ## 来源、范围与目标
 
@@ -164,6 +164,10 @@ R1／R2 可与[游戏开发接口](../reference/game-development.md#模块与契
 
 UNO 短搜索和长续推在每条分支首次观察时复制并校验记忆，后续只更新该分支独占的副本。六个合成开局、十条分支的短搜索评分、截断状态和长续推结局与优化前一致。4537 步的动作、随机状态和逐席记忆也一致。交错重复六次的长续推耗时由 5.48 秒降至 3.96 秒。该批未自然触发质疑，另在定向规则夹具核对逐席质疑证据、分支内更新及原记忆不变。正式 B 组门槛沿用现有标准。[源码等价与耗时复验](../../artifacts/maintenance/bot-rise-uno-owned-rollout-memory-20261127/product-equivalence.json) · [质疑夹具复验](../../artifacts/maintenance/test-history/runs/2336c689-e82f-4b3a-b6e2-97e4d5421a1c/results.json)
 
+只在每个合法出牌动作首次评分的原型上，16 条合成分支共 7511 步，逐步动作、记忆与整场结果一致。长续推六次交错复测的耗时从 6.09 秒降至 6.02 秒，此项保留为性能诊断。[动作评分原型](../../artifacts/maintenance/bot-rise-uno-single-score-rollout-20261127/report.json)
+
+行动席的推演投影已收窄到合法动作评分和逐席记忆需要的信息，包含本席手牌、授权质疑证据和他席公开分数及手牌数。正式对外投影仍提供完整的规则状态与历史结果。源码与精简前逐一复验 14 条合成分支，8502 步的动作、逐席记忆、随机状态和整场结果一致。长续推交错重复六次的耗时由 7.38 秒降至 4.93 秒。[行动席源码等价与耗时复验](../../artifacts/maintenance/bot-rise-uno-acting-projection-20261127/product-equivalence.json) · [质疑、策略和 Worker 回归](../../artifacts/maintenance/test-history/runs/2d4fa594-de94-4ebf-8266-ab2072dad336/results.json)
+
 终批复核入口在全部留出结束后，用冻结计划、拟合标签、复核样本和检查点重新计算系数、概率、排序和覆盖门槛。已用上一批完整 36 个开局的真实记录复现原有“证据不足”结论，并确认缺少开局、替换计划或改写报告结论会被拒绝。[历史批次独立复核](../../artifacts/maintenance/bot-rise-calibration-20261126/anchored-02/qualification-independent-audit.json) · [拒绝条件烟测](../../artifacts/maintenance/bot-rise-calibration-20261126/anchored-02/qualification-audit-smoke.json)
 
 本批正式留出与独立复核均已结束。128 个自然开局产生 6040 条标签，整体胜率误差 0.35 个百分点，Brier 分数 0.17658，简单对照为 0.18057。符合样本量的分桶与截断阶段通过误差门槛，独立罚牌场景覆盖 80／80／14 个开局。从 1192 对候选中确认 49 对排序方向，B 命中 22 对（44.90%），低于 70% 门槛。B 首选相对参考首选平均少 0.27 个胜率百分点，配对 95% 区间为 −0.04 至 +0.59 个百分点。B 组整体未通过，C 组保留冻结计划。上述开局和标签保留为此次正式证据，新搜索配置用独立开发开局比较。[正式报告](../../artifacts/maintenance/bot-rise-calibration-20261126/qualification-04/report.json) · [独立复算](../../artifacts/maintenance/bot-rise-calibration-20261126/qualification-04/audit.json) · [后续排序开发计划](../../artifacts/maintenance/bot-rise-uno-ranking-depth-20261126/frozen-plan.json)
@@ -243,6 +247,12 @@ C 组入口已绑定第六批 B 的冻结方案、评分摘要、检查点和独
 已另外冻结 24 个开发开局，比较参考长续推的两种随机安排。一组连续使用原随机流，另一组把同一次试验中各候选的下一小局随机流按小局编号对齐。两个方案共用初始化、假设局面和首小局的随机流。方案只改变参考标签如何配对，复核候选间胜负差的方差、边际胜率、两批独立续推的方向一致性。正式门槛和短搜索保持现行标准。[按小局配对的开发计划](../../artifacts/maintenance/bot-rise-uno-per-round-reference-20261127/frozen-plan.json)
 
 首批对照已完成 24 个开局、46 个局面和 188 对候选。按小局对齐后，候选胜负差的平均方差由 0.0810 降到 0.0720。按开局配对后的方差差为 −0.0197，95% 区间为 −0.0388 至 +0.0003。两批合并确认的方向由 6 对增至 10 对，B 分别命中 5 对和 7 对，单批复现仍不足。已冻结另外 48 个开发开局，每个局面用两个独立的 32 组参考假设，复核方差与边际胜率。[首批复核](../../artifacts/maintenance/bot-rise-uno-per-round-reference-20261127/report.json) · [独立复核计划](../../artifacts/maintenance/bot-rise-uno-per-round-reference-review-20261127/frozen-plan.json)
+
+独立复核的 48 个开局取得 92 个局面和 325 对候选，每种随机安排完成 17,024 次候选续推。按小局对齐使开局配对方差差降到 −0.0172，95% 区间为 −0.0279 至 −0.0071。边际胜率差为 +0.03 个百分点，95% 区间为 −1.57 至 +1.57 个百分点。合并两批后，原方法命中 3/13 对，按小局对齐命中 11/19 对。两种方法只有 1 对共同确认且方向一致，任何一种方法的两个独立批次都没有共同确认的候选对。本轮保留正式参考方法，按小局对齐继续用作开发诊断。[独立复核](../../artifacts/maintenance/bot-rise-uno-per-round-reference-review-20261127/report.json) · [方向独立复算](../../artifacts/maintenance/bot-rise-uno-per-round-reference-review-20261127/direction-audit.json)
+
+已用上述两套开发参考冻结短搜索扩宽对照。保留 16 步分支上限、2048 规则步硬上限和候选集合，比较共享假设最多 32 组与最多 64 组。两组从相同假设起步，逐一核对共同前缀和可改选覆盖。复核用已封存的独立参考续推，正式留出不参与。[共享假设扩宽冻结计划](../../artifacts/maintenance/bot-rise-uno-extra-shared-hypotheses-20261127/frozen-plan.json)
+
+扩宽复算覆盖 72 个开发开局、138 个局面，平均完成的共享假设由 31.81 增至 58.48 组。两组共同前缀的逐候选评分完全一致，最大规则步数分别为 2020 和 2034，符合 24 组条件的可改选局面均为 137 个。29 个局面首选改变。原参考方法的合并排序命中由 8/19 降至 7/19，按小局配对的参考由 18/29 增至 20/29。两种参考下的首选收益区间均包含 0，保留 32 组上限。[共享假设扩宽开发结果](../../artifacts/maintenance/bot-rise-uno-extra-shared-hypotheses-20261127/report.json)
 
 另复用三套开发续推数据，检查先用 128 次续推筛选，再只给保留的根补独立参考样本能节省多少预算。即便只有同一根全部候选对的区间都落在 ±5 个百分点以内才停，四次双批复算中仍有三次漏掉独立续推可确认的候选对，每次漏 2 对。按点估计筛选也出现遗漏。正式参考续推保留完整候选集合。[参考筛选成本复核](../../artifacts/maintenance/bot-rise-uno-reference-screen-cost-20261127/report.json)
 
@@ -490,6 +500,8 @@ R2定义采集起点、停止与来源记录；R6验证两种用途的首次默�
 拉密更新至 1.1.2 后，同口径复编译的 18 个 Node 组件中，拉密策略由 20,904 增至 21,866 字节，其余 17 个组件的文件摘要一致。组件合计 913,871 字节。依赖图核对仍未发现训练器、框架与学习数据。[拉密 1.1.2 运行组件复测](../../artifacts/maintenance/bot-rise-rummikub-v112-bundle-20261126/source-bundle-boundary.json)
 
 容量上限覆盖学习目录中的原始样本、派生缓存、训练检查点、候选模型与相关记录，并分别统计；按实际普通文件逻辑字节计量，不把NTFS物理压缩量当作容量回收。本机原始采集日志上限为 16 MiB，受管训练任务目录上限为 96 MiB，模型目录上限为 32 MiB。写入预算计入原有记录及原子写入的临时字节，已保存的模型和断点继续保留。达到预算后停止继续写入并提示，可在核对本机余量后用同一任务恢复。研发数据不默认堆入仓库、`tmp`、`assets`或安装载荷，本机学习资料建议置于用户配置数据目录的独立`learning`区域。
+
+UNO 续推优化后，用同一生产参数复编译 18 个 Node 组件。只有 UNO 策略组件的摘要变化，由 40,969 增至 41,181 字节，增加 212 字节。18 个组件合计 914,083 字节。运行依赖图未引入训练器、训练框架或学习数据。完整 EXE 体积仍以新冻结产物实测为准。[源码运行组件复测](../../artifacts/maintenance/bot-rise-uno-owned-memory-bundle-20261127/source-bundle-boundary.json)
 
 已核验 1.0.9.1 安装器、载荷及八个签名游戏代码包的内容摘要，外层载荷和代码包均未发现训练文件。用生产参数在隔离目录编译服务器、人机 Worker 及八款游戏的规则和策略共 18 个 Node 组件，依赖图未引入训练器或训练框架。同样参数复测源码 `6ee2c173`，18 个组件合计 912,183 字节。比上次源码测量多 1,225 字节，分别来自电力公司策略 745 字节、拉密策略 402 字节和 UNO 策略 78 字节。相对 1.0.9.1 同范围组件多 52,121 字节。随后在 `3b41250d` 单独复算唯一发生源码变化的电力公司策略组件，进一步减少 10 字节，同一组件范围合计 912,173 字节。完整 Windows EXE 仍按实际冻结产物实测。[签名载荷清查](../../artifacts/maintenance/bot-rise-bundle-boundary-20261126/sealed-boundary.json) · [上次源码组件测量](../../artifacts/maintenance/bot-rise-bundle-boundary-20261126/source-bundle-boundary.json) · [本次源码组件复测](../../artifacts/maintenance/bot-rise-current-bundle-boundary-20261126/source-bundle-boundary.json) · [1.1.4 增量测量](../../artifacts/maintenance/bot-rise-current-bundle-boundary-20261126/power-grid-v114-delta.json)
 

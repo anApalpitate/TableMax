@@ -2,7 +2,11 @@ import type { RuleContext } from '@tablemax/game-sdk';
 import { CARD_IDS, getCard } from '../data/catalog';
 import { rules, legalActions } from '../rules';
 import { shuffle } from '../rules/engine';
-import { project, projectUnoMemoryObservation } from '../rules/project';
+import {
+  project,
+  projectUnoMemoryObservation,
+  projectUnoRolloutDecision,
+} from '../rules/project';
 import { validateState, type State } from '../rules/state';
 import type { Action, UnoView } from '../types';
 import {
@@ -201,7 +205,7 @@ function playStep(
 ) {
   const acting = state.unoWindow?.seatId ?? state.turnSeat;
   if (!acting) throw new Error('UNO search reached an unresolved rule phase');
-  const view = project(state, { role: 'player', seatId: acting });
+  const view = projectUnoRolloutDecision(state, acting);
   for (const id of state.seats) {
     memories[id] = (ownsMemory ? observeOwnedRolloutMemory : observe)(
       id === acting ? view : projectUnoMemoryObservation(state, id),

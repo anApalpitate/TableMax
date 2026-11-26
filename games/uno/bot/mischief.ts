@@ -1,16 +1,17 @@
 import { getCard } from '../data/catalog';
-import type { Action, UnoView } from '../types';
+import type { UnoDecisionObservation } from '../rules/project';
+import type { Action } from '../types';
 import type { Memory } from './index';
 
 type Play = Extract<Action, { type: 'play' }>;
 
-function threat(view: UnoView, seatId: string) {
+function threat(view: UnoDecisionObservation, seatId: string) {
   const { score, handCount } = view.players[seatId]!;
   return score + Math.max(0, 8 - handCount) * 8 + (handCount === 1 ? 14 : 0);
 }
 
 /** Re-evaluate the target at each decision using only public progress. */
-export function leadingRival(view: UnoView): string | undefined {
+export function leadingRival(view: UnoDecisionObservation): string | undefined {
   if (!view.self || view.seatOrder.length < 3) return undefined;
   const ordered = [...view.seatOrder].sort(
     (left, right) => threat(view, right) - threat(view, left),
@@ -27,7 +28,7 @@ export function leadingRival(view: UnoView): string | undefined {
 }
 
 export function pressureOnLeader(
-  view: UnoView,
+  view: UnoDecisionObservation,
   action: Play,
   memory: Memory,
   target: string,

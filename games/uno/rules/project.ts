@@ -1,6 +1,6 @@
 import type { Viewer } from '@tablemax/game-sdk';
 import { getCard } from '../data/catalog';
-import type { UnoView } from '../types';
+import type { Card, UnoView } from '../types';
 import type { State } from './state';
 
 type OwnCards = NonNullable<UnoView['self']>;
@@ -12,6 +12,40 @@ export interface UnoMemoryObservation {
   readonly self: Readonly<
     Pick<OwnCards, 'seatId' | 'challengeEvidence'>
   > | null;
+}
+
+export interface UnoDecisionObservation extends UnoMemoryObservation {
+  readonly setup?: UnoView['setup'];
+  readonly activeColor: UnoView['activeColor'];
+  readonly direction: UnoView['direction'];
+  readonly players: Readonly<
+    Record<
+      string,
+      Readonly<Pick<UnoView['players'][string], 'handCount' | 'score'>>
+    >
+  >;
+  readonly self:
+    | (NonNullable<UnoMemoryObservation['self']> & {
+        readonly hand: readonly Card[];
+      })
+    | null;
+  readonly drawFour: UnoView['drawFour'];
+}
+
+function publicPlayer(state: State, seat: string) {
+  return { handCount: state.hands[seat]!.length, score: state.scores[seat]! };
+}
+
+function publicDrawFour(state: State): UnoView['drawFour'] {
+  const claim = state.drawFour;
+  return claim
+    ? {
+        offender: claim.offender,
+        target: claim.target,
+        previousColor: claim.previousColor,
+        chosenColor: claim.chosenColor,
+      }
+    : null;
 }
 
 function challengeFor(
@@ -43,6 +77,28 @@ export function projectUnoMemoryObservation(
   };
 }
 
+/** Read-only decision input for the acting seat of an isolated rollout. */
+export function projectUnoRolloutDecision(
+  state: State,
+  seat: string,
+): UnoDecisionObservation {
+  const observation = projectUnoMemoryObservation(state, seat);
+  return {
+    ...observation,
+    ...(state.setup ? { setup: state.setup } : {}),
+    activeColor: state.activeColor,
+    direction: state.direction,
+    players: Object.fromEntries(
+      state.seats.map((id) => [id, publicPlayer(state, id)]),
+    ),
+    self: observation.self && {
+      ...observation.self,
+      hand: state.hands[seat]!.map(getCard),
+    },
+    drawFour: publicDrawFour(state),
+  };
+}
+
 export function project(s: State, viewer: Viewer): UnoView {
   const seat =
     viewer.role === 'player' && s.seats.includes(viewer.seatId)
@@ -71,8 +127,7 @@ export function project(s: State, viewer: Viewer): UnoView {
       s.seats.map((id) => [
         id,
         {
-          handCount: s.hands[id]!.length,
-          score: s.scores[id]!,
+          ...publicPlayer(s, id),
           wins: s.wins[id]!,
           uno: s.unoDeclared[id]!,
         },
@@ -86,14 +141,7 @@ export function project(s: State, viewer: Viewer): UnoView {
           challengeEvidence: challengeFor(s, seat),
         }
       : null,
-    drawFour: s.drawFour
-      ? {
-          offender: s.drawFour.offender,
-          target: s.drawFour.target,
-          previousColor: s.drawFour.previousColor,
-          chosenColor: s.drawFour.chosenColor,
-        }
-      : null,
+    drawFour: publicDrawFour(s),
     unoWindow: s.unoWindow ? { ...s.unoWindow } : null,
     results: structuredClone(s.results),
     winners: [...s.winners],

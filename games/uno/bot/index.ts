@@ -1,6 +1,9 @@
 import type { BotDifficulty, BotStrategy, JsonValue } from '@tablemax/game-sdk';
 import { CARD_IDS, getCard, RULES_VERSION } from '../data/catalog';
-import type { UnoMemoryObservation } from '../rules/project';
+import type {
+  UnoDecisionObservation,
+  UnoMemoryObservation,
+} from '../rules/project';
 import { unoPilotMatch, type UnoSetup } from '../config';
 import { leadingRival, pressureOnLeader } from './mischief';
 import { searchUnoPlays } from './search';
@@ -135,7 +138,7 @@ export function observeOwnedRolloutMemory(
 const points = (card: Card) =>
   card.kind === 'number' ? card.value! : card.color ? 20 : 50;
 function adjacent(
-  view: UnoView,
+  view: UnoDecisionObservation,
   seat: string,
   direction = view.direction,
   steps = 1,
@@ -151,7 +154,7 @@ function colorCount(hand: readonly Card[], color: Color): number {
   return hand.filter((card) => card.color === color).length;
 }
 function chosenColorScore(
-  view: UnoView,
+  view: UnoDecisionObservation,
   color: Color,
   hand: readonly Card[],
   memory: Memory,
@@ -174,7 +177,7 @@ function chosenColorScore(
   return value;
 }
 export function chooseAction(
-  view: UnoView,
+  view: UnoDecisionObservation,
   rawActions: readonly Action[],
   memory: Memory,
   difficulty: BotDifficulty,
