@@ -7,7 +7,7 @@
 - 发行依据：[当前已验收交付](../reference/acceptance.md#当前源码与本地交付)。当前实施证据按源码与实际交付分别记录。
 - 所属范围：游戏SDK、人机运行与验证工具、各游戏策略及必要的配置／展示／恢复适配；规则、计分和秘密边界不因策略升级改变。
 - 有效基础与缺口：九个源码玩法已跑通统一离线对局与能力声明。各款游戏的策略、实际 Worker 和恢复证据记录在[逐游戏迁移](#逐游戏迁移与能力声明)；真人体验需要真实混合对局。
-- 下一步：用独立开发样本改进 B 组候选排序，正式 B 组通过后再开始三组 UNO 绝悟动作评分训练。[第六批 B 组独立复算](../../artifacts/maintenance/bot-rise-uno-qualification-06-20261126/audit.json) · [首轮学习范围](#首轮试点范围) · [R0 冻结清单](#r0-实施前冻结清单)
+- 下一步：复核较大独立续推样本能否稳定确认候选方向，正式 B 组通过后再开始三组 UNO 绝悟动作评分训练。[第六批 B 组独立复算](../../artifacts/maintenance/bot-rise-uno-qualification-06-20261126/audit.json) · [首轮学习范围](#首轮试点范围) · [R0 冻结清单](#r0-实施前冻结清单)
 
 ## 来源、范围与目标
 
@@ -202,7 +202,9 @@ R1／R2 可与[游戏开发接口](../reference/game-development.md#模块与契
 
 C 组入口已绑定第六批 B 的冻结方案、评分摘要、检查点和独立复算。72 个拟合、36 个调参和 44 个开发对照开局相互独立，与已登记的 1304 个 B 及排序开发种子也无重叠。本机 CUDA 求解通过 25 条合成标签核对。缺少本批 B 正式报告或独立复算时，启动请求被拒绝，训练目录与候选均未生成。源码夹具用版本 2 评分通过真实 Worker、SQLite 回退和重开、取消及损坏恢复检查。两个独立合成开局分别验证拟合和调参子进程。版本 2 下的候选、共享假设续推和配对残差在主进程与子进程中一致。这两个种子保留为诊断样本。[配对残差交叉核对](../../artifacts/maintenance/bot-rise-uno-v2-residual-label-smoke-20261126/report.json) · [版本 2 Worker 回归](../../artifacts/maintenance/test-history/runs/7b096a09-1ca2-4fc6-be92-34d374c6e21a/results.json) · [C 组前置核对](../../artifacts/maintenance/bot-rise-uno-joint-threat-c-campaign-20261126/readiness.json) · [提前启动验证](../../artifacts/maintenance/bot-rise-uno-joint-threat-c-campaign-20261126/gate-wait.json)
 
-为改进 B 组排序，已冻结 48 个新开发拟合开局和 48 个独立开发复核开局。用现行版本 2 的授权叶特征、有界搜索和续推策略。同一未知牌假设里，各候选共用续推随机，拟合同时比较叶节点整场胜率和候选之间的配对胜率差。现行评分与同语料只拟合概率的评分作为两项对照。复核另用两批独立长续推，记录排序命中、首选损失和 C 可改选覆盖。拟合夹具已核对共享假设样本，目标函数的梯度通过数值复算。48 个拟合开局得到 92 个可用局面，连同既有开发拟合语料共使用 4713 条概率标签和 3418 条配对标签。三种评分已冻结，48 个独立开发复核开局已启动。第六批正式留出封存为既有证据。[开发冻结计划](../../artifacts/maintenance/bot-rise-uno-paired-leaf-fit-20261126/frozen-plan.json) · [标注夹具](../../artifacts/maintenance/bot-rise-uno-paired-leaf-fit-20261126/fixture.json) · [三种冻结评分](../../artifacts/maintenance/bot-rise-uno-paired-leaf-fit-20261126/frozen-models.json)
+为改进 B 组排序，已冻结 48 个新开发拟合开局和 48 个独立开发复核开局。用现行版本 2 的授权叶特征、有界搜索和续推策略。同一未知牌假设里，各候选共用续推随机，拟合同时比较叶节点整场胜率和候选之间的配对胜率差。现行评分与同语料只拟合概率的评分作为两项对照。复核另用两批独立长续推，记录排序命中、首选损失和 C 可改选覆盖。拟合夹具已核对共享假设样本，目标函数的梯度通过数值复算。48 个拟合开局得到 92 个可用局面，连同既有开发拟合语料共使用 4713 条概率标签和 3418 条配对标签。三种评分冻结后完成了 48 个独立开发复核开局。第六批正式留出封存为既有证据。[开发冻结计划](../../artifacts/maintenance/bot-rise-uno-paired-leaf-fit-20261126/frozen-plan.json) · [标注夹具](../../artifacts/maintenance/bot-rise-uno-paired-leaf-fit-20261126/fixture.json) · [三种冻结评分](../../artifacts/maintenance/bot-rise-uno-paired-leaf-fit-20261126/frozen-models.json)
+
+独立复核得到 90 个可用局面和 312 个候选对。现行评分与配对拟合在两个续推批次分别均命中 13/19 和 11/14。同语料只拟合概率的评分为 12/19、11/14。合并后，三种评分在 8 个开局贡献的 13 个候选对中均命中 11 对。两个续推批次都能确认方向的 3 对中有 1 对方向相反。合并后现行短搜索的胜率差不足 1 个百分点的 11 对命中 9 对。配对拟合未带来稳定排序收益，本轮保留版本 2。已启动 24 个新开发开局，在同一候选集合比较 128、256 和 512 次长续推标签的覆盖和方向复现，再确定后续正式参考预算。[独立复核报告](../../artifacts/maintenance/bot-rise-uno-paired-leaf-fit-20261126/review-report.json) · [分组复算](../../artifacts/maintenance/bot-rise-uno-paired-leaf-fit-20261126/review-breakdown.json) · [续推规模对照冻结计划](../../artifacts/maintenance/bot-rise-uno-reference-density-20261126/frozen-plan.json)
 
 在已封存的 48 和 64 个开发开局上，另试同一未知牌排列的成对轮转，保留候选共享假设及 2048 规则步上限。两套短搜索随机种子下，前一批正确方向从 33/58 增至 38/58，后一批两组均为 51/70，同牌选色从 17/20 降至 15/20。开发复算未显示稳定收益，正式批次仍按冻结的独立洗牌方案运行。[成对轮转开发对照](../../artifacts/maintenance/bot-rise-uno-paired-world-rotation-20261126/report.json)
 
