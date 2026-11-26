@@ -15,6 +15,7 @@ import {
   bootstrap,
   collectCalibrationSeed,
   scoreFeatures,
+  unoSharedRankingWorldBatchLimit,
   type CalibrationSeedEvidence,
   type CalibrationSeedTask,
   type EvaluatedLeaf,
@@ -196,7 +197,10 @@ const rankingBudget: RankingBudget = {
 if (
   !Number.isInteger(rankingBudget.worldBatches) ||
   rankingBudget.worldBatches < 1 ||
-  rankingBudget.worldBatches > 8 ||
+  rankingBudget.worldBatches >
+    (rankingBudget.reference === 'shared-rounds'
+      ? unoSharedRankingWorldBatchLimit
+      : 8) ||
   !Number.isInteger(rankingBudget.continuations) ||
   rankingBudget.continuations < 1 ||
   rankingBudget.continuations > 64

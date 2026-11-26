@@ -7,7 +7,7 @@
 - 发行依据：[当前已验收交付](../reference/acceptance.md#当前源码与本地交付)。当前实施证据按源码与实际交付分别记录。
 - 所属范围：游戏SDK、人机运行与验证工具、各游戏策略及必要的配置／展示／恢复适配；规则、计分和秘密边界不因策略升级改变。
 - 有效基础与缺口：九个源码玩法已跑通统一离线对局与能力声明。各款游戏的策略、实际 Worker 和恢复证据记录在[逐游戏迁移](#逐游戏迁移与能力声明)；真人体验需要真实混合对局。
-- 下一步：检查固定胜率偏移能否改善分桶误差，并保留现行短搜索的候选排序。用户确认保留 70% 排序门槛，正式 B 组通过后再开始三组 UNO 绝悟动作评分训练。[第七批独立复算](../../artifacts/maintenance/bot-rise-uno-qualification-07-20261126/audit.json) · [首轮学习范围](#首轮试点范围) · [R0 冻结清单](#r0-实施前冻结清单)
+- 下一步：保留现行版本 2 评分，按自然样本精度和候选覆盖估算冻结下一批正式校准。用户确认保留 70% 排序门槛，正式 B 组通过后再开始三组 UNO 绝悟动作评分训练。[第七批独立复算](../../artifacts/maintenance/bot-rise-uno-qualification-07-20261126/audit.json) · [首轮学习范围](#首轮试点范围) · [R0 冻结清单](#r0-实施前冻结清单)
 
 ## 来源、范围与目标
 
@@ -276,6 +276,10 @@ C 组入口已绑定第六批 B 的冻结方案、评分摘要、检查点和独
 
 固定偏移和两个固定缩放方案的短搜索排序复算已完成。两批参考分别仍命中 10/15 与 16/19 对，合并参考均命中 6/8 对。单独偏移的分桶最大误差最低，后续用新的自然开局独立复核概率。当前正式评分和门槛保持原冻结方案。[固定偏移与缩放的排序复核](../../artifacts/maintenance/bot-rise-uno-leaf-logit-ranking-20261127/report.json)
 
+共用参考入口的上限扩至 48 批。以每批 8 组未知牌假设、每组续推一次，可覆盖 384 个独立世界。夹具接受共用模式 48 批并通过独立审计，拒绝共用模式 49 批及原模式 9 批。[参考预算边界复核](../../artifacts/maintenance/bot-rise-uno-shared-reference-budget-20261127/audit.json)
+
+固定偏移的独立概率复核已完成 96 个新开局、177 个可用局面和 4516 条标签。决策根由固定偏移策略采集，两种评分在相同的截断局面上复核。现行评分的总体误差为 0.60 个百分点、最大有效概率桶误差为 3.55 个百分点、Brier 为 0.18002。固定偏移的对应结果为 1.51、5.67 和 0.18036。独立复核支持保留现行版本 2 评分。该批自然待罚牌标签只有 9 条，正式待罚牌覆盖继续由独立样本检验。[固定偏移的独立概率复核](../../artifacts/maintenance/bot-rise-uno-offset-independent-probability-20261127/report.json)
+
 另复用三套开发续推数据，检查先用 128 次续推筛选，再只给保留的根补独立参考样本能节省多少预算。即便只有同一根全部候选对的区间都落在 ±5 个百分点以内才停，四次双批复算中仍有三次漏掉独立续推可确认的候选对，每次漏 2 对。按点估计筛选也出现遗漏。正式参考续推保留完整候选集合。[参考筛选成本复核](../../artifacts/maintenance/bot-rise-uno-reference-screen-cost-20261127/report.json)
 
 在已封存的 48 和 64 个开发开局上，另试同一未知牌排列的成对轮转，保留候选共享假设及 2048 规则步上限。两套短搜索随机种子下，前一批正确方向从 33/58 增至 38/58，后一批两组均为 51/70，同牌选色从 17/20 降至 15/20。开发复算未显示稳定收益，正式批次仍按冻结的独立洗牌方案运行。[成对轮转开发对照](../../artifacts/maintenance/bot-rise-uno-paired-world-rotation-20261126/report.json)
@@ -527,7 +531,9 @@ UNO 续推优化后，用同一生产参数复编译 18 个 Node 组件。只有
 
 再接入精简行动席投影后，UNO 策略和规则组件分别增加 253 与 36 字节，其他组件摘要一致。18 个 Node 组件合计 914,372 字节，运行依赖图仍未包含训练器、训练框架或学习数据。[行动席投影的源码组件复测](../../artifacts/maintenance/bot-rise-uno-acting-projection-bundle-20261127/source-bundle-boundary.json)
 
-再接入精简行动席投影后，UNO 策略和规则组件分别增加 253 与 36 字节，其他组件摘要一致。18 个 Node 组件合计 914,372 字节，运行依赖图仍未包含训练器、训练框架或学习数据。[行动席投影的源码组件复测](../../artifacts/maintenance/bot-rise-uno-acting-projection-bundle-20261127/source-bundle-boundary.json)，外层载荷和代码包均未发现训练文件。用生产参数在隔离目录编译服务器、人机 Worker 及八款游戏的规则和策略共 18 个 Node 组件，依赖图未引入训练器或训练框架。同样参数复测源码 `6ee2c173`，18 个组件合计 912,183 字节。比上次源码测量多 1,225 字节，分别来自电力公司策略 745 字节、拉密策略 402 字节和 UNO 策略 78 字节。相对 1.0.9.1 同范围组件多 52,121 字节。随后在 `3b41250d` 单独复算唯一发生源码变化的电力公司策略组件，进一步减少 10 字节，同一组件范围合计 912,173 字节。完整 Windows EXE 仍按实际冻结产物实测。[签名载荷清查](../../artifacts/maintenance/bot-rise-bundle-boundary-20261126/sealed-boundary.json) · [上次源码组件测量](../../artifacts/maintenance/bot-rise-bundle-boundary-20261126/source-bundle-boundary.json) · [本次源码组件复测](../../artifacts/maintenance/bot-rise-current-bundle-boundary-20261126/source-bundle-boundary.json) · [1.1.4 增量测量](../../artifacts/maintenance/bot-rise-current-bundle-boundary-20261126/power-grid-v114-delta.json)
+接入离线共用续推后，再次用生产参数核对了 18 个 Node 组件。UNO 策略与规则各增加 10 字节，组件合计 914,392 字节，依赖图中未见共用参考分析模块或训练载荷。[共用参考的源码边界复测](../../artifacts/maintenance/bot-rise-uno-shared-reference-bundle-20261127/source-bundle-boundary.json)
+
+已核验 1.0.9.1 安装器、载荷及八个签名游戏代码包的内容摘要，外层载荷和代码包均未发现训练文件。用生产参数在隔离目录编译服务器、人机 Worker 及八款游戏的规则和策略共 18 个 Node 组件，依赖图未引入训练器或训练框架。同样参数复测源码 `6ee2c173`，18 个组件合计 912,183 字节。比上次源码测量多 1,225 字节，分别来自电力公司策略 745 字节、拉密策略 402 字节和 UNO 策略 78 字节。相对 1.0.9.1 同范围组件多 52,121 字节。随后在 `3b41250d` 单独复算唯一发生源码变化的电力公司策略组件，进一步减少 10 字节，同一组件范围合计 912,173 字节。完整 Windows EXE 仍按实际冻结产物实测。[签名载荷清查](../../artifacts/maintenance/bot-rise-bundle-boundary-20261126/sealed-boundary.json) · [上次源码组件测量](../../artifacts/maintenance/bot-rise-bundle-boundary-20261126/source-bundle-boundary.json) · [本次源码组件复测](../../artifacts/maintenance/bot-rise-current-bundle-boundary-20261126/source-bundle-boundary.json) · [1.1.4 增量测量](../../artifacts/maintenance/bot-rise-current-bundle-boundary-20261126/power-grid-v114-delta.json)
 
 建议写入前核对余量，并为训练安全暂停／检查点预留空间；优先回收可重建缓存和已审无引用生成物，真人原始样本的保留／轮换口径在R0定案。正式存档、活动训练输入、当前模型及旧局／checkpoint仍引用的模型受保护，不作为自动腾空间候选。无安全候选时暂停新增采集或训练写入并提示，不阻塞正常游戏保存、回退与恢复。R2验证紧凑表示可还原且不串席泄露，R6验证配额耗尽与恢复；本轮不创建数据目录或执行清理。
 

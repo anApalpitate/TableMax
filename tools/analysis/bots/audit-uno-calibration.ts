@@ -13,6 +13,7 @@ import {
   average,
   bootstrap,
   scoreFeatures,
+  unoSharedRankingWorldBatchLimit,
   type CalibrationSeedEvidence,
   type EvaluatedLeaf,
 } from './uno-calibration-seed';
@@ -47,6 +48,10 @@ if (
   !['reference', 'search'].includes(report.rootPolicy) ||
   (report.rankingBudget?.reference !== undefined &&
     report.rankingBudget.reference !== 'shared-rounds') ||
+  report.rankingBudget?.worldBatches >
+    (report.rankingBudget?.reference === 'shared-rounds'
+      ? unoSharedRankingWorldBatchLimit
+      : 8) ||
   report.calibrationDigest !== sha(JSON.stringify(report.calibration)) ||
   !isUnoSearchSamples(report.options?.hypotheses) ||
   (report.options.labelHypotheses !== undefined &&

@@ -77,6 +77,8 @@ export type Calibration = {
   coefficients: number[];
 };
 
+export const unoSharedRankingWorldBatchLimit = 48;
+
 export type RankingBudget = {
   worldBatches: number;
   continuations: number;
