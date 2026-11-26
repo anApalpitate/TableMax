@@ -198,6 +198,8 @@ R1／R2 可与[游戏开发接口](../reference/game-development.md#模块与契
 
 联合威胁评分已接入版本 2 校准格式。旧格式的 12 项特征沿用原顺序和取值，版本 2 在其后追加四项授权观察特征。采样、拟合、独立复算和推理按同一版本读取。旧正式报告已在新入口下重放并复现原结论。第六批正式校准已启动，冻结 128 个自然开局和 128 个独立罚牌复核开局，继续使用原来的搜索预算、概率、排序与覆盖门槛。两个集合与 24 份计划及报告里的 1648 个不同种子核对无重叠。C 组训练继续等待本批正式结论。[种子隔离核对](../../artifacts/maintenance/bot-rise-uno-b-calibration-reservation-20261126/reservation.json) · [版本兼容回归](../../artifacts/maintenance/test-history/runs/71de1fa1-d05a-4231-a5bf-97a7ca7e7d1a/results.json) · [正式冻结计划](../../artifacts/maintenance/bot-rise-uno-qualification-06-20261126/frozen-plan.json)
 
+C 组入口已绑定第六批 B 的冻结方案、评分摘要、检查点和独立复算。72 个拟合、36 个调参和 44 个开发对照开局相互独立，与已登记的 1304 个 B 及排序开发种子也无重叠。本机 CUDA 求解通过 25 条合成标签核对。缺少本批 B 正式报告或独立复算时，启动请求被拒绝，训练目录与候选均未生成。[C 组前置核对](../../artifacts/maintenance/bot-rise-uno-joint-threat-c-campaign-20261126/readiness.json) · [提前启动验证](../../artifacts/maintenance/bot-rise-uno-joint-threat-c-campaign-20261126/gate-wait.json)
+
 在已封存的 48 和 64 个开发开局上，另试同一未知牌排列的成对轮转，保留候选共享假设及 2048 规则步上限。两套短搜索随机种子下，前一批正确方向从 33/58 增至 38/58，后一批两组均为 51/70，同牌选色从 17/20 降至 15/20。开发复算未显示稳定收益，正式批次仍按冻结的独立洗牌方案运行。[成对轮转开发对照](../../artifacts/maintenance/bot-rise-uno-paired-world-rotation-20261126/report.json)
 
 正式复核每个开局抽两根时，36 个开局里有 9 个贡献方向明确的候选对。按开局重抽已有计数，达到至少 30 对覆盖的 90% 情景约需 123 个开局。这个估算仅用于规划旧配置的覆盖成本，排序命中率和概率校准仍须另行达标。补采的拟合分片可以按原预算合并，保留逐分片摘要，并拒绝种子重叠。[候选覆盖估算](../../artifacts/maintenance/bot-rise-calibration-20261126/anchored-02/ranking-coverage-planning.json) · [拟合合并烟测](../../artifacts/maintenance/bot-rise-calibration-20261126/fit-extension-03/merge-corpora-smoke.json)
