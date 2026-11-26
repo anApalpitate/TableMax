@@ -23,7 +23,7 @@
     "rulesVersion": "classic-2025-digital-v1",
     "stateVersion": 1,
     "gameVersion": "1.0.0",
-    "strategyVersion": "1.1.1"
+    "strategyVersion": "1.1.2"
   },
   "entries": {
     "rules": "games/rummikub/rules/index.ts",

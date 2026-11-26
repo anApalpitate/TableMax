@@ -1,6 +1,6 @@
 # 拉密经典版：本地人机
 
-独立入口为 [bot/index.ts](../../../games/rummikub/bot/index.ts)，源码策略 `rummikub-local@1.1.1` 适用于规则版本 `classic-2025-digital-v1`，提供默认、豆包、绝悟和捣蛋王。历史签名对局仍固定原策略与发行。
+独立入口为 [bot/index.ts](../../../games/rummikub/bot/index.ts)，源码策略 `rummikub-local@1.1.2` 适用于规则版本 `classic-2025-digital-v1`，提供默认、豆包、绝悟和捣蛋王。历史签名对局仍固定原策略与发行。
 
 ## 授权输入与保存
 
@@ -58,7 +58,9 @@
 
 `1.1.1` 四档另跑八个开局全座轮换，128 场均正常终局。默认、豆包、绝悟、捣蛋王分别赢 2、12、17、17 场。豆包比默认高 31.25 个百分点，绝悟比豆包高 15.63 个百分点，两者的开局配对 95% 区间分别为 +15.63 至 +43.75、−3.13 至 +34.38 个百分点。绝悟和豆包另用 16 个开局全座配对，128 场均正常结束。绝悟赢 22/64，豆包赢 21/64，胜率差 +1.56 个百分点，开局配对 95% 区间为 −6.25 至 +9.38 个百分点。绝悟平均累计分为 43.09，豆包为 28.77。整场胜率仍缺少稳定的两档差距。捣蛋王有 6 次针对同一领先者的首个改选，均保留相同实体牌，该领先者在这些配对的整场胜负相同。[1.1.1 四档复验](../../../artifacts/maintenance/bot-rise-rummikub-v111-rotation-20261126/rummikub-report.json) · [上两档独立复核计划](../../../artifacts/maintenance/bot-rise-rummikub-upper-strength-20261126/independent-plan.json) · [上两档独立复核结果](../../../artifacts/maintenance/bot-rise-rummikub-upper-strength-20261126/independent-report.json)
 
-已另建独立开发对照。候选评分只在已破冰、仍可摸牌且本次出牌后剩 2 张时，按本人牌架和公开桌面之外可补成合法牌组的实体牌数调整同等出牌张数的排序。整回合合法性、绝悟原搜索预算和清空优先级保持有效。24 个独立配对均完成。此规则在本批未触发实际改选，焦点席两组各赢 9 场，平均累计分均为 62.17。现行源码沿用 1.1.1 评分。[两张牌收尾开发计划](../../../artifacts/maintenance/bot-rise-rummikub-two-tile-finish-20261126/frozen-plan.json) · [整场开发对照](../../../artifacts/maintenance/bot-rise-rummikub-two-tile-finish-20261126/report.json)
+已另建独立开发对照。候选评分只在已破冰、仍可摸牌且本次出牌后剩 2 张时，按本人牌架和公开桌面之外可补成合法牌组的实体牌数调整同等出牌张数的排序。整回合合法性、绝悟原搜索预算和清空优先级保持有效。24 个独立配对均完成。此规则在本批未触发实际改选，焦点席两组各赢 9 场，平均累计分均为 62.17。该轮对照采用 1.1.1 评分作为基线。[两张牌收尾开发计划](../../../artifacts/maintenance/bot-rise-rummikub-two-tile-finish-20261126/frozen-plan.json) · [整场开发对照](../../../artifacts/maintenance/bot-rise-rummikub-two-tile-finish-20261126/report.json)
+
+从六场原绝悟对局的 113 个已破冰出牌回合中找到四次可直接向无百搭牌组补一张自然牌的机会，其中一次能清空牌架。该原局是最后一小局，绝悟补牌后逆转整场。较宽的任意小局补牌方案在 48 对开发对局中由 18 胜降至 17 胜。源码 1.1.2 仅在最后一小局、清空牌架已能依据公开胜局数和分数下界锁定整场胜利时，补上最后一张能合法加入的自然牌。原有桌面重组、百搭证明和搜索预算沿用。真实 Worker 重跑原局，最后一个回合合法出完两张，绝悟以 111 分获得整场胜利。[原策略搜索复盘](../../../artifacts/maintenance/bot-rise-rummikub-last-placement-20261126/report.json) · [较宽方案整场对照](../../../artifacts/maintenance/bot-rise-rummikub-verified-last-tile-20261126/report.json) · [末局边界回归](../../../artifacts/maintenance/test-history/runs/75588880-ddf6-40db-afc9-c9d3bc65057b/results.json) · [真实 Worker 复盘](../../../artifacts/maintenance/bot-rise-rummikub-verified-last-tile-20261126/source-worker-replay.json) · [98 项规则、整局与保存回归](../../../artifacts/maintenance/test-history/runs/bb384fc7-ad8a-4480-87c2-10e71fd870ba/results.json)
 
 本轮固定局面验证了相接顺子合并、已破冰的下一席剩一张才触发，以及本人可清空、未破冰时沿用绝悟。真实 Worker 在密集百搭牌桌下通过两秒与合法动作检查，在隔离 SQLite 中验证提交、回退和重开的同一动作复现。历史签名 `1.0.0` 已通过原 Worker 回退、重开和复现。四种策略共 36 场固定种子完整对局，捣蛋王九场在首轮通过。两个两人绝悟种子初次运行单决策超过两秒，随后按原断言定向复验通过。初轮最慢的授权局面也用同版本真实 Worker 重放，约 594 毫秒并复现动作。六个固定种子完成 24 个配对，4 对出现实际动作变化且首次改选保留相同实体牌，焦点席捣蛋王胜 7 场、绝悟胜 8 场。[换座对照](../../../artifacts/maintenance/rummikub-bot-rise-20261126/rotation-report.json) · [整局原记录](../../../artifacts/maintenance/test-history/runs/24f83ce4-0b7f-487f-b5d4-194889e5e440/results.json) · [原两秒断言复验](../../../artifacts/maintenance/test-history/runs/0128238a-6bb6-45fb-b3ac-748788ab7450/results.json) · [当前峰值 Worker](../../../artifacts/maintenance/rummikub-bot-rise-20261126/current-peak-worker.json) · [策略与密集 Worker](../../../artifacts/maintenance/test-history/runs/1996d2c4-dcd2-410a-addc-092dde9e45d2/results.json) · [策略固定局面](../../../artifacts/maintenance/test-history/runs/433e7b00-6f6f-46c5-86f9-669e998d6a6e/results.json) · [保存恢复定向复验](../../../artifacts/maintenance/test-history/runs/b7a2ab7c-20e2-4669-8129-0e428ecae22c/results.json) · [历史签名恢复](../../../artifacts/maintenance/rummikub-bot-rise-20261126/old-signed-recovery.json)
 

@@ -71,6 +71,51 @@ const choose = (
   });
 
 describe('Rummikub bounded authorized local strategies', () => {
+  it('places the final natural tile on the improved table returned by Juewu', () => {
+    const table = [
+      'orange-07-b orange-08-a joker-b orange-10-a orange-11-a orange-12-a orange-13-a',
+      'blue-10-b blue-11-b blue-12-a blue-13-a',
+      'black-13-b blue-13-b red-13-a',
+      'blue-01-b blue-02-a blue-03-a blue-04-b blue-05-a blue-06-a blue-07-a blue-08-a',
+      'black-07-b blue-07-b red-07-a',
+      'black-08-a blue-08-b orange-08-b red-08-a',
+      'black-08-b black-09-a black-10-a black-11-b black-12-b',
+      'black-09-b black-10-b black-11-a',
+      'black-01-a black-02-a black-03-a black-04-a black-05-a black-06-a',
+      'black-01-b orange-01-a red-01-a',
+      'orange-01-b orange-02-a orange-03-b orange-04-b',
+      'black-02-b blue-02-b red-02-b',
+      'black-03-b blue-03-b red-03-b',
+      'black-04-b orange-04-a red-04-a',
+      'black-05-b blue-05-b orange-05-a red-05-a',
+      'red-02-a red-03-a red-04-b red-05-b red-06-a',
+      'red-06-b red-07-b red-08-b red-09-a red-10-a red-11-a red-12-a red-13-b',
+      'red-10-b red-11-b red-12-b',
+    ].map((tiles) => parseMeld(tiles.split(' '))!);
+    const view = fixture(['orange-11-b', 'orange-07-a'], table);
+    view.gameNumber = view.gameCount = 4;
+    view.players.S1!.wins = 2;
+    view.players.S2!.wins = 1;
+    const result = planTurn(view, 'juewu');
+    expect(placed(view, result.action)).toBe(2);
+    expect(result.stats.nodes).toBeLessThanOrEqual(SEARCH_LIMITS.juewu.nodes);
+    expect(result.stats.generationSteps).toBeLessThanOrEqual(
+      SEARCH_LIMITS.juewu.generation,
+    );
+
+    const earlier = { ...view, gameNumber: 3 };
+    expect(placed(earlier, planTurn(earlier, 'juewu').action)).toBe(1);
+
+    const behind = {
+      ...view,
+      players: {
+        S1: { ...view.players.S1!, wins: 1, score: -30 },
+        S2: { ...view.players.S2!, wins: 2, score: 30 },
+      },
+    };
+    expect(placed(behind, planTurn(behind, 'juewu').action)).toBe(1);
+  });
+
   it('Doubao finds six tiles where greedy uses the overlapping five-tile run', () => {
     const view = fixture([
       ...Array.from({ length: 5 }, (_, i) => id('black', i + 1)),

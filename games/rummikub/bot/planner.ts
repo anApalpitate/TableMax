@@ -346,6 +346,74 @@ function searchTurn(
   return { action: best, stats: budget.stats };
 }
 
+function finishWinningRound(
+  view: RummikubView,
+  action: PlayAction,
+): PlayAction {
+  const self = view.self;
+  if (!self?.opened || view.gameNumber !== view.gameCount) return action;
+  const own = view.players[self.seatId]!;
+  const opponents = view.seatOrder
+    .filter((seat) => seat !== self.seatId)
+    .map((seat) => view.players[seat]!);
+  const wins = own.wins + 1;
+  // Each opponent tile is worth at least one point when this rack empties.
+  const minimumScore =
+    own.score + opponents.reduce((sum, player) => sum + player.rackCount, 0);
+  const winsMatch = opponents.every(
+    (player) =>
+      wins > player.wins ||
+      (wins === player.wins && minimumScore > player.score - player.rackCount),
+  );
+  if (!winsMatch) return action;
+
+  const placed = new Set(
+    action.table.flatMap(({ tiles }) => tiles.map(({ tileId }) => tileId)),
+  );
+  const remaining = self.rack.filter(({ id }) => !placed.has(id));
+  const tile = remaining[0];
+  if (
+    remaining.length !== 1 ||
+    !tile ||
+    tile.joker ||
+    !tile.color ||
+    tile.value === null
+  )
+    return action;
+
+  const { id: tileId, color, value } = tile;
+  const target = action.table.findIndex((meld) => {
+    if (meld.tiles.some((entry) => getTile(entry.tileId).joker)) return false;
+    const first = meld.tiles[0]!;
+    if (meld.kind === 'group')
+      return (
+        meld.tiles.length < 4 &&
+        first.value === value &&
+        meld.tiles.every((entry) => entry.color !== color)
+      );
+    const last = meld.tiles.at(-1)!;
+    return (
+      first.color === color &&
+      (value === first.value - 1 || value === last.value + 1)
+    );
+  });
+  if (target < 0) return action;
+
+  return {
+    ...action,
+    table: action.table.map((meld, index) =>
+      index === target
+        ? {
+            ...meld,
+            tiles: [...meld.tiles, { tileId, color, value }].sort(
+              (a, b) => a.value - b.value || a.color.localeCompare(b.color),
+            ),
+          }
+        : meld,
+    ),
+  };
+}
+
 export function planTurn(
   view: RummikubView,
   difficulty: BotDifficulty,
@@ -356,6 +424,8 @@ export function planTurn(
     difficulty === 'mischief' ? 'juewu' : difficulty,
     signal,
   );
+  if (difficulty === 'juewu' && baseline.action)
+    return { ...baseline, action: finishWinningRound(view, baseline.action) };
   if (difficulty !== 'mischief' || !baseline.action) return baseline;
   return {
     ...baseline,
