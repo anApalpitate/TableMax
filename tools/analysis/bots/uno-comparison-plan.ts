@@ -38,7 +38,26 @@ export interface UnoComparisonPlan {
   bootstrapSeed: number;
   maxSteps: number;
   developmentSeeds?: number[];
+  selection?: {
+    reportSha256: string;
+    calibrationReportSha256: string;
+    candidateReportSha256: string;
+  };
   seeds: Record<UnoPool, { first: number[]; extra: number[] }>;
+}
+
+const sha256 = /^[a-f0-9]{64}$/;
+
+export function matchesUnoPlanSelection(
+  plan: UnoComparisonPlan,
+  calibrationReportSha256: string,
+  candidateReportSha256: string,
+) {
+  return (
+    plan.selection === undefined ||
+    (plan.selection.calibrationReportSha256 === calibrationReportSha256 &&
+      plan.selection.candidateReportSha256 === candidateReportSha256)
+  );
 }
 
 export function validateUnoComparisonPlan(plan: UnoComparisonPlan) {
@@ -52,6 +71,12 @@ export function validateUnoComparisonPlan(plan: UnoComparisonPlan) {
     plan.bootstrapSeed > 0xffffffff ||
     (plan.developmentSeeds !== undefined &&
       !Array.isArray(plan.developmentSeeds)) ||
+    (plan.selection !== undefined &&
+      [
+        plan.selection?.reportSha256,
+        plan.selection?.calibrationReportSha256,
+        plan.selection?.candidateReportSha256,
+      ].some((digest) => typeof digest !== 'string' || !sha256.test(digest))) ||
     !plan.seeds ||
     Object.keys(plan.seeds).length !== unoPools.length ||
     unoPools.some(
@@ -165,6 +190,11 @@ export function unoComparisonPasses(
     typeof report.sourceSha256 !== 'string' ||
     !/^[a-f0-9]{64}$/.test(report.sourceSha256) ||
     !matchesUnoComparisonStage(report.plan, report.stage, report.blocks) ||
+    !matchesUnoPlanSelection(
+      report.plan,
+      calibrationReportSha256,
+      candidateReportSha256,
+    ) ||
     !report.blocks.every(completeUnoBlock) ||
     report.planDigest !==
       unoComparisonDigest(

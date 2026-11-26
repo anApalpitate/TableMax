@@ -25,6 +25,7 @@ import {
 import {
   followsUnoComparisonSeeds,
   matchesUnoComparisonStage,
+  matchesUnoPlanSelection,
   selectUnoComparisonSeeds,
   unoComparisonDigest,
   validateUnoComparisonPlan,
@@ -80,10 +81,20 @@ if (values['development-control'] && !values.development)
   throw new Error(
     'Cached A/B matches are only available in development comparisons',
   );
+if (values.development && plan.selection)
+  throw new Error('A frozen acceptance plan uses the formal comparison path');
 const calibrationReport = report(values.calibration);
 const candidateReport = report(values.correction);
 const calibration = calibrationReport.value;
 const candidate = candidateReport.value;
+if (
+  !matchesUnoPlanSelection(
+    plan,
+    calibrationReport.sha256,
+    candidateReport.sha256,
+  )
+)
+  throw new Error('Formal comparison must use the selected B and C reports');
 if (
   calibration?.type !== 'uno-calibration-development' ||
   calibration?.evaluation !== 'meets-measured-gates' ||

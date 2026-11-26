@@ -16,7 +16,10 @@ import { calibrationSeeds } from './uno-calibration-provenance';
 import { matchesUnoCorrectionCalibration } from './uno-correction-provenance';
 import { correctionSeeds } from './uno-correction-seeds';
 import { isCurrentUnoPilot, unoPilotEvidence } from './uno-pilot';
-import { validateUnoComparisonPlan } from './uno-comparison-plan';
+import {
+  matchesUnoPlanSelection,
+  validateUnoComparisonPlan,
+} from './uno-comparison-plan';
 import { openTrainingCheckpoint } from './training-checkpoint';
 
 const { values } = parseArgs({
@@ -83,6 +86,14 @@ if (
 const tune = seeds(plan.tuneSeeds),
   review = seeds(plan.reviewSeeds);
 const comparisonSeeds = validateUnoComparisonPlan(abc.value);
+if (
+  !matchesUnoPlanSelection(abc.value, b.sha256, c.sha256) ||
+  (plan.acceptancePlanSha256 !== undefined &&
+    plan.acceptancePlanSha256 !== abc.sha256)
+)
+  throw new Error(
+    'Attribution requires the matching frozen acceptance plan and model reports',
+  );
 const modelInputs = [
   ...calibrationSeeds(b.value),
   ...correctionSeeds(c.value),
