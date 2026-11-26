@@ -7,7 +7,7 @@
 - 发行依据：[当前已验收交付](../reference/acceptance.md#当前源码与本地交付)。当前实施证据按源码与实际交付分别记录。
 - 所属范围：游戏SDK、人机运行与验证工具、各游戏策略及必要的配置／展示／恢复适配；规则、计分和秘密边界不因策略升级改变。
 - 有效基础与缺口：九个源码玩法已跑通统一离线对局与能力声明。各款游戏的策略、实际 Worker 和恢复证据记录在[逐游戏迁移](#逐游戏迁移与能力声明)；真人体验需要真实混合对局。
-- 下一步：用独立开发开局比较 UNO B 组的推演深度、未知牌假设数和启发式排序，候选配置重新通过正式校准后再开始三组 UNO 绝悟动作评分训练。[B 组冻结计划](../../artifacts/maintenance/bot-rise-calibration-20261126/qualification-04/frozen-plan.json) · [首轮学习范围](#首轮试点范围) · [R0 冻结清单](#r0-实施前冻结清单)
+- 下一步：用独立开发开局检验 UNO B 组能否在规则步数上限内完成更多共享假设。候选配置重新通过正式校准后再开始三组 UNO 绝悟动作评分训练。[B 组冻结计划](../../artifacts/maintenance/bot-rise-calibration-20261126/qualification-04/frozen-plan.json) · [首轮学习范围](#首轮试点范围) · [R0 冻结清单](#r0-实施前冻结清单)
 
 ## 来源、范围与目标
 
@@ -166,6 +166,10 @@ R1／R2 可与[游戏开发接口](../reference/game-development.md#模块与契
 
 本批正式留出与独立复核均已结束。128 个自然开局产生 6040 条标签，整体胜率误差 0.35 个百分点，Brier 分数 0.17658，简单对照为 0.18057。符合样本量的分桶与截断阶段通过误差门槛，独立罚牌场景覆盖 80／80／14 个开局。从 1192 对候选中确认 49 对排序方向，B 命中 22 对（44.90%），低于 70% 门槛。B 首选相对参考首选平均少 0.27 个胜率百分点，配对 95% 区间为 −0.04 至 +0.59 个百分点。B 组整体未通过，C 组保留冻结计划。上述开局和标签保留为此次正式证据，新搜索配置用独立开发开局比较。[正式报告](../../artifacts/maintenance/bot-rise-calibration-20261126/qualification-04/report.json) · [独立复算](../../artifacts/maintenance/bot-rise-calibration-20261126/qualification-04/audit.json) · [后续排序开发计划](../../artifacts/maintenance/bot-rise-uno-ranking-depth-20261126/frozen-plan.json)
 
+48 个独立开发开局共取得 29 对方向明确的候选。原 8 组短搜索命中 20 对，固定 16 组命中 19 对，加深到最多 32 规则步的 8 组命中 18 对，纯启发式命中 12 对。加深方案的四个 8 候选夹具通过真实 32 MiB Worker 和两秒门槛，最长约 1.20 秒，仍保留原搜索深度。另用四批独立的 8 组短假设复算同一开发集。单批平均命中 61.21%，合并 32 组命中 21/29，其中不同实体牌对命中 16/20，同一牌选色对命中 5/9。合并结果用于检验抽样稳定性，不计入正式门槛。下一批比较在原 2048 规则步上限内按整组继续抽样。[深度开发结果](../../artifacts/maintenance/bot-rise-uno-ranking-depth-20261126/development.json) · [真实 Worker 测量](../../artifacts/maintenance/bot-rise-uno-depth-worker-20261126/report.json) · [排序稳定性复算](../../artifacts/maintenance/bot-rise-uno-ranking-stability-20261126/report.json)
+
+同一开发集上，按共享假设整组推进并受 2048 规则步硬上限约束，上限 32 组的方案命中 21/29 对。同前缀的固定 8、16 组分别命中 15、18 对。89 个根平均完成 31.52 组，最多用了 2011 规则步。四个 8 候选压力夹具在真实 Worker 中完成 22–27 组、1930–1952 步，最长约 0.67 秒，动作提交成功。已另外启动 64 个新开局的独立开发复验。正式校准与 C 组训练仍用各自隔离的种子。[预算开发筛查](../../artifacts/maintenance/bot-rise-uno-adaptive-ranking-20261126/report.json) · [真实 Worker 复验](../../artifacts/maintenance/bot-rise-uno-adaptive-worker-20261126/report.json) · [64 局开发计划](../../artifacts/maintenance/bot-rise-uno-adaptive-ranking-20261126/independent-plan.json)
+
 正式复核每个开局抽两根时，36 个开局里有 9 个贡献方向明确的候选对。按开局重抽已有计数，达到至少 30 对覆盖的 90% 情景约需 123 个开局。这个估算仅用于规划旧配置的覆盖成本，排序命中率和概率校准仍须另行达标。补采的拟合分片可以按原预算合并，保留逐分片摘要，并拒绝种子重叠。[候选覆盖估算](../../artifacts/maintenance/bot-rise-calibration-20261126/anchored-02/ranking-coverage-planning.json) · [拟合合并烟测](../../artifacts/maintenance/bot-rise-calibration-20261126/fit-extension-03/merge-corpora-smoke.json)
 
 B 校准可按种子并行，并在拟合数据及留出阶段保存断点。断点绑定当前源码、运行时、配置和种子，最终按固定顺序合并。换进程数不会改变对照的抽样和评分口径。完整报告生成后才判断门槛。开发夹具验证了分片续跑与串行报告逐字节一致，以及更改种子后拒绝旧断点。[分片续跑验证](../../artifacts/maintenance/bot-rise-calibration-shards-20261126/serial-parallel-resume/report.json) · [校准入口](../../tools/analysis/README.md#uno-校准与配对试点)
@@ -303,9 +307,9 @@ UNO 四人主配置已完成 24 个合成开局的四座轮换，共 384 场整�
 
 电力公司策略 `1.1.0` 的四人对照已完成 128 场，8 个开局各换全四座。默认、豆包、绝悟、捣蛋王分别在 32 场中赢 14、6、3、2 场。高档出现倒挂，绝悟比默认低 34.38 个胜率百分点，按开局配对的 95% 区间为 −50.00 至 −18.75 个百分点。捣蛋王有 9 对首次改选指向同一公开领先者，其中 1 对该领先者由胜转负。复盘定位了首轮竞价漏算低编号电厂先买燃料的缺口，源码 `1.1.1` 已修正。修正后的 128 场独立复验均在首轮实际供电。四种人机整场分别赢 11、10、5、6 场，绝悟与豆包的档位顺序仍待修正。后续 24 个独立配对中，限制首轮加价使绝悟平均购厂成本从 27.50 降到 10.79 电币，首轮零供电从 3 场降到 0 场。源码 `1.1.2` 纳入该约束，整场胜率仍需全档复验。[四档对照](../../artifacts/maintenance/bot-rise-multistage-heuristic-rotation-20261126/power-grid-report.json) · [策略与复盘](../games/power-grid/bot.md#验证与局限) · [复验冻结计划](../../artifacts/maintenance/bot-rise-power-grid-opening-rotation-20261126/power-grid-frozen-plan.json) · [复验结果](../../artifacts/maintenance/bot-rise-power-grid-opening-rotation-20261126/power-grid-report.json) · [首轮竞价开发对照](../../artifacts/maintenance/bot-rise-power-grid-opening-income-20261126/report.json)
 
-拉密用 8 个新开局全座轮换，完成 128 场。默认、豆包、绝悟、捣蛋王分别在 32 场中赢 4、19、10、10 场。豆包比默认高 46.88 个胜率百分点，绝悟比豆包低 28.13 个百分点，后者的配对 95% 区间为 −43.75 至 −12.50 个百分点。捣蛋王 10 对首次改选保留了相同实体牌，目标领先者在其中 1 对由负转胜。拉密复盘已确认立即多出牌与整场不利可同时发生。独立开发对照提高了剩余牌可组合性的权重，24 个配对中 11 对改变动作，两组各赢 6 场。源码沿用既有评分，下一步检查公开桌面的接牌机会是否能改善对近清空对手的防守。[拉密四档对照](../../artifacts/maintenance/bot-rise-multistage-heuristic-rotation-20261126/rummikub-report.json)
+拉密用 8 个新开局全座轮换，完成 128 场。默认、豆包、绝悟、捣蛋王分别在 32 场中赢 4、19、10、10 场。豆包比默认高 46.88 个胜率百分点，绝悟比豆包低 28.13 个百分点，后者的配对 95% 区间为 −43.75 至 −12.50 个百分点。捣蛋王 10 对首次改选保留了相同实体牌，目标领先者在其中 1 对由负转胜。拉密复盘已确认立即多出牌与整场不利可同时发生。独立开发对照提高了剩余牌可组合性的权重，24 个配对中 11 对改变动作，两组各赢 6 场。源码沿用既有评分，公开接牌机会对下一席清空的排序判别率约 0.56–0.58，区间较宽，暂不足以替换绝悟评分。[风险复核](../../artifacts/maintenance/bot-rise-rummikub-public-table-risk-20261126/report.json)[拉密四档对照](../../artifacts/maintenance/bot-rise-multistage-heuristic-rotation-20261126/rummikub-report.json)
 
-宝可梦奇遇扩展版使用 8 个此前未用的新开局做四档换座对照，计划跑 128 场。扩展版保留策略软时限，运行结果随采用的并行环境记录。[对照输入清查](../../artifacts/maintenance/bot-rise-multistage-heuristic-rotation-20261126/study-preflight.json)
+宝可梦奇遇扩展版已完成 8 个新开局全座轮换的 128 场对照。默认、豆包、绝悟、捣蛋王分别在 32 场中赢 2、9、20、18 场，豆包与绝悟的逐档配对差值分别为 +21.88、+34.38 个胜率百分点，区间均高于零。运行保留现行软时限，本批没有可归因于可靠领先者干扰的首次改选。原版的首轮范围仍为接口验证。[扩展版换座结果](../../artifacts/maintenance/bot-rise-multistage-heuristic-rotation-20261126/pokemon-encounters-report.json) · [对照输入清查](../../artifacts/maintenance/bot-rise-multistage-heuristic-rotation-20261126/study-preflight.json)
 
 实际源码注册表已核对 9 个玩法的规则与策略版本。宝可梦奇遇原版仍声明三档，其余八个玩法声明四种人机。已用各玩法实际的开局前投影和 SQLite 重开席位，在 390 CSS 像素宽的 Edge 界面核对人机选项、说明和开局后只读显示。宝可梦原版同时验证了拒绝设置捣蛋王命令，八个支持玩法都保留了保存的捣蛋王席位。各玩法的真实 Worker 与历史发行恢复证据见上文，真实玩家体验及新发行继续待验收。[源码能力声明](../../artifacts/maintenance/pokemon-expansion-bot-rise-20261126/source-capabilities.json) · [全玩法 SQLite 与界面回归](../../artifacts/maintenance/bot-rise-mischief-20261126/source-catalog-r2/report.json) · [范围运行记录](../../artifacts/maintenance/test-history/runs/6dea9dbf-8cc4-4c5f-b8be-50fe370803ab/results.json)
 

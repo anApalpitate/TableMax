@@ -18,6 +18,8 @@
 
 固定局面验证了完整合法动作集合中的忍蛙改选、行交换、研究密投、未知信息等价和整场胜负约束。隔离真实 Worker 已验证回退与 SQLite 重开后复现忍蛙决策。历史签名的原版与扩展版分别通过原策略和原 Worker 的恢复。2～6 人固定种子三胜矩阵已通过。四人首轮一小局触到 700 动作门槛，诊断重放在 563 步结束，随后按原两秒与 700 动作断言复验通过。固定评价时钟的两人换座共 4 个配对，未观察到动作差异。原版 22 项接口回归通过。[扩展版首轮整局矩阵](../../../artifacts/maintenance/test-history/runs/dc6a2a5c-8957-44ed-a301-ad62c3a2e8d8/results.json) · [四人定向复验](../../../artifacts/maintenance/test-history/runs/55ce35ea-7463-4868-96b9-c3ad1da7fb0f/results.json) · [四人诊断](../../../artifacts/maintenance/pokemon-expansion-bot-rise-20261126/four-player-diagnostic.json) · [固定时钟换座](../../../artifacts/maintenance/pokemon-expansion-bot-rise-20261126/rotation-report.json) · [原版接口](../../../artifacts/maintenance/test-history/runs/f6dbcdb2-019a-4a0c-8d7d-f6ae2e2f2654/results.json) · [固定局面](../../../artifacts/maintenance/test-history/runs/cea7ba47-3036-4bb5-9d7b-3f3111b19355/results.json) · [真实 Worker 复验](../../../artifacts/maintenance/test-history/runs/113ff125-c7fc-4999-9dfb-21de1bddcfeb/results.json) · [历史签名恢复](../../../artifacts/maintenance/pokemon-expansion-bot-rise-20261126/old-signed-recovery.json)
 
+四人换座对照使用 8 个新开局，各轮换全部四座，128 场均正常打到正式结算。默认、豆包、绝悟、捣蛋王各打 32 场，依次赢 2、9、20、18 场。豆包相对默认高 21.88 个胜率百分点，按开局配对的 95% 区间为 +12.50 至 +31.25。绝悟相对豆包高 34.38 个百分点，区间为 +25.00 至 +43.75。捣蛋王较绝悟低 6.25 个百分点，区间为 −25.00 至 +18.75。此批保留生产策略软时限，动作链未捕捉到同一局面针对同一可信领先者的首次改选。干扰动作仍由固定局面验证，真实对局收益有待独立归因。[四人实际换座](../../../artifacts/maintenance/bot-rise-multistage-heuristic-rotation-20261126/pokemon-encounters-report.json)
+
 ### 已保存轨迹与记忆边界
 
 公开换入披露新角色时先替换该槽位的旧知识，再按已保存的盖回／交换／行交换移动知识和能力使用标志。2026-10-12完整大局验证曾发现忍蛙已公开换入并盖回或换位后，旧观察器仍记着被换出的卡比兽／喷火龙；当前源码已补公共换入回放，保留合法的新角色信息。梦幻／超梦换入只有公开字段能确定时更新，无法确定的旧知识失效；火箭队皮卡丘面没有逐张公开补位角色时先清除全桌该列旧知识，随后由当前获准明牌补回。若保存事件列表已截断而遗漏待处理轨迹，先清空过期位置知识，再由当前授权投影补回。
