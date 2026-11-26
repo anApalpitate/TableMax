@@ -2,14 +2,16 @@ import { isUnoSearchSamples } from '../../../games/uno/bot/search-budget';
 import { spawn } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { once } from 'node:events';
-import { readFileSync } from 'node:fs';
+import { readFileSync, readdirSync } from 'node:fs';
 import { availableParallelism } from 'node:os';
+import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { parseArgs } from 'node:util';
 import { createUnoSearchStrategy } from '../../../games/uno/bot/search-strategy';
 import { BotDifficultySchema } from '../../../packages/protocol/src/index';
 import { createGameRegistry } from '../../../apps/server/src/game-registry';
 import { evaluateBotMatch } from './evaluate';
+import { openTrainingCheckpoint } from './training-checkpoint';
 import { matchesUnoCorrectionCalibration } from './uno-correction-provenance';
 
 const { values } = parseArgs({
@@ -20,6 +22,8 @@ const { values } = parseArgs({
     levels: { type: 'string' },
     'max-steps': { type: 'string' },
     jobs: { type: 'string', default: '1' },
+    checkpoint: { type: 'string' },
+    'seeds-per-run': { type: 'string' },
     setup: { type: 'string' },
     'uno-calibration': { type: 'string' },
     'uno-samples': { type: 'string' },
@@ -29,7 +33,7 @@ const { values } = parseArgs({
 const selected = values.game;
 if (!selected || !values.seeds || !values.levels)
   throw new Error(
-    'Usage: node --import tsx tools/analysis/bots/run.ts --game=<game-id> [--variant=<variant-id>] --seeds=41,42 --levels=default,doubao [--max-steps=15000] [--jobs=1] [--setup=<JSON>] [--uno-calibration=<JSON-path> --uno-samples=8|16|32 --uno-correction=<JSON-path>]',
+    'Usage: node --import tsx tools/analysis/bots/run.ts --game=<game-id> [--variant=<variant-id>] --seeds=41,42 --levels=default,doubao [--max-steps=15000] [--jobs=1] [--checkpoint=<path> --seeds-per-run=<count>] [--setup=<JSON>] [--uno-calibration=<JSON-path> --uno-samples=8|16|32 --uno-correction=<JSON-path>]',
   );
 const jobs = Number(values.jobs);
 const maximumJobs = Math.min(8, Math.max(1, availableParallelism() - 2));
@@ -107,6 +111,13 @@ const seats = values.levels.split(',').map((level, index) => ({
   strategy,
   difficulty: BotDifficultySchema.parse(level),
 }));
+const seedsPerRun = Number(values['seeds-per-run'] ?? seeds.length);
+if (
+  (values['seeds-per-run'] !== undefined && !values.checkpoint) ||
+  !Number.isSafeInteger(seedsPerRun) ||
+  seedsPerRun < 1
+)
+  throw new Error('A seed work limit needs a checkpoint and a positive count');
 const setup = values.setup === undefined ? undefined : JSON.parse(values.setup);
 const maxSteps = Number(values['max-steps'] ?? 15000);
 const batch = {
@@ -124,11 +135,11 @@ function failedMatch(seed: number, reason: string) {
   return { type: 'match', seed, outcome: 'failed', reason };
 }
 
-async function evaluate(seed: number) {
+async function evaluate(seed: number, signal: AbortSignal) {
   try {
     const result = await evaluateBotMatch(
       { rules, seats, seed, ...(setup === undefined ? {} : { setup }) },
-      { maxSteps },
+      { maxSteps, signal },
     );
     return {
       type: 'match',
@@ -182,11 +193,14 @@ async function evaluateGroup(
     worker.stdout.on('data', (chunk: Buffer) => output.push(chunk));
     await once(worker, 'close');
   } catch {
+    // Preserve completed lines when cancellation stops the child early.
+  }
+
+  if (output.length === 0) {
     return assigned.map((seed) =>
       failedMatch(seed, 'Offline seed worker stopped'),
     );
   }
-
   const [header, ...lines] = Buffer.concat(output)
     .toString('utf8')
     .trim()
@@ -211,51 +225,147 @@ async function evaluateGroup(
   });
 }
 
+function isComplete(match: Match) {
+  return match.outcome === 'ended' || match.outcome === 'step-limit';
+}
+
+function sourceIdentity(gameId: string) {
+  const directories = [
+    'games/' + gameId,
+    'packages/game-sdk/src',
+    'packages/platform-core/src',
+    'packages/protocol/src',
+    'tools/analysis/bots',
+  ];
+  const files = ['apps/server/src/game-registry.ts'];
+  for (const directory of directories) {
+    for (const entry of readdirSync(directory, {
+      recursive: true,
+      withFileTypes: true,
+    })) {
+      if (
+        entry.isFile() &&
+        /\.(?:ts|js|mjs|cjs|json)$/i.test(entry.name) &&
+        !/\.(?:test|spec)\./i.test(entry.name)
+      )
+        files.push(join(entry.parentPath, entry.name).replaceAll('\\', '/'));
+    }
+  }
+  const hash = createHash('sha256');
+  for (const file of files.sort()) {
+    hash.update(file + '\n');
+    hash.update(
+      createHash('sha256').update(readFileSync(file)).digest('hex') + '\n',
+    );
+  }
+  return hash.digest('hex');
+}
+
 function report(match: Match) {
   console.log(JSON.stringify(match));
   if (match.outcome !== 'ended') process.exitCode = 1;
 }
 
+const sourceStamp = values.checkpoint
+  ? sourceIdentity(rules.manifest.id)
+  : undefined;
+const checkpoint = values.checkpoint
+  ? openTrainingCheckpoint<Record<number, Match>>(
+      values.checkpoint,
+      createHash('sha256')
+        .update(
+          JSON.stringify({
+            batch,
+            setupWasExplicit: setup !== undefined,
+            node: process.version,
+            source: sourceStamp,
+          }),
+        )
+        .digest('hex'),
+      {},
+    )
+  : undefined;
+const completed = checkpoint?.state ?? {};
+const requestedSeeds = new Set(seeds);
+for (const [key, match] of Object.entries(completed)) {
+  const seed = Number(key);
+  if (
+    !requestedSeeds.has(seed) ||
+    String(seed) !== key ||
+    !isMatch(match, seed) ||
+    !isComplete(match)
+  )
+    throw new Error('Offline checkpoint contains an invalid completed match');
+}
+
+function save(matches: readonly Match[]) {
+  if (!checkpoint) return;
+  const newlyCompleted = matches.filter(isComplete);
+  if (!newlyCompleted.length) return;
+  if (sourceIdentity(rules.manifest.id) !== sourceStamp)
+    throw new Error('Offline evaluation source changed during the batch');
+  for (const match of newlyCompleted) completed[match.seed] = match;
+  checkpoint.save(completed);
+}
+
 console.log(JSON.stringify(batch));
-if (jobs === 1 || seeds.length < 2) {
-  for (const seed of seeds) report(await evaluate(seed));
-} else {
-  const groupSize = 8;
-  const args = Object.entries(values).flatMap(([option, value]) =>
-    value === undefined || option === 'seeds' || option === 'jobs'
-      ? []
-      : ['--' + option + '=' + value],
-  );
-  const controller = new AbortController();
-  const stop = () => {
-    process.exitCode = 1;
-    controller.abort();
-  };
+const args = Object.entries(values).flatMap(([option, value]) =>
+  value === undefined ||
+  ['seeds', 'jobs', 'checkpoint', 'seeds-per-run'].includes(option)
+    ? []
+    : ['--' + option + '=' + value],
+);
+const controller = new AbortController();
+const stop = () => {
+  process.exitCode = 1;
+  controller.abort();
+};
+if (jobs > 1 || checkpoint) {
   process.once('SIGINT', stop);
   process.once('SIGTERM', stop);
-  try {
-    for (
-      let start = 0;
-      start < seeds.length && !controller.signal.aborted;
-      start += jobs * groupSize
-    ) {
-      const windowSeeds = seeds.slice(start, start + jobs * groupSize);
-      const count = Math.min(jobs, windowSeeds.length);
-      const results = await Promise.all(
-        Array.from({ length: count }, (_, index) => {
-          const from = Math.floor((index * windowSeeds.length) / count);
-          const to = Math.floor(((index + 1) * windowSeeds.length) / count);
-          return evaluateGroup(
-            windowSeeds.slice(from, to),
-            args,
-            controller.signal,
-          );
-        }),
-      );
-      for (const match of results.flat()) report(match);
-    }
-  } finally {
-    process.off('SIGINT', stop);
-    process.off('SIGTERM', stop);
-  }
 }
+const windowSize = jobs === 1 ? 1 : jobs * 8;
+let remaining = seedsPerRun;
+let emitted = 0;
+try {
+  windows: for (
+    let start = 0;
+    start < seeds.length && !controller.signal.aborted;
+    start += windowSize
+  ) {
+    const windowSeeds = seeds.slice(start, start + windowSize);
+    const requested = windowSeeds
+      .filter((seed) => !completed[seed])
+      .slice(0, remaining);
+    const count = Math.min(jobs, requested.length);
+    const matches =
+      jobs === 1 && requested.length
+        ? [await evaluate(requested[0]!, controller.signal)]
+        : (
+            await Promise.all(
+              Array.from({ length: count }, (_, index) => {
+                const from = Math.floor((index * requested.length) / count);
+                const to = Math.floor(((index + 1) * requested.length) / count);
+                return evaluateGroup(
+                  requested.slice(from, to),
+                  args,
+                  controller.signal,
+                );
+              }),
+            )
+          ).flat();
+    remaining -= requested.length;
+    save(matches);
+    const generated = new Map(matches.map((match) => [match.seed, match]));
+    for (const seed of windowSeeds) {
+      const match = completed[seed] ?? generated.get(seed);
+      if (!match) break windows;
+      report(match);
+      emitted++;
+    }
+  }
+} finally {
+  process.off('SIGINT', stop);
+  process.off('SIGTERM', stop);
+}
+if (emitted < seeds.length) process.exitCode = 1;

@@ -42,6 +42,8 @@ node --import tsx tools/analysis/bots/run.ts --game=pokemon-encounters --seeds=2
 
 UNO 可传 `--uno-calibration=<JSON 路径>` 启用离线 B 组，`--uno-samples=8|16|32` 选择共享假设上限。32 组模式最多执行 2048 个规则步，只计入全套候选都完成的假设。文件声明 `version: 1` 或 `version: 2`、[对应版本的特征顺序](../../games/uno/bot/calibration.ts)和与之对应的有限数值 `coefficients`。文件摘要进入离线策略身份，仅为该次所选绝悟席启用搜索。
 
+长批次可指定 `--checkpoint=<现有目录中的 JSON 文件>`。断点仅保存已结束或按步数上限截断的公开结果，取消及执行失败的开局在续跑时重新执行。续跑沿用玩法、源码、Node、种子顺序、出场等级和配置，并可调整 `--jobs`。如需主动分批，可用 `--seeds-per-run=<本次新增种子数>`。批次尚未跑齐时保留断点并返回非零状态。
+
 标准输出为 JSONL，含玩法和策略版本、批次输入、每局结论与动作链摘要。未终局或失败时返回非零状态。命令使用合成种子和规则投影，不启动服务或读取正式存档。程序化 checkpoint 和逐步动作只给受信任的离线评价调用端，标准报告输出公开投影。该入口的快速反应模拟与真实 Worker、事务、重启和回退验收分别认定。
 
 ## UNO 校准与配对试点
