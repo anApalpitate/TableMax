@@ -154,6 +154,8 @@ R1／R2 可与[游戏开发接口](../reference/game-development.md#模块与契
 
 已启动 24 个新开局种子的排序开发对照。每个开局抽至多四个根，对同一候选和独立长续推标签比较拟合校准、简单评分各自用 8／16 个短搜索假设的排序。调试结果只用于选择下一次验证的配置，正式门槛沿用原设置。[开发计划](../../artifacts/maintenance/bot-rise-calibration-20261126/anchored-02/ranking-development-plan.json) · [串并行烟测](../../artifacts/maintenance/bot-rise-calibration-20261126/anchored-02/ranking-development-smoke.json)
 
+用原 24 个自然拟合开局和待罚牌拟合补样做了分组嵌套交叉验证。将每个开局的总权重设为其样本数的平方根时，40%–50% 分桶的误差由 4.37 降到 2.84 个百分点。按开局计算的 Brier 差区间包含零，尚未冻结新的评分方案。已启动另 24 个新开局的补充拟合采样，正式留出种子仍需独立冻结。[概率开发报告](../../artifacts/maintenance/bot-rise-calibration-20261126/anchored-02/probability-development.json) · [分片校验](../../artifacts/maintenance/bot-rise-calibration-20261126/anchored-02/probability-development-smoke.json) · [补采清单](../../artifacts/maintenance/bot-rise-calibration-20261126/fit-extension-03/frozen-inputs.json)
+
 B 校准可按种子并行，并在拟合数据及留出阶段保存断点。断点绑定当前源码、运行时、配置和种子，最终按固定顺序合并。换进程数不会改变对照的抽样和评分口径。完整报告生成后才判断门槛。开发夹具验证了分片续跑与串行报告逐字节一致，以及更改种子后拒绝旧断点。[分片续跑验证](../../artifacts/maintenance/bot-rise-calibration-shards-20261126/serial-parallel-resume/report.json) · [校准入口](../../tools/analysis/README.md#uno-校准与配对试点)
 
 首轮主配置下，用现有启发式推进后续行动，只在当前决策比较合规候选。各模拟席按本席投影行动。以下为开发批次起步值，R0 根据实际 Worker 耗时和决策稳定性冻结正式配置。[学习评分节点](#uno-绝悟学习评分节点)
