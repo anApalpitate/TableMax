@@ -2,7 +2,7 @@
 
 独立策略入口为 `games/power-grid/bot/index.ts`，经共享 `BotStrategy` 接收本人安全投影和服务端合法动作。策略只看到本人现金、公开的电厂／仓储／城市／顺序／市场、本人可见建城费用与合法动作；对手现金、牌堆牌号、秘密移除牌号均不提供。记忆为 `null`，不调用其他游戏策略或网络服务。
 
-源码 `power-grid-local@1.1.0` 支持默认、豆包、绝悟和捣蛋王。历史签名对局仍固定原策略与发行。
+源码 `power-grid-local@1.1.1` 支持默认、豆包、绝悟和捣蛋王。历史签名对局仍固定原策略与发行。
 
 ## 三个强度档位
 
@@ -50,4 +50,8 @@
 
 整局回归与其他测量并行运行时，最终记录有六个五／六人整局超过 60 秒，以及一个六人默认单局的最长源码决策为 2234 毫秒，超过 1500 毫秒断言。固定局面夹具和服务测试导入问题已分别复验通过。五人绝悟种子 1 在独立诊断中用 43.55 秒完成，最长决策约 641 毫秒，耗时主要来自生产规划。七个耗时失败项按原门槛定向复验全部通过，最长整局 56.52 秒，最长决策 1146.22 毫秒。[耗时复验](../../../artifacts/maintenance/test-history/runs/e5de425b-f0a8-4671-b6ec-533b292bc334/results.json) · [CPU 诊断](../../../artifacts/maintenance/power-grid-bot-rise-20261126/performance-profile-5p-juewu-1.json) · [整局回归及失败项](../../../artifacts/maintenance/test-history/runs/59b40ee7-3e21-4fdf-83d0-1956aba9d6bf/results.json)
 
-四种人机均用本地启发式及有界生产计划。强度、真人体验与新签名发行的结论待相应对照通过。
+另用 8 个新开局轮换四座核对 `1.1.0`，128 场正常终局。默认、豆包、绝悟、捣蛋王各打 32 场，分别赢 14、6、3、2 场，平均供电 14.53、13.94、12.06、11.97 城。绝悟比默认低 34.38 个胜率百分点，按开局配对的 95% 区间为 −50.00 至 −18.75 个百分点。捣蛋王 9 对首次改选指向同一公开领先者，其中 1 对该领先者由胜转负。[四档对照](../../../artifacts/maintenance/bot-rise-multistage-heuristic-rotation-20261126/power-grid-report.json)
+
+从该批挑出的四个开局共精确复现 12 条动作轨迹。三例的豆包和绝悟都花 38 电币买下 5 号混燃厂，只剩 12 电币。先采购的低编号电厂买煤后，混燃厂最便宜的两份燃料涨到 3 电币，和首城合计需 13 电币，首轮无城可供电。策略 `1.1.1` 在首轮竞价时按已公开买下的低编号电厂仓容估计较紧的燃料市场，保留仍能发电的配方费用和 10 电币首城费用。固定局面用真实规则推进竞价，验证豆包、绝悟和捣蛋王可在 35 电币后加价到 36，到 37 时会退出。用同一批开局复查时，三例高档改为 34 电币买下 3 号厂，首轮均建成并供电 1 城。此处核对开局资金与供电，整场强度仍以独立换座结果判定。[换座复盘](../../../artifacts/maintenance/bot-rise-power-grid-diagnosis-20261126/phase-diagnostics.json) · [修正前记录](../../../artifacts/maintenance/bot-rise-power-grid-diagnosis-20261126/opening-before.json) · [修正后记录](../../../artifacts/maintenance/bot-rise-power-grid-diagnosis-20261126/opening-after.json)
+
+首轮竞价回归、规则与策略固定局面、并发测试、当前策略真实 Worker 与 SQLite 重开已通过。修正后的强度顺序需要新开局对照。真人体验与新签名发行待验收。[规则与策略结果](../../../artifacts/maintenance/test-history/runs/6678fe30-81e8-4b8c-9e03-e646be2ba4b6/results.json) · [真实 Worker 复验](../../../artifacts/maintenance/test-history/runs/0ebff8b2-7064-4fd8-888d-ac831a4370f8/results.json)

@@ -1,5 +1,6 @@
 import type { BotDifficulty, BotStrategy } from '@tablemax/game-sdk';
 import {
+  accepts,
   emptyStock,
   getPlant,
   RESOURCES,
@@ -73,7 +74,7 @@ class GridEvaluator {
     }
     return this.plans.get(key)!;
   }
-  fuelCost(plant: Plant): number {
+  fuelCost(plant: Plant, market = this.view.resources): number {
     const stock = pooledResources(this.player.plants);
     let cheapest = Infinity;
     for (
@@ -85,12 +86,29 @@ class GridEvaluator {
       let cost = 0;
       for (const r of RESOURCES)
         for (let i = 0; i < Math.max(0, use[r] - stock[r]); i++) {
-          const unit = price(r, this.view.resources[r] - i);
+          const unit = price(r, market[r] - i);
           cost += unit ?? Infinity;
         }
       cheapest = Math.min(cheapest, cost);
     }
     return cheapest;
+  }
+  openingFuelCost(plant: Plant) {
+    const market = { ...this.view.resources };
+    // On the first round, the lowest purchased plant buys fuel first.
+    for (const [seat, player] of Object.entries(this.view.players)) {
+      if (seat === this.view.self!.seatId) continue;
+      for (const owned of player.plants) {
+        if (owned.id >= plant.id) continue;
+        const capacity = 2 * getPlant(owned.id).input;
+        for (const resource of RESOURCES) {
+          if (accepts(owned.id, resource)) {
+            market[resource] = Math.max(0, market[resource] - capacity);
+          }
+        }
+      }
+    }
+    return this.fuelCost(plant, market);
   }
   unit(resource: Resource) {
     return (
@@ -138,10 +156,14 @@ class GridEvaluator {
     if (this.level > 0) {
       const baseline = this.plan(),
         proposed = this.plan(next, Math.max(0, this.view.self!.cash - plantId));
-      const fuelReserve = RESOURCES.reduce(
+      const forecastFuel = RESOURCES.reduce(
         (n, r) => n + proposed.demand[r] * this.unit(r),
         0,
       );
+      const fuelReserve =
+        this.view.round === 1 && this.player.plants.length === 0
+          ? Math.max(forecastFuel, this.openingFuelCost(plant))
+          : forecastFuel;
       const buildingReserve =
         this.player.cities.length === 0
           ? 10
@@ -572,7 +594,7 @@ export function chooseAction(
 
 export const bot: BotStrategy = {
   id: 'power-grid-local',
-  version: '1.1.0',
+  version: '1.1.1',
   gameId: 'power-grid',
   rulesVersion: RULES_VERSION,
   difficulties: ['default', 'doubao', 'juewu', 'mischief'],

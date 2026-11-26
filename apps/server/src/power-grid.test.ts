@@ -426,7 +426,7 @@ it('runs the Power Grid Mischief counterbid through the real Worker and resumes 
     const view = task.view as PowerGridView;
     expect(task.data).toMatchObject({
       difficulty: 'mischief',
-      version: '1.1.0',
+      version: localBot.version,
     });
     expect(room.view().game?.botDifficulties).toContain('mischief');
     expect(view.players[view.auction!.highBidder]!.cash).toBeNull();
