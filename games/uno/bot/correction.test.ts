@@ -97,6 +97,17 @@ it('only corrects near ties after enough common worlds and clips the correction'
   );
 });
 
+it('keeps B below the 24 completed worlds required by the adaptive C budget', () => {
+  expect(
+    unoCorrectedBest({ ...result, samples: 23 }, view, memory, candidate, 32)
+      ?.action,
+  ).toEqual(normal);
+  expect(
+    unoCorrectedBest({ ...result, samples: 24 }, view, memory, candidate, 32)
+      ?.action,
+  ).toEqual(skip);
+});
+
 it('fits pairwise residual labels from complete shared worlds, leaving unknown branches uncounted', () => {
   const samples = collectUnoResidualExamples(
     { seed: 17, id: 'fixture', view, actions: [normal, skip, wild], memory },
