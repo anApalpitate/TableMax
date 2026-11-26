@@ -3,7 +3,7 @@
 ## 任务接续速查
 
 - 目标：建立可复用的人机评估环境，逐游戏升级默认／豆包／绝悟，增加捣蛋王策略。
-- 状态：源码共用离线评估已接通。原版宝可梦保留三档，其他八个玩法已声明四种人机。UNO 当前策略版 B 组首次留出未达校准门槛，独立复核进行中。正式 C 组训练、真人体验和新签名发行验收仍待完成。
+- 状态：源码共用离线评估已接通。原版宝可梦保留三档，其他八个玩法已声明四种人机。UNO 当前策略版的两批独立留出均未达到 B 组完整校准门槛。正式 C 组训练、真人体验和新签名发行验收仍待完成。
 - 发行依据：[当前已验收交付](../reference/acceptance.md#当前源码与本地交付)。当前实施证据按源码与实际交付分别记录。
 - 所属范围：游戏SDK、人机运行与验证工具、各游戏策略及必要的配置／展示／恢复适配；规则、计分和秘密边界不因策略升级改变。
 - 有效基础与缺口：已有三档策略和隔离 Worker。首批共用离线评价已跑通 UNO 和宝可梦原版，正式配对矩阵、捣蛋王与学习训练继续实施。
@@ -149,6 +149,10 @@ R1／R2 可与[游戏开发接口](../reference/game-development.md#模块与契
 当前策略版已完成 24 个拟合种子和 36 个留出种子，取得 1062 个拟合样本和 1669 个留出样本。总体误差 2.56 个百分点，Brier 为 0.17931，简单对照为 0.17765。候选排序在 13 个方向明确的对中命中 9 个，命中率 69.23%。拟合集中无待处理罚牌样本，留出中该层只有 1 个种子的 2 个样本。该批不足以通过校准，正式 C 组训练继续等待。该批已查看的留出结果只保留为诊断，后续不混入拟合或新留出。[本轮校准结果](../../artifacts/maintenance/bot-rise-calibration-20261126/current-absolute-20261126-01/report.json)
 
 两批独立合成数据已补齐待处理 +2、普通 +4 和末张 +4。拟合份额为 40、40、8 个开局，独立复核份额为 80、80、17 个开局。沿用原自然拟合样本，按五分之一权重加入补样，在拟合数据内分四折选择收缩强度；原留出结果未用于选择。下一批自然留出另用 36 个固定新种子，保留原预测、排序和覆盖门槛。排序复核把相同长推演预算分给更多未知牌世界，两组首选一致时不重跑相同动作。短批次核验了独立排序假设下串行和并行续跑报告逐字节一致。[排序分片复验](../../artifacts/maintenance/bot-rise-calibration-shards-20261126/independent-ranking-shards/report.json) · [独立补样](../../artifacts/maintenance/bot-rise-calibration-20261126/anchored-02/pending-data.json) · [拟合折验证](../../artifacts/maintenance/bot-rise-calibration-20261126/anchored-02/fit-selection-development.json)
+
+独立复核已完成全部 36 个自然留出种子，得到 1622 个截断样本，总体误差为 0.58 个百分点，Brier 0.19271，简单对照为 0.19730。三个补样子类的覆盖和误差均达到各自门槛。预测为 40%–50% 的分桶有 320 个样本，误差为 6.02 个百分点，超过 5 个百分点上限。279 个候选对仅 11 个能确认方向，低于 30 对要求，命中 6 对（54.55%）。首选平均胜率损失为 0.44 个百分点。该批未通过，已查看的留出不进入后续拟合或正式验收。正式 C 组训练继续等待。[完整复核报告](../../artifacts/maintenance/bot-rise-calibration-20261126/anchored-02/report.json)
+
+已启动 24 个新开局种子的排序开发对照。每个开局抽至多四个根，对同一候选和独立长续推标签比较拟合校准、简单评分各自用 8／16 个短搜索假设的排序。调试结果只用于选择下一次验证的配置，正式门槛沿用原设置。[开发计划](../../artifacts/maintenance/bot-rise-calibration-20261126/anchored-02/ranking-development-plan.json) · [串并行烟测](../../artifacts/maintenance/bot-rise-calibration-20261126/anchored-02/ranking-development-smoke.json)
 
 B 校准可按种子并行，并在拟合数据及留出阶段保存断点。断点绑定当前源码、运行时、配置和种子，最终按固定顺序合并。换进程数不会改变对照的抽样和评分口径。完整报告生成后才判断门槛。开发夹具验证了分片续跑与串行报告逐字节一致，以及更改种子后拒绝旧断点。[分片续跑验证](../../artifacts/maintenance/bot-rise-calibration-shards-20261126/serial-parallel-resume/report.json) · [校准入口](../../tools/analysis/README.md#uno-校准与配对试点)
 
@@ -372,7 +376,7 @@ UNO 采集在成功保存后附上版本化来源和校验记录。已保存且�
 
 ### 训练数据生产与训练闭环
 
-进展：离线 C 修正、残差配对标注、CUDA 拟合和 A／B／C 配对统计已实现。使用 RTX 3060 Laptop 的 PyTorch CUDA 2.6.0 验证了线性求解，当前测试数据仅证明拟合链路。离线 C 入口可选择本机日志，按采集段和回退标记归并已完成轨迹，再对保留的合法根重新用配对长推演生成标签。玩家命令来源不直接标为已验证真人。离线训练可并行标注独立合成种子，按冻结顺序保存训练与调参断点。断点绑定源码、运行时、B 报告和语料摘要。涉及本机授权观察的根和空闲训练留在单进程。正式 C 训练入口检验 B 校准是否过线和数据种子是否隔离，正式 A／B／C 入口校验两个阶段的输入和完整种子块。试点强度与正式推理启用继续按相应标准验收。入口见[分析工具](../../tools/analysis/README.md#uno-校准与配对试点)。串行和并行标注夹具的断点逐字节一致，调参种子在主进程和子进程中产出相同标签。空闲许可在分片交界撤销时也会更新暂停状态，候选写入前再次检查许可。[标注分片烟测](../../artifacts/maintenance/bot-rise-uno-c-label-parallel-20261126/residual-shards.json) · [调参标签烟测](../../artifacts/maintenance/bot-rise-uno-c-label-parallel-20261126/tuning-seed-smoke.json) · [空闲暂停复验](../../artifacts/maintenance/bot-rise-idle-20261126/residual-shards-pause-r2/report.json)
+进展：离线 C 修正、残差配对标注、CUDA 拟合和 A／B／C 配对统计已实现。使用 RTX 3060 Laptop 的 PyTorch CUDA 2.6.0 验证了线性求解，用 7 条合成标签再次核对 GPU 求解与独立 CPU 实现，25 个系数的最大差异低于 10⁻¹⁵。正式 C 拟合仍须等待 B 校准通过。[CUDA 核对](../../artifacts/maintenance/bot-rise-uno-c-readiness-20261126/cuda-solver.json)离线 C 入口可选择本机日志，按采集段和回退标记归并已完成轨迹，再对保留的合法根重新用配对长推演生成标签。玩家命令来源不直接标为已验证真人。离线训练可并行标注独立合成种子，按冻结顺序保存训练与调参断点。断点绑定源码、运行时、B 报告和语料摘要。涉及本机授权观察的根和空闲训练留在单进程。正式 C 训练入口检验 B 校准是否过线和数据种子是否隔离，正式 A／B／C 入口校验两个阶段的输入和完整种子块。试点强度与正式推理启用继续按相应标准验收。入口见[分析工具](../../tools/analysis/README.md#uno-校准与配对试点)。串行和并行标注夹具的断点逐字节一致，调参种子在主进程和子进程中产出相同标签。空闲许可在分片交界撤销时也会更新暂停状态，候选写入前再次检查许可。[标注分片烟测](../../artifacts/maintenance/bot-rise-uno-c-label-parallel-20261126/residual-shards.json) · [调参标签烟测](../../artifacts/maintenance/bot-rise-uno-c-label-parallel-20261126/tuning-seed-smoke.json) · [空闲暂停复验](../../artifacts/maintenance/bot-rise-idle-20261126/residual-shards-pause-r2/report.json)
 
 1. **先验证生产语义一致**。复用 UNO 真实规则／投影生成无 UI 模拟，对照服务和 Worker 检查动作、记忆、规则随机与终局语义。宝可梦原版仅做接口、授权和恢复对照。
 2. **先用模拟建立评分基线**。按[配对标注方案](#未知牌假设与配对标注)生成 UNO 整场胜负标签。通过校验的真人决策可作示范或分析样本，保留胜负和失误。

@@ -78,7 +78,7 @@ export type Calibration = {
 
 export type RankingBudget = { worldBatches: number; continuations: number };
 
-function rankingSamples(
+export function rankingSamples(
   root: UnoRoot,
   options: UnoSampleOptions,
   rating: (view: UnoView) => number,
