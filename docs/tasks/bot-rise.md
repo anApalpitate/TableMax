@@ -293,6 +293,8 @@ UNO 四人主配置已完成 24 个合成开局的四座轮换，共 384 场整�
 
 宝可梦奇遇扩展版源码已接入 `1.1.0` 捣蛋王，只在唯一对手拿到两胜时，为忍蛙或行交换增加针对性评分。固定局面、研究密投、真实 Worker 回退与重开、两玩法历史签名恢复均已核对。2～6 人固定种子三胜均有通过记录，四人首轮触及 700 动作门槛，随后按原断言复验通过。固定时钟的两人换座未观察到实际动作差异，原版 22 项接口回归通过。[扩展版策略与证据](../games/pokemon-encounters/bot.md#扩展版捣蛋王)
 
+两款拍卖游戏另用相同换座方法各跑 192 场四人整局。太阳神和现代艺术的豆包相对默认分别增加 27.08 和 35.42 个胜率百分点，配对区间均高于零。两款游戏的绝悟相对豆包区间均跨零。捣蛋王在相同可信领先者的局面分别首次改选 25 对和 11 对，领先者的整场结果尚无稳定压制证据。这批沿用各游戏正式结算，并保留各档和风格的独立结果。[太阳神对照](../../artifacts/maintenance/bot-rise-auction-heuristic-rotation-20261126/ra-report.json) · [现代艺术对照](../../artifacts/maintenance/bot-rise-auction-heuristic-rotation-20261126/modern-art-report.json)
+
 实际源码注册表已核对 9 个玩法的规则与策略版本。宝可梦奇遇原版仍声明三档，其余八个玩法声明四种人机。已用各玩法实际的开局前投影和 SQLite 重开席位，在 390 CSS 像素宽的 Edge 界面核对人机选项、说明和开局后只读显示。宝可梦原版同时验证了拒绝设置捣蛋王命令，八个支持玩法都保留了保存的捣蛋王席位。各玩法的真实 Worker 与历史发行恢复证据见上文，真实玩家体验及新发行继续待验收。[源码能力声明](../../artifacts/maintenance/pokemon-expansion-bot-rise-20261126/source-capabilities.json) · [全玩法 SQLite 与界面回归](../../artifacts/maintenance/bot-rise-mischief-20261126/source-catalog-r2/report.json) · [范围运行记录](../../artifacts/maintenance/test-history/runs/6dea9dbf-8cc4-4c5f-b8be-50fe370803ab/results.json)
 
 每款游戏独立通过授权、动作全覆盖、恢复与本机预算后，再声明实际支持的强度、独立风格及节点。新增规则或模式使用目标玩法的留出基线。未完成验收的等级或风格保留为任务，现有发行的策略与存档兼容按原依据验证。
