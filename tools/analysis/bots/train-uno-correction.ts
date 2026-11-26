@@ -1,8 +1,10 @@
+import { execFile } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { fitUnoOnGpu } from './uno-gpu-fit';
 import { readTrainingLease } from '../../../packages/platform-core/src/training-lease';
-import { readFileSync } from 'node:fs';
-import { parseArgs } from 'node:util';
+import { readFileSync, readdirSync } from 'node:fs';
+import { availableParallelism } from 'node:os';
+import { parseArgs, promisify } from 'node:util';
 import { fileURLToPath } from 'node:url';
 import { dirname, resolve } from 'node:path';
 import {
@@ -17,10 +19,10 @@ import {
   type UnoCorrectionModel,
 } from '../../../games/uno/bot/correction';
 import {
-  searchUnoPlays,
-  type UnoSearchResult,
-} from '../../../games/uno/bot/search';
-import { RandomSource } from '../../../packages/platform-core/src/random';
+  collectUnoResidualSeed,
+  type UnoResidualPosition,
+  type UnoResidualSeed,
+} from './uno-residual-seed';
 import { fitModel, type WeightedExample } from './fit';
 import { collectUnoResidualExamples } from './uno-residual-labels';
 import {
@@ -32,10 +34,7 @@ import { calibrationSeeds } from './uno-calibration-provenance';
 import { openTrainingCheckpoint } from './training-checkpoint';
 import { bot } from '../../../games/uno/bot/index';
 import {
-  collectUnoRoots,
-  independentSeed,
   pairedUnoDifferences,
-  sampleUnoContinuations,
   type UnoRoot,
   type UnoSampleOptions,
 } from './uno-samples';
@@ -64,6 +63,7 @@ const { values } = parseArgs({
     'idle-lease': { type: 'string' },
     'idle-session': { type: 'string' },
     'jobs-root': { type: 'string' },
+    jobs: { type: 'string', default: '1' },
     'train-seeds': { type: 'string' },
     'tune-seeds': { type: 'string' },
     roots: { type: 'string', default: '2' },
@@ -77,6 +77,12 @@ if (Boolean(leasePath) !== Boolean(leaseSession))
   throw new Error(
     'Provide both idle lease and session when using the local watcher',
   );
+const maximumJobs = Math.min(8, Math.max(1, availableParallelism() - 2));
+const jobs = Number(values.jobs);
+if (!Number.isSafeInteger(jobs) || jobs < 1 || jobs > maximumJobs)
+  throw new Error('Choose between 1 and ' + maximumJobs + ' residual jobs');
+if (leasePath && jobs !== 1)
+  throw new Error('Idle training uses one local residual job');
 let nextLeaseRead = 0;
 function checkIdle(force = false) {
   if (!leasePath) return;
@@ -90,7 +96,11 @@ function checkIdle(force = false) {
 checkIdle(true);
 if (!values.calibration)
   throw new Error('Pass a frozen UNO B calibration report');
-const report = JSON.parse(readFileSync(values.calibration, 'utf8'));
+const calibrationBytes = readFileSync(values.calibration);
+const report = JSON.parse(calibrationBytes.toString('utf8'));
+const sha = (bytes: string | Buffer) =>
+  createHash('sha256').update(bytes).digest('hex');
+const calibrationReportSha256 = sha(calibrationBytes);
 const hypotheses = report?.options?.hypotheses;
 if (
   report?.type !== 'uno-calibration-development' ||
@@ -108,7 +118,7 @@ const calibrationDigest = createHash('sha256')
   .digest('hex');
 if (report.calibrationDigest !== calibrationDigest)
   throw new Error('The B calibration digest does not match the frozen report');
-const scoreLeaf = loadUnoLeafScorer(report.calibration);
+loadUnoLeafScorer(report.calibration);
 const trainSeeds = seedList(values['train-seeds']);
 const tuneSeeds = seedList(values['tune-seeds']);
 const excluded = new Set(calibrationSeeds(report));
@@ -131,57 +141,6 @@ if (
   )
 )
   throw new Error('Invalid correction training budget');
-
-interface PositionEvidence {
-  root: UnoRoot;
-  short: UnoSearchResult;
-  outcomes: readonly (readonly (0 | 1 | null)[])[];
-  unfinished: number;
-}
-async function collect(
-  seed: number,
-  salt: number,
-  inputRoots?: readonly UnoRoot[],
-): Promise<PositionEvidence[]> {
-  const result: PositionEvidence[] = [];
-  checkIdle();
-  const roots =
-    inputRoots ?? (await collectUnoRoots(seed, options, undefined, checkIdle));
-  for (const [index, root] of roots.entries()) {
-    const signal = new AbortController().signal;
-    const short = searchUnoPlays(
-      root.view,
-      root.actions,
-      root.memory,
-      new RandomSource(independentSeed(seed, salt + index)),
-      signal,
-      scoreLeaf,
-      { samples: hypotheses, maxRuleSteps: hypotheses * 8 * 16 },
-    );
-    if (!short.candidates.length) continue;
-    const long = sampleUnoContinuations(
-      root,
-      {
-        ...options,
-        seed: independentSeed(seed, salt + 0x10000 + index),
-      },
-      scoreLeaf,
-      checkIdle,
-    );
-    if (
-      JSON.stringify(long.short.candidates.map(({ action }) => action)) !==
-      JSON.stringify(short.candidates.map(({ action }) => action))
-    )
-      throw new Error('The frozen short and long UNO candidate sets differ');
-    result.push({
-      root,
-      short,
-      outcomes: long.outcomes,
-      unfinished: long.unfinished,
-    });
-  }
-  return result;
-}
 
 const sourceWeight = values['learning-source-weight'];
 if (sourceWeight !== 'graded' && sourceWeight !== 'uniform')
@@ -216,7 +175,7 @@ type Checkpoint = {
   trainingUnfinished: number;
   trainingSeeds: number[];
   tuningSeeds: number[];
-  tuning: PositionEvidence[][];
+  tuning: UnoResidualPosition[][];
   fit?: GpuFit;
 };
 const work = [...trainSeeds, ...localRoots.keys()];
@@ -227,10 +186,61 @@ const initial: Checkpoint = {
   tuningSeeds: [],
   tuning: [],
 };
+const root = new URL('../../../', import.meta.url);
+function sourceDigest() {
+  const files = [
+    ...['bot', 'data', 'rules'].flatMap((directory) => {
+      const path = 'games/uno/' + directory + '/';
+      return readdirSync(new URL(path, root), { withFileTypes: true })
+        .filter(
+          (file) =>
+            file.isFile() &&
+            file.name.endsWith('.ts') &&
+            !file.name.endsWith('.test.ts') &&
+            file.name !== 'test-fixtures.ts',
+        )
+        .map((file) => path + file.name);
+    }),
+    ...['index', 'config', 'types'].map((name) => 'games/uno/' + name + '.ts'),
+    ...[
+      'bot-scheduler',
+      'game-actions',
+      'random',
+      'learning-storage',
+      'training-lease',
+      'bot-learning',
+    ].map((name) => 'packages/platform-core/src/' + name + '.ts'),
+    ...[
+      'train-uno-correction',
+      'uno-residual-seed',
+      'uno-residual-worker',
+      'uno-residual-labels',
+      'uno-samples',
+      'evaluate',
+      'fit',
+      'uno-pilot',
+      'uno-gpu-fit',
+      'training-checkpoint',
+      'local-uno-corpus',
+      'uno-human-review',
+      'uno-calibration-provenance',
+    ].map((name) => 'tools/analysis/bots/' + name + '.ts'),
+    'tools/analysis/bots/ridge-cuda.py',
+  ].sort();
+  return sha(
+    JSON.stringify(
+      files.map((path) => [path, sha(readFileSync(new URL(path, root)))]),
+    ),
+  );
+}
+const sourceSha256 = sourceDigest();
 const identity = createHash('sha256')
   .update(
     JSON.stringify({
-      revision: 1,
+      revision: 2,
+      sourceSha256,
+      node: process.version,
+      calibrationReportSha256,
       strategy: bot.version,
       features: unoCorrectionFeatureNames,
       calibrationDigest,
@@ -278,7 +288,8 @@ if (
   state.tuning.length !== state.tuningSeeds.length ||
   state.trainingSeeds.some((seed, index) => seed !== work[index]) ||
   state.tuningSeeds.some((seed, index) => seed !== tuneSeeds[index]) ||
-  (state.fit !== undefined && state.trainingSeeds.length !== work.length)
+  (state.fit !== undefined && state.trainingSeeds.length !== work.length) ||
+  (state.fit === undefined && state.tuningSeeds.length > 0)
 )
   throw new Error('Training checkpoint has invalid stage boundaries');
 let remaining =
@@ -290,11 +301,12 @@ if (
   (!checkpoint || !Number.isSafeInteger(remaining) || remaining < 1)
 )
   throw new Error('A positive step limit requires --checkpoint');
-async function beginUnit() {
+async function reserveUnits(limit = 1): Promise<number> {
   checkIdle(true);
   if (remaining > 0) {
-    remaining--;
-    return;
+    const units = Math.min(remaining, limit);
+    remaining -= units;
+    return units;
   }
   await new Promise<void>((done, fail) => {
     process.stdout.write(
@@ -313,38 +325,116 @@ async function beginUnit() {
   });
   process.exit(0);
 }
-const { training } = state;
-for (const seed of work.slice(state.trainingSeeds.length)) {
-  await beginUnit();
-  const positions = await collect(seed, 0xc0000, localRoots.get(seed));
-  for (const { root, short, outcomes, unfinished } of positions) {
-    state.trainingUnfinished += unfinished;
-    const rows = collectUnoResidualExamples(
-      root,
-      short,
-      outcomes,
-      options.continuations,
-    );
-    const sourceMultiplier = localWeights.get(root) ?? 1;
-    training.push(
-      ...rows.map((row) => ({
-        ...row,
-        weight: (row.weight * sourceMultiplier) / positions.length,
-      })),
-    );
-  }
-  state.trainingSeeds.push(seed);
-  checkpoint?.save(state);
-  console.error(
-    JSON.stringify({ phase: 'residual-labels', seed, rows: training.length }),
-  );
+function assertSource() {
+  if (sourceDigest() !== sourceSha256)
+    throw new Error('Correction training source changed during the frozen run');
 }
+const worker = fileURLToPath(
+  new URL('./uno-residual-worker.ts', import.meta.url),
+);
+const exec = promisify(execFile);
+async function collectInChild(task: UnoResidualSeed, signal: AbortSignal) {
+  const { stdout } = await exec(
+    process.execPath,
+    ['--import', 'tsx', worker, JSON.stringify(task)],
+    { windowsHide: true, encoding: 'utf8', maxBuffer: 4 * 1024 * 1024, signal },
+  );
+  const result = JSON.parse(stdout) as {
+    seed: number;
+    positions: UnoResidualPosition[];
+  };
+  if (
+    result.seed !== task.seed ||
+    !Array.isArray(result.positions) ||
+    result.positions.some((position) => position.root?.seed !== task.seed)
+  )
+    throw new Error('Residual worker returned a different seed');
+  return result.positions;
+}
+async function processSeeds(
+  seeds: readonly number[],
+  salt: number,
+  record: (seed: number, positions: UnoResidualPosition[]) => void,
+) {
+  const stopped = new AbortController();
+  const stop = () =>
+    stopped.abort(new Error('UNO residual labeling interrupted'));
+  if (jobs > 1) {
+    process.once('SIGINT', stop);
+    process.once('SIGTERM', stop);
+  }
+  try {
+    for (let index = 0; index < seeds.length;) {
+      const planned = seeds.slice(index, index + jobs);
+      const firstCaptured = planned.findIndex((seed) => localRoots.has(seed));
+      // Local observations never go into subprocess arguments.
+      const limit =
+        firstCaptured < 0 ? planned.length : Math.max(1, firstCaptured);
+      const batch = planned.slice(0, await reserveUnits(limit));
+      const tasks = batch.map((seed) => ({
+        seed,
+        salt,
+        options,
+        calibration: report.calibration,
+      }));
+      const results = await Promise.allSettled(
+        tasks.map((task) =>
+          tasks.length === 1
+            ? collectUnoResidualSeed(task, localRoots.get(task.seed), checkIdle)
+            : collectInChild(task, stopped.signal),
+        ),
+      );
+      stopped.signal.throwIfAborted();
+      for (const [offset, outcome] of results.entries()) {
+        if (outcome.status === 'rejected') throw outcome.reason;
+        checkIdle(true);
+        assertSource();
+        record(batch[offset]!, outcome.value);
+      }
+      index += batch.length;
+    }
+  } finally {
+    if (jobs > 1) {
+      process.off('SIGINT', stop);
+      process.off('SIGTERM', stop);
+    }
+  }
+}
+
+const { training } = state;
+await processSeeds(
+  work.slice(state.trainingSeeds.length),
+  0xc0000,
+  (seed, positions) => {
+    for (const { root, short, outcomes, unfinished } of positions) {
+      state.trainingUnfinished += unfinished;
+      const rows = collectUnoResidualExamples(
+        root,
+        short,
+        outcomes,
+        options.continuations,
+      );
+      const sourceMultiplier = localWeights.get(root) ?? 1;
+      training.push(
+        ...rows.map((row) => ({
+          ...row,
+          weight: (row.weight * sourceMultiplier) / positions.length,
+        })),
+      );
+    }
+    state.trainingSeeds.push(seed);
+    checkpoint?.save(state);
+    console.error(
+      JSON.stringify({ phase: 'residual-labels', seed, rows: training.length }),
+    );
+  },
+);
 if (!training.length)
   throw new Error('No complete paired residual labels were available');
 const penalty = 0.001;
 const solver = fileURLToPath(new URL('./ridge-cuda.py', import.meta.url));
 if (!state.fit) {
-  await beginUnit();
+  await reserveUnits();
   state.fit = JSON.parse(
     await fitUnoOnGpu(
       solver,
@@ -364,6 +454,7 @@ if (
   )
 )
   throw new Error('GPU fit differs from the independent numeric check');
+assertSource();
 checkpoint?.save(state);
 const model: UnoCorrectionModel = {
   version: 1,
@@ -374,19 +465,22 @@ const model: UnoCorrectionModel = {
   cap: 0.01,
 };
 const { tuning } = state;
-for (const seed of tuneSeeds.slice(state.tuningSeeds.length)) {
-  await beginUnit();
-  tuning.push(await collect(seed, 0xe0000));
-  state.tuningSeeds.push(seed);
-  checkpoint?.save(state);
-  console.error(
-    JSON.stringify({
-      phase: 'residual-tuning',
-      seed,
-      positions: tuning.at(-1)!.length,
-    }),
-  );
-}
+await processSeeds(
+  tuneSeeds.slice(state.tuningSeeds.length),
+  0xe0000,
+  (seed, positions) => {
+    tuning.push(positions);
+    state.tuningSeeds.push(seed);
+    checkpoint?.save(state);
+    console.error(
+      JSON.stringify({
+        phase: 'residual-tuning',
+        seed,
+        positions: positions.length,
+      }),
+    );
+  },
+);
 const tuneResults = [0, 0.25, 0.5, 0.75].flatMap((weight) =>
   [0.01, 0.02, 0.03].map((cap) => {
     let changes = 0;
@@ -449,6 +543,9 @@ console.log(
       type: 'uno-residual-candidate',
       pilot: unoPilotEvidence,
       calibrationDigest,
+      calibrationReportSha256,
+      sourceSha256,
+      node: process.version,
       trainSeeds,
       tuneSeeds,
       options,

@@ -174,9 +174,17 @@ function status(
       stage,
       writtenAt: Date.now(),
     });
+    return true;
   } catch {
-    /* A missing display update does not grant permission to train. */
+    // A missing display update does not grant permission to train.
+    return false;
   }
+}
+
+let runningSession: string | null = null;
+function pause() {
+  if (runningSession !== null && status(runningSession, 'paused'))
+    runningSession = null;
 }
 
 try {
@@ -194,6 +202,7 @@ try {
   while (!stopped) {
     const lease = readTrainingLease(leaseFile);
     if (!lease?.allowed) {
+      pause();
       await delay(500);
       continue;
     }
@@ -276,7 +285,9 @@ try {
       }
       initialized = true;
     }
-    if (!readTrainingLease(leaseFile)?.allowed) continue;
+    const current = readTrainingLease(leaseFile);
+    if (!current?.allowed || current.session !== lease.session) continue;
+    runningSession = lease.session;
     status(lease.session, 'running');
     const args = [
       '--import',
@@ -335,7 +346,7 @@ try {
     }
     if (code !== 0) {
       if (diagnostic.includes('UNO_IDLE_TRAINING_PAUSED')) {
-        status(lease.session, 'paused');
+        pause();
         continue;
       }
       if (!diagnostic.includes('UNO_LEARNING_QUOTA'))
@@ -344,7 +355,7 @@ try {
     }
     const result = JSON.parse(workerOutput);
     if (result?.type === 'uno-residual-progress') {
-      if (stopped) status(lease.session, 'paused');
+      if (stopped) pause();
       continue;
     }
     if (
@@ -353,6 +364,15 @@ try {
       result.calibrationDigest !== accepted.calibrationDigest
     )
       throw new Error('Worker returned invalid candidate output');
+    const finalLease = readTrainingLease(leaseFile);
+    if (
+      stopped ||
+      !finalLease?.allowed ||
+      finalLease.session !== lease.session
+    ) {
+      pause();
+      continue;
+    }
     writeSealed(output, workerOutput);
     status(lease.session, 'candidate');
     console.log(JSON.stringify({ candidate: output }));
