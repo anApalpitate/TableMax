@@ -1,7 +1,9 @@
 import { execFile } from 'node:child_process';
+import { createHash } from 'node:crypto';
+import { readFileSync } from 'node:fs';
 import { availableParallelism } from 'node:os';
 import { fileURLToPath } from 'node:url';
-import { parseArgs, promisify } from 'node:util';
+import { isDeepStrictEqual, parseArgs, promisify } from 'node:util';
 import {
   collectPendingSeed,
   pendingCalibration,
@@ -12,6 +14,7 @@ import { unoPilotEvidence } from './uno-pilot';
 const { values } = parseArgs({
   options: {
     'fit-seeds': { type: 'string' },
+    'fit-data': { type: 'string' },
     'review-seeds': { type: 'string' },
     continuations: { type: 'string', default: '16' },
     'max-steps': { type: 'string', default: '15000' },
@@ -37,16 +40,37 @@ if (values.worker !== undefined) {
   );
 } else {
   const seeds = (input: string | undefined) => input?.split(',').map(Number);
-  const fitSeeds = seeds(values['fit-seeds']);
+  const fitBytes = values['fit-data'] ? readFileSync(values['fit-data']) : null;
+  const frozenFit =
+    fitBytes && pendingCalibration(JSON.parse(fitBytes.toString('utf8')));
+  if (
+    frozenFit &&
+    (values['fit-seeds'] !== undefined ||
+      !isDeepStrictEqual(frozenFit.options, options))
+  )
+    throw new Error(
+      'Reusing pending fit data requires the original budget and no new fit seeds',
+    );
+  const fitSeeds = frozenFit
+    ? frozenFit.fit.map(({ seed }) => seed)
+    : seeds(values['fit-seeds']);
   const reviewSeeds = seeds(values['review-seeds']);
   if (!fitSeeds?.length || !reviewSeeds?.length)
-    throw new Error('Provide fit and review seeds');
+    throw new Error('Provide fit data or fit seeds, and new review seeds');
+  const earlierReview = new Set(
+    frozenFit ? frozenFit.review.map(({ seed }) => seed) : [],
+  );
+  if (reviewSeeds.some((seed) => earlierReview.has(seed)))
+    throw new Error(
+      'The new pending review must use independent opening seeds',
+    );
   const all = [...fitSeeds, ...reviewSeeds];
   if (
     new Set(all).size !== all.length ||
     all.some((seed) => !Number.isInteger(seed) || seed < 1 || seed > 0xffffffff)
   )
     throw new Error('Use disjoint positive 32-bit pending calibration seeds');
+  const work = frozenFit ? reviewSeeds : all;
   const maximum = Math.min(8, Math.max(1, availableParallelism() - 2));
   const jobs = Number(values.jobs);
   if (!Number.isInteger(jobs) || jobs < 1 || jobs > maximum)
@@ -62,8 +86,8 @@ if (values.worker !== undefined) {
     process.once('SIGTERM', stop);
   }
   const collect = async () => {
-    while (assigned < all.length && !stopped.signal.aborted) {
-      const seed = all[assigned++]!;
+    while (assigned < work.length && !stopped.signal.aborted) {
+      const seed = work[assigned++]!;
       try {
         const result: PendingSeedEvidence =
           jobs === 1
@@ -96,7 +120,7 @@ if (values.worker !== undefined) {
             seed,
             found: result.found,
             completed: output.size,
-            total: all.length,
+            total: work.length,
           }),
         );
       } catch (error) {
@@ -105,7 +129,7 @@ if (values.worker !== undefined) {
     }
   };
   await Promise.all(
-    Array.from({ length: Math.min(jobs, all.length) }, collect),
+    Array.from({ length: Math.min(jobs, work.length) }, collect),
   );
   if (jobs > 1) {
     process.off('SIGINT', stop);
@@ -119,8 +143,17 @@ if (values.worker !== undefined) {
         version: 1,
         pilot: unoPilotEvidence,
         options,
-        fit: fitSeeds.map((seed) => output.get(seed)!),
+        fit: frozenFit
+          ? frozenFit.fit
+          : fitSeeds.map((seed) => output.get(seed)!),
         review: reviewSeeds.map((seed) => output.get(seed)!),
+        ...(fitBytes
+          ? {
+              frozenFitSourceSha256: createHash('sha256')
+                .update(fitBytes)
+                .digest('hex'),
+            }
+          : {}),
       }),
       null,
       2,

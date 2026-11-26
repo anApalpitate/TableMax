@@ -1,5 +1,6 @@
 import type { BotDifficulty, BotStrategy, JsonValue } from '@tablemax/game-sdk';
 import { CARD_IDS, getCard, RULES_VERSION } from '../data/catalog';
+import type { UnoMemoryObservation } from '../rules/project';
 import { unoPilotMatch, type UnoSetup } from '../config';
 import { leadingRival, pressureOnLeader } from './mischief';
 import { searchUnoPlays } from './search';
@@ -62,7 +63,7 @@ function validMemory(input: unknown): Memory | null {
     throw new Error('UNO 策略记忆版本或内容无效。');
   return structuredClone(m);
 }
-function fresh(view: UnoView): Memory {
+function fresh(view: UnoMemoryObservation): Memory {
   return {
     version: 1,
     roundNumber: view.roundNumber,
@@ -72,7 +73,7 @@ function fresh(view: UnoView): Memory {
   };
 }
 export function observe(
-  view: UnoView,
+  view: UnoMemoryObservation,
   memory: unknown,
   difficulty: BotDifficulty,
 ): Memory {

@@ -3,9 +3,10 @@ import { searchUnoPlays } from './search';
 import { unoLeafFeatureNames } from './calibration';
 import { createUnoSearchStrategy } from './search-strategy';
 import { context, fixture } from '../rules/test-fixtures';
-import { legalActions, project } from '../rules';
+import { legalActions, project, rules } from '../rules';
+import { projectUnoMemoryObservation } from '../rules/project';
 import type { State } from '../rules/state';
-import type { Memory } from './index';
+import { observe, type Memory } from './index';
 import type { UnoView } from '../types';
 
 const signal = new AbortController().signal;
@@ -55,6 +56,46 @@ it('uses the same paired search for identical authorized inputs with different h
   );
   expect(result.ruleSteps).toBeLessThanOrEqual(8 * 6 * 16);
   expect(a).toEqual(original);
+});
+
+it('preserves challenge memory while projecting only the observing seat evidence', () => {
+  const state = fixture({
+    a: ['wild-draw-four-1', 'red-1-a', 'yellow-4-a'],
+    b: ['blue-1-a', 'blue-2-a'],
+    c: ['green-1-a', 'green-2-a'],
+    d: ['yellow-2-a', 'green-3-a'],
+  });
+  const game = context(79, state.seats);
+  const claim = rules.apply(
+    state,
+    {
+      type: 'play',
+      cardId: 'wild-draw-four-1',
+      color: 'blue',
+    },
+    'a',
+    game,
+  ).state as State;
+  const challenged = rules.apply(
+    claim,
+    { type: 'challenge-draw-four' },
+    'b',
+    game,
+  ).state as State;
+  expect(challenged.evidence?.challenger).toBe('b');
+  const before = structuredClone(challenged);
+  for (const seatId of state.seats) {
+    const full = project(challenged, { role: 'player', seatId });
+    const compact = projectUnoMemoryObservation(challenged, seatId);
+    expect(compact.self?.challengeEvidence).toEqual(
+      full.self?.challengeEvidence,
+    );
+    const observed = observe(compact, null, 'juewu');
+    expect(observed).toEqual(observe(full, null, 'juewu'));
+    if (seatId === 'b') expect(observed.knownCards.a).toContain('red-1-a');
+    else expect(observed.knownCards.a).toBeUndefined();
+  }
+  expect(challenged).toEqual(before);
 });
 
 it('starts only a complete hypothesis within the residual rule-step budget', () => {

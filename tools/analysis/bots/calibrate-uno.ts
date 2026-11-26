@@ -72,6 +72,7 @@ const { values } = parseArgs({
     'natural-fit-data': { type: 'string' },
     'fit-policy': { type: 'string', default: 'standard' },
     'fit-only': { type: 'boolean', default: false },
+    'expected-calibration-digest': { type: 'string' },
     'ranking-world-batches': { type: 'string', default: '1' },
     'ranking-continuations': { type: 'string' },
     jobs: { type: 'string', default: '1' },
@@ -101,6 +102,12 @@ const fitOnly = values['fit-only'];
 if (fitOnly && values['holdout-seeds'] !== undefined)
   throw new Error('Fit-only calibration accepts no holdout seeds');
 const holdoutSeeds = fitOnly ? [] : seeds(values['holdout-seeds']);
+const expectedCalibrationDigest = values['expected-calibration-digest'];
+if (
+  expectedCalibrationDigest !== undefined &&
+  !/^[a-f0-9]{64}$/.test(expectedCalibrationDigest)
+)
+  throw new Error('Invalid expected calibration digest');
 const pendingBytes = values['pending-data']
   ? readFileSync(values['pending-data'])
   : null;
@@ -250,6 +257,9 @@ const batchDigest = createHash('sha256')
       fitCorpusDigest,
       fitPolicy,
       ...(fitOnly ? { fitOnly } : {}),
+      ...(expectedCalibrationDigest === undefined
+        ? {}
+        : { expectedCalibrationDigest }),
       options,
       rankingBudget,
       rootPolicy,
@@ -439,6 +449,13 @@ async function evaluateHoldout(fitRecords: readonly CalibrationSeedEvidence[]) {
   const calibrationDigest = createHash('sha256')
     .update(JSON.stringify(calibration))
     .digest('hex');
+  if (
+    expectedCalibrationDigest !== undefined &&
+    calibrationDigest !== expectedCalibrationDigest
+  )
+    throw new Error(
+      'Fitted coefficients differ from the predeclared candidate',
+    );
   if (
     state.fittedDigest !== undefined &&
     state.fittedDigest !== calibrationDigest
