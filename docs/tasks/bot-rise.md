@@ -7,7 +7,7 @@
 - 发行依据：[当前已验收交付](../reference/acceptance.md#当前源码与本地交付)。当前实施证据按源码与实际交付分别记录。
 - 所属范围：游戏SDK、人机运行与验证工具、各游戏策略及必要的配置／展示／恢复适配；规则、计分和秘密边界不因策略升级改变。
 - 有效基础与缺口：九个源码玩法已跑通统一离线对局与能力声明。各款游戏的策略、实际 Worker 和恢复证据记录在[逐游戏迁移](#逐游戏迁移与能力声明)；真人体验需要真实混合对局。
-- 下一步：复核按小局对齐后续洗牌的长续推标签，继续改进候选排序。正式 B 组通过后，再开始三组 UNO 绝悟动作评分训练。[B 组冻结计划](../../artifacts/maintenance/bot-rise-uno-qualification-05-20261126/frozen-plan.json) · [首轮学习范围](#首轮试点范围) · [R0 冻结清单](#r0-实施前冻结清单)
+- 下一步：用独立拟合与复核开局检验公开分数与手牌数的联合威胁特征，继续改进候选排序。正式 B 组通过后，再开始三组 UNO 绝悟动作评分训练。[B 组冻结计划](../../artifacts/maintenance/bot-rise-uno-qualification-05-20261126/frozen-plan.json) · [首轮学习范围](#首轮试点范围) · [R0 冻结清单](#r0-实施前冻结清单)
 
 ## 来源、范围与目标
 
@@ -178,11 +178,13 @@ R1／R2 可与[游戏开发接口](../reference/game-development.md#模块与契
 
 两个后续开发校验已独立启动。在已封存的开发根上重采与原批同规模的长续推，对此前确认方向的配对检查能否独立复现。另冻结 144 个拟合开局及 96 个复核开局，专项补充末张 +4；按原开局隔离，保留全部采集记录与本轮正式门槛。[方向稳定性复核计划](../../artifacts/maintenance/bot-rise-uno-rank-reference-repeatability-20261126/frozen-plan.json) · [末张 +4 开发采样计划](../../artifacts/maintenance/bot-rise-uno-last-four-development-20261126/frozen-plan.json)
 
-同规模的第二批长续推已在两个开发集的 30 个根完成复算。原先方向明确的 29／35 对，分别有 17／28 对方向一致，其中 2／12 对在独立批次再次达到同样的差值和置信区间要求。已另启 24 个全新开发开局，对同一候选比较 128 与 256 条长续推所得的方向标签。该开发对照保持 5 个百分点差值和 70% 排序门槛，正式结果继续按原批保留。[方向稳定性结果](../../artifacts/maintenance/bot-rise-uno-rank-reference-repeatability-20261126/report.json) · [更密集长续推计划](../../artifacts/maintenance/bot-rise-uno-dense-reference-20261126/frozen-plan.json)。24 个开局已完成，46 个根产生 183 对候选。128 条和 256 条两批长续推分别确认 18 对和 5 对，B 分别命中 11 对和 3 对。两批共同确认 1 对，方向相反。单纯增加这一批独立长续推的样本数尚未建立稳定方向。已启动在开发集中按后续小局对齐洗牌随机源的对照，检查配对方差和独立复现是否改善。[密集长续推结果](../../artifacts/maintenance/bot-rise-uno-dense-reference-20261126/report.json) · [对齐洗牌开发计划](../../artifacts/maintenance/bot-rise-uno-round-aligned-reference-20261126/frozen-plan.json)
+同规模的第二批长续推已在两个开发集的 30 个根完成复算。原先方向明确的 29／35 对，分别有 17／28 对方向一致，其中 2／12 对在独立批次再次达到同样的差值和置信区间要求。已另启 24 个全新开发开局，对同一候选比较 128 与 256 条长续推所得的方向标签。该开发对照保持 5 个百分点差值和 70% 排序门槛，正式结果继续按原批保留。[方向稳定性结果](../../artifacts/maintenance/bot-rise-uno-rank-reference-repeatability-20261126/report.json) · [更密集长续推计划](../../artifacts/maintenance/bot-rise-uno-dense-reference-20261126/frozen-plan.json)。24 个开局已完成，46 个根产生 183 对候选。128 条和 256 条两批长续推分别确认 18 对和 5 对，B 分别命中 11 对和 3 对。两批共同确认 1 对，方向相反。单纯增加这一批独立长续推的样本数尚未建立稳定方向。已启动在开发集中按后续小局对齐洗牌随机源的对照，检查配对方差和独立复现是否改善。[密集长续推结果](../../artifacts/maintenance/bot-rise-uno-dense-reference-20261126/report.json) · [对齐洗牌开发计划](../../artifacts/maintenance/bot-rise-uno-round-aligned-reference-20261126/frozen-plan.json)。对齐洗牌与原随机串的配对方差均值分别为 0.08845 和 0.08818，两个独立面板分别复确认 8 和 9 对，没有采用该变化。[对齐洗牌结果](../../artifacts/maintenance/bot-rise-uno-round-aligned-reference-20261126/report.json)
 
 末张 +4 的开发采样已全部完成，得到 46 个追加拟合开局和 16 个独立复核开局。只用拟合组训练分组修正，独立复核的绝对误差由 0.18 增至 2.08 个百分点，保留原评分。正式批次的 5.04 个百分点误差仍按原门槛保留。[隔离开发语料](../../artifacts/maintenance/bot-rise-uno-last-four-development-20261126/development-pending.json) · [分组校准开发结果](../../artifacts/maintenance/bot-rise-uno-last-four-development-20261126/offset-diagnostic.json)
 
 在同一 2048 规则步上限内比较紧迫局面的推演预算。按公开手牌和分数触发每分支 24 步时，两批开发对照的排序命中由 42/58、45/70 增至 46/58、47/70，但符合 C 改选条件的紧迫局面由 41、59 个减至 37、57 个。先完成原搜索再用剩余步数补推，保留了两批可介入局面的总数，排序命中分别维持 15/29 和 23/35。按公开选色提示加权和按模拟牌色波动修正也未取得一致收益。先完成 24 组共同假设再补推的方案保持最低假设数，排序命中分别为 15/29 和 24/35。后者比对照多 1 对，满足改选条件的紧迫局面合计减少 4 个。B 组保留已实现的自适应搜索。[紧迫局面加深](../../artifacts/maintenance/bot-rise-uno-tactical-depth-20261126/report.json) · [改选覆盖核验](../../artifacts/maintenance/bot-rise-uno-tactical-depth-20261126/budget-screen.json) · [余量补推](../../artifacts/maintenance/bot-rise-uno-budgeted-tactical-tail-20261126/report.json) · [公开提示加权](../../artifacts/maintenance/bot-rise-uno-public-hint-world-weights-20261126/report.json) · [牌色波动修正](../../artifacts/maintenance/bot-rise-uno-color-control-worlds-20261126/report.json) · [先完成 24 组再补推](../../artifacts/maintenance/bot-rise-uno-tactical-worlds-first-20261126/report.json)
+
+用剩余步数对可能一步结束整场的模拟分支执行实际动作，证实了 34 次终局，两个开发集的排序命中仍为 15/29 和 23/35。下一批使用 48 个独立拟合开局和 24 个独立开发复核开局，比较逐席公开分数与手牌数的联合威胁特征、同语料重拟合的旧特征以及现有模型。所有字段从假设局面的授权投影计算，C 组仍待 B 正式通过。[终局单步核验](../../artifacts/maintenance/bot-rise-uno-terminal-leaf-proof-20261126/report.json) · [联合威胁拟合与复核计划](../../artifacts/maintenance/bot-rise-uno-joint-threat-calibration-development-20261126/frozen-plan.json)
 
 在已封存的 48 和 64 个开发开局上，另试同一未知牌排列的成对轮转，保留候选共享假设及 2048 规则步上限。两套短搜索随机种子下，前一批正确方向从 33/58 增至 38/58，后一批两组均为 51/70，同牌选色从 17/20 降至 15/20。开发复算未显示稳定收益，正式批次仍按冻结的独立洗牌方案运行。[成对轮转开发对照](../../artifacts/maintenance/bot-rise-uno-paired-world-rotation-20261126/report.json)
 
