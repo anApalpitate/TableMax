@@ -162,6 +162,8 @@ R1／R2 可与[游戏开发接口](../reference/game-development.md#模块与契
 
 有界搜索及续推只为行动席生成一次完整投影，其余席按各自可见的行动和质疑信息更新记忆。12 条合成分支共 8304 步，逐步动作和整场结果一致，续推耗时约减半。质疑时仅质疑席取得授权证据的定向测试和真实 Worker 回归已通过。[续推实测](../../artifacts/maintenance/bot-rise-uno-rollout-profile-20261126/continuation-projection-verified.json) · [质疑和 Worker 复验](../../artifacts/maintenance/test-history/runs/51c20501-c8c5-4c6b-ae8a-b65739782f9c/results.json) · [冻结检查](../../artifacts/maintenance/bot-rise-calibration-20261126/qualification-04/gate-and-pending-smoke.json)
 
+终批复核入口在全部留出结束后，用冻结计划、拟合标签、复核样本和检查点重新计算系数、概率、排序和覆盖门槛。已用上一批完整 36 个开局的真实记录复现原有“证据不足”结论，并确认缺少开局、替换计划或改写报告结论会被拒绝。[历史批次独立复核](../../artifacts/maintenance/bot-rise-calibration-20261126/anchored-02/qualification-independent-audit.json) · [拒绝条件烟测](../../artifacts/maintenance/bot-rise-calibration-20261126/anchored-02/qualification-audit-smoke.json)
+
 正式复核每个开局抽两根时，36 个开局里有 9 个贡献方向明确的候选对。按开局重抽已有计数，达到至少 30 对覆盖的 90% 情景约需 123 个开局。这个估算仅用于规划旧配置的覆盖成本，排序命中率和概率校准仍须另行达标。补采的拟合分片可以按原预算合并，保留逐分片摘要，并拒绝种子重叠。[候选覆盖估算](../../artifacts/maintenance/bot-rise-calibration-20261126/anchored-02/ranking-coverage-planning.json) · [拟合合并烟测](../../artifacts/maintenance/bot-rise-calibration-20261126/fit-extension-03/merge-corpora-smoke.json)
 
 B 校准可按种子并行，并在拟合数据及留出阶段保存断点。断点绑定当前源码、运行时、配置和种子，最终按固定顺序合并。换进程数不会改变对照的抽样和评分口径。完整报告生成后才判断门槛。开发夹具验证了分片续跑与串行报告逐字节一致，以及更改种子后拒绝旧断点。[分片续跑验证](../../artifacts/maintenance/bot-rise-calibration-shards-20261126/serial-parallel-resume/report.json) · [校准入口](../../tools/analysis/README.md#uno-校准与配对试点)
