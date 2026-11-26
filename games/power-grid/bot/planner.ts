@@ -534,8 +534,27 @@ export function forecast(
         b.position.powered - a.position.powered ||
         firstKey(a.position).localeCompare(firstKey(b.position)),
     );
-  const chosen = combined[0]?.position;
-  if (!chosen)
+  // The longer horizon can prefer postponing a viable first supply cycle.
+  // Preserve the best opening plan that covers its fuel with current income.
+  const opening =
+    level === 2 &&
+    view.round === 1 &&
+    (view.phase === 'powering' ||
+      (own.cities.length === 0 &&
+        (view.phase === 'resources' || view.phase === 'building')))
+      ? combined.find(({ position }) => {
+          const first = position.first;
+          if (!first?.powered) return false;
+          const fuelCost = RESOURCES.reduce((sum, resource) => {
+            for (let i = 0; i < first.demand[resource]; i++)
+              sum += price(resource, view.resources[resource] - i) ?? Infinity;
+            return sum;
+          }, 0);
+          return income(first.powered) - income(0) >= fuelCost;
+        })
+      : undefined;
+  const selected = opening ?? combined[0];
+  if (!selected)
     return {
       score: 0,
       powered: 0,
@@ -545,8 +564,8 @@ export function forecast(
       nodes,
     };
   return {
-    score: combined[0]!.lowest - cash,
-    ...(chosen.first ?? {
+    score: selected.lowest - cash,
+    ...(selected.position.first ?? {
       powered: 0,
       demand: emptyStock(),
       cities: [],

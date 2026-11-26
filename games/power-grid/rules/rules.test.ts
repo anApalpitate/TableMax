@@ -1119,6 +1119,57 @@ describe('Power Grid bounded production and seeded full games', () => {
       expect(chooseBid(7, 21, difficulty)).toEqual({ type: 'pass' });
     }
   });
+  it('funds and runs an affordable first-round plant in the long-horizon strategy', () => {
+    let state = setup(4, 8);
+    for (const [plantId, amount] of [
+      [3, 3],
+      [4, 4],
+      [5, 5],
+      [7, 21],
+    ] as const) {
+      state = apply(state, { type: 'offer', plantId, amount });
+      while (state.phase === 'auction') state = apply(state, { type: 'pass' });
+    }
+    const seatId = state.playerOrder[0]!;
+    expect(state.players[seatId]!.plants[0]!.id).toBe(7);
+
+    while (state.actor !== seatId) {
+      if (state.players[state.actor!]!.plants[0]!.id === 4)
+        state = apply(state, {
+          type: 'buy-resource',
+          plantId: 4,
+          resource: 'coal',
+          quantity: 4,
+        });
+      state = apply(state, { type: 'finish' });
+    }
+    const choose = () =>
+      chooseAction(
+        rules.project(state, { role: 'player', seatId }) as PowerGridView,
+        legalActions(state, seatId),
+        'juewu',
+        { next: () => 0 },
+      );
+    const fuel = choose();
+    expect(fuel).toMatchObject({
+      type: 'buy-resource',
+      plantId: 7,
+      resource: 'oil',
+      quantity: 3,
+    });
+    state = apply(state, fuel);
+    state = apply(state, { type: 'finish' });
+    while (state.actor !== seatId) state = apply(state, { type: 'finish' });
+    const city = choose();
+    expect(city.type).toBe('build');
+    state = apply(state, city);
+    state = apply(state, { type: 'finish' });
+
+    const power = choose();
+    expect(power).toEqual({ type: 'run', plantId: 7, coal: 0 });
+    state = apply(state, power);
+    expect(state.players[seatId]!.produced).toBe(2);
+  });
   it('uses future public fuel pressure to reserve rather than filling every plant blindly', () => {
     const s = fixture([[4], [20], [42]], 'resources');
     s.actor = 'S1';

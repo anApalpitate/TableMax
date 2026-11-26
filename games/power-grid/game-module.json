@@ -22,7 +22,7 @@
     "rulesVersion": "classic-germany-2009-project-1",
     "stateVersion": 1,
     "gameVersion": "1.0.1",
-    "strategyVersion": "1.1.2"
+    "strategyVersion": "1.1.3"
   },
   "entries": {
     "rules": "games/power-grid/rules/index.ts",

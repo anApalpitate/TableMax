@@ -2,7 +2,7 @@
 
 独立策略入口为 `games/power-grid/bot/index.ts`，经共享 `BotStrategy` 接收本人安全投影和服务端合法动作。策略只看到本人现金、公开的电厂／仓储／城市／顺序／市场、本人可见建城费用与合法动作；对手现金、牌堆牌号、秘密移除牌号均不提供。记忆为 `null`，不调用其他游戏策略或网络服务。
 
-源码 `power-grid-local@1.1.2` 支持默认、豆包、绝悟和捣蛋王。历史签名对局仍固定原策略与发行。
+源码 `power-grid-local@1.1.3` 支持默认、豆包、绝悟和捣蛋王。历史签名对局仍固定原策略与发行。
 
 ## 三个强度档位
 
@@ -60,4 +60,4 @@
 
 `1.1.2` 的另八个新开局已完成四档全座复验，128 场正常终局。四档各赢 12、4、4、4 场，平均首厂出价依次为 17.78、16.34、16.34、16.34 电币。豆包和绝悟整场配对差为零，95% 区间为 −12.50 至 +9.38 个百分点。绝悟和捣蛋王各有 6 场首轮零供电。六例绝悟的首厂出价都为 21 电币，配对豆包同价且全部首轮供电。已在相同授权局面复算两档的燃料与建城预测。捣蛋王有 3 对首次改选指向同一明确领先者，该领先者的整场胜负各对相同。[四档正式规则对照](../../../artifacts/maintenance/bot-rise-power-grid-v112-rotation-20261126/power-grid-report.json)
 
-12 条原动作轨迹全部精确复现。在六个异常局面，三轮预测均选了首轮零供电，较短预测能在相同燃料库、现金和城市费用下排出当轮供电。开发方案优先选择首轮额外收入能覆盖燃料开支的计划，购料、建城和发电使用同一约束。六个异常开局分别恢复 1、1、1、1、2、2 城供电，首厂出价一致。该方案在独立开局继续对照整场结果。[同局面复算](../../../artifacts/maintenance/bot-rise-power-grid-first-supply-20261126/phase-diagnostics.json) · [开局复现](../../../artifacts/maintenance/bot-rise-power-grid-first-production-candidate-20261126/screen-with-powering.json) · [独立开发计划](../../../artifacts/maintenance/bot-rise-power-grid-first-production-candidate-20261126/frozen-plan.json)[规则与策略结果](../../../artifacts/maintenance/test-history/runs/6678fe30-81e8-4b8c-9e03-e646be2ba4b6/results.json) · [真实 Worker 复验](../../../artifacts/maintenance/test-history/runs/0ebff8b2-7064-4fd8-888d-ac831a4370f8/results.json)
+12 条原动作轨迹全部精确复现。在六个异常局面，三轮预测均选了首轮零供电，较短预测能在相同燃料库、现金和城市费用下排出当轮供电。开发方案优先选择首轮额外收入能覆盖燃料开支的计划，购料、建城和发电使用同一约束。六个异常开局分别恢复 1、1、1、1、2、2 城供电，首厂出价一致。24 个独立配对中，首轮零供电由 5 场降至 0 场，平均首厂成本均为 14.38 电币，焦点席整场由 2 胜增至 3 胜，按对手池加权差为 +3.13 个百分点，配对 95% 区间为 0 至 +6.25。源码 `1.1.3` 将该约束接入绝悟和捣蛋王的首轮联合规划，已复验购料、建城、发电与真实 Worker 恢复。[同局面复算](../../../artifacts/maintenance/bot-rise-power-grid-first-supply-20261126/phase-diagnostics.json) · [开局复现](../../../artifacts/maintenance/bot-rise-power-grid-first-production-candidate-20261126/screen-with-powering.json) · [独立开发计划](../../../artifacts/maintenance/bot-rise-power-grid-first-production-candidate-20261126/frozen-plan.json) · [独立对照](../../../artifacts/maintenance/bot-rise-power-grid-first-production-candidate-20261126/report.json) · [实际阶段 Worker](../../../artifacts/maintenance/bot-rise-power-grid-first-supply-worker-20261126/report.json) · [现行源码回归](../../../artifacts/maintenance/test-history/runs/0ece00d6-c07b-49c9-b04e-a847b6dcf7ce/results.json)[规则与策略结果](../../../artifacts/maintenance/test-history/runs/6678fe30-81e8-4b8c-9e03-e646be2ba4b6/results.json) · [真实 Worker 复验](../../../artifacts/maintenance/test-history/runs/0ebff8b2-7064-4fd8-888d-ac831a4370f8/results.json)
