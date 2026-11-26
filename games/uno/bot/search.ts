@@ -5,7 +5,12 @@ import { shuffle } from '../rules/engine';
 import { project, projectUnoMemoryObservation } from '../rules/project';
 import { validateState, type State } from '../rules/state';
 import type { Action, UnoView } from '../types';
-import { chooseAction, observe, type Memory } from './index';
+import {
+  chooseAction,
+  observe,
+  observeOwnedRolloutMemory,
+  type Memory,
+} from './index';
 import {
   isUnoSearchSamples,
   unoSearchRuleStepLimit,
@@ -192,14 +197,15 @@ function playStep(
   seat: string,
   context: RuleContext,
   signal: AbortSignal,
+  ownsMemory: boolean,
 ) {
   const acting = state.unoWindow?.seatId ?? state.turnSeat;
   if (!acting) throw new Error('UNO search reached an unresolved rule phase');
   const view = project(state, { role: 'player', seatId: acting });
   for (const id of state.seats) {
-    memories[id] = observe(
+    memories[id] = (ownsMemory ? observeOwnedRolloutMemory : observe)(
       id === acting ? view : projectUnoMemoryObservation(state, id),
-      memories[id],
+      memories[id] ?? null,
       id === seat ? 'juewu' : 'doubao',
     );
   }
@@ -236,14 +242,25 @@ export function continueUnoHypothesis(
   const context = { seats: leaf.state.seats, random: rolloutRandom(seed) };
   const memories = { ...leaf.memories };
   let state = leaf.state;
+  // The first observation copies memory shared with the input leaf.
+  let ownsMemory = false;
   for (let steps = 0; state.phase !== 'ended' && steps < maxSteps; steps++) {
     signal.throwIfAborted();
     if (steps % 16 === 0) checkpoint?.();
-    state =
-      state.phase === 'round-result'
-        ? (rules.applyLifecycle(state, { type: 'next-round' }, context)
-            .state as State)
-        : playStep(state, memories, leaf.seat, context, signal).state;
+    if (state.phase === 'round-result') {
+      state = rules.applyLifecycle(state, { type: 'next-round' }, context)
+        .state as State;
+    } else {
+      state = playStep(
+        state,
+        memories,
+        leaf.seat,
+        context,
+        signal,
+        ownsMemory,
+      ).state;
+      ownsMemory = true;
+    }
   }
   return state.phase === 'ended'
     ? state.winners.includes(leaf.seat)
@@ -274,7 +291,8 @@ function evaluateBranch(
     signal.throwIfAborted();
     const before = state;
     const isNormal = state.stage === 'turn' || state.stage === 'drawn';
-    const next = playStep(state, memories, seat, context, signal);
+    // Each branch copies the root memory before the first simulated observation.
+    const next = playStep(state, memories, seat, context, signal, steps > 1);
     const acting = next.acting;
     state = next.state;
     steps++;

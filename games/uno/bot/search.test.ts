@@ -9,7 +9,7 @@ import { context, fixture } from '../rules/test-fixtures';
 import { legalActions, project, rules } from '../rules';
 import { projectUnoMemoryObservation } from '../rules/project';
 import type { State } from '../rules/state';
-import { observe, type Memory } from './index';
+import { observe, observeOwnedRolloutMemory, type Memory } from './index';
 import type { UnoView } from '../types';
 
 const signal = new AbortController().signal;
@@ -93,10 +93,26 @@ it('preserves challenge memory while projecting only the observing seat evidence
     expect(compact.self?.challengeEvidence).toEqual(
       full.self?.challengeEvidence,
     );
-    const observed = observe(compact, null, 'juewu');
-    expect(observed).toEqual(observe(full, null, 'juewu'));
-    if (seatId === 'b') expect(observed.knownCards.a).toContain('red-1-a');
-    else expect(observed.knownCards.a).toBeUndefined();
+    const prior = observe(
+      projectUnoMemoryObservation(claim, seatId),
+      null,
+      'juewu',
+    );
+    const original = structuredClone(prior);
+    const owned = structuredClone(prior);
+    const observed = observe(compact, prior, 'juewu');
+    expect(observed).toEqual(observe(full, prior, 'juewu'));
+    expect(observeOwnedRolloutMemory(compact, owned, 'juewu')).toBe(owned);
+    expect(owned).toEqual(observed);
+    expect(prior).toEqual(original);
+    const fromChallenge = observe(compact, null, 'juewu');
+    if (seatId === 'b') {
+      expect(observed.knownCards.a).toContain('red-1-a');
+      expect(fromChallenge.knownCards.a).toContain('red-1-a');
+    } else {
+      expect(observed.knownCards.a).toEqual([]);
+      expect(fromChallenge.knownCards.a).toBeUndefined();
+    }
   }
   expect(challenged).toEqual(before);
 });

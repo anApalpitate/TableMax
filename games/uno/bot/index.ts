@@ -78,14 +78,29 @@ export function observe(
   memory: unknown,
   difficulty: BotDifficulty,
 ): Memory {
-  let m = validMemory(memory) ?? fresh(view);
+  const owned = validMemory(memory);
   if (
-    !view.self ||
-    Object.keys(m.knownCards).some((seat) => !view.seatOrder.includes(seat)) ||
-    Object.keys(m.colorHints).some((seat) => !view.seatOrder.includes(seat))
+    owned &&
+    (Object.keys(owned.knownCards).some(
+      (seat) => !view.seatOrder.includes(seat),
+    ) ||
+      Object.keys(owned.colorHints).some(
+        (seat) => !view.seatOrder.includes(seat),
+      ))
   )
     throw new Error('UNO 策略观察身份或座位无效。');
-  if (m.roundNumber !== view.roundNumber) m = fresh(view);
+  return observeOwnedRolloutMemory(view, owned, difficulty);
+}
+
+/** Update memory already validated and privately owned by this simulation branch. */
+export function observeOwnedRolloutMemory(
+  view: UnoMemoryObservation,
+  memory: Memory | null,
+  difficulty: BotDifficulty,
+): Memory {
+  if (!view.self) throw new Error('UNO 策略观察身份或座位无效。');
+  const m =
+    memory && memory.roundNumber === view.roundNumber ? memory : fresh(view);
   const latest = view.latest;
   if (!latest || latest.serial <= m.serial) return m;
   if (difficulty !== 'default' && latest.actor) {
