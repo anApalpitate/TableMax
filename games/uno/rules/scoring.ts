@@ -1,5 +1,7 @@
 import { getCard } from '../data/catalog';
 import type { RoundResult } from '../types';
+
+export const unoWinningScore = 500;
 export function handValue(ids: readonly string[]): number {
   return ids.reduce((sum, id) => {
     const card = getCard(id);

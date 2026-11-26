@@ -7,7 +7,7 @@ import {
   RULES_VERSION,
 } from '../data/catalog';
 import type { Action, LatestAction } from '../types';
-import { scoreRound } from './scoring';
+import { scoreRound, unoWinningScore } from './scoring';
 import type { State } from './state';
 import { unoSetupDefaults, validateUnoSetup, unoSetupFor } from '../config';
 export function shuffle<T>(values: readonly T[], context: RuleContext): T[] {
@@ -89,7 +89,7 @@ function finishRound(s: State, winner: string): void {
   s.results.push(result);
   s.scores = result.scores;
   s.wins[winner]!++;
-  s.winners = s.seats.filter((seat) => s.scores[seat]! >= 500);
+  s.winners = s.seats.filter((seat) => s.scores[seat]! >= unoWinningScore);
   s.phase = s.winners.length ? 'ended' : 'round-result';
   s.stage = 'result';
   s.turnSeat = null;

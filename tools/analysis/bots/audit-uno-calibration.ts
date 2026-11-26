@@ -45,6 +45,8 @@ if (
   !isCurrentUnoPilot(report.pilot) ||
   !['standard', 'anchored'].includes(report.fitPolicy) ||
   !['reference', 'search'].includes(report.rootPolicy) ||
+  (report.rankingBudget?.reference !== undefined &&
+    report.rankingBudget.reference !== 'shared-rounds') ||
   report.calibrationDigest !== sha(JSON.stringify(report.calibration)) ||
   !isUnoSearchSamples(report.options?.hypotheses) ||
   (report.options.labelHypotheses !== undefined &&

@@ -227,14 +227,7 @@ function playStep(
   };
 }
 
-/** Finish a synthetic branch using the same fixed policies as the short search. */
-export function continueUnoHypothesis(
-  leaf: Pick<UnoHypothesisLeaf, 'state' | 'memories' | 'seat'>,
-  seed: number,
-  maxSteps: number,
-  signal: AbortSignal,
-  checkpoint?: () => void,
-): 0 | 1 | null {
+function assertContinuationBudget(seed: number, maxSteps: number) {
   if (
     !Number.isSafeInteger(maxSteps) ||
     maxSteps < 1 ||
@@ -243,6 +236,17 @@ export function continueUnoHypothesis(
     seed > 0xffffffff
   )
     throw new Error('Invalid UNO continuation budget or seed');
+}
+
+/** Finish a synthetic branch using the same fixed policies as the short search. */
+export function continueUnoHypothesis(
+  leaf: Pick<UnoHypothesisLeaf, 'state' | 'memories' | 'seat'>,
+  seed: number,
+  maxSteps: number,
+  signal: AbortSignal,
+  checkpoint?: () => void,
+): 0 | 1 | null {
+  assertContinuationBudget(seed, maxSteps);
   const context = { seats: leaf.state.seats, random: rolloutRandom(seed) };
   const memories = { ...leaf.memories };
   let state = leaf.state;
@@ -271,6 +275,41 @@ export function continueUnoHypothesis(
       ? 1
       : 0
     : null;
+}
+
+/** Simulate just one round with the same fixed rollout policies. */
+export function continueUnoHypothesisRound(
+  leaf: Pick<UnoHypothesisLeaf, 'state' | 'memories' | 'seat'>,
+  seed: number,
+  maxSteps: number,
+  signal: AbortSignal,
+) {
+  assertContinuationBudget(seed, maxSteps);
+  signal.throwIfAborted();
+  const context = { seats: leaf.state.seats, random: rolloutRandom(seed) };
+  const memories = { ...leaf.memories };
+  let state = leaf.state;
+  let steps = 0;
+  if (state.phase === 'round-result') {
+    state = rules.applyLifecycle(state, { type: 'next-round' }, context)
+      .state as State;
+    steps++;
+  }
+  let ownsMemory = false;
+  while (state.phase === 'playing' && steps < maxSteps) {
+    signal.throwIfAborted();
+    state = playStep(
+      state,
+      memories,
+      leaf.seat,
+      context,
+      signal,
+      ownsMemory,
+    ).state;
+    ownsMemory = true;
+    steps++;
+  }
+  return { state, steps };
 }
 
 function evaluateBranch(

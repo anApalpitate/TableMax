@@ -1,8 +1,16 @@
 import { expect, it } from 'vitest';
-import { searchUnoPlays } from './search';
+import {
+  continueUnoHypothesisRound,
+  searchUnoPlays,
+  type UnoHypothesisLeaf,
+} from './search';
 import { unoSearchRuleSteps } from './search-budget';
 import { readUnoRuntimeModel } from './runtime-model';
-import { sampleUnoContinuations } from '../../../tools/analysis/bots/uno-samples';
+import {
+  independentSeed,
+  sampleUnoContinuations,
+} from '../../../tools/analysis/bots/uno-samples';
+import { continueSharedUnoHypotheses } from '../../../tools/analysis/bots/uno-shared-reference';
 import { unoLeafFeatureNames } from './calibration';
 import { createUnoSearchStrategy } from './search-strategy';
 import { context, fixture } from '../rules/test-fixtures';
@@ -132,6 +140,94 @@ it('preserves challenge memory while projecting only the observing seat evidence
     }
   }
   expect(challenged).toEqual(before);
+});
+
+it('shares future round points without changing paired results or branch step limits', () => {
+  const state = fixture({
+    a: ['red-1-a', 'red-skip-a', 'yellow-1-a'],
+    b: ['blue-1-a', 'blue-2-a'],
+    c: ['green-1-a', 'green-2-a'],
+    d: ['yellow-2-a', 'green-3-a'],
+  });
+  state.roundNumber = 3;
+  state.scores = { a: 440, b: 415, c: 0, d: 0 };
+  state.wins = { a: 1, b: 1, c: 0, d: 0 };
+  state.results = [
+    {
+      roundNumber: 1,
+      winner: 'a',
+      points: 440,
+      handValues: { a: 0, b: 150, c: 150, d: 140 },
+      scores: { a: 440, b: 0, c: 0, d: 0 },
+    },
+    {
+      roundNumber: 2,
+      winner: 'b',
+      points: 415,
+      handValues: { a: 130, b: 0, c: 145, d: 140 },
+      scores: state.scores,
+    },
+  ];
+  const view = project(state, { role: 'player', seatId: 'a' });
+  const hypotheses: (readonly UnoHypothesisLeaf[])[] = [];
+  searchUnoPlays(
+    view,
+    legalActions(state, 'a'),
+    { ...memory, roundNumber: state.roundNumber },
+    context(42, state.seats).random,
+    signal,
+    score,
+    {
+      samples: 8,
+      maxRuleSteps: 32,
+      onHypothesis: (leaves) => hypotheses.push(leaves),
+    },
+  );
+  expect(hypotheses).toHaveLength(1);
+  const branches = hypotheses[0]!;
+  expect(branches).toHaveLength(2);
+  const before = structuredClone(branches);
+  const seed = 199;
+  const nextRoundSeed = (round: number) =>
+    independentSeed(seed, 0x11d27 + round);
+
+  function independent(leaf: UnoHypothesisLeaf, budget: number) {
+    let state = leaf.state;
+    let spent = 0;
+    if (state.phase === 'playing') {
+      const current = continueUnoHypothesisRound(leaf, seed, budget, signal);
+      state = current.state;
+      spent = current.steps;
+    }
+    while (state.phase === 'round-result' && spent < budget) {
+      const next = continueUnoHypothesisRound(
+        { state, seat: leaf.seat, memories: {} },
+        nextRoundSeed(state.roundNumber + 1),
+        budget - spent,
+        signal,
+      );
+      state = next.state;
+      spent += next.steps;
+    }
+    return state.phase === 'ended'
+      ? Number(state.winners.includes(leaf.seat))
+      : null;
+  }
+  for (const budget of [1, 17, 128, 1500]) {
+    const expected = branches.map((leaf) => independent(leaf, budget));
+    if (budget === 1500)
+      expect(expected.every((won) => won !== null)).toBe(true);
+    expect(
+      continueSharedUnoHypotheses(
+        branches,
+        seed,
+        budget,
+        signal,
+        nextRoundSeed,
+      ),
+    ).toEqual(expected);
+  }
+  expect(branches).toEqual(before);
 });
 
 it('starts only a complete hypothesis within the residual rule-step budget', () => {

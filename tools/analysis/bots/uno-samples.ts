@@ -20,6 +20,7 @@ import { unoPilotMatch } from '../../../games/uno/config';
 import { rules, project } from '../../../games/uno/rules';
 import type { Action, UnoView } from '../../../games/uno/types';
 import { evaluateBotMatch } from './evaluate';
+import { continueSharedUnoHypotheses } from './uno-shared-reference';
 
 export interface UnoRoot {
   seed: number;
@@ -51,6 +52,7 @@ interface RolloutOptions {
   maxSteps: number;
   seed: number;
   onlyCandidates?: readonly number[];
+  reference?: 'shared-rounds';
   featureVersion?: UnoLeafFeatureVersion;
 }
 
@@ -165,20 +167,39 @@ export function sampleUnoContinuations(
           return;
         labeledWorlds++;
         const byCandidate = branches.map((): (0 | 1 | null)[] => []);
+        const chosen = Array.from(branches.entries()).filter(
+          ([index]) => !selected || selected.has(index),
+        );
+        const sharedBranches =
+          options.reference === 'shared-rounds'
+            ? chosen.map(([, leaf]) => leaf)
+            : null;
         for (let trial = 0; trial < options.continuations; trial++) {
           const seed = independentSeed(
             options.seed,
             1 + trial + outcomes.length,
           );
-          for (const [index, leaf] of branches.entries()) {
-            if (selected && !selected.has(index)) continue;
-            const result = continueUnoHypothesis(
-              leaf,
+          let sharedResults: (0 | 1 | null)[] | null = null;
+          if (sharedBranches) {
+            checkpoint?.();
+            sharedResults = continueSharedUnoHypotheses(
+              sharedBranches,
               seed,
               options.maxSteps,
               signal,
-              checkpoint,
+              (round) => independentSeed(seed, 0x11d27 + round),
             );
+          }
+          for (const [offset, [index, leaf]] of chosen.entries()) {
+            const result = sharedResults
+              ? sharedResults[offset]!
+              : continueUnoHypothesis(
+                  leaf,
+                  seed,
+                  options.maxSteps,
+                  signal,
+                  checkpoint,
+                );
             if (result === null) unfinished++;
             byCandidate[index]!.push(result);
           }

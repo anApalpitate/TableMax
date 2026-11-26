@@ -77,7 +77,11 @@ export type Calibration = {
   coefficients: number[];
 };
 
-export type RankingBudget = { worldBatches: number; continuations: number };
+export type RankingBudget = {
+  worldBatches: number;
+  continuations: number;
+  reference?: 'shared-rounds';
+};
 
 export function rankingSamples(
   root: UnoRoot,
@@ -99,6 +103,7 @@ export function rankingSamples(
       {
         ...unoCalibrationLabelOptions(options),
         continuations: budget.continuations,
+        ...(budget.reference ? { reference: budget.reference } : {}),
         ...(onlyCandidates ? { onlyCandidates } : {}),
         seed: batch === 0 ? seed : independentSeed(seed, 0x67000 + batch),
       },

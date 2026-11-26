@@ -18,6 +18,7 @@ import {
   type CalibrationSeedEvidence,
   type CalibrationSeedTask,
   type EvaluatedLeaf,
+  type RankingBudget,
 } from './uno-calibration-seed';
 import { fitUnoCalibration } from './uno-calibration-fit';
 import { naturalFitCorpus } from './uno-fit-corpus';
@@ -81,6 +82,7 @@ const { values } = parseArgs({
     'expected-calibration-digest': { type: 'string' },
     'ranking-world-batches': { type: 'string', default: '1' },
     'ranking-continuations': { type: 'string' },
+    'ranking-reference': { type: 'string' },
     jobs: { type: 'string', default: '1' },
     checkpoint: { type: 'string' },
     'steps-per-run': { type: 'string' },
@@ -181,11 +183,15 @@ const corpus = corpusBytes
 const fitCorpusDigest = corpusBytes
   ? createHash('sha256').update(corpusBytes).digest('hex')
   : null;
-const rankingBudget = {
+const rankingReference = values['ranking-reference'];
+if (rankingReference !== undefined && rankingReference !== 'shared-rounds')
+  throw new Error('Invalid independent ranking reference');
+const rankingBudget: RankingBudget = {
   worldBatches: Number(values['ranking-world-batches']),
   continuations: Number(
     values['ranking-continuations'] ?? options.continuations,
   ),
+  ...(rankingReference === undefined ? {} : { reference: rankingReference }),
 };
 if (
   !Number.isInteger(rankingBudget.worldBatches) ||
@@ -247,6 +253,7 @@ function sourceDigest() {
       'uno-fit-corpus',
       'uno-calibration-worker',
       'uno-samples',
+      'uno-shared-reference',
       'uno-pending',
       'collect-uno-pending',
       'evaluate',
