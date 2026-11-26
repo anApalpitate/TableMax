@@ -194,6 +194,8 @@ R1／R2 可与[游戏开发接口](../reference/game-development.md#模块与契
 
 联合威胁评分已用当前有界搜索和真实 Worker 做源码验证。四个四人合成局面均有 8 个候选，包括首局、比分接近 500 分及对手只剩一张牌的情况。两种评分共 8 次冷启动决策均与各自进程内的动作、记忆和随机状态一致，合法提交后从 SQLite 恢复原快照。联合威胁评分每次完成 22～25 组共享假设，最多消耗 1989 个规则步，最慢 1.21 秒。旧评分最慢 1.20 秒。每个 Worker 的 V8 老生代上限为 32 MiB。独立排序复验继续运行，正式 B 仍待校准通过。[Worker 与存档复验](../../artifacts/maintenance/bot-rise-uno-joint-threat-worker-20261126/report.json) · [临时产物清理](../../artifacts/maintenance/bot-rise-uno-joint-threat-worker-20261126/Clean-Temp.cmd)
 
+下一批 B 组正式校准预留了 128 个自然开局和 128 个独立罚牌复核开局。与 24 份已有计划及报告记录的 1648 个不同种子核对后，两个预留集合彼此不重叠，也未复用已有拟合、开发复核、正式留出或 C 组开发种子。预留记录尚未绑定正式评分器。[种子隔离核对](../../artifacts/maintenance/bot-rise-uno-b-calibration-reservation-20261126/reservation.json)
+
 在已封存的 48 和 64 个开发开局上，另试同一未知牌排列的成对轮转，保留候选共享假设及 2048 规则步上限。两套短搜索随机种子下，前一批正确方向从 33/58 增至 38/58，后一批两组均为 51/70，同牌选色从 17/20 降至 15/20。开发复算未显示稳定收益，正式批次仍按冻结的独立洗牌方案运行。[成对轮转开发对照](../../artifacts/maintenance/bot-rise-uno-paired-world-rotation-20261126/report.json)
 
 正式复核每个开局抽两根时，36 个开局里有 9 个贡献方向明确的候选对。按开局重抽已有计数，达到至少 30 对覆盖的 90% 情景约需 123 个开局。这个估算仅用于规划旧配置的覆盖成本，排序命中率和概率校准仍须另行达标。补采的拟合分片可以按原预算合并，保留逐分片摘要，并拒绝种子重叠。[候选覆盖估算](../../artifacts/maintenance/bot-rise-calibration-20261126/anchored-02/ranking-coverage-planning.json) · [拟合合并烟测](../../artifacts/maintenance/bot-rise-calibration-20261126/fit-extension-03/merge-corpora-smoke.json)
