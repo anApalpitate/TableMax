@@ -71,6 +71,7 @@ const { values } = parseArgs({
     'pending-data': { type: 'string' },
     'natural-fit-data': { type: 'string' },
     'fit-policy': { type: 'string', default: 'standard' },
+    'fit-only': { type: 'boolean', default: false },
     'ranking-world-batches': { type: 'string', default: '1' },
     'ranking-continuations': { type: 'string' },
     jobs: { type: 'string', default: '1' },
@@ -96,7 +97,10 @@ function seeds(input: string | undefined) {
 }
 
 const trainSeeds = seeds(values['train-seeds']);
-const holdoutSeeds = seeds(values['holdout-seeds']);
+const fitOnly = values['fit-only'];
+if (fitOnly && values['holdout-seeds'] !== undefined)
+  throw new Error('Fit-only calibration accepts no holdout seeds');
+const holdoutSeeds = fitOnly ? [] : seeds(values['holdout-seeds']);
 const pendingBytes = values['pending-data']
   ? readFileSync(values['pending-data'])
   : null;
@@ -245,6 +249,7 @@ const batchDigest = createHash('sha256')
       pendingDigest,
       fitCorpusDigest,
       fitPolicy,
+      ...(fitOnly ? { fitOnly } : {}),
       options,
       rankingBudget,
       rootPolicy,
@@ -454,6 +459,42 @@ async function evaluateHoldout(fitRecords: readonly CalibrationSeedEvidence[]) {
         calibrationDigest,
       }),
     );
+  }
+  if (fitOnly) {
+    console.log(
+      JSON.stringify(
+        {
+          type: 'uno-calibration-fit',
+          batchDigest,
+          sourceSha256,
+          runtime: process.version,
+          pilot: unoPilotEvidence,
+          options,
+          fitPolicy,
+          fitSelection: fit.selection,
+          trainSeeds,
+          fitRows: naturalFit.length,
+          trainUnfinished,
+          naturalFitSha256: fitCorpusDigest,
+          ...(pending
+            ? {
+                pending: {
+                  dataSha256: pendingDigest,
+                  fitSeeds: pending.fit.map(({ seed }) => seed),
+                  fitRows: supplementalFit.length,
+                  fitWeightPerSeed: pendingFitWeight,
+                },
+              }
+            : {}),
+          calibration,
+          calibrationDigest,
+          baselineCoefficients: reference,
+        },
+        null,
+        2,
+      ),
+    );
+    return;
   }
   const holdoutRecords = await collectStage(
     holdoutSeeds,

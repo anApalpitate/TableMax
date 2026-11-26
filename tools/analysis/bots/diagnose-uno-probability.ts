@@ -135,6 +135,7 @@ const { values } = parseArgs({
   options: {
     natural: { type: 'string', multiple: true },
     pending: { type: 'string' },
+    'check-natural': { type: 'string' },
   },
 });
 if (!values.natural?.length || !values.pending)
@@ -142,24 +143,15 @@ if (!values.natural?.length || !values.pending)
 const natural = values.natural.map(read);
 const pending = read(values.pending);
 const naturalOptions = natural[0]!.value.naturalOptions;
-const fits = natural.flatMap(({ value }) => {
-  if (!Array.isArray(value?.fit))
+function readNatural(value: ReturnType<typeof read>['value']) {
+  if (!Array.isArray(value?.fit) || !value.fit.length)
     throw new Error('Expected a natural fit corpus');
-  return naturalFitCorpus(
-    value,
-    naturalOptions,
-    value.fit.map(({ seed }: { seed: number }) => seed),
-  ).fit;
-});
-const naturalSeeds = fits.map(({ seed }) => seed);
-const pendingFits = pendingCalibration(pending.value).fit;
-const seedGroups = [...naturalSeeds, ...pendingFits.map(({ seed }) => seed)];
-if (naturalSeeds.length < 16 || new Set(seedGroups).size !== seedGroups.length)
-  throw new Error(
-    'Need disjoint natural and supplemental fit groups for nested validation',
-  );
-const samples: Sample[] = [
-  ...fits.flatMap(({ seed, rows }) =>
+  const seeds = value.fit.map(({ seed }: { seed: number }) => seed);
+  return naturalFitCorpus(value, naturalOptions, seeds).fit;
+}
+
+function naturalSamples(fit: ReturnType<typeof readNatural>): Sample[] {
+  return fit.flatMap(({ seed, rows }) =>
     rows.map((row) => ({
       seed,
       natural: true,
@@ -167,7 +159,20 @@ const samples: Sample[] = [
       features: row.features,
       target: row.wins / row.completed,
     })),
-  ),
+  );
+}
+
+const fits = natural.flatMap(({ value }) => readNatural(value));
+const naturalSeeds = fits.map(({ seed }) => seed);
+const supplemental = pendingCalibration(pending.value);
+const pendingFits = supplemental.fit;
+const seedGroups = [...naturalSeeds, ...pendingFits.map(({ seed }) => seed)];
+if (naturalSeeds.length < 16 || new Set(seedGroups).size !== seedGroups.length)
+  throw new Error(
+    'Need disjoint natural and supplemental fit groups for nested validation',
+  );
+const samples: Sample[] = [
+  ...naturalSamples(fits),
   ...pendingFits.flatMap(({ seed, rows }) =>
     rows.map((row) => ({
       seed,
@@ -179,39 +184,99 @@ const samples: Sample[] = [
   ),
 ];
 
-const predictions: Record<Candidate, Prediction[]> = {
-  'anchored-seed': [],
-  'anchored-sqrt': [],
-  'anchored-row': [],
-  'simple-seed': [],
-  'anchored-recalibrated': [],
-};
-for (const { fit, check } of groupFolds(samples)) {
-  const anchored = train(fit, 1);
-  const coefficients = {
-    'anchored-seed': anchored.coefficients,
-    'anchored-sqrt': train(fit, 0.5).coefficients,
-    'anchored-row': train(fit, 0).coefficients,
-    'simple-seed': referenceAnchor(
-      anchored.reference,
-      unoLeafFeatureNames.length,
-    ),
-    'anchored-recalibrated': anchored.coefficients,
+function forecast(
+  splits: readonly { fit: readonly Sample[]; check: readonly Sample[] }[],
+) {
+  const predictions: Record<Candidate, Prediction[]> = {
+    'anchored-seed': [],
+    'anchored-sqrt': [],
+    'anchored-row': [],
+    'simple-seed': [],
+    'anchored-recalibrated': [],
   };
-  const [intercept, slope] = recalibrate(fit);
-  for (const candidate of candidates) {
-    for (const sample of check) {
-      const raw = logit(sample, coefficients[candidate]);
-      const score =
-        candidate === 'anchored-recalibrated' ? intercept! + slope! * raw : raw;
-      predictions[candidate].push({ sample, estimate: probability(score) });
+  for (const { fit, check } of splits) {
+    const anchored = train(fit, 1);
+    const coefficients = {
+      'anchored-seed': anchored.coefficients,
+      'anchored-sqrt': train(fit, 0.5).coefficients,
+      'anchored-row': train(fit, 0).coefficients,
+      'simple-seed': referenceAnchor(
+        anchored.reference,
+        unoLeafFeatureNames.length,
+      ),
+      'anchored-recalibrated': anchored.coefficients,
+    };
+    const [intercept, slope] = recalibrate(fit);
+    for (const candidate of candidates) {
+      for (const sample of check) {
+        const raw = logit(sample, coefficients[candidate]);
+        const score =
+          candidate === 'anchored-recalibrated'
+            ? intercept! + slope! * raw
+            : raw;
+        predictions[candidate].push({ sample, estimate: probability(score) });
+      }
     }
   }
+
+  return predictions;
+}
+function compare(predictions: Record<Candidate, Prediction[]>) {
+  const baseline = predictions['anchored-seed'].filter(
+    ({ sample }) => sample.natural,
+  );
+  return Object.fromEntries(
+    candidates.map((candidate) => {
+      const natural = predictions[candidate].filter(
+        ({ sample }) => sample.natural,
+      );
+      return [
+        candidate,
+        {
+          natural: summarize(natural),
+          naturalBrierChangeBySeed: paired(natural, baseline),
+          bins: Array.from({ length: 10 }, (_, index) => ({
+            index,
+            ...summarize(
+              natural.filter(
+                ({ estimate }) =>
+                  Math.min(9, Math.floor(estimate * 10)) === index,
+              ),
+            ),
+          })),
+          pendingFitCases: Object.fromEntries(
+            penaltyKinds.map((kind) => [
+              kind,
+              summarize(
+                predictions[candidate].filter(
+                  ({ sample }) => !sample.natural && sample.kind === kind,
+                ),
+              ),
+            ]),
+          ),
+        },
+      ];
+    }),
+  );
 }
 
-const baseline = predictions['anchored-seed'].filter(
-  ({ sample }) => sample.natural,
-);
+const review = values['check-natural'] ? read(values['check-natural']) : null;
+const reviewFit = review ? readNatural(review.value) : [];
+if (review) {
+  const occupied = new Set([
+    ...seedGroups,
+    ...supplemental.review.map(({ seed }) => seed),
+  ]);
+  const reviewSeeds = reviewFit.map(({ seed }) => seed);
+  if (
+    reviewSeeds.length < 8 ||
+    new Set(reviewSeeds).size !== reviewSeeds.length ||
+    reviewSeeds.some((seed) => occupied.has(seed))
+  )
+    throw new Error(
+      'The development check needs at least eight new opening seeds outside both fit collections and pending review',
+    );
+}
 console.log(
   JSON.stringify(
     {
@@ -224,39 +289,18 @@ console.log(
       folds: 4,
       naturalFitSeeds: naturalSeeds.length,
       pendingFitSeeds: pendingFits.length,
-      methods: Object.fromEntries(
-        candidates.map((candidate) => {
-          const natural = predictions[candidate].filter(
-            ({ sample }) => sample.natural,
-          );
-          return [
-            candidate,
-            {
-              natural: summarize(natural),
-              naturalBrierChangeBySeed: paired(natural, baseline),
-              bins: Array.from({ length: 10 }, (_, index) => ({
-                index,
-                ...summarize(
-                  natural.filter(
-                    ({ estimate }) =>
-                      Math.min(9, Math.floor(estimate * 10)) === index,
-                  ),
-                ),
-              })),
-              pendingFitCases: Object.fromEntries(
-                penaltyKinds.map((kind) => [
-                  kind,
-                  summarize(
-                    predictions[candidate].filter(
-                      ({ sample }) => !sample.natural && sample.kind === kind,
-                    ),
-                  ),
-                ]),
+      methods: compare(forecast(groupFolds(samples))),
+      ...(review
+        ? {
+            independentCheck: {
+              corpusSha256: review.sha256,
+              seeds: reviewFit.map(({ seed }) => seed),
+              methods: compare(
+                forecast([{ fit: samples, check: naturalSamples(reviewFit) }]),
               ),
             },
-          ];
-        }),
-      ),
+          }
+        : {}),
     },
     null,
     2,
