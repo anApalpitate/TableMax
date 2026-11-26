@@ -7,7 +7,7 @@
 - 发行依据：[当前已验收交付](../reference/acceptance.md#当前源码与本地交付)。当前实施证据按源码与实际交付分别记录。
 - 所属范围：游戏SDK、人机运行与验证工具、各游戏策略及必要的配置／展示／恢复适配；规则、计分和秘密边界不因策略升级改变。
 - 有效基础与缺口：九个源码玩法已跑通统一离线对局与能力声明。各款游戏的策略、实际 Worker 和恢复证据记录在[逐游戏迁移](#逐游戏迁移与能力声明)；真人体验需要真实混合对局。
-- 下一步：在冻结的开发集中复核长续推标签的方向稳定性，继续改进 B 组校准。正式 B 组通过后，再开始三组 UNO 绝悟动作评分训练。[B 组冻结计划](../../artifacts/maintenance/bot-rise-uno-qualification-05-20261126/frozen-plan.json) · [首轮学习范围](#首轮试点范围) · [R0 冻结清单](#r0-实施前冻结清单)
+- 下一步：用独立新开局复核更密集的长续推标签，并补足末张 +4 的拟合样本。正式 B 组通过后，再开始三组 UNO 绝悟动作评分训练。[B 组冻结计划](../../artifacts/maintenance/bot-rise-uno-qualification-05-20261126/frozen-plan.json) · [首轮学习范围](#首轮试点范围) · [R0 冻结清单](#r0-实施前冻结清单)
 
 ## 来源、范围与目标
 
@@ -175,6 +175,10 @@ R1／R2 可与[游戏开发接口](../reference/game-development.md#模块与契
 本批 128 个正式留出开局全部结束，独立复算与原始报告一致。127 个开局贡献 5902 条自然概率标签，总体误差 0.32 个百分点，Brier 为 0.18591，简单对照为 0.19056。末张 +4 的 14 个独立开局误差为 5.04 个百分点，高于 5 个百分点门槛。1075 对候选中有 53 对方向可确认，B 命中 30 对（56.60%），低于 70%。首选平均胜率损失为 0.07 个百分点，配对区间为 −0.30 至 +0.48 个百分点。整体校准未通过，正式 C 保持待启动。[正式自适应报告](../../artifacts/maintenance/bot-rise-uno-qualification-05-20261126/report.json) · [独立复算](../../artifacts/maintenance/bot-rise-uno-qualification-05-20261126/audit.json)
 
 只用已冻结的 2078 条拟合标签比较现有叶节点评分与七个既有授权特征的交互项。自然样本的四折 Brier 由 0.18269 变为 0.18238。两批开发集的排序命中分别由 18/29 变为 17/29、由 23/35 保持 23/35，现行校准保留原特征。[叶节点交互项开发对照](../../artifacts/maintenance/bot-rise-uno-leaf-interactions-20261126/report.json)
+
+两个后续开发校验已独立启动。在已封存的开发根上重采与原批同规模的长续推，对此前确认方向的配对检查能否独立复现。另冻结 144 个拟合开局及 96 个复核开局，专项补充末张 +4；按原开局隔离，保留全部采集记录与本轮正式门槛。[方向稳定性复核计划](../../artifacts/maintenance/bot-rise-uno-rank-reference-repeatability-20261126/frozen-plan.json) · [末张 +4 开发采样计划](../../artifacts/maintenance/bot-rise-uno-last-four-development-20261126/frozen-plan.json)
+
+同规模的第二批长续推已在两个开发集的 30 个根完成复算。原先方向明确的 29／35 对，分别有 17／28 对方向一致，其中 2／12 对在独立批次再次达到同样的差值和置信区间要求。已另启 24 个全新开发开局，对同一候选比较 128 与 256 条长续推所得的方向标签。该开发对照保持 5 个百分点差值和 70% 排序门槛，正式结果继续按原批保留。[方向稳定性结果](../../artifacts/maintenance/bot-rise-uno-rank-reference-repeatability-20261126/report.json) · [更密集长续推计划](../../artifacts/maintenance/bot-rise-uno-dense-reference-20261126/frozen-plan.json)
 
 在已封存的 48 和 64 个开发开局上，另试同一未知牌排列的成对轮转，保留候选共享假设及 2048 规则步上限。两套短搜索随机种子下，前一批正确方向从 33/58 增至 38/58，后一批两组均为 51/70，同牌选色从 17/20 降至 15/20。开发复算未显示稳定收益，正式批次仍按冻结的独立洗牌方案运行。[成对轮转开发对照](../../artifacts/maintenance/bot-rise-uno-paired-world-rotation-20261126/report.json)
 
