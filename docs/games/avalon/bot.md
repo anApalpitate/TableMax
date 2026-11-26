@@ -26,6 +26,8 @@
 
 33 项源码检查通过，包含 5～10 人的配置版捣蛋王自然整局，以及善邪两边保持任务目标的固定局面。真实 Worker 已核验 5～10 人各一场捣蛋王自然整局、十席并发密投和 SQLite 回退重开，历史签名 `1.0.0` 在原 Worker 上恢复后复现提案。固定开局的七座轮换共 35 个配对，3 对有实际动作差异，两组焦点席各胜 22 场。真人混合体验和新签名发行仍待验收。[源码检查](../../../artifacts/maintenance/test-history/runs/daa6059b-ca86-4e32-ae3e-5598b53866ad/results.json) · [实际 Worker 整局](../../../artifacts/maintenance/test-history/runs/06cdc989-9120-4d81-bc20-0bb2857b4653/results.json) · [并发及恢复](../../../artifacts/maintenance/test-history/runs/ad0a29b0-2ea7-42b6-8323-ac81f06e7709/results.json) · [换座评估](../../../artifacts/maintenance/avalon-bot-rise-20261126/rotation-report.json) · [历史签名恢复](../../../artifacts/maintenance/avalon-bot-rise-20261126/old-signed-recovery.json)
 
+七人配置版的新开发批次按原开局、焦点席位和阵营配对。12 个新种子全部轮换七座，336 场正常结束。默认、豆包、绝悟、捣蛋王的本阵营胜场分别为 36、44、48、49，各 84 场。豆包相对默认总体高 9.52 个百分点，按开局配对的 95% 区间为 5.95–13.10。绝悟相对豆包总体高 4.76 个百分点，区间为 −1.19–10.71；邪方高 11.11 个百分点，区间为 2.78–19.44，善方本批相同。捣蛋王在 6 个首次改选的相同提案局面里移除了本席估计的对手，终局公开身份确认六个目标均属另一阵营，其中 1 对由负转胜。[分阵营换座对照](../../../artifacts/maintenance/bot-rise-faction-and-wealth-rotation-20261126/avalon-report.json) · [当前局面回归](../../../artifacts/maintenance/test-history/runs/a0be0896-e717-4970-a510-2ff36bc30440/results.json)
+
 ## 有序讨论（v1.0.6，2026-10-11）
 
 按2026-10-11用户最新要求，人机在discussion只提交本人finish-discussion，免去行动前等待、立即确认；仍经Worker执行和统一校验、保存，暂停时不推进。三档、两配置均适用，其他动作保留原节奏，不生成虚构发言，不代掉线真人。SDK可选immediateActions仅在全部合法动作都是声明的确认动作时生效；不改变规则、状态或策略版本。阶段与保存规则见[采用规格](spec.md#有序讨论v1062026-10-11)。
