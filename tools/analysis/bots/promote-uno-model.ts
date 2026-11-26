@@ -9,6 +9,7 @@ import { LocalBotModels } from '../../../apps/server/src/local-bot-models';
 import { botModelBinding } from '../../../packages/platform-core/src/bot-model';
 import { isCurrentUnoPilot, unoPilotEvidence } from './uno-pilot';
 import { unoComparisonPasses } from './uno-comparison-plan';
+import { matchesUnoCorrectionCalibration } from './uno-correction-provenance';
 
 const { values } = parseArgs({
   options: {
@@ -58,9 +59,12 @@ if (values.deactivate) {
     calibration.value.evaluation !== 'meets-measured-gates' ||
     calibration.value.calibrationDigest !== leafDigest ||
     (samples !== 8 && samples !== 16) ||
-    correction.value.type !== 'uno-residual-candidate' ||
+    !matchesUnoCorrectionCalibration(
+      correction.value,
+      calibration.value,
+      calibration.sha256,
+    ) ||
     !(correction.value.model?.weight > 0) ||
-    correction.value.calibrationDigest !== leafDigest ||
     comparison.value.calibrationDigest !== leafDigest ||
     comparison.value.candidateDigest !== candidateDigest ||
     !unoComparisonPasses(
@@ -78,7 +82,9 @@ if (values.deactivate) {
     proof?.type !== 'uno-model-worker-acceptance' ||
     proof.result !== 'passed' ||
     proof.calibrationDigest !== leafDigest ||
+    proof.calibrationReportSha256 !== calibration.sha256 ||
     proof.candidateDigest !== candidateDigest ||
+    proof.candidateReportSha256 !== correction.sha256 ||
     proof.comparisonDigest !== comparison.sha256 ||
     !/^[a-f0-9]{64}$/.test(proof.workerSha256) ||
     !/^[a-f0-9]{64}$/.test(proof.applicationManifestSha256) ||

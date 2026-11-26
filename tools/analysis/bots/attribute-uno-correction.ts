@@ -13,6 +13,7 @@ import {
   type Placebo,
 } from './uno-attribution';
 import { calibrationSeeds } from './uno-calibration-provenance';
+import { matchesUnoCorrectionCalibration } from './uno-correction-provenance';
 import { isCurrentUnoPilot, unoPilotEvidence } from './uno-pilot';
 import { validateUnoComparisonPlan } from './uno-comparison-plan';
 import { openTrainingCheckpoint } from './training-checkpoint';
@@ -108,11 +109,11 @@ if (
   b.value.type !== 'uno-calibration-development' ||
   b.value.evaluation !== 'meets-measured-gates' ||
   b.value.calibrationDigest !== calibrationDigest ||
-  c.value.type !== 'uno-residual-candidate' ||
-  c.value.calibrationDigest !== calibrationDigest ||
-  (b.value.options?.hypotheses !== 8 && b.value.options?.hypotheses !== 16)
+  !matchesUnoCorrectionCalibration(c.value, b.value, b.sha256)
 )
-  throw new Error('Attribution requires a qualified B and its frozen C model');
+  throw new Error(
+    'Attribution requires a qualified B matching the frozen C report and search sample budget',
+  );
 const samples = b.value.options.hypotheses as 8 | 16;
 const model = loadUnoCorrection(c.value.model, calibrationDigest);
 if (model.weight === 0)

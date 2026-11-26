@@ -5,6 +5,7 @@ import { createUnoSearchStrategy } from '../../../games/uno/bot/search-strategy'
 import { BotDifficultySchema } from '../../../packages/protocol/src/index';
 import { createGameRegistry } from '../../../apps/server/src/game-registry';
 import { evaluateBotMatch } from './evaluate';
+import { matchesUnoCorrectionCalibration } from './uno-correction-provenance';
 
 const { values } = parseArgs({
   options: {
@@ -30,23 +31,38 @@ let strategy = loaded.bot;
 if (values['uno-calibration']) {
   if (selected !== 'uno')
     throw new Error('This calibration only applies to UNO');
-  const samples = Number(values['uno-samples'] ?? 16);
-  if (samples !== 8 && samples !== 16)
-    throw new Error('UNO search uses 8 or 16 samples');
   const bytes = readFileSync(values['uno-calibration']);
   const input = JSON.parse(bytes.toString('utf8'));
-  const correction = values['uno-correction']
-    ? (() => {
-        const artifact = readFileSync(values['uno-correction']);
-        const candidate = JSON.parse(artifact.toString('utf8'));
-        return {
-          model:
-            candidate?.type === 'uno-residual-candidate'
-              ? candidate.model
-              : candidate,
-          digest: createHash('sha256').update(artifact).digest('hex'),
-        };
-      })()
+  const correctionBytes = values['uno-correction']
+    ? readFileSync(values['uno-correction'])
+    : null;
+  const candidate =
+    correctionBytes && JSON.parse(correctionBytes.toString('utf8'));
+  const candidateReport = candidate?.type === 'uno-residual-candidate';
+  const frozen =
+    candidateReport && candidate.calibrationReportSha256 !== undefined;
+  const samples = Number(
+    values['uno-samples'] ?? (frozen ? input?.options?.hypotheses : 16),
+  );
+  if (samples !== 8 && samples !== 16)
+    throw new Error('UNO search uses 8 or 16 samples');
+  if (
+    frozen &&
+    (!matchesUnoCorrectionCalibration(
+      candidate,
+      input,
+      createHash('sha256').update(bytes).digest('hex'),
+    ) ||
+      candidate.options?.hypotheses !== samples)
+  )
+    throw new Error(
+      'The UNO candidate requires its exact calibration report and search sample budget',
+    );
+  const correction = correctionBytes
+    ? {
+        model: candidateReport ? candidate.model : candidate,
+        digest: createHash('sha256').update(correctionBytes).digest('hex'),
+      }
     : undefined;
   strategy = createUnoSearchStrategy(
     input?.type === 'uno-calibration-development' ? input.calibration : input,

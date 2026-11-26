@@ -24,6 +24,7 @@ import {
 } from '../../../packages/platform-core/src/training-lease';
 
 import { isCurrentUnoPilot } from './uno-pilot';
+import { matchesUnoCorrectionCalibration } from './uno-correction-provenance';
 import { parseUnoHumanReview, readUnoHumanReview } from './uno-human-review';
 
 const { values } = parseArgs({
@@ -272,9 +273,12 @@ try {
           readBounded(output, 1024 * 1024).toString('utf8'),
         );
         if (
-          candidate?.type !== 'uno-residual-candidate' ||
-          !isCurrentUnoPilot(candidate.pilot) ||
-          candidate.calibrationDigest !== accepted.calibrationDigest
+          !matchesUnoCorrectionCalibration(
+            candidate,
+            accepted,
+            plan.calibration,
+          ) ||
+          !isCurrentUnoPilot(candidate.pilot)
         )
           throw new Error(
             'The existing candidate does not match this frozen job',
@@ -359,9 +363,8 @@ try {
       continue;
     }
     if (
-      result?.type !== 'uno-residual-candidate' ||
-      !isCurrentUnoPilot(result.pilot) ||
-      result.calibrationDigest !== accepted.calibrationDigest
+      !matchesUnoCorrectionCalibration(result, accepted, plan.calibration) ||
+      !isCurrentUnoPilot(result.pilot)
     )
       throw new Error('Worker returned invalid candidate output');
     const finalLease = readTrainingLease(leaseFile);

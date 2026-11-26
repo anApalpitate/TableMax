@@ -489,7 +489,7 @@ C 同时通过以上三项才启用学习评分。若 B 相对 A 已通过独立
 
 源码支持真实 Worker 按固定引用推理，回退与重启保留引用，停用仅影响新局。模型损坏时保留原档，修复后重新核验。新局只在四人主配置下为绝悟绑定模型。隔离 Worker 夹具已核验两人、六人、经典四人及其他抓漏延迟的四人局沿用启发式。[模型与原发行回归](../../artifacts/maintenance/test-history/runs/5c14f5e5-bdc1-419f-ae41-4b184dcfed7e/results.json) · [配置范围回归](../../artifacts/maintenance/test-history/runs/553ecbfd-ff49-4c25-9b27-dec9f0d0be2d/results.json)
 
-B 校准、C 候选、A/B/C 配对与真实 Worker 报告须匹配当前试点配置及规则／策略版本。登记时在空目录复核目标完整程序的签名载荷，匹配报告中的发行标识和预装映射摘要。隔离试验已验证本机训练拒绝两人配置报告，登记入口拒绝历史 1.0.0 策略发行且资料目录无写入。正式登记仍待合格 C 候选及对应签名发行和真实 Worker 报告。[训练配置拒绝](../../artifacts/maintenance/bot-rise-idle-20261126/pilot-scope/report.json) · [历史发行拒绝](../../artifacts/maintenance/bot-rise-pilot-scope-20261126/historical-promotion.json) · [登记入口](../../tools/analysis/README.md#uno-校准与配对试点)
+B 校准、C 候选、A/B/C 配对与真实 Worker 报告须匹配当前试点配置及规则／策略版本。C 候选冻结 B 报告原始字节的摘要和搜索假设数，真实 Worker 报告记录所用 B、C 文件摘要。隔离夹具验证替换报告、改变假设数量或转用其他批次的 Worker 证明都会被拒绝。[报告绑定烟测](../../artifacts/maintenance/bot-rise-uno-report-binding-20261126/binding-smoke.json)登记时在空目录复核目标完整程序的签名载荷，匹配报告中的发行标识和预装映射摘要。隔离试验已验证本机训练拒绝两人配置报告，登记入口拒绝历史 1.0.0 策略发行且资料目录无写入。正式登记仍待合格 C 候选及对应签名发行和真实 Worker 报告。[训练配置拒绝](../../artifacts/maintenance/bot-rise-idle-20261126/pilot-scope/report.json) · [历史发行拒绝](../../artifacts/maintenance/bot-rise-pilot-scope-20261126/historical-promotion.json) · [登记入口](../../tools/analysis/README.md#uno-校准与配对试点)
 
 - **登记与启用**：候选先写完整权重和记录，绑定游戏发行、策略、编码器、训练快照、评估结果和内容摘要。通过独立验收并复核引用后才可登记为新局可用。新局在保存时记录不可变模型引用，正在游玩的对局继续沿用开局身份。
 - **停用与恢复**：候选收益不达标或发现退步时撤下新局选择，保留已绑定对局所需的权重与验证记录。丢失、损坏或不兼容的绑定按原档提示恢复所需版本。原有启发式旧档与有模型的新档分别验收重启和回退。

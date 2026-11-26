@@ -8,6 +8,7 @@ import { PROJECT_GAME_PUBLIC_KEY } from '../../../apps/server/src/game-packages/
 import { PackageStore } from '../../../apps/server/src/game-packages/store';
 import { isCurrentUnoPilot, unoPilotEvidence } from './uno-pilot';
 import { unoComparisonPasses } from './uno-comparison-plan';
+import { matchesUnoCorrectionCalibration } from './uno-correction-provenance';
 import { verifyUnoWorker } from './uno-worker-verification';
 
 const { values } = parseArgs({
@@ -52,7 +53,7 @@ const candidateDigest = digest(JSON.stringify(c.model));
 assert.ok(
   b.type === 'uno-calibration-development' &&
     b.evaluation === 'meets-measured-gates' &&
-    c.type === 'uno-residual-candidate' &&
+    matchesUnoCorrectionCalibration(c, b, bReportSha256) &&
     c.model?.weight > 0 &&
     unoComparisonPasses(paired, bReportSha256, cReportSha256) &&
     [b, c, paired].every(
@@ -172,7 +173,9 @@ console.log(
       applicationManifestSha256,
       preinstalledMappingSha256: bootstrapDigest,
       calibrationDigest,
+      calibrationReportSha256: bReportSha256,
       candidateDigest,
+      candidateReportSha256: cReportSha256,
       comparisonDigest,
       host: {
         node: process.version,

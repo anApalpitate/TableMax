@@ -6,6 +6,7 @@ import { fileURLToPath } from 'node:url';
 import { parseArgs, promisify } from 'node:util';
 import { isCurrentUnoPilot, unoPilotEvidence } from './uno-pilot';
 import { calibrationSeeds } from './uno-calibration-provenance';
+import { matchesUnoCorrectionCalibration } from './uno-correction-provenance';
 import {
   createUnoComparisonEvaluator,
   runUnoComparisonBlock,
@@ -110,9 +111,15 @@ const calibrationDigest = hash(calibration.calibration);
 const candidateDigest = hash(candidate.model);
 if (
   calibration.calibrationDigest !== calibrationDigest ||
-  candidate.calibrationDigest !== calibrationDigest
+  !matchesUnoCorrectionCalibration(
+    candidate,
+    calibration,
+    calibrationReport.sha256,
+  )
 )
-  throw new Error('B and C must share the same frozen calibration digest');
+  throw new Error(
+    'B and C must share the exact frozen calibration report and search sample budget',
+  );
 const input: UnoComparisonInputs = {
   calibration: calibration.calibration,
   calibrationDigest,
@@ -151,6 +158,7 @@ function sourceDigest() {
       'uno-comparison-worker',
       'uno-paired-statistics',
       'uno-calibration-provenance',
+      'uno-correction-provenance',
       'training-checkpoint',
     ].map((name) => 'tools/analysis/bots/' + name + '.ts'),
   ].sort();
