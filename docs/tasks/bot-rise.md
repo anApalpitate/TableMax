@@ -3,11 +3,11 @@
 ## 任务接续速查
 
 - 目标：建立可复用的人机评估环境，逐游戏升级默认／豆包／绝悟，增加捣蛋王策略。
-- 状态：原版宝可梦保留三档，其他八个玩法已接入四种人机，并完成源码端入座、保存和恢复校验。上一批 UNO 自适应 B 组的候选排序与末张 +4 分组误差未过线。联合威胁评分已进入下一批独立正式校准。正式 C 组训练、真人体验和新签名发行验收仍待完成。
+- 状态：原版宝可梦保留三档，其他八个玩法已接入四种人机，并完成源码端入座、保存和恢复校验。UNO 第六批 B 组的概率和覆盖项通过，候选排序未过线。正式 C 组训练、真人体验和新签名发行验收仍待完成。
 - 发行依据：[当前已验收交付](../reference/acceptance.md#当前源码与本地交付)。当前实施证据按源码与实际交付分别记录。
 - 所属范围：游戏SDK、人机运行与验证工具、各游戏策略及必要的配置／展示／恢复适配；规则、计分和秘密边界不因策略升级改变。
 - 有效基础与缺口：九个源码玩法已跑通统一离线对局与能力声明。各款游戏的策略、实际 Worker 和恢复证据记录在[逐游戏迁移](#逐游戏迁移与能力声明)；真人体验需要真实混合对局。
-- 下一步：完成已冻结的 B 组正式校准并独立复算。正式 B 组通过后，再开始三组 UNO 绝悟动作评分训练。[B 组冻结计划](../../artifacts/maintenance/bot-rise-uno-qualification-06-20261126/frozen-plan.json) · [首轮学习范围](#首轮试点范围) · [R0 冻结清单](#r0-实施前冻结清单)
+- 下一步：用独立开发样本改进 B 组候选排序，正式 B 组通过后再开始三组 UNO 绝悟动作评分训练。[第六批 B 组独立复算](../../artifacts/maintenance/bot-rise-uno-qualification-06-20261126/audit.json) · [首轮学习范围](#首轮试点范围) · [R0 冻结清单](#r0-实施前冻结清单)
 
 ## 来源、范围与目标
 
@@ -196,7 +196,9 @@ R1／R2 可与[游戏开发接口](../reference/game-development.md#模块与契
 
 48 个新开发开局已全部完成，取得 88 个决策局面和 351 个候选对。联合威胁评分在两批独立长续推分别命中 16/20 和 20/25。合并后，联合威胁命中 14/16，现有评分与同语料重拟合的旧特征均为 13/16。按开局配对重抽，差值区间包含 0。双方均能确认方向的 4 对上，三个评分器全部命中。达到 C 最低改选条件的局面分别为现有评分 85、旧特征重拟合 84、联合威胁 85。该结果支持将联合威胁候选送入正式校准，排序收益仍待确认。[独立排序报告](../../artifacts/maintenance/bot-rise-uno-joint-threat-independent-ranking-20261126/report.json) · [按开局配对复算](../../artifacts/maintenance/bot-rise-uno-joint-threat-independent-ranking-20261126/audit.json)
 
-联合威胁评分已接入版本 2 校准格式。旧格式的 12 项特征沿用原顺序和取值，版本 2 在其后追加四项授权观察特征。采样、拟合、独立复算和推理按同一版本读取。旧正式报告已在新入口下重放并复现原结论。第六批正式校准已启动，冻结 128 个自然开局和 128 个独立罚牌复核开局，继续使用原来的搜索预算、概率、排序与覆盖门槛。两个集合与 24 份计划及报告里的 1648 个不同种子核对无重叠。C 组训练继续等待本批正式结论。[种子隔离核对](../../artifacts/maintenance/bot-rise-uno-b-calibration-reservation-20261126/reservation.json) · [版本兼容回归](../../artifacts/maintenance/test-history/runs/71de1fa1-d05a-4231-a5bf-97a7ca7e7d1a/results.json) · [正式冻结计划](../../artifacts/maintenance/bot-rise-uno-qualification-06-20261126/frozen-plan.json)
+联合威胁评分已接入版本 2 校准格式。旧格式的 12 项特征沿用原顺序和取值，版本 2 在其后追加四项授权观察特征。采样、拟合、独立复算和推理按同一版本读取。旧正式报告已在新入口下重放并复现原结论。第六批正式校准冻结了 128 个自然开局和 128 个独立罚牌复核开局，使用原来的搜索预算、概率、排序与覆盖门槛。两个集合与 24 份计划及报告里的 1648 个不同种子核对无重叠。[种子隔离核对](../../artifacts/maintenance/bot-rise-uno-b-calibration-reservation-20261126/reservation.json) · [版本兼容回归](../../artifacts/maintenance/test-history/runs/71de1fa1-d05a-4231-a5bf-97a7ca7e7d1a/results.json) · [正式冻结计划](../../artifacts/maintenance/bot-rise-uno-qualification-06-20261126/frozen-plan.json)
+
+第六批已完成并独立复算。128 个自然开局共 5654 条概率标签，总体误差 0.59 个百分点。Brier 为 0.19412，简单对照为 0.19862。普通 +2、普通 +4 和末张 +4 的误差为 2.90、1.87、0.88 个百分点，三类分别覆盖 128／128／34 个开局。894 个候选对中有 50 对可确认方向，命中 27 对（54%），低于 70% 门槛。B 首选相对参考首选的平均胜率损失为 −0.22 个百分点，配对区间为 −0.54 至 +0.10 个百分点。排序是唯一未通过项，C 组入口复核后仍处于待启动状态。该批留出只作正式证据，后续拟合及配置选择使用新的开发开局。[第六批完整报告](../../artifacts/maintenance/bot-rise-uno-qualification-06-20261126/report.json) · [第六批独立复算](../../artifacts/maintenance/bot-rise-uno-qualification-06-20261126/audit.json)
 
 C 组入口已绑定第六批 B 的冻结方案、评分摘要、检查点和独立复算。72 个拟合、36 个调参和 44 个开发对照开局相互独立，与已登记的 1304 个 B 及排序开发种子也无重叠。本机 CUDA 求解通过 25 条合成标签核对。缺少本批 B 正式报告或独立复算时，启动请求被拒绝，训练目录与候选均未生成。源码夹具用版本 2 评分通过真实 Worker、SQLite 回退和重开、取消及损坏恢复检查。两个独立合成开局分别验证拟合和调参子进程。版本 2 下的候选、共享假设续推和配对残差在主进程与子进程中一致。这两个种子保留为诊断样本。[配对残差交叉核对](../../artifacts/maintenance/bot-rise-uno-v2-residual-label-smoke-20261126/report.json) · [版本 2 Worker 回归](../../artifacts/maintenance/test-history/runs/7b096a09-1ca2-4fc6-be92-34d374c6e21a/results.json) · [C 组前置核对](../../artifacts/maintenance/bot-rise-uno-joint-threat-c-campaign-20261126/readiness.json) · [提前启动验证](../../artifacts/maintenance/bot-rise-uno-joint-threat-c-campaign-20261126/gate-wait.json)
 
