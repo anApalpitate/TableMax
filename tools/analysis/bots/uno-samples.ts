@@ -6,6 +6,10 @@ import { RandomSource } from '../../../packages/platform-core/src/random';
 import { bot, type Memory } from '../../../games/uno/bot/index';
 import { unoLeafFeatures } from '../../../games/uno/bot/calibration';
 import {
+  unoSearchRuleSteps,
+  type UnoSearchSamples,
+} from '../../../games/uno/bot/search-budget';
+import {
   continueUnoHypothesis,
   searchUnoPlays,
 } from '../../../games/uno/bot/search';
@@ -24,13 +28,22 @@ export interface UnoRoot {
 
 export interface UnoSampleOptions {
   roots: number;
-  hypotheses: 8 | 16;
+  hypotheses: UnoSearchSamples;
+  labelHypotheses?: 8 | 16;
   continuations: number;
   maxSteps: number;
 }
 
+export function unoCalibrationLabelOptions(
+  options: UnoSampleOptions,
+): UnoSampleOptions {
+  const { labelHypotheses, ...collection } = options;
+  return { ...collection, hypotheses: labelHypotheses ?? options.hypotheses };
+}
+
 interface RolloutOptions {
-  hypotheses: 8 | 16;
+  hypotheses: UnoSearchSamples;
+  labelHypotheses?: 8 | 16;
   continuations: number;
   maxSteps: number;
   seed: number;
@@ -132,6 +145,7 @@ export function sampleUnoContinuations(
   const outcomes: (0 | 1 | null)[][] = [];
   const selected = options.onlyCandidates && new Set(options.onlyCandidates);
   let unfinished = 0;
+  let labeledWorlds = 0;
   const short = searchUnoPlays(
     root.view,
     root.actions,
@@ -141,8 +155,11 @@ export function sampleUnoContinuations(
     evaluate,
     {
       samples: options.hypotheses,
-      maxRuleSteps: options.hypotheses * 8 * 16,
+      maxRuleSteps: unoSearchRuleSteps(options.hypotheses),
       onHypothesis(branches) {
+        if (labeledWorlds >= (options.labelHypotheses ?? options.hypotheses))
+          return;
+        labeledWorlds++;
         const byCandidate = branches.map((): (0 | 1 | null)[] => []);
         for (let trial = 0; trial < options.continuations; trial++) {
           const seed = independentSeed(

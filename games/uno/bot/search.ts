@@ -6,11 +6,16 @@ import { project, projectUnoMemoryObservation } from '../rules/project';
 import { validateState, type State } from '../rules/state';
 import type { Action, UnoView } from '../types';
 import { chooseAction, observe, type Memory } from './index';
+import {
+  isUnoSearchSamples,
+  unoSearchRuleStepLimit,
+  type UnoSearchSamples,
+} from './search-budget';
 
 type Play = Extract<Action, { type: 'play' }>;
 
 interface SearchOptions {
-  samples: 8 | 16;
+  samples: UnoSearchSamples;
   maxRuleSteps: number;
   onHypothesis?: (leaves: readonly UnoHypothesisLeaf[]) => void;
 }
@@ -306,14 +311,14 @@ export function searchUnoPlays(
   scoreUnfinished: (view: UnoView) => number,
   { samples, maxRuleSteps, onHypothesis }: SearchOptions = {
     samples: 16,
-    maxRuleSteps: 2048,
+    maxRuleSteps: unoSearchRuleStepLimit,
   },
 ): UnoSearchResult {
   if (
-    ![8, 16].includes(samples) ||
+    !isUnoSearchSamples(samples) ||
     !Number.isSafeInteger(maxRuleSteps) ||
     maxRuleSteps < 1 ||
-    maxRuleSteps > 2048
+    maxRuleSteps > unoSearchRuleStepLimit
   )
     throw new Error('Invalid UNO search budget');
   if (

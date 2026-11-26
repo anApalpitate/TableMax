@@ -1,3 +1,4 @@
+import { isUnoSearchSamples } from '../../../games/uno/bot/search-budget';
 import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import { parseArgs } from 'node:util';
@@ -23,7 +24,7 @@ const { values } = parseArgs({
 const selected = values.game;
 if (!selected || !values.seeds || !values.levels)
   throw new Error(
-    'Usage: node --import tsx tools/analysis/bots/run.ts --game=<game-id> [--variant=<variant-id>] --seeds=41,42 --levels=default,doubao [--max-steps=15000] [--setup=<JSON>] [--uno-calibration=<JSON-path> --uno-samples=8|16 --uno-correction=<JSON-path>]',
+    'Usage: node --import tsx tools/analysis/bots/run.ts --game=<game-id> [--variant=<variant-id>] --seeds=41,42 --levels=default,doubao [--max-steps=15000] [--setup=<JSON>] [--uno-calibration=<JSON-path> --uno-samples=8|16|32 --uno-correction=<JSON-path>]',
   );
 const loaded = await createGameRegistry().load(selected, values.variant);
 const { rules } = loaded;
@@ -44,8 +45,8 @@ if (values['uno-calibration']) {
   const samples = Number(
     values['uno-samples'] ?? (frozen ? input?.options?.hypotheses : 16),
   );
-  if (samples !== 8 && samples !== 16)
-    throw new Error('UNO search uses 8 or 16 samples');
+  if (!isUnoSearchSamples(samples))
+    throw new Error('UNO search uses an upper limit of 8, 16, or 32 samples');
   if (
     frozen &&
     (!matchesUnoCorrectionCalibration(

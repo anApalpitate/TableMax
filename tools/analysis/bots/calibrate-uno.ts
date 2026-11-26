@@ -5,6 +5,7 @@ import { availableParallelism } from 'node:os';
 import { fileURLToPath } from 'node:url';
 import { isDeepStrictEqual, parseArgs, promisify } from 'node:util';
 import { unoLeafFeatureNames } from '../../../games/uno/bot/calibration';
+import { isUnoSearchSamples } from '../../../games/uno/bot/search-budget';
 import { linearPrediction, probability } from './fit';
 import {
   average,
@@ -65,6 +66,7 @@ const { values } = parseArgs({
     'holdout-seeds': { type: 'string' },
     roots: { type: 'string', default: '1' },
     hypotheses: { type: 'string', default: '8' },
+    'label-hypotheses': { type: 'string' },
     continuations: { type: 'string', default: '16' },
     'max-steps': { type: 'string', default: '15000' },
     'root-policy': { type: 'string', default: 'reference' },
@@ -128,11 +130,24 @@ if (new Set(allSeeds).size !== allSeeds.length)
     'Natural and pending calibration partitions must all use disjoint seeds',
   );
 const hypotheses = Number(values.hypotheses);
-if (hypotheses !== 8 && hypotheses !== 16)
-  throw new Error('Choose 8 or 16 hypotheses');
+if (!isUnoSearchSamples(hypotheses))
+  throw new Error('Choose 8, 16, or up to 32 hypotheses');
+const labelHypotheses =
+  values['label-hypotheses'] === undefined
+    ? undefined
+    : Number(values['label-hypotheses']);
+if (
+  labelHypotheses !== undefined &&
+  ((labelHypotheses !== 8 && labelHypotheses !== 16) ||
+    labelHypotheses > hypotheses)
+)
+  throw new Error(
+    'Calibration must label 8 or 16 complete worlds within the search budget',
+  );
 const options: UnoSampleOptions = {
   roots: Number(values.roots),
   hypotheses,
+  ...(labelHypotheses === undefined ? {} : { labelHypotheses }),
   continuations: Number(values.continuations),
   maxSteps: Number(values['max-steps']),
 };

@@ -1,3 +1,4 @@
+import { isUnoSearchSamples } from '../../../games/uno/bot/search-budget';
 type Calibration = {
   calibrationDigest?: unknown;
   options?: { hypotheses?: unknown };
@@ -22,7 +23,7 @@ export function matchesUnoCorrectionCalibration(
     /^[a-f0-9]{64}$/.test(calibrationReportSha256) &&
     candidate.calibrationReportSha256 === calibrationReportSha256 &&
     candidate.calibrationDigest === leafDigest &&
-    (samples === 8 || samples === 16) &&
+    isUnoSearchSamples(samples) &&
     candidate.options?.hypotheses === samples
   );
 }

@@ -1,3 +1,4 @@
+import { isUnoSearchSamples } from '../../../games/uno/bot/search-budget';
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
 import { lstatSync, readFileSync, readdirSync, realpathSync } from 'node:fs';
@@ -43,7 +44,7 @@ const { contents: paired, sha256: comparisonDigest } = report(
   required('comparison'),
 );
 const samples = b.options?.hypotheses;
-assert.ok(samples === 8 || samples === 16);
+assert.ok(isUnoSearchSamples(samples));
 assert.ok(
   [b, c, paired].every((item) => isCurrentUnoPilot(item?.pilot)),
   'The results do not match the current UNO pilot',

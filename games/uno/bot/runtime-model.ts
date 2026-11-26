@@ -1,6 +1,7 @@
 import type { JsonValue } from '@tablemax/game-sdk';
 import { loadUnoLeafScorer } from './calibration';
 import { loadUnoCorrection } from './correction';
+import { isUnoSearchSamples } from './search-budget';
 
 export function readUnoRuntimeModel(input: unknown) {
   if (!input || typeof input !== 'object' || Array.isArray(input))
@@ -8,7 +9,7 @@ export function readUnoRuntimeModel(input: unknown) {
   const value = input as Record<string, unknown>;
   if (
     value.version !== 1 ||
-    (value.samples !== 8 && value.samples !== 16) ||
+    !isUnoSearchSamples(value.samples) ||
     typeof value.calibrationDigest !== 'string' ||
     !/^[a-f0-9]{64}$/.test(value.calibrationDigest) ||
     Object.keys(value).some(
@@ -24,7 +25,7 @@ export function readUnoRuntimeModel(input: unknown) {
   )
     throw new Error('Saved UNO model uses an incompatible format');
   return {
-    samples: value.samples as 8 | 16,
+    samples: value.samples,
     scoring: loadUnoLeafScorer(value.calibration),
     correction:
       value.correction === undefined

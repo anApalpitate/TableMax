@@ -2,7 +2,10 @@ import { isDeepStrictEqual } from 'node:util';
 import { unoLeafFeatureNames } from '../../../games/uno/bot/calibration';
 import type { CalibrationSeedEvidence } from './uno-calibration-seed';
 import { isCurrentUnoPilot } from './uno-pilot';
-import type { UnoSampleOptions } from './uno-samples';
+import {
+  unoCalibrationLabelOptions,
+  type UnoSampleOptions,
+} from './uno-samples';
 
 type FitCorpus = {
   type: 'uno-natural-fit-corpus';
@@ -31,7 +34,10 @@ export function naturalFitCorpus(
       corpus.sourceReportSha256,
       corpus.sourceSha256,
     ].every((value) => digest.test(value)) ||
-    !isDeepStrictEqual(corpus.naturalOptions, options) ||
+    !isDeepStrictEqual(
+      corpus.naturalOptions,
+      unoCalibrationLabelOptions(options),
+    ) ||
     !Array.isArray(corpus.fit) ||
     !isDeepStrictEqual(
       corpus.fit.map((entry) => entry?.seed),

@@ -1,3 +1,4 @@
+import { isUnoSearchSamples } from '../../../games/uno/bot/search-budget';
 import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import { isDeepStrictEqual, parseArgs } from 'node:util';
@@ -122,7 +123,8 @@ if (
   throw new Error(
     'Attribution requires a qualified B matching the frozen C report and search sample budget',
   );
-const samples = b.value.options.hypotheses as 8 | 16;
+const samples = b.value.options.hypotheses;
+if (!isUnoSearchSamples(samples)) throw new Error('Invalid B search budget');
 const model = loadUnoCorrection(c.value.model, calibrationDigest);
 if (model.weight === 0)
   throw new Error('Attribution requires a non-zero frozen C model');

@@ -10,6 +10,7 @@ import { RandomSource } from '../../../packages/platform-core/src/random';
 import { probability } from './fit';
 import {
   collectUnoRoots,
+  unoCalibrationLabelOptions,
   independentSeed,
   pairedUnoDifferences,
   sampleUnoContinuations,
@@ -96,7 +97,7 @@ export function rankingSamples(
     const sample = sampleUnoContinuations(
       root,
       {
-        ...options,
+        ...unoCalibrationLabelOptions(options),
         continuations: budget.continuations,
         ...(onlyCandidates ? { onlyCandidates } : {}),
         seed: batch === 0 ? seed : independentSeed(seed, 0x67000 + batch),
@@ -159,7 +160,10 @@ export async function collectCalibrationSeed(
     for (const [index, root] of roots.entries()) {
       const sample = sampleUnoContinuations(
         root,
-        { ...options, seed: independentSeed(seed, 0x10000 + index) },
+        {
+          ...unoCalibrationLabelOptions(options),
+          seed: independentSeed(seed, 0x10000 + index),
+        },
         bootstrapLeaf,
       );
       unfinished += sample.unfinished;

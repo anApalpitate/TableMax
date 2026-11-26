@@ -1,3 +1,4 @@
+import type { UnoSearchSamples } from '../../../games/uno/bot/search-budget';
 import { bot, rules } from '../../../games/uno';
 import { createUnoSearchStrategy } from '../../../games/uno/bot/search-strategy';
 import { evaluateBotMatch } from './evaluate';
@@ -15,7 +16,7 @@ import {
 export interface UnoComparisonInputs {
   calibration: unknown;
   calibrationDigest: string;
-  hypotheses: 8 | 16;
+  hypotheses: UnoSearchSamples;
   correction: unknown;
   candidateDigest: string;
   maxSteps: number;

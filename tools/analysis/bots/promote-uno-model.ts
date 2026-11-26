@@ -1,3 +1,4 @@
+import { isUnoSearchSamples } from '../../../games/uno/bot/search-budget';
 import { createHash } from 'node:crypto';
 import { lstatSync, readFileSync, readdirSync, realpathSync } from 'node:fs';
 import { isAbsolute, relative, sep } from 'node:path';
@@ -58,7 +59,7 @@ if (values.deactivate) {
     calibration.value.type !== 'uno-calibration-development' ||
     calibration.value.evaluation !== 'meets-measured-gates' ||
     calibration.value.calibrationDigest !== leafDigest ||
-    (samples !== 8 && samples !== 16) ||
+    !isUnoSearchSamples(samples) ||
     !matchesUnoCorrectionCalibration(
       correction.value,
       calibration.value,

@@ -1,3 +1,4 @@
+import { isUnoSearchSamples } from '../../../games/uno/bot/search-budget';
 import { execFile } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { fitUnoOnGpu } from './uno-gpu-fit';
@@ -110,7 +111,7 @@ if (
   report?.evaluation !== 'meets-measured-gates' ||
   !Array.isArray(report.trainSeeds) ||
   !Array.isArray(report.holdoutSeeds) ||
-  (hypotheses !== 8 && hypotheses !== 16)
+  !isUnoSearchSamples(hypotheses)
 )
   throw new Error(
     'UNO correction training requires a B report meeting the measured calibration gates',

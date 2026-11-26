@@ -1,5 +1,8 @@
 import { expect, it } from 'vitest';
 import { searchUnoPlays } from './search';
+import { unoSearchRuleSteps } from './search-budget';
+import { readUnoRuntimeModel } from './runtime-model';
+import { sampleUnoContinuations } from '../../../tools/analysis/bots/uno-samples';
 import { unoLeafFeatureNames } from './calibration';
 import { createUnoSearchStrategy } from './search-strategy';
 import { context, fixture } from '../rules/test-fixtures';
@@ -114,6 +117,53 @@ it('starts only a complete hypothesis within the residual rule-step budget', () 
   expect(result.samples).toBe(1);
   expect(result.candidates).toHaveLength(2);
   expect(result.ruleSteps).toBeLessThanOrEqual(32);
+});
+
+it('shares up to 32 complete short worlds while labeling the same frozen eight-world prefix', () => {
+  const state = fixture({
+    a: ['red-1-a', 'red-skip-a', 'yellow-1-a'],
+    b: ['blue-1-a', 'blue-2-a'],
+    c: ['green-1-a', 'green-2-a'],
+    d: ['yellow-2-a', 'green-3-a'],
+  });
+  const root = {
+    seed: 42,
+    id: 'adaptive-world-fixture',
+    view: project(state, { role: 'player', seatId: 'a' }),
+    actions: legalActions(state, 'a'),
+    memory,
+  };
+  const options = { continuations: 1, maxSteps: 2, seed: 41 };
+  const original = sampleUnoContinuations(
+    root,
+    { ...options, hypotheses: 8 },
+    score,
+  );
+  const adaptive = sampleUnoContinuations(
+    root,
+    { ...options, hypotheses: 32, labelHypotheses: 8 },
+    score,
+  );
+  expect(original.short.samples).toBe(8);
+  expect(adaptive.short.samples).toBe(32);
+  expect(adaptive.short.ruleSteps).toBeLessThanOrEqual(unoSearchRuleSteps(32));
+  expect(adaptive.short.candidates.map(({ action }) => action)).toEqual(
+    original.short.candidates.map(({ action }) => action),
+  );
+  expect(adaptive.outcomes).toEqual(original.outcomes);
+  expect(adaptive.leaves).toEqual(original.leaves);
+  expect(
+    readUnoRuntimeModel({
+      version: 1,
+      samples: 32,
+      calibrationDigest: 'a'.repeat(64),
+      calibration: {
+        version: 1,
+        features: unoLeafFeatureNames,
+        coefficients: Array(unoLeafFeatureNames.length).fill(0),
+      },
+    }).samples,
+  ).toBe(32);
 });
 
 it('does not search mandatory responses or use conflicting remembered cards', () => {

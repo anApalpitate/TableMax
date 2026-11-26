@@ -1,4 +1,5 @@
 import { loadUnoLeafScorer } from '../../../games/uno/bot/calibration';
+import { unoSearchRuleSteps } from '../../../games/uno/bot/search-budget';
 import {
   searchUnoPlays,
   type UnoSearchResult,
@@ -48,7 +49,7 @@ export async function collectUnoResidualSeed(
       scoreLeaf,
       {
         samples: options.hypotheses,
-        maxRuleSteps: options.hypotheses * 8 * 16,
+        maxRuleSteps: unoSearchRuleSteps(options.hypotheses),
       },
     );
     if (!short.candidates.length) continue;

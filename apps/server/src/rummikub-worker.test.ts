@@ -167,7 +167,7 @@ for (const [label, difficulty, peak] of [
     // level also replays the latest juewu peak's 54-table/3-rack position.
     // Other cases retain the old 2071ms and dense 1596ms measured hotspots.
     // First-hand Worker checks cannot cover their generation and heap pressure.
-    const state = rules.validateState(peak.state, peak.state.seats);
+    const state = rules.validateState(peak.state, peak.state.seats) as State;
     const task: NonNullable<ReturnType<RoomCoordinator['botTask']>> = {
       gameId: 'rummikub',
       rulesVersion: rules.manifest.rulesVersion,

@@ -1,3 +1,4 @@
+import { isUnoSearchSamples } from '../../../games/uno/bot/search-budget';
 import { spawn } from 'node:child_process';
 import { createHash, randomUUID } from 'node:crypto';
 import {
@@ -70,7 +71,7 @@ if (
   !isCurrentUnoPilot(b.pilot) ||
   b.evaluation !== 'meets-measured-gates' ||
   b.calibrationDigest !== sha(JSON.stringify(b.calibration)) ||
-  (b.options?.hypotheses !== 8 && b.options?.hypotheses !== 16)
+  !isUnoSearchSamples(b.options?.hypotheses)
 )
   throw new Error(
     'Independent C training requires a B report meeting the measured calibration gates',

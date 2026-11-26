@@ -1,3 +1,4 @@
+import { isUnoSearchSamples } from '../../../games/uno/bot/search-budget';
 import { execFile } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { readFileSync, readdirSync } from 'node:fs';
@@ -107,7 +108,7 @@ if (
     'Formal comparison requires a measured B calibration and a non-zero frozen C candidate',
   );
 const hypotheses = calibration.options?.hypotheses;
-if (hypotheses !== 8 && hypotheses !== 16)
+if (!isUnoSearchSamples(hypotheses))
   throw new Error('The search sample budget must come from the B report');
 const sourceSeeds = [
   ...calibrationSeeds(calibration),

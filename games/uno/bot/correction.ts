@@ -3,6 +3,7 @@ import { handValue } from '../rules/scoring';
 import type { Action, UnoView } from '../types';
 import type { Memory } from './index';
 import type { UnoSearchResult } from './search';
+import type { UnoSearchSamples } from './search-budget';
 
 type Play = Extract<Action, { type: 'play' }>;
 type Candidate = UnoSearchResult['candidates'][number];
@@ -152,7 +153,7 @@ export function unoCorrectedBest(
   view: UnoView,
   memory: Memory,
   model: UnoCorrectionModel,
-  sampleBudget: 8 | 16,
+  sampleBudget: UnoSearchSamples,
   shuffleResiduals?: (values: readonly number[]) => readonly number[],
 ) {
   const baseline = unoSearchBest(result.candidates);

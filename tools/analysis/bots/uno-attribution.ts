@@ -6,6 +6,7 @@ import {
 } from '../../../games/uno/bot/correction';
 import { createUnoSearchStrategy } from '../../../games/uno/bot/search-strategy';
 import type { UnoSearchResult } from '../../../games/uno/bot/search';
+import type { UnoSearchSamples } from '../../../games/uno/bot/search-budget';
 import type { BotStrategy } from '../../../packages/game-sdk/src/index';
 import { RandomSource } from '../../../packages/platform-core/src/random';
 import { average, bootstrap } from './uno-calibration-seed';
@@ -125,7 +126,7 @@ export function shuffledResiduals(
 function placeboChoice(
   root: AttributionRoot,
   model: UnoCorrectionModel,
-  samples: 8 | 16,
+  samples: UnoSearchSamples,
   random: RandomSource,
 ) {
   const selected = unoCorrectedBest(
@@ -142,7 +143,7 @@ function placeboChoice(
 export function tunePlacebo(
   positions: readonly AttributionRoot[],
   model: UnoCorrectionModel,
-  samples: 8 | 16,
+  samples: UnoSearchSamples,
 ): Placebo {
   const viable = positions.filter(({ challengers }) => challengers >= 2);
   let learnedChanges = 0,

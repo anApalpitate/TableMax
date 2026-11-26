@@ -3,6 +3,7 @@ import type { Action, UnoView } from '../types';
 import { loadUnoLeafScorer } from './calibration';
 import { bot, type Memory } from './index';
 import { searchUnoPlays, type UnoSearchResult } from './search';
+import { unoSearchRuleSteps, type UnoSearchSamples } from './search-budget';
 import {
   loadUnoCorrection,
   unoCorrectedBest,
@@ -13,7 +14,7 @@ import {
 export function createUnoSearchStrategy(
   calibration: unknown,
   calibrationDigest: string,
-  samples: 8 | 16 = 16,
+  samples: UnoSearchSamples = 16,
   correction?: { model: unknown; digest: string; placebo?: boolean },
   onSearch?: (
     result: UnoSearchResult,
@@ -49,7 +50,7 @@ export function createUnoSearchStrategy(
         input.random,
         input.signal,
         score,
-        { samples, maxRuleSteps: samples * 8 * 16 },
+        { samples, maxRuleSteps: unoSearchRuleSteps(samples) },
       );
       const baseAction =
         unoSearchBest(result.candidates)?.action ?? (baseline.action as Action);

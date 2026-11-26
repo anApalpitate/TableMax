@@ -6,6 +6,7 @@ import {
   unoLeafFeatureNames,
 } from '../../../games/uno/bot/calibration';
 import { linearPrediction, probability } from './fit';
+import { isUnoSearchSamples } from '../../../games/uno/bot/search-budget';
 import { fitUnoCalibration } from './uno-calibration-fit';
 import { calibrationSeeds } from './uno-calibration-provenance';
 import {
@@ -45,7 +46,10 @@ if (
   !['standard', 'anchored'].includes(report.fitPolicy) ||
   !['reference', 'search'].includes(report.rootPolicy) ||
   report.calibrationDigest !== sha(JSON.stringify(report.calibration)) ||
-  ![8, 16].includes(report.options?.hypotheses) ||
+  !isUnoSearchSamples(report.options?.hypotheses) ||
+  (report.options.labelHypotheses !== undefined &&
+    (![8, 16].includes(report.options.labelHypotheses) ||
+      report.options.labelHypotheses > report.options.hypotheses)) ||
   [
     report.options.roots,
     report.options.continuations,

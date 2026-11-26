@@ -4,6 +4,7 @@ import type { UnoMemoryObservation } from '../rules/project';
 import { unoPilotMatch, type UnoSetup } from '../config';
 import { leadingRival, pressureOnLeader } from './mischief';
 import { searchUnoPlays } from './search';
+import { unoSearchRuleSteps } from './search-budget';
 import { unoCorrectedBest, unoSearchBest } from './correction';
 import { readUnoRuntimeModel, validateUnoRuntimeModel } from './runtime-model';
 import {
@@ -388,7 +389,7 @@ export const bot: BotStrategy = {
       learned.scoring,
       {
         samples: learned.samples,
-        maxRuleSteps: learned.samples * 8 * 16,
+        maxRuleSteps: unoSearchRuleSteps(learned.samples),
       },
     );
     const chosen = learned.correction

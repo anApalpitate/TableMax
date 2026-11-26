@@ -370,11 +370,11 @@ it('pins the validated local model through the real Worker, rollback, and recove
   ).toBe(true);
 });
 
-it('measures B and C in real Workers and verifies the candidate with SQLite recovery', async () => {
+async function verifyWorkerCorrection(samples: 8 | 32) {
   const calibrationDigest = 'a'.repeat(64);
   const baseline = {
     version: 1,
-    samples: 8,
+    samples,
     calibrationDigest,
     calibration: {
       version: 1,
@@ -413,4 +413,10 @@ it('measures B and C in real Workers and verifies the candidate with SQLite reco
     tamper: 'passed',
     timing: { B: { decisions: 6 }, C: { decisions: 7 } },
   });
-}, 15000);
+}
+
+it.each([8, 32] as const)(
+  'measures B and C with up to %s worlds in real Workers and verifies SQLite recovery',
+  verifyWorkerCorrection,
+  15000,
+);
