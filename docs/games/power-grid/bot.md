@@ -2,7 +2,7 @@
 
 独立策略入口为 `games/power-grid/bot/index.ts`，经共享 `BotStrategy` 接收本人安全投影和服务端合法动作。策略只看到本人现金、公开的电厂／仓储／城市／顺序／市场、本人可见建城费用与合法动作；对手现金、牌堆牌号、秘密移除牌号均不提供。记忆为 `null`，不调用其他游戏策略或网络服务。
 
-源码 `power-grid-local@1.1.4` 支持默认、豆包、绝悟和捣蛋王。历史签名对局仍固定原策略与发行。
+源码 `power-grid-local@1.1.5` 支持默认、豆包、绝悟和捣蛋王。历史签名对局仍固定原策略与发行。
 
 ## 三个强度档位
 
@@ -74,8 +74,10 @@
 
 精确复现其中六个配对的 12 条轨迹。两例绝悟和赢家供电相同，按剩余现金落败。一例绝悟触发终局，当时对手按已建城市可供 15 城，已备燃料可支撑 19 城。后手继续建城后以 19 城胜出，绝悟供 17 城。另三例在他人触发终局时供电落后。把后手已备燃料的产能纳入绝悟判断后，单步替换令自触发一例推迟建城，绝悟仍负且供电降至 16 城。现行源码保留原策略。[终局逐场复盘](../../../artifacts/maintenance/bot-rise-power-grid-terminal-race-20261126/phase-diagnostics.json) · [后手产能单步对照](../../../artifacts/maintenance/bot-rise-power-grid-later-builder-20261126/screen.json)
 
-另一开发方案把尚未建城的对手可能主动结束纳入扩城压力场景，同时估算其已备燃料能支持的供电。已知反例中，该方案保留了本席建城与 17 城供电，仍未改变负局结果。六个新开局、四座轮换的 24 对整场均完成。候选改变 2 对动作，两组各赢 11 场，平均供电均为 15.08 城。现行源码沿用 1.1.4。[已知局面复核](../../../artifacts/maintenance/bot-rise-power-grid-terminal-pressure-20261126/screen.json) · [独立开发计划](../../../artifacts/maintenance/bot-rise-power-grid-terminal-pressure-20261126/frozen-plan.json) · [整场对照](../../../artifacts/maintenance/bot-rise-power-grid-terminal-pressure-20261126/report.json)
+另一开发方案把尚未建城的对手可能主动结束纳入扩城压力场景，同时估算其已备燃料能支持的供电。已知反例中，该方案保留了本席建城与 17 城供电，仍未改变负局结果。六个新开局、四座轮换的 24 对整场均完成。候选改变 2 对动作，两组各赢 11 场，平均供电均为 15.08 城。该轮复验以 1.1.4 为基线。[已知局面复核](../../../artifacts/maintenance/bot-rise-power-grid-terminal-pressure-20261126/screen.json) · [独立开发计划](../../../artifacts/maintenance/bot-rise-power-grid-terminal-pressure-20261126/frozen-plan.json) · [整场对照](../../../artifacts/maintenance/bot-rise-power-grid-terminal-pressure-20261126/report.json)
 
-另用六个新开局全座轮换，比较中盘按最差情形估值与将最差值、平均值各占一半的估值。开局与当轮终局仍用原估值。24 对整场均完成，候选改变 23 对动作，两组各赢 6 场，平均供电由 14.50 变为 14.92 城，配对胜率差的 95% 区间为 −18.75 至 +18.75 个百分点。源码保留 1.1.4。[中盘场景估值对照](../../../artifacts/maintenance/bot-rise-power-grid-scenario-mix-20261126/report.json)
+另用六个新开局全座轮换，比较中盘按最差情形估值与将最差值、平均值各占一半的估值。开局与当轮终局仍用原估值。24 对整场均完成，候选改变 23 对动作，两组各赢 6 场，平均供电由 14.50 变为 14.92 城，配对胜率差的 95% 区间为 −18.75 至 +18.75 个百分点。该轮复验以 1.1.4 为基线。[中盘场景估值对照](../../../artifacts/maintenance/bot-rise-power-grid-scenario-mix-20261126/report.json)
 
-另一组 24 对独立整场复算中盘竞价后的实际余额。候选改变 17 对动作，绝悟由 7 胜变为 5 胜，平均供电由 14.92 变为 15.21 城，开局配对胜率差 95% 区间为 −12.50 至 0 个百分点。现行策略保持原竞价估值。[按实际报价开发对照](../../../artifacts/maintenance/bot-rise-power-grid-paid-bid-20261126/report.json)[规则与策略结果](../../../artifacts/maintenance/test-history/runs/6678fe30-81e8-4b8c-9e03-e646be2ba4b6/results.json) · [真实 Worker 复验](../../../artifacts/maintenance/test-history/runs/0ebff8b2-7064-4fd8-888d-ac831a4370f8/results.json)
+另一组 24 对独立整场复算中盘竞价后的实际余额。候选改变 17 对动作，绝悟由 7 胜变为 5 胜，平均供电由 14.92 变为 15.21 城，开局配对胜率差 95% 区间为 −12.50 至 0 个百分点。该轮保留原竞价估值。[按实际报价开发对照](../../../artifacts/maintenance/bot-rise-power-grid-paid-bid-20261126/report.json)[规则与策略结果](../../../artifacts/maintenance/test-history/runs/6678fe30-81e8-4b8c-9e03-e646be2ba4b6/results.json) · [真实 Worker 复验](../../../artifacts/maintenance/test-history/runs/0ebff8b2-7064-4fd8-888d-ac831a4370f8/results.json)
+
+源码 1.1.5 在终局已触发时，绝悟若是最后建城席，而且现有城市数已达到手中燃料可支持的供电量，就结束建城并保留现金。规则在最后建城席结束后直接计算供电、现金及城市排名。已知复盘中，旧代码供电 16 城却买到 21 城，剩 3 电币落败。1.1.5 通过实际编译的 Worker 保持供电 16 城，剩 132 电币胜出。较宽的试验规则在 48 对开发对局中由 11 胜增至 12 胜，该例额外翻盘发生在还有两位后手可建城的局面。源码回归覆盖最后建城席停建及先行席继续原决策。[原局复盘](../../../artifacts/maintenance/bot-rise-power-grid-funded-endgame-20261126/historical-replay.json) · [开发对照](../../../artifacts/maintenance/bot-rise-power-grid-funded-endgame-20261126/report.json) · [后手顺位复算](../../../artifacts/maintenance/bot-rise-power-grid-funded-endgame-20261126/adjusted-pair-observations.json) · [实际 Worker 回归](../../../artifacts/maintenance/bot-rise-power-grid-funded-endgame-20261126/source-worker-replay.json) · [停建规则测试](../../../artifacts/maintenance/test-history/runs/8a692143-1a65-4174-b04c-82178278778c/results.json) · [99 项规则与整局回归](../../../artifacts/maintenance/test-history/runs/52aa4aba-b2f4-487e-95a8-a5625cb600d0/results.json) · [服务、保存与并发回归](../../../artifacts/maintenance/test-history/runs/f765130d-b1c1-495a-9138-82837571c96e/results.json)

@@ -1222,6 +1222,53 @@ describe('Power Grid bounded production and seeded full games', () => {
       chooseAction(view, legalActions(s, 'S1'), 'doubao', { next: () => 0 }),
     );
   });
+  it('keeps its cash when the last builder has already reached its fueled output', () => {
+    const s = fixture([[25, 26, 39], [3], [13]], 'building', 3);
+    s.actor = 'S1';
+    s.playerOrder = ['S1', 'S2', 'S3'];
+    s.phaseIndex = 2;
+    fuel(s, 'S1', 25, { coal: 2 });
+    fuel(s, 'S1', 26, { oil: 2 });
+    fuel(s, 'S1', 39, { uranium: 1 });
+    const funded = maximumProduction(s.players.S1!.plants);
+    const threshold = settingsFor(s.seatOrder.length).end;
+    expect(funded).toBeLessThan(threshold);
+    cities(s, 'S1', funded);
+    cities(s, 'S2', threshold);
+    validateState(s, s.seatOrder);
+
+    const view = rules.project(s, {
+      role: 'player',
+      seatId: 'S1',
+    }) as PowerGridView;
+    const actions = legalActions(s, 'S1');
+    expect(actions.some(({ type }) => type === 'build')).toBe(true);
+    const earlier = {
+      ...s,
+      playerOrder: ['S2', 'S1', 'S3'],
+      phaseIndex: 1,
+    };
+    const earlierView = rules.project(validateState(earlier, s.seatOrder), {
+      role: 'player',
+      seatId: 'S1',
+    }) as PowerGridView;
+    expect(
+      chooseAction(earlierView, legalActions(earlier, 'S1'), 'juewu', {
+        next: () => 0,
+      }).type,
+    ).toBe('build');
+    const action = chooseAction(view, actions, 'juewu', { next: () => 0 });
+    expect(action).toEqual({ type: 'finish' });
+    const ended = apply(s, action);
+    expect(ended.phase).toBe('ended');
+    expect(
+      ended.finalResults.find(({ seatId }) => seatId === 'S1'),
+    ).toMatchObject({
+      powered: funded,
+      cash: s.players.S1!.cash,
+    });
+  });
+
   it('triggers a winning two-player ending even when production is below 21 cities', () => {
     let s = fixture([[3], [13, 18, 22, 27]], 'building', 3);
     cities(s, 'S1', 10);

@@ -460,8 +460,19 @@ export function chooseAction(
   }
   if (view.phase === 'building') {
     if (level > 0) {
-      const planned = evaluate.plan();
       const production = maximumProduction(p.plants);
+      if (
+        difficulty === 'juewu' &&
+        view.playerOrder[0] === view.self!.seatId &&
+        Object.values(view.players).some(
+          (player) => player.cities.length >= view.endThreshold,
+        ) &&
+        p.cities.length >= production
+      ) {
+        // The last builder can preserve cash without reducing final supply.
+        return finish();
+      }
+      const planned = evaluate.plan();
       const rival = Math.max(
         0,
         ...Object.entries(view.players)
@@ -605,7 +616,7 @@ export function chooseAction(
 
 export const bot: BotStrategy = {
   id: 'power-grid-local',
-  version: '1.1.4',
+  version: '1.1.5',
   gameId: 'power-grid',
   rulesVersion: RULES_VERSION,
   difficulties: ['default', 'doubao', 'juewu', 'mischief'],
