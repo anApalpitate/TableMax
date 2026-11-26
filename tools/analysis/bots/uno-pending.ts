@@ -2,7 +2,8 @@ import { getCard } from '../../../games/uno/data/catalog';
 import { bot, type Memory } from '../../../games/uno/bot/index';
 import {
   unoLeafFeatures,
-  unoLeafFeatureNames,
+  unoLeafFeatureNamesFor,
+  type UnoLeafFeatureVersion,
 } from '../../../games/uno/bot/calibration';
 import {
   continueUnoHypothesis,
@@ -34,6 +35,7 @@ export interface PendingCalibration {
   type: 'uno-pending-calibration';
   version: 1;
   pilot: typeof unoPilotEvidence;
+  featureVersion?: UnoLeafFeatureVersion;
   options: LabelBudget;
   fit: PendingSeedEvidence[];
   review: PendingSeedEvidence[];
@@ -42,11 +44,15 @@ export interface PendingCalibration {
 const seedValid = (seed: number) =>
   Number.isInteger(seed) && seed >= 1 && seed <= 0xffffffff;
 
-export function pendingCalibration(value: unknown): PendingCalibration {
+export function pendingCalibration(
+  value: unknown,
+  featureVersion: UnoLeafFeatureVersion = 1,
+): PendingCalibration {
   const x = value as PendingCalibration;
   if (
     x?.type !== 'uno-pending-calibration' ||
     x.version !== 1 ||
+    (x.featureVersion ?? 1) !== featureVersion ||
     !isCurrentUnoPilot(x.pilot) ||
     !Number.isSafeInteger(x.options?.continuations) ||
     x.options.continuations < 16 ||
@@ -58,6 +64,7 @@ export function pendingCalibration(value: unknown): PendingCalibration {
     !x.review.length
   )
     throw new Error('Invalid independent UNO pending calibration');
+  const featureCount = unoLeafFeatureNamesFor(featureVersion).length;
   const seeds = new Set<number>();
   for (const group of [...x.fit, ...x.review]) {
     if (
@@ -77,7 +84,7 @@ export function pendingCalibration(value: unknown): PendingCalibration {
           row.leadingScore < 0 ||
           row.leadingScore >= 500 ||
           !Array.isArray(row.features) ||
-          row.features.length !== unoLeafFeatureNames.length ||
+          row.features.length !== featureCount ||
           !row.features.every(Number.isFinite) ||
           !Number.isInteger(row.completed) ||
           row.completed < 1 ||
@@ -106,6 +113,7 @@ function penaltyKind(state: State): PenaltyKind | undefined {
 export async function collectPendingSeed(
   seed: number,
   options: LabelBudget,
+  featureVersion: UnoLeafFeatureVersion = 1,
 ): Promise<PendingSeedEvidence> {
   if (!seedValid(seed)) throw new Error('Invalid UNO pending collection seed');
   const seats = Array.from(
@@ -180,7 +188,7 @@ export async function collectPendingSeed(
         leadingScore: Math.max(
           ...Object.values(view.players).map(({ score }) => score),
         ),
-        features: unoLeafFeatures(view),
+        features: unoLeafFeatures(view, featureVersion),
         wins,
         completed,
       });

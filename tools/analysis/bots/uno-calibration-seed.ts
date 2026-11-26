@@ -2,7 +2,7 @@ import { createHash } from 'node:crypto';
 import {
   loadUnoLeafScorer,
   unoLeafFeatures,
-  unoLeafFeatureNames,
+  type UnoLeafFeatureVersion,
 } from '../../../games/uno/bot/calibration';
 import { createUnoSearchStrategy } from '../../../games/uno/bot/search-strategy';
 import type { UnoView } from '../../../games/uno/types';
@@ -72,8 +72,8 @@ export function bootstrap(groups: readonly number[], seed: number) {
 }
 
 export type Calibration = {
-  version: number;
-  features: typeof unoLeafFeatureNames;
+  version: UnoLeafFeatureVersion;
+  features: readonly string[];
   coefficients: number[];
 };
 
@@ -119,7 +119,7 @@ export type CalibrationSeedTask = {
   seed: number;
   options: UnoSampleOptions;
 } & (
-  | { stage: 'fit-data' }
+  | { stage: 'fit-data'; featureVersion?: UnoLeafFeatureVersion }
   | {
       stage: 'holdout';
       calibration: Calibration;
@@ -163,6 +163,7 @@ export async function collectCalibrationSeed(
         {
           ...unoCalibrationLabelOptions(options),
           seed: independentSeed(seed, 0x10000 + index),
+          featureVersion: task.featureVersion ?? 1,
         },
         bootstrapLeaf,
       );
@@ -192,7 +193,11 @@ export async function collectCalibrationSeed(
     for (const [index, root] of roots.entries()) {
       const primary = sampleUnoContinuations(
         root,
-        { ...options, seed: independentSeed(seed, 0x20000 + index) },
+        {
+          ...options,
+          seed: independentSeed(seed, 0x20000 + index),
+          featureVersion: calibration.version,
+        },
         evaluator,
       );
       if (!primary.short.candidates.length) continue;

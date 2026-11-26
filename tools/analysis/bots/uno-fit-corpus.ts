@@ -1,5 +1,8 @@
 import { isDeepStrictEqual } from 'node:util';
-import { unoLeafFeatureNames } from '../../../games/uno/bot/calibration';
+import {
+  unoLeafFeatureNamesFor,
+  type UnoLeafFeatureVersion,
+} from '../../../games/uno/bot/calibration';
 import type { CalibrationSeedEvidence } from './uno-calibration-seed';
 import { isCurrentUnoPilot } from './uno-pilot';
 import {
@@ -12,6 +15,7 @@ type FitCorpus = {
   version: 1;
   pilot: unknown;
   naturalOptions: UnoSampleOptions;
+  featureVersion?: UnoLeafFeatureVersion;
   sourceBatchDigest: string;
   sourceReportSha256: string;
   sourceSha256: string;
@@ -22,12 +26,14 @@ export function naturalFitCorpus(
   value: unknown,
   options: UnoSampleOptions,
   seeds: readonly number[],
+  featureVersion: UnoLeafFeatureVersion = 1,
 ): FitCorpus {
   const corpus = value as FitCorpus;
   const digest = /^[a-f0-9]{64}$/;
   if (
     corpus?.type !== 'uno-natural-fit-corpus' ||
     corpus.version !== 1 ||
+    (corpus.featureVersion ?? 1) !== featureVersion ||
     !isCurrentUnoPilot(corpus.pilot) ||
     ![
       corpus.sourceBatchDigest,
@@ -47,6 +53,7 @@ export function naturalFitCorpus(
     throw new Error(
       'The frozen fit corpus does not match these natural calibration inputs',
     );
+  const featureCount = unoLeafFeatureNamesFor(featureVersion).length;
   for (const entry of corpus.fit) {
     if (
       !Number.isInteger(entry.roots) ||
@@ -61,7 +68,7 @@ export function naturalFitCorpus(
         (row) =>
           row?.seed !== entry.seed ||
           !Array.isArray(row.features) ||
-          row.features.length !== unoLeafFeatureNames.length ||
+          row.features.length !== featureCount ||
           !row.features.every(Number.isFinite) ||
           !Number.isInteger(row.completed) ||
           row.completed < 1 ||

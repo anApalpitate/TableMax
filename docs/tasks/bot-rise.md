@@ -3,11 +3,11 @@
 ## 任务接续速查
 
 - 目标：建立可复用的人机评估环境，逐游戏升级默认／豆包／绝悟，增加捣蛋王策略。
-- 状态：原版宝可梦保留三档，其他八个玩法已接入四种人机，并完成源码端入座、保存和恢复校验。UNO 自适应 B 组已跑完 128 个正式留出开局，候选排序与末张 +4 分组误差仍待修正。正式 C 组训练、真人体验和新签名发行验收仍待完成。
+- 状态：原版宝可梦保留三档，其他八个玩法已接入四种人机，并完成源码端入座、保存和恢复校验。上一批 UNO 自适应 B 组的候选排序与末张 +4 分组误差未过线。联合威胁评分已进入下一批独立正式校准。正式 C 组训练、真人体验和新签名发行验收仍待完成。
 - 发行依据：[当前已验收交付](../reference/acceptance.md#当前源码与本地交付)。当前实施证据按源码与实际交付分别记录。
 - 所属范围：游戏SDK、人机运行与验证工具、各游戏策略及必要的配置／展示／恢复适配；规则、计分和秘密边界不因策略升级改变。
 - 有效基础与缺口：九个源码玩法已跑通统一离线对局与能力声明。各款游戏的策略、实际 Worker 和恢复证据记录在[逐游戏迁移](#逐游戏迁移与能力声明)；真人体验需要真实混合对局。
-- 下一步：用 48 个新开发开局和两批独立长续推复核联合威胁评分，继续改进候选排序。正式 B 组通过后，再开始三组 UNO 绝悟动作评分训练。[B 组冻结计划](../../artifacts/maintenance/bot-rise-uno-qualification-05-20261126/frozen-plan.json) · [首轮学习范围](#首轮试点范围) · [R0 冻结清单](#r0-实施前冻结清单)
+- 下一步：完成已冻结的 B 组正式校准并独立复算。正式 B 组通过后，再开始三组 UNO 绝悟动作评分训练。[B 组冻结计划](../../artifacts/maintenance/bot-rise-uno-qualification-06-20261126/frozen-plan.json) · [首轮学习范围](#首轮试点范围) · [R0 冻结清单](#r0-实施前冻结清单)
 
 ## 来源、范围与目标
 
@@ -188,13 +188,15 @@ R1／R2 可与[游戏开发接口](../reference/game-development.md#模块与契
 
 48 个拟合和 24 个概率复核开局均完成，分别产生 2083 和 1100 条标签。联合威胁评分的独立总体概率误差为 0.44 个百分点，现有模型为 0.90，同语料重拟合的旧特征为 0.53。三组 Brier 分数分别为 0.18084、0.18107、0.18120。两个封存开发集各使用两次共享假设，现有模型的排序命中为 34/58 与 44/70，旧特征重拟合为 37/58 与 44/70，新评分为 40/58 与 45/70。改选覆盖分别为 20→20、20→21 个局面。自然复核中罚牌局面偏少，正在以同一特征格式独立收集 128 个罚牌拟合开局和 128 个复核开局，后续对包含罚牌样本的拟合重做排序比较。正式 B、C 门槛保持原值。[自然集概率复核](../../artifacts/maintenance/bot-rise-uno-joint-threat-calibration-development-20261126/report.json) · [开发排序复核](../../artifacts/maintenance/bot-rise-uno-joint-threat-calibration-development-20261126/ranking-report.json) · [罚牌采样计划](../../artifacts/maintenance/bot-rise-uno-joint-threat-pending-20261126/frozen-plan.json)
 
-罚牌拟合与复核各 128 个开局已经完成。拟合三类覆盖为 128／128／22，独立复核为 128／128／30。三级叶节点评分用同一拟合与复核口径比较。加入罚牌后，联合威胁评分自然样本的总体误差为 0.08 个百分点，Brier 为 0.18065。普通 +2、普通 +4 和末张 +4 分组误差为 0.42、2.76、1.09 个百分点。现有模型同组误差为 1.16、3.81、2.87。两个封存开发集的排序命中，新方案为 40/58、46/70，现有模型为 34/58、44/70，同语料重拟合旧特征为 38/58、44/70。已另启 48 个全新开发开局用两批独立长续推复核，正式 B／C 阶段沿用原门槛。[罚牌标签语料](../../artifacts/maintenance/bot-rise-uno-joint-threat-pending-20261126/pending.json) · [联合复拟合](../../artifacts/maintenance/bot-rise-uno-joint-threat-pending-20261126/refit-report.json) · [加入罚牌后的排序复核](../../artifacts/maintenance/bot-rise-uno-joint-threat-pending-20261126/ranking-report.json) · [全新开局对照计划](../../artifacts/maintenance/bot-rise-uno-joint-threat-independent-ranking-20261126/frozen-plan.json)
+罚牌拟合与复核各 128 个开局已经完成。拟合三类覆盖为 128／128／22，独立复核为 128／128／30。三级叶节点评分用同一拟合与复核口径比较。加入罚牌后，联合威胁评分自然样本的总体误差为 0.08 个百分点，Brier 为 0.18065。普通 +2、普通 +4 和末张 +4 分组误差为 0.42、2.76、1.09 个百分点。现有模型同组误差为 1.16、3.81、2.87。两个封存开发集的排序命中，新方案为 40/58、46/70，现有模型为 34/58、44/70，同语料重拟合旧特征为 38/58、44/70。随后用 48 个全新开发开局和两批独立长续推再次复核。[罚牌标签语料](../../artifacts/maintenance/bot-rise-uno-joint-threat-pending-20261126/pending.json) · [联合复拟合](../../artifacts/maintenance/bot-rise-uno-joint-threat-pending-20261126/refit-report.json) · [加入罚牌后的排序复核](../../artifacts/maintenance/bot-rise-uno-joint-threat-pending-20261126/ranking-report.json) · [全新开局对照计划](../../artifacts/maintenance/bot-rise-uno-joint-threat-independent-ranking-20261126/frozen-plan.json)
 
 自然样本的拟合和复核标签已分别归档。用归档数据和独立罚牌语料重放，三个评分器的系数逐项一致，整体及三个罚牌分组的概率指标均复算一致。联合威胁候选的 16 个系数连同特征名和版本共 678 字节，按紧凑 JSON 计量。[重放报告](../../artifacts/maintenance/bot-rise-uno-joint-threat-pending-20261126/refit-audit.json)
 
-联合威胁评分已用当前有界搜索和真实 Worker 做源码验证。四个四人合成局面均有 8 个候选，包括首局、比分接近 500 分及对手只剩一张牌的情况。两种评分共 8 次冷启动决策均与各自进程内的动作、记忆和随机状态一致，合法提交后从 SQLite 恢复原快照。联合威胁评分每次完成 22～25 组共享假设，最多消耗 1989 个规则步，最慢 1.21 秒。旧评分最慢 1.20 秒。每个 Worker 的 V8 老生代上限为 32 MiB。独立排序复验继续运行，正式 B 仍待校准通过。[Worker 与存档复验](../../artifacts/maintenance/bot-rise-uno-joint-threat-worker-20261126/report.json) · [临时产物清理](../../artifacts/maintenance/bot-rise-uno-joint-threat-worker-20261126/Clean-Temp.cmd)
+联合威胁评分已用当前有界搜索和真实 Worker 做源码验证。四个四人合成局面均有 8 个候选，包括首局、比分接近 500 分及对手只剩一张牌的情况。两种评分共 8 次冷启动决策均与各自进程内的动作、记忆和随机状态一致，合法提交后从 SQLite 恢复原快照。联合威胁评分每次完成 22～25 组共享假设，最多消耗 1989 个规则步，最慢 1.21 秒。旧评分最慢 1.20 秒。每个 Worker 的 V8 老生代上限为 32 MiB。[Worker 与存档复验](../../artifacts/maintenance/bot-rise-uno-joint-threat-worker-20261126/report.json) · [临时产物清理](../../artifacts/maintenance/bot-rise-uno-joint-threat-worker-20261126/Clean-Temp.cmd)
 
-下一批 B 组正式校准预留了 128 个自然开局和 128 个独立罚牌复核开局。与 24 份已有计划及报告记录的 1648 个不同种子核对后，两个预留集合彼此不重叠，也未复用已有拟合、开发复核、正式留出或 C 组开发种子。预留记录尚未绑定正式评分器。[种子隔离核对](../../artifacts/maintenance/bot-rise-uno-b-calibration-reservation-20261126/reservation.json)
+48 个新开发开局已全部完成，取得 88 个决策局面和 351 个候选对。联合威胁评分在两批独立长续推分别命中 16/20 和 20/25。合并后，联合威胁命中 14/16，现有评分与同语料重拟合的旧特征均为 13/16。按开局配对重抽，差值区间包含 0。双方均能确认方向的 4 对上，三个评分器全部命中。达到 C 最低改选条件的局面分别为现有评分 85、旧特征重拟合 84、联合威胁 85。该结果支持将联合威胁候选送入正式校准，排序收益仍待确认。[独立排序报告](../../artifacts/maintenance/bot-rise-uno-joint-threat-independent-ranking-20261126/report.json) · [按开局配对复算](../../artifacts/maintenance/bot-rise-uno-joint-threat-independent-ranking-20261126/audit.json)
+
+联合威胁评分已接入版本 2 校准格式。旧格式的 12 项特征沿用原顺序和取值，版本 2 在其后追加四项授权观察特征。采样、拟合、独立复算和推理按同一版本读取。旧正式报告已在新入口下重放并复现原结论。第六批正式校准已启动，冻结 128 个自然开局和 128 个独立罚牌复核开局，继续使用原来的搜索预算、概率、排序与覆盖门槛。两个集合与 24 份计划及报告里的 1648 个不同种子核对无重叠。C 组训练继续等待本批正式结论。[种子隔离核对](../../artifacts/maintenance/bot-rise-uno-b-calibration-reservation-20261126/reservation.json) · [版本兼容回归](../../artifacts/maintenance/test-history/runs/71de1fa1-d05a-4231-a5bf-97a7ca7e7d1a/results.json) · [正式冻结计划](../../artifacts/maintenance/bot-rise-uno-qualification-06-20261126/frozen-plan.json)
 
 在已封存的 48 和 64 个开发开局上，另试同一未知牌排列的成对轮转，保留候选共享假设及 2048 规则步上限。两套短搜索随机种子下，前一批正确方向从 33/58 增至 38/58，后一批两组均为 51/70，同牌选色从 17/20 降至 15/20。开发复算未显示稳定收益，正式批次仍按冻结的独立洗牌方案运行。[成对轮转开发对照](../../artifacts/maintenance/bot-rise-uno-paired-world-rotation-20261126/report.json)
 

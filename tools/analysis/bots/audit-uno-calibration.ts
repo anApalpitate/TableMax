@@ -3,7 +3,7 @@ import { readFileSync } from 'node:fs';
 import { isDeepStrictEqual, parseArgs } from 'node:util';
 import {
   loadUnoLeafScorer,
-  unoLeafFeatureNames,
+  unoLeafFeatureNamesFor,
 } from '../../../games/uno/bot/calibration';
 import { linearPrediction, probability } from './fit';
 import { isUnoSearchSamples } from '../../../games/uno/bot/search-budget';
@@ -61,6 +61,8 @@ if (
   throw new Error('Expected a current, complete B calibration report');
 calibrationSeeds(report);
 loadUnoLeafScorer(report.calibration);
+const featureVersion = report.calibration.version;
+const featureCount = unoLeafFeatureNamesFor(featureVersion).length;
 const stored = load(values.checkpoint);
 if (
   stored.value?.version !== 1 ||
@@ -108,7 +110,7 @@ function records(group: unknown, seeds: readonly number[]) {
         (row) =>
           row?.seed !== seed ||
           !Array.isArray(row.features) ||
-          row.features.length !== unoLeafFeatureNames.length ||
+          row.features.length !== featureCount ||
           !row.features.every(Number.isFinite) ||
           !Number.isSafeInteger(row.completed) ||
           row.completed < 1 ||
@@ -137,7 +139,12 @@ const naturalInput = values['natural-fit-data']
   : null;
 const naturalCorpus =
   naturalInput &&
-  naturalFitCorpus(naturalInput.value, report.options, report.trainSeeds);
+  naturalFitCorpus(
+    naturalInput.value,
+    report.options,
+    report.trainSeeds,
+    featureVersion,
+  );
 const naturalLineage = naturalCorpus
   ? {
       corpusSha256: naturalInput!.sha256,
@@ -157,7 +164,8 @@ if (
 const pendingInput = values['pending-data']
   ? load(values['pending-data'])
   : null;
-const pending = pendingInput && pendingCalibration(pendingInput.value);
+const pending =
+  pendingInput && pendingCalibration(pendingInput.value, featureVersion);
 if (
   Boolean(report.pending) !== Boolean(pending) ||
   (pending &&
@@ -182,6 +190,7 @@ if (frozen) {
     runtime: report.runtime,
     pilot: report.pilot,
     selectedCalibrationDigest: report.calibrationDigest,
+    ...(featureVersion === 1 ? {} : { featureVersion }),
     trainSeeds: report.trainSeeds,
     holdoutSeeds: report.holdoutSeeds,
     pendingReviewSeeds: report.pending?.reviewSeeds,

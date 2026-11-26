@@ -4,6 +4,7 @@ import { readFileSync } from 'node:fs';
 import { availableParallelism } from 'node:os';
 import { fileURLToPath } from 'node:url';
 import { isDeepStrictEqual, parseArgs, promisify } from 'node:util';
+import { isUnoLeafFeatureVersion } from '../../../games/uno/bot/calibration';
 import {
   collectPendingSeed,
   pendingCalibration,
@@ -14,6 +15,7 @@ import { unoPilotEvidence } from './uno-pilot';
 const { values } = parseArgs({
   options: {
     'fit-seeds': { type: 'string' },
+    'feature-version': { type: 'string', default: '1' },
     'fit-data': { type: 'string' },
     'review-seeds': { type: 'string' },
     continuations: { type: 'string', default: '16' },
@@ -22,6 +24,9 @@ const { values } = parseArgs({
     worker: { type: 'string' },
   },
 });
+const featureVersion = Number(values['feature-version']);
+if (!isUnoLeafFeatureVersion(featureVersion))
+  throw new Error('Invalid UNO leaf feature version');
 const options = {
   continuations: Number(values.continuations),
   maxSteps: Number(values['max-steps']),
@@ -36,13 +41,16 @@ if (
 
 if (values.worker !== undefined) {
   console.log(
-    JSON.stringify(await collectPendingSeed(Number(values.worker), options)),
+    JSON.stringify(
+      await collectPendingSeed(Number(values.worker), options, featureVersion),
+    ),
   );
 } else {
   const seeds = (input: string | undefined) => input?.split(',').map(Number);
   const fitBytes = values['fit-data'] ? readFileSync(values['fit-data']) : null;
   const frozenFit =
-    fitBytes && pendingCalibration(JSON.parse(fitBytes.toString('utf8')));
+    fitBytes &&
+    pendingCalibration(JSON.parse(fitBytes.toString('utf8')), featureVersion);
   if (
     frozenFit &&
     (values['fit-seeds'] !== undefined ||
@@ -91,7 +99,7 @@ if (values.worker !== undefined) {
       try {
         const result: PendingSeedEvidence =
           jobs === 1
-            ? await collectPendingSeed(seed, options)
+            ? await collectPendingSeed(seed, options, featureVersion)
             : JSON.parse(
                 (
                   await runChild(
@@ -101,6 +109,7 @@ if (values.worker !== undefined) {
                       'tsx',
                       fileURLToPath(import.meta.url),
                       '--worker=' + seed,
+                      '--feature-version=' + featureVersion,
                       '--continuations=' + options.continuations,
                       '--max-steps=' + options.maxSteps,
                     ],
@@ -138,23 +147,27 @@ if (values.worker !== undefined) {
   stopped.signal.throwIfAborted();
   console.log(
     JSON.stringify(
-      pendingCalibration({
-        type: 'uno-pending-calibration',
-        version: 1,
-        pilot: unoPilotEvidence,
-        options,
-        fit: frozenFit
-          ? frozenFit.fit
-          : fitSeeds.map((seed) => output.get(seed)!),
-        review: reviewSeeds.map((seed) => output.get(seed)!),
-        ...(fitBytes
-          ? {
-              frozenFitSourceSha256: createHash('sha256')
-                .update(fitBytes)
-                .digest('hex'),
-            }
-          : {}),
-      }),
+      pendingCalibration(
+        {
+          type: 'uno-pending-calibration',
+          version: 1,
+          ...(featureVersion === 1 ? {} : { featureVersion }),
+          pilot: unoPilotEvidence,
+          options,
+          fit: frozenFit
+            ? frozenFit.fit
+            : fitSeeds.map((seed) => output.get(seed)!),
+          review: reviewSeeds.map((seed) => output.get(seed)!),
+          ...(fitBytes
+            ? {
+                frozenFitSourceSha256: createHash('sha256')
+                  .update(fitBytes)
+                  .digest('hex'),
+              }
+            : {}),
+        },
+        featureVersion,
+      ),
       null,
       2,
     ),

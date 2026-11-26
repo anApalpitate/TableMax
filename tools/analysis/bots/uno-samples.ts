@@ -4,7 +4,10 @@ import type {
 } from '../../../packages/game-sdk/src/index';
 import { RandomSource } from '../../../packages/platform-core/src/random';
 import { bot, type Memory } from '../../../games/uno/bot/index';
-import { unoLeafFeatures } from '../../../games/uno/bot/calibration';
+import {
+  unoLeafFeatures,
+  type UnoLeafFeatureVersion,
+} from '../../../games/uno/bot/calibration';
 import {
   unoSearchRuleSteps,
   type UnoSearchSamples,
@@ -48,6 +51,7 @@ interface RolloutOptions {
   maxSteps: number;
   seed: number;
   onlyCandidates?: readonly number[];
+  featureVersion?: UnoLeafFeatureVersion;
 }
 
 export interface UnoLeafLabel {
@@ -193,7 +197,7 @@ export function sampleUnoContinuations(
             seatId: leaf.seat,
           });
           leaves.push({
-            features: unoLeafFeatures(view),
+            features: unoLeafFeatures(view, options.featureVersion),
             stage: view.stage,
             completed: completed.length,
             wins: completed.filter((outcome) => outcome === 1).length,

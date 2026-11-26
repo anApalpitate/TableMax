@@ -4,7 +4,10 @@ import { readFileSync, readdirSync } from 'node:fs';
 import { availableParallelism } from 'node:os';
 import { fileURLToPath } from 'node:url';
 import { isDeepStrictEqual, parseArgs, promisify } from 'node:util';
-import { unoLeafFeatureNames } from '../../../games/uno/bot/calibration';
+import {
+  isUnoLeafFeatureVersion,
+  unoLeafFeatureNamesFor,
+} from '../../../games/uno/bot/calibration';
 import { isUnoSearchSamples } from '../../../games/uno/bot/search-budget';
 import { linearPrediction, probability } from './fit';
 import {
@@ -63,6 +66,7 @@ function aggregateBySeed(values: readonly { seed: number; value: number }[]) {
 const { values } = parseArgs({
   options: {
     'train-seeds': { type: 'string' },
+    'feature-version': { type: 'string', default: '1' },
     'holdout-seeds': { type: 'string' },
     roots: { type: 'string', default: '1' },
     hypotheses: { type: 'string', default: '8' },
@@ -99,6 +103,9 @@ function seeds(input: string | undefined) {
   return result;
 }
 
+const featureVersion = Number(values['feature-version']);
+if (!isUnoLeafFeatureVersion(featureVersion))
+  throw new Error('Invalid UNO leaf feature version');
 const trainSeeds = seeds(values['train-seeds']);
 const fitOnly = values['fit-only'];
 if (fitOnly && values['holdout-seeds'] !== undefined)
@@ -114,7 +121,10 @@ const pendingBytes = values['pending-data']
   ? readFileSync(values['pending-data'])
   : null;
 const pending = pendingBytes
-  ? pendingCalibration(JSON.parse(pendingBytes.toString('utf8')))
+  ? pendingCalibration(
+      JSON.parse(pendingBytes.toString('utf8')),
+      featureVersion,
+    )
   : null;
 const pendingDigest = pendingBytes
   ? createHash('sha256').update(pendingBytes).digest('hex')
@@ -165,6 +175,7 @@ const corpus = corpusBytes
       JSON.parse(corpusBytes.toString('utf8')),
       options,
       trainSeeds,
+      featureVersion,
     )
   : null;
 const fitCorpusDigest = corpusBytes
@@ -271,6 +282,7 @@ const batchDigest = createHash('sha256')
       pendingDigest,
       fitCorpusDigest,
       fitPolicy,
+      ...(featureVersion === 1 ? {} : { featureVersion }),
       ...(fitOnly ? { fitOnly } : {}),
       ...(expectedCalibrationDigest === undefined
         ? {}
@@ -415,6 +427,7 @@ const fitRecords = await collectStage(trainSeeds, state.fit, (seed) => ({
   stage: 'fit-data',
   seed,
   options,
+  featureVersion,
 }));
 if (fitRecords.length === trainSeeds.length) {
   await evaluateHoldout(fitRecords);
@@ -454,8 +467,8 @@ async function evaluateHoldout(fitRecords: readonly CalibrationSeedEvidence[]) {
   }));
   const fit = fitUnoCalibration(examples, fitPolicy);
   const calibration = {
-    version: 1,
-    features: unoLeafFeatureNames,
+    version: featureVersion,
+    features: unoLeafFeatureNamesFor(featureVersion),
     coefficients: fit.coefficients,
   };
   const reference = fit.reference;
