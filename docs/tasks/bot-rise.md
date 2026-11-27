@@ -421,6 +421,8 @@ UNO 四人主配置已完成 24 个合成开局的四座轮换，共 384 场整�
 
 汇总时在记录模板填写实际构建和每场的参与编号、场次、状态及胜者席，启动过的对局填对局编号，未完成的场次填原因。在试跑目录运行 `node summarize-pilot.mjs --input=<填好的记录.json>` 生成结果。输出两档各自的有效场数、经验分层配对区间及中断原因。合成样本已核对完整配对、缺场、中断、重复及拒绝覆盖预分配座位，正式结论仍待真人记录。[记录模板](../../artifacts/maintenance/bot-rise-uno-human-pilot-20261126/record-template.json) · [汇总脚本](../../artifacts/maintenance/bot-rise-uno-human-pilot-20261126/summarize-pilot.mjs) · [汇总夹具](../../artifacts/maintenance/bot-rise-uno-human-pilot-20261126/summary-fixture.json)
 
+真人试跑可用 `capture-uno-pilot.ts` 从关闭应用后留存的 `room.sqlite` 副本生成单场记录。入口核对冻结排表、四席档位、补牌设置、策略版本和规则终局，输出对局号、胜者席和存档摘要。管理员结束计为中断。记录可补入实测时长、规则熟悉度和公开局面说明。隔离 SQLite 的合成终局验证了档位拒绝、日志回查、脱敏和汇总；真人结果仍由实际试跑采集。[采集命令](../../tools/analysis/README.md#uno-真人试跑的存档核对) · [源码夹具](../../artifacts/maintenance/bot-rise-uno-human-save-capture-20261127/tracked-source-report.json)
+
 其他游戏可复用排表、参与者配对和反馈表。人数、真人席比例、胜负／阵营目标及公开领先者判据按各游戏冻结，对局记录按玩法出报告。各项体验结论基于对应玩法的真实参与记录。
 
 失败排序、每轮默认累计10失败停止、修复后定向新轮与证据复用遵守[验证规范](../reference/validation.md#历史通过率与失败阈值)，不另建计数规则。实施只验证当前游戏和实际共享依赖；本次纯文档仅检查格式、链接／锚点和diff。
