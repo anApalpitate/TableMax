@@ -235,8 +235,17 @@ export function applyAction(
   seat: string,
   context: RuleContext,
 ): State {
-  const s = structuredClone(before),
-    position = s.seats.indexOf(seat) + 1;
+  return applyOwnedAction(structuredClone(before), action, seat, context);
+}
+
+/** Apply a validated action to an isolated state owned by the caller. */
+export function applyOwnedAction(
+  s: State,
+  action: Action,
+  seat: string,
+  context: RuleContext,
+): State {
+  const position = s.seats.indexOf(seat) + 1;
   // Evidence remains available only to its authorized challenger until next round.
   if (action.type === 'declare-uno') {
     s.unoDeclared[seat] = true;

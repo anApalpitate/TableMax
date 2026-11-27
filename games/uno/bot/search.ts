@@ -1,7 +1,7 @@
 import type { RuleContext } from '@tablemax/game-sdk';
 import { CARD_IDS, getCard } from '../data/catalog';
-import { rules, legalActions } from '../rules';
-import { shuffle } from '../rules/engine';
+import { rules, legalActions, isLegalAction } from '../rules';
+import { applyOwnedAction, shuffle } from '../rules/engine';
 import {
   project,
   projectUnoMemoryObservation,
@@ -221,10 +221,9 @@ function playStep(
     signal,
     context.random,
   );
-  return {
-    acting,
-    state: rules.apply(state, next, acting, context).state as State,
-  };
+  if (!isLegalAction(state, next, acting))
+    throw new Error('UNO search chose an illegal action');
+  return { acting, state: applyOwnedAction(state, next, acting, context) };
 }
 
 function assertContinuationBudget(seed: number, maxSteps: number) {
@@ -249,7 +248,7 @@ export function continueUnoHypothesis(
   assertContinuationBudget(seed, maxSteps);
   const context = { seats: leaf.state.seats, random: rolloutRandom(seed) };
   const memories = { ...leaf.memories };
-  let state = leaf.state;
+  let state = structuredClone(leaf.state);
   // The first observation copies memory shared with the input leaf.
   let ownsMemory = false;
   for (let steps = 0; state.phase !== 'ended' && steps < maxSteps; steps++) {
@@ -288,7 +287,7 @@ export function continueUnoHypothesisRound(
   signal.throwIfAborted();
   const context = { seats: leaf.state.seats, random: rolloutRandom(seed) };
   const memories = { ...leaf.memories };
-  let state = leaf.state;
+  let state = structuredClone(leaf.state);
   let steps = 0;
   if (state.phase === 'round-result') {
     state = rules.applyLifecycle(state, { type: 'next-round' }, context)
@@ -332,7 +331,7 @@ function evaluateBranch(
   let ownTurns = 0;
   while (state.phase === 'playing' && steps < 16) {
     signal.throwIfAborted();
-    const before = state;
+    const previousTurn = state.turnNumber;
     const isNormal = state.stage === 'turn' || state.stage === 'drawn';
     // Each branch copies the root memory before the first simulated observation.
     const next = playStep(state, memories, seat, context, signal, steps > 1);
@@ -341,7 +340,7 @@ function evaluateBranch(
     steps++;
     if (
       isNormal &&
-      (state.turnNumber !== before.turnNumber || state.phase !== 'playing')
+      (state.turnNumber !== previousTurn || state.phase !== 'playing')
     ) {
       turns++;
       if (acting === seat) ownTurns++;
