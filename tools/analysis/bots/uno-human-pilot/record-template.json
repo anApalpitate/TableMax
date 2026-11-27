@@ -1,0 +1,40 @@
+{
+  "version": 1,
+  "build": "",
+  "rosterSha256": "2c56ef4f73f83c7b4d632e6347b78ca10b354909860282d0b04546eddc5fa87e",
+  "matches": [],
+  "entryGuide": {
+    "statuses": {
+      "ended": "完成到 500 分",
+      "interrupted": "未完成或参与者退出",
+      "error": "技术异常",
+      "not-started": "未开局"
+    },
+    "endedExample": {
+      "participant": "UNO-01",
+      "play": 1,
+      "matchId": "示例对局编号",
+      "status": "ended",
+      "winnerSeat": 1,
+      "durationSeconds": 900,
+      "difficulty": 3,
+      "comeback": true,
+      "familiarity": { "stacking": true, "challenge": false },
+      "publicExample": "局面说明只使用公开信息"
+    },
+    "incompleteExample": {
+      "participant": "UNO-01",
+      "play": 2,
+      "matchId": "另一示例编号",
+      "status": "interrupted",
+      "reason": "填写实际中断原因"
+    },
+    "focalField": {
+      "interference": {
+        "opportunities": 2,
+        "directActions": 1
+      }
+    },
+    "note": "示例仅说明格式。将实际逐场记录填入 matches，写入实际 build。可从只读存档核对入口取得座位、档位、终局和来源摘要，再填写参与者反馈。绝悟对捣蛋王的对照可附 interference。"
+  }
+}

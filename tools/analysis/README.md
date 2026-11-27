@@ -73,10 +73,11 @@ UNO 可传 `--uno-calibration=<JSON 路径>` 启用离线 B 组，`--uno-samples
 
 ## UNO 真人试跑的存档核对
 
-试跑结束后关闭本次房间应用，保留一份 `room.sqlite` 副本。命令使用只读连接，接受排表、参与编号和场次。默认读取副本中的当前房间，给出 `--match-id=<对局编号>` 时也可读取 SQLite 日志中的对应对局。将输出的单场记录放入试跑模板的 `matches`，补填实际构建和参与者反馈。
+试跑结束后关闭本次房间应用，保留一份 `room.sqlite` 副本。命令使用只读连接，接受排表、参与编号和场次。默认读取副本中的当前房间，给出 `--match-id=<对局编号>` 时也可读取 SQLite 日志中的对应对局。将输出的单场记录放入试跑模板副本的 `matches`，补填实际构建和参与者反馈。[冻结排表](../../docs/tasks/uno-human-pilot-slots.md) · [记录模板](bots/uno-human-pilot/record-template.json)
 
 ```powershell
-node --import tsx tools/analysis/bots/capture-uno-pilot.ts --roster=artifacts/maintenance/bot-rise-uno-human-pilot-20261126/pilot-slots.md --save-copy=E:/pilot/room.sqlite --participant=UNO-01 --play=1 --duration-seconds=900
+node --import tsx tools/analysis/bots/capture-uno-pilot.ts --roster=docs/tasks/uno-human-pilot-slots.md --save-copy=E:/pilot/room.sqlite --participant=UNO-01 --play=1 --duration-seconds=900
+node tools/analysis/bots/uno-human-pilot/summarize-pilot.mjs --input=E:/pilot/record.json
 ```
 
 采集检查房间、座位、档位、策略、设置与自然终局。管理员提前结束记为中断。输出只保留匿名参与编号、对局号、结果、可选实测时长和来源摘要。主观难度、是否有扳回机会及规则熟悉度由参与者填写，公开局面说明可留在记录表，汇总只统计其填写数量。[试跑排表与证据](../../docs/tasks/bot-rise.md#uno-真人混合试跑)
