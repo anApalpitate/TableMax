@@ -140,6 +140,8 @@ R1／R2 可与[游戏开发接口](../reference/game-development.md#模块与契
 
 首批和扩样分别在种子块边界保存断点。可并行执行块内场次，按固定座位与 A／B／C 顺序汇总。启动每场前为可能失败预留配额，累计 10 次异常就停。续跑核对冻结计划、源码、运行时和 B/C 报告摘要。扩样核对完整首批及扩样判定。真实 Worker 验收和模型登记按完整计划重查块成员和配对结果。定向回归与夹具烟测已验证样本量计算、失败上限、断点输入绑定和阶段完整性。[配对与归因回归](../../artifacts/maintenance/test-history/runs/1f425bdb-421c-4791-90f3-65642c8211d0/results.json) · [对照工具烟测](../../artifacts/maintenance/bot-rise-abc-planning-20261126/comparison-smoke.json) · [并行回归](../../artifacts/maintenance/test-history/runs/da4ee809-dc61-48b8-8e90-7eac0833ab80/results.json) · [串并行一致性烟测](../../artifacts/maintenance/bot-rise-uno-abc-parallel-20261126/parallel-smoke.json)
 
+正式报告的独立复算已用合成夹具核对低于目标与合规扩样两条路径。改写区间、替换扩样报告中的首批记录和缺失动作摘要均会被拒绝。运行期间只核对断点的种子顺序、座位配对、步数和动作摘要，胜率在完成冻结阶段后复算。[独立复算烟测](../../artifacts/maintenance/bot-rise-uno-abc-audit-smoke-20261127/report.json)
+
 ### UNO 绝悟 B 组有界搜索
 
 进展：有界搜索与概率评分入口已接入 UNO 离线评估，可加载绑定摘要的逻辑回归系数。隐藏输入等价、整组预算、决策范围和系数格式已做定向核验，23 项检查通过。已用合成续推训练开发系数并跑通独立留出验证。首批 184 个拟合样本、200 个留出样本的总体误差为 8.97 个百分点，Brier 0.19384，高于同批简单对照的 0.18616，证据不足以通过。扩样与真实 Worker 验收继续实施。[开发报告](../../artifacts/maintenance/bot-rise-calibration-20261126/development.json)[源码验收记录](../../artifacts/maintenance/test-history/runs/b551d961-b1a4-4412-bfbf-b7f30d0e07de/results.json)
