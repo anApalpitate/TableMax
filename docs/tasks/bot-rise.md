@@ -7,7 +7,7 @@
 - 发行依据：[当前已验收交付](../reference/acceptance.md#当前源码与本地交付)。当前实施证据按源码与实际交付分别记录。
 - 所属范围：游戏SDK、人机运行与验证工具、各游戏策略及必要的配置／展示／恢复适配；规则、计分和秘密边界不因策略升级改变。
 - 有效基础与缺口：九个源码玩法已跑通统一离线对局与能力声明。各款游戏的策略、实际 Worker 和恢复证据记录在[逐游戏迁移](#逐游戏迁移与能力声明)；真人体验需要真实混合对局。
-- 下一步：完成正式 A/B/C 首批对照，并按冻结规则判定通过、低于目标或扩样。B 组沿用用户确认的 70% 排序门槛。[B 组独立复算](../../artifacts/maintenance/bot-rise-uno-qualification-08-pending-extension-20261127/audit.json) · [首轮学习范围](#首轮试点范围) · [R0 冻结清单](#r0-实施前冻结清单)
+- 下一步：完成正式 A/B/C 首批对照，并按冻结规则判定通过、低于目标或扩样。B 组沿用用户确认的 70% 排序门槛。[B 组独立复算](../../artifacts/maintenance/bot-rise-uno-qualification-08-pending-extension-20261127/audit.json) · [A/B/C 独立复算入口](../../artifacts/maintenance/bot-rise-uno-qualification-08-pending-extension-c-campaign-20261127/audit-comparison.mts) · [首轮学习范围](#首轮试点范围) · [R0 冻结清单](#r0-实施前冻结清单)
 
 ## 来源、范围与目标
 
@@ -550,6 +550,8 @@ UNO 续推优化后，用同一生产参数复编译 18 个 Node 组件。只有
 再接入精简行动席投影后，UNO 策略和规则组件分别增加 253 与 36 字节，其他组件摘要一致。18 个 Node 组件合计 914,372 字节，运行依赖图仍未包含训练器、训练框架或学习数据。[行动席投影的源码组件复测](../../artifacts/maintenance/bot-rise-uno-acting-projection-bundle-20261127/source-bundle-boundary.json)
 
 接入离线共用续推后，再次用生产参数核对了 18 个 Node 组件。UNO 策略与规则各增加 10 字节，组件合计 914,392 字节，依赖图中未见共用参考分析模块或训练载荷。[共用参考的源码边界复测](../../artifacts/maintenance/bot-rise-uno-shared-reference-bundle-20261127/source-bundle-boundary.json)
+
+复用分支状态后，生产参数编译的 UNO 策略与规则组件分别增加 92 和 34 字节。18 个 Node 组件合计 914,518 字节，运行依赖图仍未引入训练器、训练框架或学习数据。[推演状态优化的源码边界复测](../../artifacts/maintenance/bot-rise-uno-owned-simulation-bundle-20261127/source-bundle-boundary.json)
 
 已核验 1.0.9.1 安装器、载荷及八个签名游戏代码包的内容摘要，外层载荷和代码包均未发现训练文件。用生产参数在隔离目录编译服务器、人机 Worker 及八款游戏的规则和策略共 18 个 Node 组件，依赖图未引入训练器或训练框架。同样参数复测源码 `6ee2c173`，18 个组件合计 912,183 字节。比上次源码测量多 1,225 字节，分别来自电力公司策略 745 字节、拉密策略 402 字节和 UNO 策略 78 字节。相对 1.0.9.1 同范围组件多 52,121 字节。随后在 `3b41250d` 单独复算唯一发生源码变化的电力公司策略组件，进一步减少 10 字节，同一组件范围合计 912,173 字节。完整 Windows EXE 仍按实际冻结产物实测。[签名载荷清查](../../artifacts/maintenance/bot-rise-bundle-boundary-20261126/sealed-boundary.json) · [上次源码组件测量](../../artifacts/maintenance/bot-rise-bundle-boundary-20261126/source-bundle-boundary.json) · [本次源码组件复测](../../artifacts/maintenance/bot-rise-current-bundle-boundary-20261126/source-bundle-boundary.json) · [1.1.4 增量测量](../../artifacts/maintenance/bot-rise-current-bundle-boundary-20261126/power-grid-v114-delta.json)
 
