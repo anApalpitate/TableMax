@@ -1,4 +1,9 @@
 export type { ModuleManifest } from './module-manifest';
+export {
+  applyCandidateRating,
+  candidateRatingAlternative,
+  readCandidateRating,
+} from './candidate-rating';
 export type JsonValue =
   null | boolean | number | string | JsonValue[] | { [key: string]: JsonValue };
 

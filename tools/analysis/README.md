@@ -46,6 +46,14 @@ UNO 可传 `--uno-calibration=<JSON 路径>` 启用离线 B 组，`--uno-samples
 
 标准输出为 JSONL，含玩法和策略版本、批次输入、每局结论与动作链摘要。未终局或失败时返回非零状态。命令使用合成种子和规则投影，不启动服务或读取正式存档。程序化 checkpoint 和逐步动作只给受信任的离线评价调用端，标准报告输出公开投影。该入口的快速反应模拟与真实 Worker、事务、重启和回退验收分别认定。
 
+## 绝悟跨玩法决策评分
+
+[train-decision-learning.ts](bots/train-decision-learning.ts) 通过生产游戏注册表加载指定 `--pilot=<玩法>`，读取已冻结的 `--plan=<JSON>`，在 `--checkpoint=<现有目录下的文件>` 按完整开局保存进度。计划声明 `version: 1`、`roots`、`maxSteps`、`bootstrapSeed` 以及各玩法互不重叠的 `train`、`tune`、`review` 开局种子。按玩家投影和合法动作构造配对样本，用整场胜负差拟合。CUDA 输出由独立数值解复核，留出对照报告写到标准输出。所用规则、策略、源码或运行时有变化时使用新计划和断点。
+
+[confirm-decision-learning.ts](bots/confirm-decision-learning.ts) 用 `--pilot`、`--training-plan=<原计划>`、`--candidate=<候选报告>`、`--plan=<独立确认计划>` 与新的 `--checkpoint` 运行同样的整局对照。确认计划冻结候选报告摘要和新开局。候选通过要求整场胜率提高至少 3 个百分点且 95% 配对区间下界大于 0。
+
+[audit-decision-learning.ts](bots/audit-decision-learning.ts) 读取 `--evidence=<冻结计划和分玩法报告目录>` 与 `--checkpoints=<断点目录>`，复算标签权重、拟合系数、调参结果及整场胜率和区间。可重复传 `--confirmation=<独立确认计划路径>`，同时核对候选摘要、开局互斥、配对记录和确认判定。[任务计划与结果](../../docs/tasks/bot-rise.md#剩余玩法的决策评分学习)
+
 ## UNO 校准与配对试点
 
 下面的入口使用合成种子和真实规则，输出 JSON 报告到标准输出，进度写入标准错误。保留报告时由调用者明确选择项目维护路径。正式报告的 `pilot` 记录四人、开启补牌传递、500 毫秒抓漏延迟以及游戏、规则、状态和策略版本。已有报告缺少该字段或配置不一致时，仅可用于开发对照。
