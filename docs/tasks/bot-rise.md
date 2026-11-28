@@ -8,7 +8,7 @@
 - 学习评分：UNO 绝悟首轮已结案。B 组有界搜索排序命中 94.03%，正式整场胜率较 A 提高 4.28 个百分点。C 组学习修正较 B 低 0.28 个百分点，未达晋级门槛。其余 8 个玩法已完成首批训练与整场对照。太阳神四人赛通过独立确认和 Agent 源码验收，其余 7 个玩法沿用启发式。[首轮独立复算](../../artifacts/maintenance/bot-rise-uno-qualification-08-pending-extension-c-campaign-20261127/acceptance/comparison-audit.json) · [扩展批次](#剩余玩法的决策评分学习)
 - 发行依据：[当前已验收交付](../reference/acceptance.md#当前源码与本地交付)。当前实施证据按源码与实际交付分别记录。
 - 所属范围：游戏SDK、人机运行与验证工具、各游戏策略及必要的配置／展示／恢复适配；规则、计分和秘密边界不因策略升级改变。
-- 剩余验收：太阳神学习模型的新签名载荷与完整安装器待单独导出授权和验收。
+- 签名发行验收：太阳神学习模型与完整安装器 **1.0.9.2** 已通过 Agent 验收，EXE 为 **49,927,090 字节**。本地 `current` 仍指向 1.0.9.1。[本次签名发行验收](#太阳神绝悟签名发行验收)
 
 ## 来源、范围与目标
 
@@ -569,7 +569,13 @@ R2定义采集起点、停止与来源记录；R6验证两种用途的首次默�
 
 太阳神从 24/64 胜增至 36/64 胜。源码接入限四人、非公开计分的绝悟圆盘竞价。生产策略逐场复现 64 条独立确认的动作摘要。真实 Worker 在隔离房间将一项出价圆盘 3 改为过牌，并用 SQLite 重开、回退及重放验证同一模型引用和动作。此次 Worker 使用 32 MiB 老生代上限，单次实测最长约 405 毫秒。[独立确认](../../artifacts/maintenance/bot-rise-eight-learning-20261128/ra-confirmation.json) · [源码 Worker](../../artifacts/maintenance/bot-rise-eight-learning-20261128/ra-source-worker-final.json) · [最终源码训练复验](../../artifacts/maintenance/bot-rise-eight-learning-20261128/ra-source-parity.json)
 
-太阳神模型为 260 字节的紧凑 JSON，策略最小化组件从 6344 增至 8813 字节。训练器和训练依赖留在本机离线环境。模型在支持此功能且经单独验收的签名发行上方可登记，完整 EXE 体积仍以该发行实测为准。[本地模型](../../artifacts/maintenance/bot-rise-eight-learning-20261128/ra-runtime-model-final.json)
+太阳神模型为 260 字节的紧凑 JSON，策略最小化组件从 6344 增至 8813 字节。训练器和训练依赖留在本机离线环境。模型按支持该功能的签名发行单独登记。[本地模型](../../artifacts/maintenance/bot-rise-eight-learning-20261128/ra-runtime-model-final.json)
+
+#### 太阳神绝悟签名发行验收
+
+2026-11-28 从源码 `29ba0646` 导出本地完整安装器 **1.0.9.2**，预装 8 款游戏、9 个玩法。实际 EXE 为 **49,927,090 字节**，距 50,000,000 字节上限余 **72,910 字节**。内部载荷 ZIP 为 58,869,108 字节，首次健康启动占用 119,853,439 字节。原路径启动、干净标准账户下的实际安装、更新交接、失败恢复、卸载后同根重装读档，以及测试账户和配置目录清理均通过。实际 Native 与更新助手用内置生产公钥验过同一 EXE 的签名更新描述。[完整安装器](../../artifacts/releases/v1.0.9/1.0.9.2/TableMax-1.0.9.2-installer-win-x64.exe) · [安装封存证明](../../artifacts/maintenance/ra-learning-signed-20261128/system/sealed-proof.json) · [原生验签](../../artifacts/maintenance/ra-learning-signed-20261128/native-signature-verification.json)
+
+Agent 从实际安装后保全的运行目录导入签名太阳神发行，用随包 Worker 在隔离配置登记 `ffda65d6…1cadc`。四人、非公开计分的绝悟新局绑定该模型。公开计分、两人局和混合席位中的其他档位均保持无模型引用。真实 Worker 将圆盘 5 的出价改为过牌并提交。停用后新局回到启发式，原局从 SQLite 读回后仍固定同一模型和发行，回退至「跳过出价前」后复现并提交相同动作。签名策略也逐场复现 64 个独立确认开局的动作摘要。模型登记验收使用隔离配置，已验收候选保留供本地推广。[签名模型与存档验收](../../artifacts/maintenance/ra-learning-signed-20261128/signed-installed-model.json) · [验收模型封装](../../artifacts/maintenance/ra-learning-signed-20261128/accepted-model-envelope.json)
 
 ### 安装包与本机学习存储
 
