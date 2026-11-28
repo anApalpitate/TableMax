@@ -129,6 +129,7 @@ export function forecast(
   level: number,
   signal?: AbortSignal,
   maxNodes?: number,
+  reportFirstCities?: (cities: readonly string[]) => void,
 ): Forecast {
   if (!view.self) throw new Error('规划缺少本人投影。');
   const own = view.players[view.self.seatId]!,
@@ -534,6 +535,14 @@ export function forecast(
         b.position.powered - a.position.powered ||
         firstKey(a.position).localeCompare(firstKey(b.position)),
     );
+  if (reportFirstCities)
+    reportFirstCities([
+      ...new Set(
+        combined.flatMap(
+          ({ position }) => position.first?.cities.slice(0, 1) ?? [],
+        ),
+      ),
+    ]);
   // The longer horizon can prefer postponing a viable first supply cycle.
   // Preserve the best opening plan that covers its fuel with current income.
   const opening =

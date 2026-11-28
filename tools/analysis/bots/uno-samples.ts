@@ -36,6 +36,7 @@ export interface UnoSampleOptions {
   labelHypotheses?: 8 | 16;
   continuations: number;
   maxSteps: number;
+  nearTie?: true;
 }
 
 export function unoCalibrationLabelOptions(

@@ -585,7 +585,7 @@ Agent 从实际安装后保全的运行目录导入签名太阳神发行，用�
 
 - 马尼拉增加合法过牌和后续骰点共用续推。取得 384 条拟合标签和 192 条调参标签，正式开发 48 个开局零改选。调参阈值 0.02 的 14 次可改选单次配对平均低 1.79 个胜率百分点，暂用原策略。[马尼拉开发配对](../../artifacts/maintenance/bot-rise-second-learning-20261128/manila-development.json)
 - 阿瓦隆按阵营和否决压力采集密投。48 个开发开局的胜率差为 −0.89 个百分点，95% 配对区间 −4.46 至 +2.68。首次改选的配对差为 −1.00 个百分点，暂用原策略。[阿瓦隆开发配对](../../artifacts/maintenance/bot-rise-second-learning-20261128/avalon-development.json)
-- UNO C 从 B 的近分候选采集 223 条成对拟合标签，32 个拟合和 16 个调参开局与原正式数据隔离。48 个开发开局、576 场完整对局中，C 比 B 低 4.17 个胜率百分点，95% 配对区间 −12.50 至 +3.65。保持 B 的校准、排序门槛与搜索预算，C 不进入本轮正式对照。[UNO 训练候选](../../artifacts/maintenance/bot-rise-second-learning-20261128/uno-candidate.json) · [UNO 独立开发](../../artifacts/maintenance/bot-rise-second-learning-20261128/uno-development.json)
+- UNO C 从 B 的近分候选采集 223 条成对拟合标签，32 个拟合和 16 个调参开局与原正式数据隔离。48 个开发开局、576 场完整对局中，C 比 B 低 4.17 个胜率百分点，95% 配对区间 −12.50 至 +3.65。独立归因复核实际改选 20 次，7 次改善、13 次变差，平均低 0.94 个胜率百分点，95% 区间 −1.88 至 −0.06。打乱对照与 C 的改选率相差 6.67 个百分点，超出预定的 5 个百分点可比范围。保持 B 的校准、排序门槛与搜索预算，C 不进入本轮正式对照。[UNO 训练候选](../../artifacts/maintenance/bot-rise-second-learning-20261128/uno-candidate.json) · [UNO 独立开发](../../artifacts/maintenance/bot-rise-second-learning-20261128/uno-development.json) · [改选归因](../../artifacts/maintenance/bot-rise-second-learning-20261128/uno-attribution-review.json)
 
 ### 安装包与本机学习存储
 

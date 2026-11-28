@@ -34,6 +34,7 @@ export function unoResidualSourceDigest() {
       'uno-residual-worker',
       'uno-residual-labels',
       'uno-samples',
+      'uno-shared-reference',
       'evaluate',
       'fit',
       'uno-pilot',

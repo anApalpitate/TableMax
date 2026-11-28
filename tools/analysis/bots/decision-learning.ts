@@ -60,7 +60,11 @@ function learningAlternative(
   );
 }
 
-function win(pilot: DecisionLearningPilot, result: Terminal, seat: string) {
+export function learningWin(
+  pilot: DecisionLearningPilot,
+  result: Terminal,
+  seat: string,
+) {
   if (result.outcome !== 'ended')
     throw new Error('Learning match did not reach a rules ending');
   const view = result.publicResult as Record<string, unknown>;
@@ -78,7 +82,7 @@ function win(pilot: DecisionLearningPilot, result: Terminal, seat: string) {
   return Number(value.includes(seat));
 }
 
-function replaceActor(
+export function replaceLearningActor(
   match: EvaluationMatch,
   actor: string,
   apply: (input: Input, action: JsonValue) => JsonValue,
@@ -142,7 +146,7 @@ export async function labelLearningMatch(
       before = snapshot();
     },
   });
-  const baseWin = win(pilot, baseline, actor);
+  const baseWin = learningWin(pilot, baseline, actor);
   const receipts = new Map<number, string>();
   const wanted = new Set(roots.map(({ event }) => event.number));
   let trace = baseline.checkpoint.match;
@@ -155,21 +159,25 @@ export async function labelLearningMatch(
   const examples: WeightedExample[] = [];
   for (const root of roots) {
     let changed = 0;
-    const alternative = replaceActor(match, actor, (input, baseAction) => {
-      if (changed || input.decision.id !== root.event.decision?.id)
-        return baseAction;
-      if (
-        !isDeepStrictEqual(root.event.action, baseAction) ||
-        !input.actions.some((candidate) =>
-          isDeepStrictEqual(candidate, root.action),
+    const alternative = replaceLearningActor(
+      match,
+      actor,
+      (input, baseAction) => {
+        if (changed || input.decision.id !== root.event.decision?.id)
+          return baseAction;
+        if (
+          !isDeepStrictEqual(root.event.action, baseAction) ||
+          !input.actions.some((candidate) =>
+            isDeepStrictEqual(candidate, root.action),
+          )
         )
-      )
-        throw new Error(
-          'Snapshot did not restore the same authorized decision',
-        );
-      changed++;
-      return root.action;
-    });
+          throw new Error(
+            'Snapshot did not restore the same authorized decision',
+          );
+        changed++;
+        return root.action;
+      },
+    );
     const outcome = await evaluateBotMatch(alternative, {
       maxSteps,
       checkpoint: {
@@ -183,7 +191,7 @@ export async function labelLearningMatch(
     if (changed !== 1) throw new Error('One-decision fork did not execute');
     examples.push({
       features: root.difference,
-      target: win(pilot, outcome, actor) - baseWin,
+      target: learningWin(pilot, outcome, actor) - baseWin,
       weight: 1 / roots.length,
     });
   }
@@ -202,7 +210,7 @@ export async function reviewLearningMatch(
   maxSteps: number,
 ) {
   let interventions = 0;
-  const learned = replaceActor(match, actor, (input, baseline) => {
+  const learned = replaceLearningActor(match, actor, (input, baseline) => {
     const candidate = learningAlternative(pilot, input, baseline);
     if (
       !candidate ||
@@ -215,8 +223,8 @@ export async function reviewLearningMatch(
   const baseline = await evaluateBotMatch(match, { maxSteps });
   const candidate = await evaluateBotMatch(learned, { maxSteps });
   return {
-    baselineWon: win(pilot, baseline, actor),
-    candidateWon: win(pilot, candidate, actor),
+    baselineWon: learningWin(pilot, baseline, actor),
+    candidateWon: learningWin(pilot, candidate, actor),
     interventions,
     baselineTrace: baseline.checkpoint.traceDigest,
     candidateTrace: candidate.checkpoint.traceDigest,

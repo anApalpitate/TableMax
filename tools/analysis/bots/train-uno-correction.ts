@@ -69,6 +69,7 @@ const { values } = parseArgs({
     'train-seeds': { type: 'string' },
     'tune-seeds': { type: 'string' },
     'related-seeds': { type: 'string' },
+    'near-tie': { type: 'boolean', default: false },
     roots: { type: 'string', default: '2' },
     continuations: { type: 'string', default: '16' },
     'max-steps': { type: 'string', default: '15000' },
@@ -144,6 +145,7 @@ const options: UnoSampleOptions = {
   hypotheses,
   continuations: Number(values.continuations),
   maxSteps: Number(values['max-steps']),
+  ...(values['near-tie'] ? { nearTie: true as const } : {}),
 };
 if (
   [options.roots, options.continuations, options.maxSteps].some(
@@ -462,11 +464,13 @@ const tuneResults = [0, 0.25, 0.5, 0.75].flatMap((weight) =>
           hypotheses,
         )!;
         const differences = pairedUnoDifferences(
-          outcomes.map((trials) =>
-            trials.some((trial) => trial === null)
-              ? trials.map(() => null)
-              : trials,
-          ),
+          options.nearTie
+            ? outcomes
+            : outcomes.map((trials) =>
+                trials.some((trial) => trial === null)
+                  ? trials.map(() => null)
+                  : trials,
+              ),
           options.continuations,
           short.candidates.indexOf(selected),
           short.candidates.indexOf(baseline),
