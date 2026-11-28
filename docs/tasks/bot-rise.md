@@ -577,6 +577,16 @@ R2定义采集起点、停止与来源记录；R6验证两种用途的首次默�
 
 Agent 从实际安装后保全的运行目录导入签名太阳神发行，用随包 Worker 在隔离配置登记 `ffda65d6…1cadc`。四人、非公开计分的绝悟新局绑定该模型。公开计分、两人局和混合席位中的其他档位均保持无模型引用。真实 Worker 将圆盘 5 的出价改为过牌并提交。停用后新局回到启发式，原局从 SQLite 读回后仍固定同一模型和发行，回退至「跳过出价前」后复现并提交相同动作。签名策略也逐场复现 64 个独立确认开局的动作摘要。模型登记验收使用隔离配置，已验收候选保留供本地推广。[签名模型与存档验收](../../artifacts/maintenance/ra-learning-signed-20261128/signed-installed-model.json) · [验收模型封装](../../artifacts/maintenance/ra-learning-signed-20261128/accepted-model-envelope.json)
 
+### 第二轮未达标玩法复验
+
+现代艺术以原权重和一次报价节点完成 1048 个全新开局块的独立确认，每个开局轮换四个座位。相对现行绝悟提高 **3.77 个胜率百分点**，95% 配对区间 **+2.77 至 +4.79**。入门、混合和强桌分别提高 0.95、4.82 和 4.48 个百分点。四人绝悟源码已接入原权重，复现 64 条确认动作轨迹。实际 Worker 在隔离房间将过牌改为出价 83，提交成功。登记、新局绑定、停用后按原模型重开并回退重放通过。紧凑模型为 242 字节，实测最长 Worker 决策约 215 毫秒。新签名载荷待单独验证。[正式确认与配对](../../artifacts/maintenance/bot-rise-second-learning-20261128/modern-art-confirmation.json) · [真实 Worker 与存档](../../artifacts/maintenance/bot-rise-second-learning-20261128/modern-art-worker.json)
+
+新开发层采用最多三个有区别的合法替代候选，使用同一开局和随机状态进行配对标注，比较现行策略、候选扩展和学习评分。调参冻结改选阈值及单局介入次数。48 个独立换座开局后，再按整场提升、首次改选收益及候选扩展对照决定是否冻结正式候选。
+
+- 马尼拉增加合法过牌和后续骰点共用续推。取得 384 条拟合标签和 192 条调参标签，正式开发 48 个开局零改选。调参阈值 0.02 的 14 次可改选单次配对平均低 1.79 个胜率百分点，暂用原策略。[马尼拉开发配对](../../artifacts/maintenance/bot-rise-second-learning-20261128/manila-development.json)
+- 阿瓦隆按阵营和否决压力采集密投。48 个开发开局的胜率差为 −0.89 个百分点，95% 配对区间 −4.46 至 +2.68。首次改选的配对差为 −1.00 个百分点，暂用原策略。[阿瓦隆开发配对](../../artifacts/maintenance/bot-rise-second-learning-20261128/avalon-development.json)
+- UNO C 从 B 的近分候选采集 223 条成对拟合标签，32 个拟合和 16 个调参开局与原正式数据隔离。48 个开发开局、576 场完整对局中，C 比 B 低 4.17 个胜率百分点，95% 配对区间 −12.50 至 +3.65。保持 B 的校准、排序门槛与搜索预算，C 不进入本轮正式对照。[UNO 训练候选](../../artifacts/maintenance/bot-rise-second-learning-20261128/uno-candidate.json) · [UNO 独立开发](../../artifacts/maintenance/bot-rise-second-learning-20261128/uno-development.json)
+
 ### 安装包与本机学习存储
 
 - **安装器基线。** 2026-11-21 验收的 1.0.9.1 完整 EXE 为 49,906,647 字节，距 50,000,000 字节上限余 93,353 字节。这个余量仅对应当时的冻结产物。[安装交付](../reference/acceptance.md#当前安装交付2026-11-21) · [交付体积要求](../reference/release.md)

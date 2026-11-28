@@ -1,5 +1,7 @@
 import type { Action, ModernArtView } from '../ui/view';
 
+export const onceAuctionEncoder = { id: 'once-auction-v1', width: 8 } as const;
+
 export function encodeAuctionBid(
   view: ModernArtView,
   action: Action,

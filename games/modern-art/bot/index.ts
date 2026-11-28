@@ -1,9 +1,14 @@
-import type { BotStrategy } from '@tablemax/game-sdk';
+import {
+  applyCandidateRating,
+  readCandidateRating,
+  type BotStrategy,
+} from '@tablemax/game-sdk';
 import type { Action, ArtistId, CardFace, ModernArtView } from '../ui/view';
 import { ARTISTS, RULES_VERSION } from '../data/catalog';
 import { observeMemory, validateMemory } from './memory';
 import { RoundPlanner } from './planner';
 import { marketLeader, pressureBid } from './mischief';
+import { encodeAuctionBid, onceAuctionEncoder } from './learning';
 
 // The strategy only evaluates its supplied projection. It never receives State.
 class ArtEvaluator {
@@ -141,7 +146,7 @@ class ArtEvaluator {
     );
   }
 }
-export const bot: BotStrategy = {
+const baseline: BotStrategy = {
   id: 'modern-art-local',
   version: '1.1.0',
   gameId: 'modern-art',
@@ -258,5 +263,35 @@ export const bot: BotStrategy = {
     if (view.auction?.kind === 'open' && selected.type === 'bid')
       observed.raises = Math.min(3, observed.raises + 1);
     return { action: selected, memory: observed };
+  },
+};
+
+const { id: encoder, width } = onceAuctionEncoder;
+export const bot: BotStrategy = {
+  ...baseline,
+  model: {
+    difficulties: ['juewu'],
+    supportsMatch: (seatCount) => seatCount === 4,
+    validate: (model) => readCandidateRating(model, encoder, width),
+  },
+  async decide(input) {
+    const result = await baseline.decide(input);
+    if (input.model === undefined) return result;
+    const view = input.view as ModernArtView;
+    if (input.difficulty !== 'juewu' || view.seatOrder.length !== 4)
+      throw new Error('现代艺术学习评分只适用于四人绝悟。');
+    input.signal.throwIfAborted();
+    return {
+      ...result,
+      action: applyCandidateRating(
+        readCandidateRating(input.model, encoder, width),
+        (observed, action, seat) =>
+          encodeAuctionBid(observed as ModernArtView, action as Action, seat),
+        input.view,
+        input.actions,
+        input.decision.seatId,
+        result.action,
+      ),
+    };
   },
 };
